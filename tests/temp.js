@@ -3,24 +3,22 @@
  */
 var spider = require('../src/spiders')
 class testApp extends spider.Application{
-
-}
-class mIsolate extends spider.Isolate{
     constructor(){
-        this.field = 6
+        super()
+        this.field = 5
     }
-    m(){
-        return 5
+    foo(){
+        console.log("Foo called")
     }
 }
 var app = new testApp()
 class testActor extends app.Actor{
-    constructor(){
+    constructor(fieldVal){
         super()
-        this.mIsolate = mIsolate
-    }
-    getIsolate(){
-        return new this.mIsolate()
+        this.field = fieldVal
     }
 }
-var actor = app.spawnActor(testActor)
+var actor = app.spawnActor(testActor,666)
+actor.field.then((v) => {
+    console.log(v)
+})

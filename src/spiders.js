@@ -27,8 +27,6 @@ class ServerActor {
         var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, app.mainSocketManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
-        /*var actorVariables              = getObjectVars(this,app.mainRef,actorId,app.mainSocketManager,app.mainPromisePool,app.mainObjectPool)
-        var actorMethods                = getObjectMethods(this)*/
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
         var actor = fork(__dirname + '/actorProto.js', [app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods)]);
