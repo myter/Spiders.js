@@ -3,7 +3,7 @@ import {MessageHandler} from "./messageHandler";
 import {ServerFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {getObjectVars, getObjectMethods, deconstructBehaviour} from "./serialisation";
+import {deconstructBehaviour} from "./serialisation";
 import {ChildProcess} from "child_process";
 /**
  * Created by flo on 05/12/2016.
@@ -17,8 +17,6 @@ abstract class ClientActor{
     name : string
     //TODO will problably also need to return a promise
     constructor(name : string = ""){
-        //New branch commit
-        var TeststringToRemove = "to remove"
         this.name       = name
         var work        = require('webworkify')
         this.webWorker  = work(require('./actorProto'))
@@ -35,8 +33,6 @@ abstract class ServerActor{
         var decon                       = deconstructBehaviour(this,[],[],app.mainRef,actorId,app.mainSocketManager,app.mainPromisePool,app.mainObjectPool)
         var actorVariables              = decon[0]
         var actorMethods                = decon[1]
-        /*var actorVariables              = getObjectVars(this,app.mainRef,actorId,app.mainSocketManager,app.mainPromisePool,app.mainObjectPool)
-        var actorMethods                = getObjectMethods(this)*/
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
         var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)])
