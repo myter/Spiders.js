@@ -2,38 +2,23 @@
  * Created by flo on 10/01/2017.
  */
 var spider = require('../src/spiders')
-class myApp extends spider.Application{
+class testApp extends spider.Application{
     constructor(){
         super()
         this.field = 5
     }
-    foo(msg){
-      console.log("Actor said : " + msg)
-        return 5
+    foo(){
+        console.log("Foo called")
     }
 }
-class myIsolate extends spider.Isolate{
-    constructor(){
-        this.name = "My Isolate"
-    }
-    printName(){
-        console.log(this.name)
-    }
-}
-var app = new myApp()
-class myActor extends app.Actor{
-    constructor(){
+var app = new testApp()
+class testActor extends app.Actor{
+    constructor(fieldVal){
         super()
-        this.myIsolate = myIsolate
-    }
-    getIsolate(){
-        return new this.myIsolate()
+        this.field = fieldVal
     }
 }
-var actor = app.spawnActor(myActor)
-class otherActor extends myActor {
-
-}
-actor.getIsolate().then((v) => {
-    console.log(v.printName())
+var actor = app.spawnActor(testActor,666)
+actor.field.then((v) => {
+    console.log(v)
 })

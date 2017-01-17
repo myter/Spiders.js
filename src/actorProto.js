@@ -36,13 +36,13 @@ else {
     var behaviourObject = serialisation_1.reconstructObject(JSON.parse(process.argv[7]), JSON.parse(process.argv[8]), thisRef, promisePool, socketManager, objectPool);
     objectPool.installBehaviourObject(behaviourObject);
     messageHandler = new messageHandler_1.MessageHandler(thisRef, socketManager, promisePool, objectPool);
+    socketManager.init(messageHandler);
     parentRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, address, parentPort, parentId, thisRef, socketManager, promisePool, objectPool);
+    var parentServer = parentRef;
+    socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
     behaviourObject["parent"] = parentRef.proxyify();
     if (Reflect.has(behaviourObject, "init")) {
         behaviourObject["init"]();
     }
-    socketManager.init(messageHandler);
-    var parentServer = parentRef;
-    socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
 }
 //# sourceMappingURL=actorProto.js.map
