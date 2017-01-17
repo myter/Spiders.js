@@ -17,6 +17,8 @@ abstract class ClientActor{
     name : string
     //TODO will problably also need to return a promise
     constructor(name : string = ""){
+        //New branch commit
+        var TeststringToRemove = "to remove"
         this.name       = name
         var work        = require('webworkify')
         this.webWorker  = work(require('./actorProto'))
