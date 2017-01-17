@@ -1,0 +1,19 @@
+{
+  "name": "Spiders.js",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "browserify client-tests/test.js -o client-tests/bundle.js"
+  },
+  "dependencies": {
+    "webworkify": "1.4.0",
+    "protobufjs": "6.0.2",
+    "socket.io": "1.7.2",
+    "socket.io-client": "1.7.2"
+
+  },
+  "devDependencies": {
+    "mocha": "3.2.0",
+    "chai": "3.5.0"
+  }
+
+}
