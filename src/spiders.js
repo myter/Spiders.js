@@ -117,7 +117,10 @@ class ClientApplication extends Application {
         return actorObject.spawn(this);
     }
     kill() {
-        //TODO
+        this.spawnedActors.forEach((workerPair) => {
+            URL.revokeObjectURL(workerPair[1]);
+        });
+        this.spawnedActors = [];
     }
 }
 if (utils.isBrowser()) {

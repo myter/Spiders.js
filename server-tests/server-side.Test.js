@@ -203,6 +203,37 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
+
+    it("Require",(done) => {
+        class testApp extends spider.Application{
+
+        }
+        var app = new testApp()
+        class testActor extends app.Actor{
+            constructor(){
+                super()
+                this.directory = __dirname
+            }
+            init(){
+                this.mod = require(this.directory + '/testModule')
+            }
+            invoke(){
+                return this.mod.testFunction()
+            }
+        }
+        var actor = app.spawnActor(testActor)
+        actor.invoke().then((v) => {
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
 })
 
 

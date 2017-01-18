@@ -148,7 +148,10 @@ abstract class ClientApplication extends Application{
     }
 
     kill(){
-        //TODO
+        this.spawnedActors.forEach((workerPair) => {
+            URL.revokeObjectURL(workerPair[1])
+        })
+        this.spawnedActors = []
     }
 
 }
