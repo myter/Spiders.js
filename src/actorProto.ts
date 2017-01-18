@@ -4,15 +4,14 @@ import {SocketManager} from "./sockets";
 import {ObjectPool} from "./objectPool";
 import {FarReference, ServerFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
-import {} from "./serialisation";
 import {reconstructObject} from "./serialisation";
+import {ChannelManager} from "./ChannelManager";
 /**
  * Created by flo on 05/12/2016.
  */
 var utils           = require('./utils')
 
 var messageHandler  : MessageHandler
-var socketManager   : SocketManager
 var objectPool      : ObjectPool
 var promisePool     : PromisePool
 var parentRef       : FarReference
@@ -21,10 +20,17 @@ var thisId          : string
 
 
 if(utils.isBrowser()){
+    //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
     console.log("Spawned browser actor")
+    var channelManager  = new ChannelManager()
+    promisePool         = new PromisePool()
+    objectPool          = new ObjectPool()
+    messageHandler      = new MessageHandler(null,channelManager,promisePool,objectPool)
+    channelManager.init(messageHandler)
     module.exports = function (self) {
         self.addEventListener('message',function (ev){
-            //TODO
+            //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
+            messageHandler.dispatch(JSON.parse(ev.data))
         });
     };
 }
@@ -34,7 +40,7 @@ else{
     thisId                  = process.argv[4]
     var parentId : string   = process.argv[5]
     var parentPort : number = parseInt(process.argv[6])
-    socketManager           = new SocketManager(address,port)
+    var socketManager       = new SocketManager(address,port)
     promisePool             = new PromisePool()
     objectPool              = new ObjectPool()
     var thisRef             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,thisId,address,port,null,null,null,null)

@@ -29,16 +29,18 @@ export class Message{
     }
 }
 
-export const _ACTOR_CREATED_ : MessageTypeTag = 0
-export class ActorCreatedMessage extends Message{
-    actorAddress    : string
-    actorPort       : number
-    actorId         : string
-    constructor(actorAddress : string,actorPort : number,actorId : string){
-        super(_ACTOR_CREATED_,null)
-        this.actorAddress   = actorAddress
-        this.actorPort      = actorPort
-        this.actorId        = actorId
+export const _INSTALL_BEHAVIOUR_ : MessageTypeTag = 0
+export class InstallBehaviourMessage extends Message{
+    mainId  : string
+    actorId : string
+    vars    : Array<any>
+    methods : Array<any>
+    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>){
+        super(_INSTALL_BEHAVIOUR_,senderRef)
+        this.mainId     = mainId
+        this.actorId    = actorId
+        this.vars       = vars
+        this.methods    = methods
     }
 }
 

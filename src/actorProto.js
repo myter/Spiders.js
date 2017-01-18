@@ -5,21 +5,28 @@ const objectPool_1 = require("./objectPool");
 const farRef_1 = require("./farRef");
 const PromisePool_1 = require("./PromisePool");
 const serialisation_1 = require("./serialisation");
+const ChannelManager_1 = require("./ChannelManager");
 /**
  * Created by flo on 05/12/2016.
  */
 var utils = require('./utils');
 var messageHandler;
-var socketManager;
 var objectPool;
 var promisePool;
 var parentRef;
 var thisId;
 if (utils.isBrowser()) {
+    //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
     console.log("Spawned browser actor");
+    var channelManager = new ChannelManager_1.ChannelManager();
+    promisePool = new PromisePool_1.PromisePool();
+    objectPool = new objectPool_1.ObjectPool();
+    messageHandler = new messageHandler_1.MessageHandler(null, channelManager, promisePool, objectPool);
+    channelManager.init(messageHandler);
     module.exports = function (self) {
         self.addEventListener('message', function (ev) {
-            //TODO
+            //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
+            messageHandler.dispatch(JSON.parse(ev.data));
         });
     };
 }
@@ -29,7 +36,7 @@ else {
     thisId = process.argv[4];
     var parentId = process.argv[5];
     var parentPort = parseInt(process.argv[6]);
-    socketManager = new sockets_1.SocketManager(address, port);
+    var socketManager = new sockets_1.SocketManager(address, port);
     promisePool = new PromisePool_1.PromisePool();
     objectPool = new objectPool_1.ObjectPool();
     var thisRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, address, port, null, null, null, null);

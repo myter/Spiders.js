@@ -1,13 +1,13 @@
 import {
-    ActorCreatedMessage, Message, _ACTOR_CREATED_, _FIELD_ACCESS_, FieldAccessMessage,
+    Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
-    RejectPromiseMessage
+    RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage
 } from "./messages";
 import {SocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {ValueContainer, serialise, deserialise} from "./serialisation";
-import {ServerFarReference, FarReference} from "./farRef";
+import {ValueContainer, serialise, deserialise, reconstructObject} from "./serialisation";
+import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 /**
  * Created by flo on 20/12/2016.
@@ -39,14 +39,20 @@ export class MessageHandler{
         this.commMedium.sendMessage(actorId,msg)
     }
 
-    //TODO this is probably not needed anymore (at least for server side)
-    private handleActorCreated(msg : ActorCreatedMessage){
-        if(utils.isBrowser()){
-            //TODO
+    //Only received as first message by a web worker (i.e. newly spawned client side actor)
+    private handleInstall(msg : InstallBehaviourMessage){
+        var thisId                  = msg.actorId
+        var mainId                  = msg.mainId
+        var thisRef                 = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,null,this.commMedium,this.promisePool,this.objectPool)
+        var behaviourObject         = reconstructObject(msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool)
+        this.objectPool.installBehaviourObject(behaviourObject)
+        this.thisRef                = thisRef
+        var parentRef               = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.thisRef,this.commMedium,this.promisePool,this.objectPool)
+        behaviourObject["parent"]   = parentRef.proxyify()
+        if(Reflect.has(behaviourObject,"init")){
+            behaviourObject["init"]()
         }
-        else{
-            //this.socketManager.openConnection(msg.actorAddress,msg.actorPort,msg.actorId,)
-        }
+        console.log("Install finished ! ")
     }
 
     private handleFieldAccess(msg : FieldAccessMessage){
@@ -116,8 +122,8 @@ export class MessageHandler{
 
     dispatch(msg : Message) : void {
         switch(msg.typeTag){
-            case _ACTOR_CREATED_:
-                this.handleActorCreated(msg as ActorCreatedMessage)
+            case _INSTALL_BEHAVIOUR_:
+                this.handleInstall(msg as InstallBehaviourMessage)
                 break
             case _FIELD_ACCESS_:
                 this.handleFieldAccess(msg as FieldAccessMessage)

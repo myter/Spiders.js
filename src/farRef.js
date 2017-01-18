@@ -4,50 +4,14 @@ const serialisation_1 = require("./serialisation");
  * Created by flo on 21/12/2016.
  */
 class FarReference {
-    constructor(objectId, ownerId, holderRef, commMedium, promisePool, objectPool) {
+    constructor(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, isServer) {
         this.ownerId = ownerId;
         this.objectId = objectId;
         this.promisePool = promisePool;
         this.objectPool = objectPool;
         this.holderRef = holderRef;
         this.commMedium = commMedium;
-    }
-}
-FarReference.farRefAccessorKey = "_FAR_REF_";
-FarReference.proxyWrapperAccessorKey = "_PROXY_WRAPPER_";
-FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
-FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
-exports.FarReference = FarReference;
-class ClientFarReference extends FarReference {
-    sendFieldAccess(fieldName) {
-        //TODO
-        return null;
-    }
-    sendMethodInvocation(methodName, args) {
-        //TODO
-        return null;
-    }
-    proxyify() {
-        //TODO
-        return null;
-    }
-}
-exports.ClientFarReference = ClientFarReference;
-class ServerFarReference extends FarReference {
-    constructor(objectId, ownerId, ownerAddress, ownerPort, holderRef, commMedium, promisePool, objectPool) {
-        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool);
-        this.ownerAddress = ownerAddress;
-        this.ownerPort = ownerPort;
-    }
-    sendFieldAccess(fieldName) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
-    }
-    sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
+        this.isServer = isServer;
     }
     proxyify() {
         var baseObject = this;
@@ -58,10 +22,10 @@ class ServerFarReference extends FarReference {
                     return baseObject;
                 }
                 else if (property == FarReference.ClientProxyTypeKey) {
-                    return false;
+                    return !(baseObject.isServer);
                 }
                 else if (property == FarReference.ServerProxyTypeKey) {
-                    return true;
+                    return baseObject.isServer;
                 }
                 else {
                     //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
@@ -83,6 +47,43 @@ class ServerFarReference extends FarReference {
                 }
             }
         });
+    }
+}
+FarReference.farRefAccessorKey = "_FAR_REF_";
+FarReference.proxyWrapperAccessorKey = "_PROXY_WRAPPER_";
+FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
+FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
+exports.FarReference = FarReference;
+class ClientFarReference extends FarReference {
+    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool) {
+        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
+        this.mainId = mainId;
+    }
+    sendFieldAccess(fieldName) {
+        //TODO
+        return null;
+    }
+    sendMethodInvocation(methodName, args) {
+        //TODO
+        return null;
+    }
+}
+exports.ClientFarReference = ClientFarReference;
+class ServerFarReference extends FarReference {
+    constructor(objectId, ownerId, ownerAddress, ownerPort, holderRef, commMedium, promisePool, objectPool) {
+        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, true);
+        this.ownerAddress = ownerAddress;
+        this.ownerPort = ownerPort;
+    }
+    sendFieldAccess(fieldName) {
+        var promiseAlloc = this.promisePool.newPromise();
+        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
+        return promiseAlloc.promise;
+    }
+    sendMethodInvocation(methodName, args) {
+        var promiseAlloc = this.promisePool.newPromise();
+        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
+        return promiseAlloc.promise;
     }
 }
 exports.ServerFarReference = ServerFarReference;

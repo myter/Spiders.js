@@ -20,61 +20,20 @@ export abstract class FarReference {
     objectPool  : ObjectPool
     holderRef   : FarReference
     commMedium  : CommMedium
+    isServer    : boolean
 
-    constructor(objectId : number,ownerId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+    constructor(objectId : number,ownerId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,isServer : boolean){
         this.ownerId        = ownerId
         this.objectId       = objectId
         this.promisePool    = promisePool
         this.objectPool     = objectPool
         this.holderRef      = holderRef
         this.commMedium     = commMedium
+        this.isServer       = isServer
     }
     abstract sendFieldAccess(fieldName : string) : Promise<any>
     abstract sendMethodInvocation(methodName : string,args : Array<any>) : Promise<any>
-    abstract proxyify() : Object
-}
-
-export class ClientFarReference extends FarReference {
-
-    sendFieldAccess(fieldName : string) : Promise<any>{
-        //TODO
-        return null
-    }
-
-    sendMethodInvocation(methodName : string,args : Array<any>) : Promise<any>{
-        //TODO
-        return null
-    }
-
     proxyify() : Object{
-        //TODO
-        return null
-    }
-}
-
-export class ServerFarReference extends FarReference {
-    ownerAddress : string
-    ownerPort    : number
-
-    constructor(objectId : number,ownerId : string,ownerAddress : string,ownerPort : number,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
-        super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool)
-        this.ownerAddress   = ownerAddress
-        this.ownerPort      = ownerPort
-    }
-
-    sendFieldAccess(fieldName : string) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        this.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId))
-        return promiseAlloc.promise
-    }
-
-    sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        this.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId))
-        return promiseAlloc.promise
-    }
-
-    proxyify() : Object {
         var baseObject = this
         return new Proxy({},{
             get: function(target,property){
@@ -84,10 +43,10 @@ export class ServerFarReference extends FarReference {
                 }
                 //Similarly, needed to check whether an object is a proxy to a far reference in serialisation (i.e. a far ref is being passed around between actors)
                 else if(property == FarReference.ClientProxyTypeKey){
-                    return false
+                    return !(baseObject.isServer)
                 }
                 else if(property == FarReference.ServerProxyTypeKey){
-                    return true
+                    return baseObject.isServer
                 }
                 //ES6 proxies don't allow to catch method invocation on objects. To solve this a far reference returns a "callable" promise as the return of a "get"
                 else {
@@ -111,4 +70,48 @@ export class ServerFarReference extends FarReference {
             }
         })
     }
+}
+
+export class ClientFarReference extends FarReference {
+    mainId : string
+
+    constructor(objectId : number,ownerId : string,mainId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+        super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool,false)
+        this.mainId = mainId
+    }
+
+    sendFieldAccess(fieldName : string) : Promise<any>{
+        //TODO
+        return null
+    }
+
+    sendMethodInvocation(methodName : string,args : Array<any>) : Promise<any>{
+        //TODO
+        return null
+    }
+
+}
+
+export class ServerFarReference extends FarReference {
+    ownerAddress : string
+    ownerPort    : number
+
+    constructor(objectId : number,ownerId : string,ownerAddress : string,ownerPort : number,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+        super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool,true)
+        this.ownerAddress   = ownerAddress
+        this.ownerPort      = ownerPort
+    }
+
+    sendFieldAccess(fieldName : string) : Promise<any> {
+        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
+        this.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId))
+        return promiseAlloc.promise
+    }
+
+    sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
+        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
+        this.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId))
+        return promiseAlloc.promise
+    }
+
 }

@@ -1,4 +1,5 @@
 const messages_1 = require("./messages");
+const objectPool_1 = require("./objectPool");
 const serialisation_1 = require("./serialisation");
 const farRef_1 = require("./farRef");
 /**
@@ -22,12 +23,20 @@ class MessageHandler {
         }
         this.commMedium.sendMessage(actorId, msg);
     }
-    //TODO this is probably not needed anymore (at least for server side)
-    handleActorCreated(msg) {
-        if (utils.isBrowser()) {
+    //Only received as first message by a web worker (i.e. newly spawned client side actor)
+    handleInstall(msg) {
+        var thisId = msg.actorId;
+        var mainId = msg.mainId;
+        var thisRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, mainId, null, this.commMedium, this.promisePool, this.objectPool);
+        var behaviourObject = serialisation_1.reconstructObject(msg.vars, msg.methods, thisRef, this.promisePool, this.commMedium, this.objectPool);
+        this.objectPool.installBehaviourObject(behaviourObject);
+        this.thisRef = thisRef;
+        var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
+        behaviourObject["parent"] = parentRef.proxyify();
+        if (Reflect.has(behaviourObject, "init")) {
+            behaviourObject["init"]();
         }
-        else {
-        }
+        console.log("Install finished ! ");
     }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
@@ -88,8 +97,8 @@ class MessageHandler {
     }
     dispatch(msg) {
         switch (msg.typeTag) {
-            case messages_1._ACTOR_CREATED_:
-                this.handleActorCreated(msg);
+            case messages_1._INSTALL_BEHAVIOUR_:
+                this.handleInstall(msg);
                 break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);

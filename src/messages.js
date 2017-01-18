@@ -16,16 +16,17 @@ class Message {
 Message.serverSenderType = "_SERVER_";
 Message.clientSenderType = "_CLIENT_";
 exports.Message = Message;
-exports._ACTOR_CREATED_ = 0;
-class ActorCreatedMessage extends Message {
-    constructor(actorAddress, actorPort, actorId) {
-        super(exports._ACTOR_CREATED_, null);
-        this.actorAddress = actorAddress;
-        this.actorPort = actorPort;
+exports._INSTALL_BEHAVIOUR_ = 0;
+class InstallBehaviourMessage extends Message {
+    constructor(senderRef, mainId, actorId, vars, methods) {
+        super(exports._INSTALL_BEHAVIOUR_, senderRef);
+        this.mainId = mainId;
         this.actorId = actorId;
+        this.vars = vars;
+        this.methods = methods;
     }
 }
-exports.ActorCreatedMessage = ActorCreatedMessage;
+exports.InstallBehaviourMessage = InstallBehaviourMessage;
 exports._FIELD_ACCESS_ = 1;
 class FieldAccessMessage extends Message {
     constructor(senderRef, objectId, fieldName, promiseId) {
