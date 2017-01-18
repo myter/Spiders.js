@@ -1,21 +1,26 @@
 const messages_1 = require("./messages");
 const serialisation_1 = require("./serialisation");
+const farRef_1 = require("./farRef");
 /**
  * Created by flo on 20/12/2016.
  */
 var utils = require('./utils');
 class MessageHandler {
-    constructor(thisRef, socketManager, promisePool, objectPool) {
-        this.socketManager = socketManager;
+    constructor(thisRef, commMedium, promisePool, objectPool) {
+        this.commMedium = commMedium;
         this.promisePool = promisePool;
         this.objectPool = objectPool;
         this.thisRef = thisRef;
     }
-    sendReturn(actorId, actorAddress, actorPort, msg) {
-        if (!(this.socketManager.hasConnection(actorId))) {
-            this.socketManager.openConnection(actorId, actorAddress, actorPort);
+    sendReturnServer(actorId, actorAddress, actorPort, msg) {
+        if (this.thisRef instanceof farRef_1.ServerFarReference) {
+            if (!(this.commMedium.hasConnection(actorId))) {
+                this.commMedium.openConnection(actorId, actorAddress, actorPort);
+            }
         }
-        this.socketManager.sendMessage(actorId, msg);
+        else {
+        }
+        this.commMedium.sendMessage(actorId, msg);
     }
     //TODO this is probably not needed anymore (at least for server side)
     handleActorCreated(msg) {
@@ -29,8 +34,12 @@ class MessageHandler {
         var fieldVal = Reflect.get(targetObject, msg.fieldName);
         //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
         if (typeof fieldVal != 'function') {
-            var serialised = serialisation_1.serialise(fieldVal, this.thisRef, msg.senderId, this.socketManager, this.promisePool, this.objectPool);
-            this.sendReturn(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef.ownerId, this.thisRef.ownerAddress, this.thisRef.ownerPort, msg.promiseId, serialised));
+            var serialised = serialisation_1.serialise(fieldVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            if (msg.senderType == messages_1.Message.serverSenderType) {
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised));
+            }
+            else {
+            }
         }
     }
     handleMethodInvocation(msg) {
@@ -38,21 +47,29 @@ class MessageHandler {
         var methodName = msg.methodName;
         var args = msg.args;
         var deserialisedArgs = args.map((arg) => {
-            return serialisation_1.deserialise(this.thisRef, arg, this.promisePool, this.socketManager, this.objectPool);
+            return serialisation_1.deserialise(this.thisRef, arg, this.promisePool, this.commMedium, this.objectPool);
         });
         var retVal;
         try {
             retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
-            var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.socketManager, this.promisePool, this.objectPool);
-            this.sendReturn(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef.ownerId, this.thisRef.ownerAddress, this.thisRef.ownerPort, msg.promiseId, serialised));
+            var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            if (msg.senderType == messages_1.Message.serverSenderType) {
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised));
+            }
+            else {
+            }
         }
         catch (reason) {
-            var serialised = serialisation_1.serialise(reason, this.thisRef, msg.senderId, this.socketManager, this.promisePool, this.objectPool);
-            this.sendReturn(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.RejectPromiseMessage(this.thisRef.ownerId, this.thisRef.ownerAddress, this.thisRef.ownerPort, msg.promiseId, serialised));
+            var serialised = serialisation_1.serialise(reason, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            if (msg.senderType == messages_1.Message.serverSenderType) {
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised));
+            }
+            else {
+            }
         }
     }
     handlePromiseResolve(msg) {
-        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.value, this.promisePool, this.socketManager, this.objectPool);
+        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.value, this.promisePool, this.commMedium, this.objectPool);
         if (msg.foreign) {
             this.promisePool.resolveForeignPromise(msg.promiseId, msg.senderId, deSerialised);
         }
@@ -61,7 +78,7 @@ class MessageHandler {
         }
     }
     handlePromiseReject(msg) {
-        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.reason, this.promisePool, this.socketManager, this.objectPool);
+        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.reason, this.promisePool, this.commMedium, this.objectPool);
         if (msg.foreign) {
             this.promisePool.rejectForeignPromise(msg.promiseId, msg.senderId, deSerialised);
         }

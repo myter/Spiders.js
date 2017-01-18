@@ -2,8 +2,9 @@ import {PromisePool, PromiseAllocation} from "./PromisePool";
 import {SocketManager} from "./sockets";
 import {ResolvePromiseMessage, RejectPromiseMessage} from "./messages";
 import {ObjectPool} from "./objectPool";
-import {ServerFarReference} from "./farRef";
+import {ServerFarReference, FarReference} from "./farRef";
 import {Isolate} from "./spiders";
+import {CommMedium} from "./commMedium";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -14,13 +15,13 @@ function toType(obj : any) : string {
 }
 
 
-export function getObjectVars(object : Object,thisRef : ServerFarReference,receiverId : string,socketManager : SocketManager,promisePool : PromisePool,objectPool : ObjectPool) : Array<any>{
+export function getObjectVars(object : Object,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool) : Array<any>{
     var vars        = []
     var properties  = Reflect.ownKeys(object)
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
-        var serialisedval   = serialise(val,thisRef,receiverId,socketManager,promisePool,objectPool)
+        var serialisedval   = serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
         vars.push([key,serialisedval])
     }
     return vars
@@ -41,13 +42,13 @@ export function getObjectMethods(object : Object) : Array<any>{
     return methods
 }
 
-export function deconstructBehaviour(object : any,accumVars : Array<any>,accumMethods : Array<any>,thisRef : ServerFarReference,receiverId : string,socketManager : SocketManager,promisePool : PromisePool,objectPool : ObjectPool){
+export function deconstructBehaviour(object : any,accumVars : Array<any>,accumMethods : Array<any>,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
     var properties  = Reflect.ownKeys(object)
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
         if(typeof val != 'function' || isIsolateClass(val)){
-            var serialisedval   = serialise(val,thisRef,receiverId,socketManager,promisePool,objectPool)
+            var serialisedval   = serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
             accumVars.push([key,serialisedval])
         }
     }
@@ -63,19 +64,19 @@ export function deconstructBehaviour(object : any,accumVars : Array<any>,accumMe
                 accumMethods.push([key,method.toString()])
             }
         }
-        return deconstructBehaviour(proto,accumVars,accumMethods,thisRef,receiverId,socketManager,promisePool,objectPool)
+        return deconstructBehaviour(proto,accumVars,accumMethods,thisRef,receiverId,commMedium,promisePool,objectPool)
     }
     else{
         return [accumVars,accumMethods]
     }
 }
 
-export function reconstructObject(variables : Array<any>, methods : Array<any>,thisRef : ServerFarReference,promisePool : PromisePool,socketManager : SocketManager,objectPool : ObjectPool) {
+export function reconstructObject(variables : Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
     var ob = {}
     for(var i in variables){
         var key     = variables[i][0]
         var rawVal  = variables[i][1]
-        var val     = deserialise(thisRef,rawVal,promisePool,socketManager,objectPool)
+        var val     = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
         ob[key]     = val
     }
     for(var i in methods){
@@ -182,42 +183,52 @@ function isIsolateClass(func : Function) : boolean {
     return (func.toString().search(/extends.*?Isolate/) != -1)
 }
 
-function serialisePromise(promise,thisRef : ServerFarReference,receiverId : string,socketManager : SocketManager,promisePool : PromisePool,objectPool : ObjectPool){
+function serialisePromise(promise,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+    //TODO to refactor it is only needed to change the type of message sent depending on the type of the reference ?
     var wrapper : PromiseAllocation = promisePool.newPromise()
     promise.then((val) => {
-        socketManager.sendMessage(receiverId,new ResolvePromiseMessage(thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort,wrapper.promiseId,serialise(val,thisRef,receiverId,socketManager,promisePool,objectPool),true))
+        commMedium.sendMessage(receiverId,new ResolvePromiseMessage(thisRef,wrapper.promiseId,serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool),true))
     })
     promise.catch((reason) => {
-        socketManager.sendMessage(receiverId,new RejectPromiseMessage(thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort,wrapper.promiseId,serialise(reason,thisRef,receiverId,socketManager,promisePool,objectPool),true))
+        commMedium.sendMessage(receiverId,new RejectPromiseMessage(thisRef,wrapper.promiseId,serialise(reason,thisRef,receiverId,commMedium,promisePool,objectPool),true))
     })
     return new PromiseContainer(wrapper.promiseId,thisRef.ownerId)
 }
 
-function serialiseObject(object : Object,thisRef : ServerFarReference,objectPool : ObjectPool){
+function serialiseObject(object : Object,thisRef : FarReference,objectPool : ObjectPool){
+    //TODO depending on type of ref either return server container or client container
     var oId = objectPool.allocateObject(object)
-    return new ServerFarRefContainer(oId,thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort)
+    if(thisRef instanceof ServerFarReference){
+        return new ServerFarRefContainer(oId,thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort)
+    }
+    else{
+        //TODO
+    }
 }
 
-export function serialise(value,thisRef : ServerFarReference,receiverId : string,socketManager : SocketManager,promisePool : PromisePool,objectPool : ObjectPool) : ValueContainer{
+export function serialise(value,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool) : ValueContainer{
     if(typeof value == 'object'){
         if(value instanceof Promise){
-            return serialisePromise(value,thisRef,receiverId,socketManager,promisePool,objectPool)
+            return serialisePromise(value,thisRef,receiverId,commMedium,promisePool,objectPool)
         }
         else if(value instanceof Error){
             return new ErrorContainer(value)
         }
         else if(value instanceof Array){
             var values : Array<ValueContainer> = value.map((val) => {
-                return serialise(val,thisRef,receiverId,socketManager,promisePool,objectPool)
+                return serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
             })
             return new ArrayContainer(values)
         }
-        else if(value[ServerFarReference.proxyTypeAccessorKey]){
+        else if(value[FarReference.ServerProxyTypeKey]){
             var farRef : ServerFarReference = value[ServerFarReference.farRefAccessorKey]
             return new ServerFarRefContainer(farRef.objectId,farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
         }
+        else if(value[FarReference.ClientProxyTypeKey]){
+            //TODO
+        }
         else if(value[IsolateContainer.checkIsolateFuncKey]){
-            var vars    = getObjectVars(value,thisRef,receiverId,socketManager,promisePool,objectPool)
+            var vars    = getObjectVars(value,thisRef,receiverId,commMedium,promisePool,objectPool)
             var methods = getObjectMethods(value)
             return new IsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
         }
@@ -227,8 +238,8 @@ export function serialise(value,thisRef : ServerFarReference,receiverId : string
     }
     else if(typeof value == 'function'){
         //Value is actualy not a function but the result of a field access on a proxy (which is technically a function, see farRef)
-        if(value[ServerFarReference.proxyWrapperAccessorKey]){
-            return serialisePromise(value,thisRef,receiverId,socketManager,promisePool,objectPool)
+        if(value[FarReference.proxyWrapperAccessorKey]){
+            return serialisePromise(value,thisRef,receiverId,commMedium,promisePool,objectPool)
         }
         else if(isClass(value) && isIsolateClass(value)){
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
@@ -246,15 +257,21 @@ export function serialise(value,thisRef : ServerFarReference,receiverId : string
     }
 }
 
-export function deserialise(thisRef : ServerFarReference,value : ValueContainer,promisePool : PromisePool,socketManager : SocketManager,objectPool : ObjectPool) : any{
+export function deserialise(thisRef : FarReference,value : ValueContainer,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) : any{
     function deSerialisePromise(promiseContainer : PromiseContainer){
         return promisePool.newForeignPromise(promiseContainer.promiseId,promiseContainer.promiseCreatorId)
     }
 
+
     function deSerialiseFarRef(farRefContainer : ServerFarRefContainer){
-        var farRef = new ServerFarReference(farRefContainer.objectId,farRefContainer.ownerAddress,farRefContainer.ownerPort,farRefContainer.ownerId,thisRef,socketManager,promisePool,objectPool)
-        if(!(socketManager.hasConnection(farRef.ownerId))){
-            socketManager.openConnection(farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
+        var farRef = new ServerFarReference(farRefContainer.objectId,farRefContainer.ownerId,farRefContainer.ownerAddress,farRefContainer.ownerPort,thisRef,commMedium,promisePool,objectPool)
+        if(thisRef instanceof ServerFarReference){
+            if(!(commMedium.hasConnection(farRef.ownerId))){
+                (commMedium as SocketManager).openConnection(farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
+            }
+        }
+        else{
+            //TODO
         }
         return farRef.proxyify()
     }
@@ -268,13 +285,13 @@ export function deserialise(thisRef : ServerFarReference,value : ValueContainer,
 
     function deSerialiseArray(arrayContainer : ArrayContainer){
         var deserialised = arrayContainer.values.map((valCont) => {
-            return deserialise(thisRef,valCont,promisePool,socketManager,objectPool)
+            return deserialise(thisRef,valCont,promisePool,commMedium,objectPool)
         })
         return deserialised
     }
 
     function deSerialiseIsolate(isolateContainer : IsolateContainer){
-        var isolate = reconstructObject(JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,socketManager,objectPool)
+        var isolate = reconstructObject(JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool)
         isolate[IsolateContainer.checkIsolateFuncKey] = true
         return isolate
     }

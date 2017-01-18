@@ -3,8 +3,7 @@
  * Created by flo on 05/12/2016.
  */
 console.log("Starting test");
-var utils = require('./../src/utils');
-var api = require('./../src/spiders');
+var utils = require('../src/utils');
+var api = require('../src/spiders');
 console.log("Is browser : " + utils.isBrowser());
-api.actor({});
 //# sourceMappingURL=test.js.map

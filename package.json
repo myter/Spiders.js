@@ -2,13 +2,14 @@
   "name": "Spiders.js",
   "version": "0.0.1",
   "scripts": {
-    "build": "browserify client-tests/test.js -o client-tests/bundle.js",
-    "update": "npm update"
+    "build": "browserify client-tests/test.js -o client-tests/bundle.js"
   },
   "dependencies": {
     "webworkify": "1.4.0",
     "socket.io": "1.7.2",
-    "socket.io-client": "1.7.2"
+    "socket.io-client": "1.7.2",
+    "bufferutil": "1.3.0",
+    "utf-8-validate": "2.0.0"
 
   },
   "devDependencies": {

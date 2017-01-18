@@ -37,13 +37,13 @@ else{
     socketManager           = new SocketManager(address,port)
     promisePool             = new PromisePool()
     objectPool              = new ObjectPool()
-    var thisRef             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,address,port,thisId,null,null,null,null)
+    var thisRef             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,thisId,address,port,null,null,null,null)
     var behaviourObject     = reconstructObject(JSON.parse(process.argv[7]),JSON.parse(process.argv[8]),thisRef,promisePool,socketManager,objectPool)
     objectPool.installBehaviourObject(behaviourObject)
     messageHandler          = new MessageHandler(thisRef,socketManager,promisePool,objectPool)
     socketManager.init(messageHandler)
-    parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,address,parentPort,parentId,thisRef,socketManager,promisePool,objectPool)
-    var parentServer = parentRef as ServerFarReference
+    parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,parentId,address,parentPort,thisRef,socketManager,promisePool,objectPool)
+    var parentServer        = parentRef as ServerFarReference
     socketManager.openConnection(parentServer.ownerId,parentServer.ownerAddress,parentServer.ownerPort)
     behaviourObject["parent"] = parentRef.proxyify()
     if(Reflect.has(behaviourObject,"init")){

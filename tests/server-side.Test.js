@@ -8,7 +8,9 @@ var spider          = require('../src/spiders')
 var serialisation   = require('../src/serialisation')
 
 describe("Behaviour serialisation",() => {
-    it("Field serialisation",(done) => {
+
+    it("Field serialisation",function(done){
+        this.timeout(3000)
         class testApp extends spider.Application{
 
         }

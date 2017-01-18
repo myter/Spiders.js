@@ -1,9 +1,11 @@
+const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
  */
 var io = require('socket.io');
-class SocketManager {
+class SocketManager extends commMedium_1.CommMedium {
     constructor(ip, socketPort) {
+        super();
         this.socketIp = ip;
         this.socketPort = socketPort;
         this.socket = io(socketPort);

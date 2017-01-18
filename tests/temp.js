@@ -2,23 +2,20 @@
  * Created by flo on 10/01/2017.
  */
 var spider = require('../src/spiders')
-class testApp extends spider.Application{
-    constructor(){
-        super()
-        this.field = 5
-    }
-    foo(){
-        console.log("Foo called")
-    }
+class testApp extends spider.Application {
 }
 var app = new testApp()
 class testActor extends app.Actor{
-    constructor(fieldVal){
+    constructor(){
         super()
-        this.field = fieldVal
+        this.field = 666
+    }
+    print(){
+        console.log("Working now")
+        return 5
     }
 }
-var actor = app.spawnActor(testActor,666)
+var actor = app.spawnActor(testActor)
 actor.field.then((v) => {
-    console.log(v)
+    console.log("Got : " + v)
 })

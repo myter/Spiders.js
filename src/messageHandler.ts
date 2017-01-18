@@ -7,30 +7,36 @@ import {SocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
 import {ValueContainer, serialise, deserialise} from "./serialisation";
-import {ServerFarReference} from "./farRef";
+import {ServerFarReference, FarReference} from "./farRef";
+import {CommMedium} from "./commMedium";
 /**
  * Created by flo on 20/12/2016.
  */
 var utils       = require('./utils')
 
 export class MessageHandler{
-    private socketManager   : SocketManager
+    private commMedium      : CommMedium
     private promisePool     : PromisePool
     private objectPool      : ObjectPool
-    private thisRef         : ServerFarReference
+    private thisRef         : FarReference
 
-    constructor(thisRef : ServerFarReference,socketManager : SocketManager,promisePool : PromisePool,objectPool : ObjectPool){
-        this.socketManager  = socketManager
+    constructor(thisRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+        this.commMedium     = commMedium
         this.promisePool    = promisePool
         this.objectPool     = objectPool
         this.thisRef        = thisRef
     }
 
-    private sendReturn(actorId : string,actorAddress : string,actorPort : number,msg : Message){
-        if(!(this.socketManager.hasConnection(actorId))){
-            this.socketManager.openConnection(actorId,actorAddress,actorPort)
+    private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message){
+        if(this.thisRef instanceof ServerFarReference){
+            if(!(this.commMedium.hasConnection(actorId))){
+                (this.commMedium as SocketManager).openConnection(actorId,actorAddress,actorPort)
+            }
         }
-        this.socketManager.sendMessage(actorId,msg)
+        else{
+            //TODO
+        }
+        this.commMedium.sendMessage(actorId,msg)
     }
 
     //TODO this is probably not needed anymore (at least for server side)
@@ -48,8 +54,13 @@ export class MessageHandler{
         var fieldVal        = Reflect.get(targetObject,msg.fieldName)
         //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
         if(typeof fieldVal != 'function'){
-            var serialised = serialise(fieldVal,this.thisRef,msg.senderId,this.socketManager,this.promisePool,this.objectPool)
-            this.sendReturn(msg.senderId,msg.senderAddress,msg.senderPort,new ResolvePromiseMessage(this.thisRef.ownerId,this.thisRef.ownerAddress,this.thisRef.ownerPort,msg.promiseId,serialised))
+            var serialised = serialise(fieldVal,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
+            if(msg.senderType == Message.serverSenderType){
+                this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,new ResolvePromiseMessage(this.thisRef,msg.promiseId,serialised))
+            }
+            else{
+                //TODO
+            }
         }
     }
 
@@ -58,23 +69,33 @@ export class MessageHandler{
         var methodName                          = msg.methodName
         var args                                = msg.args
         var deserialisedArgs                    = args.map((arg) => {
-            return deserialise(this.thisRef,arg,this.promisePool,this.socketManager,this.objectPool)
+            return deserialise(this.thisRef,arg,this.promisePool,this.commMedium,this.objectPool)
         })
         var retVal
         try{
             retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
-            var serialised : ValueContainer         = serialise(retVal,this.thisRef,msg.senderId,this.socketManager,this.promisePool,this.objectPool)
-            this.sendReturn(msg.senderId,msg.senderAddress,msg.senderPort,new ResolvePromiseMessage(this.thisRef.ownerId,this.thisRef.ownerAddress,this.thisRef.ownerPort,msg.promiseId,serialised))
+            var serialised : ValueContainer         = serialise(retVal,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
+            if(msg.senderType == Message.serverSenderType){
+                this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,new ResolvePromiseMessage(this.thisRef,msg.promiseId,serialised))
+            }
+            else{
+                //TODO
+            }
         }
         catch(reason){
-            var serialised : ValueContainer         = serialise(reason,this.thisRef,msg.senderId,this.socketManager,this.promisePool,this.objectPool)
-            this.sendReturn(msg.senderId,msg.senderAddress,msg.senderPort,new RejectPromiseMessage(this.thisRef.ownerId,this.thisRef.ownerAddress,this.thisRef.ownerPort,msg.promiseId,serialised))
+            var serialised : ValueContainer         = serialise(reason,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
+            if(msg.senderType == Message.serverSenderType){
+                this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,new RejectPromiseMessage(this.thisRef,msg.promiseId,serialised))
+            }
+            else{
+                //TODO
+            }
         }
 
     }
 
     private handlePromiseResolve(msg : ResolvePromiseMessage){
-        var deSerialised = deserialise(this.thisRef,msg.value,this.promisePool,this.socketManager,this.objectPool)
+        var deSerialised = deserialise(this.thisRef,msg.value,this.promisePool,this.commMedium,this.objectPool)
         if(msg.foreign){
             this.promisePool.resolveForeignPromise(msg.promiseId,msg.senderId,deSerialised)
         }
@@ -84,7 +105,7 @@ export class MessageHandler{
     }
 
     private handlePromiseReject(msg : RejectPromiseMessage){
-        var deSerialised  = deserialise(this.thisRef,msg.reason,this.promisePool,this.socketManager,this.objectPool)
+        var deSerialised  = deserialise(this.thisRef,msg.reason,this.promisePool,this.commMedium,this.objectPool)
         if(msg.foreign){
             this.promisePool.rejectForeignPromise(msg.promiseId,msg.senderId,deSerialised)
         }

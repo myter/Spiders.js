@@ -4,28 +4,49 @@ const serialisation_1 = require("./serialisation");
  * Created by flo on 21/12/2016.
  */
 class FarReference {
-}
-exports.FarReference = FarReference;
-class ServerFarReference extends FarReference {
-    constructor(objectId, ownerAddress, ownerPort, ownerId, holderRef, socketManager, promisePool, objectPool) {
-        super();
-        this.objectId = objectId;
-        this.ownerAddress = ownerAddress;
-        this.ownerPort = ownerPort;
+    constructor(objectId, ownerId, holderRef, commMedium, promisePool, objectPool) {
         this.ownerId = ownerId;
-        this.holderRef = holderRef;
-        this.socketManager = socketManager;
+        this.objectId = objectId;
         this.promisePool = promisePool;
         this.objectPool = objectPool;
+        this.holderRef = holderRef;
+        this.commMedium = commMedium;
+    }
+}
+FarReference.farRefAccessorKey = "_FAR_REF_";
+FarReference.proxyWrapperAccessorKey = "_PROXY_WRAPPER_";
+FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
+FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
+exports.FarReference = FarReference;
+class ClientFarReference extends FarReference {
+    sendFieldAccess(fieldName) {
+        //TODO
+        return null;
+    }
+    sendMethodInvocation(methodName, args) {
+        //TODO
+        return null;
+    }
+    proxyify() {
+        //TODO
+        return null;
+    }
+}
+exports.ClientFarReference = ClientFarReference;
+class ServerFarReference extends FarReference {
+    constructor(objectId, ownerId, ownerAddress, ownerPort, holderRef, commMedium, promisePool, objectPool) {
+        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool);
+        this.ownerAddress = ownerAddress;
+        this.ownerPort = ownerPort;
     }
     sendFieldAccess(fieldName) {
         var promiseAlloc = this.promisePool.newPromise();
-        this.socketManager.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef.ownerId, this.holderRef.ownerAddress, this.holderRef.ownerPort, this.objectId, fieldName, promiseAlloc.promiseId));
+        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
         return promiseAlloc.promise;
     }
     sendMethodInvocation(methodName, args) {
         var promiseAlloc = this.promisePool.newPromise();
-        this.socketManager.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef.ownerId, this.holderRef.ownerAddress, this.holderRef.ownerPort, this.objectId, methodName, args, promiseAlloc.promiseId));
+        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
         return promiseAlloc.promise;
     }
     proxyify() {
@@ -33,10 +54,13 @@ class ServerFarReference extends FarReference {
         return new Proxy({}, {
             get: function (target, property) {
                 //Ugly but needed to acquire the proxied far reference
-                if (property == ServerFarReference.farRefAccessorKey) {
+                if (property == FarReference.farRefAccessorKey) {
                     return baseObject;
                 }
-                else if (property == ServerFarReference.proxyTypeAccessorKey) {
+                else if (property == FarReference.ClientProxyTypeKey) {
+                    return false;
+                }
+                else if (property == FarReference.ServerProxyTypeKey) {
                     return true;
                 }
                 else {
@@ -44,7 +68,7 @@ class ServerFarReference extends FarReference {
                     var prom = baseObject.sendFieldAccess(property.toString());
                     var ret = function (...args) {
                         var serialisedArgs = args.map((arg) => {
-                            return serialisation_1.serialise(arg, baseObject, baseObject.ownerId, baseObject.socketManager, baseObject.promisePool, baseObject.objectPool);
+                            return serialisation_1.serialise(arg, baseObject, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
                         });
                         return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
                     };
@@ -54,15 +78,12 @@ class ServerFarReference extends FarReference {
                     ret["catch"] = function (onRej) {
                         return prom.catch(onRej);
                     };
-                    ret[ServerFarReference.proxyWrapperAccessorKey] = true;
+                    ret[FarReference.proxyWrapperAccessorKey] = true;
                     return ret;
                 }
             }
         });
     }
 }
-ServerFarReference.farRefAccessorKey = "_FAR_REF_";
-ServerFarReference.proxyTypeAccessorKey = "_SPIDER_TYPE_";
-ServerFarReference.proxyWrapperAccessorKey = "_PROXY_WRAPPER_";
 exports.ServerFarReference = ServerFarReference;
 //# sourceMappingURL=farRef.js.map

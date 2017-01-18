@@ -8,7 +8,9 @@ const serialisation_1 = require("./serialisation");
  * Created by flo on 05/12/2016.
  */
 var utils = require('./utils');
-var fork = require('child_process').fork;
+class Isolate {
+}
+exports.Isolate = Isolate;
 class ClientActor {
     //TODO will problably also need to return a promise
     constructor(name = "") {
@@ -23,51 +25,55 @@ class ClientActor {
 }
 class ServerActor {
     spawn(app, port) {
+        var socketManager = app.mainCommMedium;
+        var fork = require('child_process').fork;
         var actorId = utils.generateId();
-        var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, app.mainSocketManager, app.mainPromisePool, app.mainObjectPool);
+        var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
         var actor = fork(__dirname + '/actorProto.js', [app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods)]);
         app.spawnedActors.push(actor);
-        var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, app.mainIp, port, actorId, app.mainRef, app.mainSocketManager, app.mainPromisePool, app.mainObjectPool);
-        app.mainSocketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
+        var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool);
+        socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
         return ref.proxyify();
     }
 }
-class Isolate {
-}
-exports.Isolate = Isolate;
 class Application {
-    constructor(mainIp = "127.0.0.1", mainPort = 8000) {
-        this.mainIp = mainIp;
-        this.mainPort = mainPort;
-        this.spawnedActors = [];
+    constructor() {
         this.mainId = utils.generateId();
         this.mainPromisePool = new PromisePool_1.PromisePool();
         this.mainObjectPool = new objectPool_1.ObjectPool(this);
-        this.mainSocketManager = new sockets_1.SocketManager(mainIp, mainPort);
-        this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainIp, this.mainPort, this.mainId, null, this.mainSocketManager, this.mainPromisePool, this.mainObjectPool);
-        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.mainSocketManager, this.mainPromisePool, this.mainObjectPool);
-        this.mainSocketManager.init(this.mainMessageHandler);
-        if (utils.isBrowser()) {
-            this.Actor = ClientActor;
-        }
-        else {
-            this.Actor = ServerActor;
-        }
+    }
+}
+class ServerApplication extends Application {
+    constructor(mainIp = "127.0.0.1", mainPort = 8000) {
+        super();
+        this.mainIp = mainIp;
+        this.mainPort = mainPort;
+        this.spawnedActors = [];
+        this.mainCommMedium = new sockets_1.SocketManager(mainIp, mainPort);
+        this.socketManager = this.mainCommMedium;
+        this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
+        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool);
+        this.socketManager.init(this.mainMessageHandler);
+        this.Actor = ServerActor;
     }
     spawnActor(actorClass, constructorArgs = [], port = 8080) {
         var actorObject = new actorClass(constructorArgs);
         return actorObject.spawn(this, port);
     }
     kill() {
-        this.mainSocketManager.closeAll();
+        this.socketManager.closeAll();
         this.spawnedActors.forEach((actor) => {
             actor.kill();
         });
     }
 }
-exports.Application = Application;
+if (utils.isBrowser()) {
+}
+else {
+    exports.Application = ServerApplication;
+}
 //# sourceMappingURL=spiders.js.map

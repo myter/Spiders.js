@@ -1,13 +1,13 @@
 import {MessageHandler} from "./messageHandler";
 import {Message} from "./messages";
 import {Socket} from "net";
-import {ServerFarReference} from "./farRef";
+import {CommMedium} from "./commMedium";
 /**
  * Created by flo on 19/12/2016.
  */
 var io = require('socket.io')
 
-export class SocketManager{
+export class SocketManager extends CommMedium{
     private socketIp            : string
     private socketPort          : number
     private socket              : any
@@ -17,6 +17,7 @@ export class SocketManager{
     private messageHandler      : MessageHandler
 
     constructor(ip : string,socketPort : number){
+        super()
         this.socketIp           = ip
         this.socketPort         = socketPort
         this.socket             = io(socketPort)
