@@ -13,6 +13,16 @@ class FarReference {
         this.commMedium = commMedium;
         this.isServer = isServer;
     }
+    sendFieldAccess(fieldName) {
+        var promiseAlloc = this.promisePool.newPromise();
+        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
+        return promiseAlloc.promise;
+    }
+    sendMethodInvocation(methodName, args) {
+        var promiseAlloc = this.promisePool.newPromise();
+        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
+        return promiseAlloc.promise;
+    }
     proxyify() {
         var baseObject = this;
         return new Proxy({}, {
@@ -59,14 +69,6 @@ class ClientFarReference extends FarReference {
         super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
         this.mainId = mainId;
     }
-    sendFieldAccess(fieldName) {
-        //TODO
-        return null;
-    }
-    sendMethodInvocation(methodName, args) {
-        //TODO
-        return null;
-    }
 }
 exports.ClientFarReference = ClientFarReference;
 class ServerFarReference extends FarReference {
@@ -74,16 +76,6 @@ class ServerFarReference extends FarReference {
         super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, true);
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
-    }
-    sendFieldAccess(fieldName) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
-    }
-    sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
     }
 }
 exports.ServerFarReference = ServerFarReference;

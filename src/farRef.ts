@@ -31,8 +31,18 @@ export abstract class FarReference {
         this.commMedium     = commMedium
         this.isServer       = isServer
     }
-    abstract sendFieldAccess(fieldName : string) : Promise<any>
-    abstract sendMethodInvocation(methodName : string,args : Array<any>) : Promise<any>
+    sendFieldAccess(fieldName : string) : Promise<any>{
+        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
+        this.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId))
+        return promiseAlloc.promise
+    }
+
+    sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
+        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
+        this.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId))
+        return promiseAlloc.promise
+    }
+
     proxyify() : Object{
         var baseObject = this
         return new Proxy({},{
@@ -79,17 +89,6 @@ export class ClientFarReference extends FarReference {
         super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool,false)
         this.mainId = mainId
     }
-
-    sendFieldAccess(fieldName : string) : Promise<any>{
-        //TODO
-        return null
-    }
-
-    sendMethodInvocation(methodName : string,args : Array<any>) : Promise<any>{
-        //TODO
-        return null
-    }
-
 }
 
 export class ServerFarReference extends FarReference {
@@ -101,17 +100,4 @@ export class ServerFarReference extends FarReference {
         this.ownerAddress   = ownerAddress
         this.ownerPort      = ownerPort
     }
-
-    sendFieldAccess(fieldName : string) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        this.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId))
-        return promiseAlloc.promise
-    }
-
-    sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        this.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId))
-        return promiseAlloc.promise
-    }
-
 }

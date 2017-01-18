@@ -206,7 +206,7 @@ describe("Behaviour serialisation",() => {
 })
 
 
-describe("Communication tests",() => {
+describe("Communication",() => {
 
     it("Accessing actor instance variable",(done) => {
         class testApp extends spider.Application{

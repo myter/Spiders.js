@@ -3,12 +3,16 @@
  */
 var spiders = require("../src/spiders")
 class testApp extends spiders.Application{
-
+    getGUIField(){
+        return window.guiField
+    }
 }
 var app = new testApp()
 class testActor extends app.Actor{
-    meth(){
-        return 5
+    init(){
+        parent.getGUIField().then((v) => {
+            console.log("Gui field = " + v)
+        })
     }
 }
 var actor = app.spawnActor(testActor)

@@ -23,8 +23,15 @@ class MessageHandler {
         }
         this.commMedium.sendMessage(actorId, msg);
     }
+    sendReturnClient(actorId, msg) {
+        if (this.thisRef instanceof farRef_1.ServerFarReference) {
+        }
+        else {
+        }
+        this.commMedium.sendMessage(actorId, msg);
+    }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
-    handleInstall(msg) {
+    handleInstall(msg, mainPort) {
         var thisId = msg.actorId;
         var mainId = msg.mainId;
         var thisRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, mainId, null, this.commMedium, this.promisePool, this.objectPool);
@@ -33,10 +40,15 @@ class MessageHandler {
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         behaviourObject["parent"] = parentRef.proxyify();
+        var channelManag = this.commMedium;
+        channelManag.newConnection(mainId, mainPort);
         if (Reflect.has(behaviourObject, "init")) {
             behaviourObject["init"]();
         }
-        console.log("Install finished ! ");
+    }
+    handleOpenPort(msg, port) {
+        var channelManager = this.commMedium;
+        channelManager.newConnection(msg.actorId, port);
     }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
@@ -44,10 +56,12 @@ class MessageHandler {
         //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
         if (typeof fieldVal != 'function') {
             var serialised = serialisation_1.serialise(fieldVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised));
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
+                this.sendReturnClient(msg.senderId, message);
             }
         }
     }
@@ -62,18 +76,22 @@ class MessageHandler {
         try {
             retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
             var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised));
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
+                this.sendReturnClient(msg.senderId, message);
             }
         }
         catch (reason) {
             var serialised = serialisation_1.serialise(reason, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            message = new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised));
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
+                this.sendReturnClient(msg.senderId, message);
             }
         }
     }
@@ -95,11 +113,14 @@ class MessageHandler {
             this.promisePool.rejectPromise(msg.promiseId, deSerialised);
         }
     }
-    dispatch(msg) {
+    //Ports are needed for client side actor communication and cannot be serialised together with message objects
+    dispatch(msg, ports = []) {
         switch (msg.typeTag) {
             case messages_1._INSTALL_BEHAVIOUR_:
-                this.handleInstall(msg);
+                this.handleInstall(msg, ports[0]);
                 break;
+            case messages_1._OPEN_PORT_:
+                this.handleOpenPort(msg, ports[0]);
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);
                 break;

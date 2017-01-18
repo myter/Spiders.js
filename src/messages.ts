@@ -2,7 +2,7 @@
  * Created by flo on 20/12/2016.
  */
 import {ValueContainer} from "./serialisation";
-import {FarReference, ServerFarReference} from "./farRef";
+import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
 type MessageTypeTag = number
 
 
@@ -12,8 +12,11 @@ export class Message{
     typeTag         : MessageTypeTag
     senderId        : string
     senderType      : string
+    //For Messages sent by server
     senderAddress   : string
     senderPort      : number
+    //For messages sent by client
+    senderMainId    : string
     constructor(typeTag : MessageTypeTag,senderRef : FarReference){
         this.typeTag        = typeTag
         this.senderId       = senderRef.ownerId
@@ -24,8 +27,8 @@ export class Message{
         }
         else{
             this.senderType     = Message.clientSenderType
+            this.senderMainId   = (senderRef as ClientFarReference).mainId
         }
-
     }
 }
 
@@ -95,6 +98,15 @@ export class RejectPromiseMessage extends Message {
         this.promiseId  = promiseId
         this.reason     = reason
         this.foreign    = foreign
+    }
+}
+
+export const _OPEN_PORT_ : MessageTypeTag = 5
+export class OpenPortMessage extends Message {
+    actorId : string
+    constructor(senderRef : FarReference,actorId : string){
+        super(_OPEN_PORT_,senderRef)
+        this.actorId = actorId
     }
 }
 

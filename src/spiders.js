@@ -13,6 +13,24 @@ var utils = require('./utils');
 class Isolate {
 }
 exports.Isolate = Isolate;
+function updateChannels(app) {
+    var actors = app.spawnedActors;
+    for (var i in actors) {
+        var workerRef1 = actors[i];
+        var worker1Id = workerRef1[0];
+        var worker1 = workerRef1[1];
+        for (var j in actors) {
+            if (i != j) {
+                var workerRef2 = actors[j];
+                var worker2Id = workerRef2[0];
+                var worker2 = workerRef2[1];
+                var channel = new MessageChannel();
+                worker1.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker2Id)), [channel.port1]);
+                worker2.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker1Id)), [channel.port2]);
+            }
+        }
+    }
+}
 class ClientActor {
     spawn(app) {
         var actorId = utils.generateId();
@@ -24,9 +42,14 @@ class ClientActor {
         var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
+        var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods)));
+        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods)), [mainChannel.port1]);
+        var channelManager = app.mainCommMedium;
+        channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
+        app.spawnedActors.push([actorId, webWorker]);
+        updateChannels(app);
         return ref.proxyify();
     }
 }
@@ -90,7 +113,6 @@ class ClientApplication extends Application {
         this.Actor = ClientActor;
     }
     spawnActor(actorClass, constructorArgs) {
-        //TODO create new channel and broadcast to all others (see original implementation)
         var actorObject = new actorClass(constructorArgs);
         return actorObject.spawn(this);
     }

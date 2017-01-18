@@ -4,15 +4,20 @@
  */
 var spiders = require("../src/spiders")
 class testApp extends spiders.Application{
-
+    getGUIField(){
+        return window.guiField
+    }
 }
 var app = new testApp()
 class testActor extends app.Actor{
-    meth(){
-        return 5
+    init(){
+        parent.getGUIField().then((v) => {
+            console.log("Gui field = " + v)
+        })
     }
 }
 var actor = app.spawnActor(testActor)
+
 },{"../src/spiders":118}],2:[function(require,module,exports){
 /*!
  * accepts
@@ -24459,13 +24464,25 @@ const commMedium_1 = require("./commMedium");
  */
 class ChannelManager extends commMedium_1.CommMedium {
     init(messageHandler) {
-        //TODO
+        this.messageHandler = messageHandler;
+        this.connections = new Map();
+    }
+    newConnection(actorId, channelPort) {
+        channelPort.onmessage = (ev) => {
+            this.messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
+        };
+        this.connections.set(actorId, channelPort);
     }
     hasConnection(actorId) {
-        //TODO
+        return this.connections.has(actorId);
     }
     sendMessage(actorId, message) {
-        //TODO
+        if (this.connections.has(actorId)) {
+            this.connections.get(actorId).postMessage(JSON.stringify(message));
+        }
+        else {
+            throw new Error("Unable to send message to unknown actor");
+        }
     }
 }
 exports.ChannelManager = ChannelManager;
@@ -24566,7 +24583,6 @@ var parentRef;
 var thisId;
 if (utils.isBrowser()) {
     //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
-    console.log("Spawned browser actor");
     var channelManager = new ChannelManager_1.ChannelManager();
     promisePool = new PromisePool_1.PromisePool();
     objectPool = new objectPool_1.ObjectPool();
@@ -24575,7 +24591,7 @@ if (utils.isBrowser()) {
     module.exports = function (self) {
         self.addEventListener('message', function (ev) {
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-            messageHandler.dispatch(JSON.parse(ev.data));
+            messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
         });
     };
 }
@@ -24627,6 +24643,16 @@ class FarReference {
         this.commMedium = commMedium;
         this.isServer = isServer;
     }
+    sendFieldAccess(fieldName) {
+        var promiseAlloc = this.promisePool.newPromise();
+        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
+        return promiseAlloc.promise;
+    }
+    sendMethodInvocation(methodName, args) {
+        var promiseAlloc = this.promisePool.newPromise();
+        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
+        return promiseAlloc.promise;
+    }
     proxyify() {
         var baseObject = this;
         return new Proxy({}, {
@@ -24673,14 +24699,6 @@ class ClientFarReference extends FarReference {
         super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
         this.mainId = mainId;
     }
-    sendFieldAccess(fieldName) {
-        //TODO
-        return null;
-    }
-    sendMethodInvocation(methodName, args) {
-        //TODO
-        return null;
-    }
 }
 exports.ClientFarReference = ClientFarReference;
 class ServerFarReference extends FarReference {
@@ -24688,16 +24706,6 @@ class ServerFarReference extends FarReference {
         super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, true);
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
-    }
-    sendFieldAccess(fieldName) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
-    }
-    sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
     }
 }
 exports.ServerFarReference = ServerFarReference;
@@ -24728,8 +24736,15 @@ class MessageHandler {
         }
         this.commMedium.sendMessage(actorId, msg);
     }
+    sendReturnClient(actorId, msg) {
+        if (this.thisRef instanceof farRef_1.ServerFarReference) {
+        }
+        else {
+        }
+        this.commMedium.sendMessage(actorId, msg);
+    }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
-    handleInstall(msg) {
+    handleInstall(msg, mainPort) {
         var thisId = msg.actorId;
         var mainId = msg.mainId;
         var thisRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, mainId, null, this.commMedium, this.promisePool, this.objectPool);
@@ -24738,10 +24753,15 @@ class MessageHandler {
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         behaviourObject["parent"] = parentRef.proxyify();
+        var channelManag = this.commMedium;
+        channelManag.newConnection(mainId, mainPort);
         if (Reflect.has(behaviourObject, "init")) {
             behaviourObject["init"]();
         }
-        console.log("Install finished ! ");
+    }
+    handleOpenPort(msg, port) {
+        var channelManager = this.commMedium;
+        channelManager.newConnection(msg.actorId, port);
     }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
@@ -24749,10 +24769,12 @@ class MessageHandler {
         //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
         if (typeof fieldVal != 'function') {
             var serialised = serialisation_1.serialise(fieldVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised));
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
+                this.sendReturnClient(msg.senderId, message);
             }
         }
     }
@@ -24767,18 +24789,22 @@ class MessageHandler {
         try {
             retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
             var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised));
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
+                this.sendReturnClient(msg.senderId, message);
             }
         }
         catch (reason) {
             var serialised = serialisation_1.serialise(reason, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
+            message = new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised));
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
+                this.sendReturnClient(msg.senderId, message);
             }
         }
     }
@@ -24800,11 +24826,14 @@ class MessageHandler {
             this.promisePool.rejectPromise(msg.promiseId, deSerialised);
         }
     }
-    dispatch(msg) {
+    //Ports are needed for client side actor communication and cannot be serialised together with message objects
+    dispatch(msg, ports = []) {
         switch (msg.typeTag) {
             case messages_1._INSTALL_BEHAVIOUR_:
-                this.handleInstall(msg);
+                this.handleInstall(msg, ports[0]);
                 break;
+            case messages_1._OPEN_PORT_:
+                this.handleOpenPort(msg, ports[0]);
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);
                 break;
@@ -24837,6 +24866,7 @@ class Message {
         }
         else {
             this.senderType = Message.clientSenderType;
+            this.senderMainId = senderRef.mainId;
         }
     }
 }
@@ -24895,6 +24925,14 @@ class RejectPromiseMessage extends Message {
     }
 }
 exports.RejectPromiseMessage = RejectPromiseMessage;
+exports._OPEN_PORT_ = 5;
+class OpenPortMessage extends Message {
+    constructor(senderRef, actorId) {
+        super(exports._OPEN_PORT_, senderRef);
+        this.actorId = actorId;
+    }
+}
+exports.OpenPortMessage = OpenPortMessage;
 
 },{"./farRef":112}],115:[function(require,module,exports){
 /**
@@ -25306,11 +25344,28 @@ var utils = require('./utils');
 class Isolate {
 }
 exports.Isolate = Isolate;
+function updateChannels(app) {
+    var actors = app.spawnedActors;
+    for (var i in actors) {
+        var workerRef1 = actors[i];
+        var worker1Id = workerRef1[0];
+        var worker1 = workerRef1[1];
+        for (var j in actors) {
+            if (i != j) {
+                var workerRef2 = actors[j];
+                var worker2Id = workerRef2[0];
+                var worker2 = workerRef2[1];
+                var channel = new MessageChannel();
+                worker1.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker2Id)), [channel.port1]);
+                worker2.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker1Id)), [channel.port2]);
+            }
+        }
+    }
+}
 class ClientActor {
     spawn(app) {
         var actorId = utils.generateId();
         var work = require('webworkify');
-        console.log("Spawning");
         var webWorker = work(require('./actorProto'));
         webWorker.addEventListener('message', (event) => {
             app.mainMessageHandler.dispatch(event);
@@ -25318,9 +25373,14 @@ class ClientActor {
         var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
+        var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods)));
+        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods)), [mainChannel.port1]);
+        var channelManager = app.mainCommMedium;
+        channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
+        app.spawnedActors.push([actorId, webWorker]);
+        updateChannels(app);
         return ref.proxyify();
     }
 }
@@ -25384,7 +25444,6 @@ class ClientApplication extends Application {
         this.Actor = ClientActor;
     }
     spawnActor(actorClass, constructorArgs) {
-        //TODO create new channel and broadcast to all others (see original implementation)
         var actorObject = new actorClass(constructorArgs);
         return actorObject.spawn(this);
     }
@@ -25566,7 +25625,7 @@ function fail(actual, expected, message, operator, stackStartFunction) {
 // EXTENSION! allows for well behaved errors defined elsewhere.
 assert.fail = fail;
 
-// 4. Pure assertion tests whether a value is truthy, as determined
+// 4. Pure assertion server-tests whether a value is truthy, as determined
 // by !!guard.
 // assert.ok(guard, message_opt);
 // This statement is equivalent to assert.equal(true, !!guard,
@@ -25578,7 +25637,7 @@ function ok(value, message) {
 }
 assert.ok = ok;
 
-// 5. The equality assertion tests shallow, coercive equality with
+// 5. The equality assertion server-tests shallow, coercive equality with
 // ==.
 // assert.equal(actual, expected, message_opt);
 
@@ -25586,7 +25645,7 @@ assert.equal = function equal(actual, expected, message) {
   if (actual != expected) fail(actual, expected, message, '==', assert.equal);
 };
 
-// 6. The non-equality assertion tests for whether two objects are not equal
+// 6. The non-equality assertion server-tests for whether two objects are not equal
 // with != assert.notEqual(actual, expected, message_opt);
 
 assert.notEqual = function notEqual(actual, expected, message) {
@@ -25595,7 +25654,7 @@ assert.notEqual = function notEqual(actual, expected, message) {
   }
 };
 
-// 7. The equivalence assertion tests a deep equality relation.
+// 7. The equivalence assertion server-tests a deep equality relation.
 // assert.deepEqual(actual, expected, message_opt);
 
 assert.deepEqual = function deepEqual(actual, expected, message) {
@@ -25695,7 +25754,7 @@ function objEquiv(a, b) {
   return true;
 }
 
-// 8. The non-equivalence assertion tests for any deep inequality.
+// 8. The non-equivalence assertion server-tests for any deep inequality.
 // assert.notDeepEqual(actual, expected, message_opt);
 
 assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
@@ -25704,7 +25763,7 @@ assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
   }
 };
 
-// 9. The strict equality assertion tests strict equality, as determined by ===.
+// 9. The strict equality assertion server-tests strict equality, as determined by ===.
 // assert.strictEqual(actual, expected, message_opt);
 
 assert.strictEqual = function strictEqual(actual, expected, message) {
@@ -25713,7 +25772,7 @@ assert.strictEqual = function strictEqual(actual, expected, message) {
   }
 };
 
-// 10. The strict non-equality assertion tests for strict inequality, as
+// 10. The strict non-equality assertion server-tests for strict inequality, as
 // determined by !==.  assert.notStrictEqual(actual, expected, message_opt);
 
 assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
@@ -53299,7 +53358,7 @@ var haveArrayBuffer = typeof global.ArrayBuffer !== 'undefined'
 var haveSlice = haveArrayBuffer && isFunction(global.ArrayBuffer.prototype.slice)
 
 exports.arraybuffer = haveArrayBuffer && checkTypeSupport('arraybuffer')
-// These next two tests unavoidably show warnings in Chrome. Since fetch will always
+// These next two server-tests unavoidably show warnings in Chrome. Since fetch will always
 // be used if it's available, just return false for these to avoid the warnings.
 exports.msstream = !exports.fetch && haveSlice && checkTypeSupport('ms-stream')
 exports.mozchunkedarraybuffer = !exports.fetch && haveArrayBuffer &&

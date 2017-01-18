@@ -10,6 +10,7 @@ class Message {
         }
         else {
             this.senderType = Message.clientSenderType;
+            this.senderMainId = senderRef.mainId;
         }
     }
 }
@@ -68,4 +69,12 @@ class RejectPromiseMessage extends Message {
     }
 }
 exports.RejectPromiseMessage = RejectPromiseMessage;
+exports._OPEN_PORT_ = 5;
+class OpenPortMessage extends Message {
+    constructor(senderRef, actorId) {
+        super(exports._OPEN_PORT_, senderRef);
+        this.actorId = actorId;
+    }
+}
+exports.OpenPortMessage = OpenPortMessage;
 //# sourceMappingURL=messages.js.map
