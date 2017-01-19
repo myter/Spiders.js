@@ -148,6 +148,7 @@ export class MessageHandler{
                 break
             case _OPEN_PORT_:
                 this.handleOpenPort(msg as OpenPortMessage,ports[0])
+                break
             case _FIELD_ACCESS_:
                 this.handleFieldAccess(msg as FieldAccessMessage)
                 break

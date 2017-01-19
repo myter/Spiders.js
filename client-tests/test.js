@@ -396,9 +396,7 @@ performArgSer = () => {
 scheduled.push(performArgSer)
 
 
-
-//TODO need to fill out TODOS in serialisation
-/*var ob = {
+var ob = {
     field : 5
 }
 class testLexObActor extends app.Actor{
@@ -417,11 +415,10 @@ performLexOb = () => {
         app.kill()
     })
 }
-scheduled.push(performLexOb)*/
+scheduled.push(performLexOb)
 
 
-//TODO same here
-/*class testFarRefActor1 extends app.Actor{
+class testFarRefActor1 extends app.Actor{
     constructor(){
         super()
         this.value = 666
@@ -440,7 +437,7 @@ performFarRef = () => {
         app.kill()
     })
 }
-scheduled.push(performFarRef)*/
+scheduled.push(performFarRef)
 
 class testGUIActor extends app.Actor{
     getField(){
@@ -464,6 +461,4 @@ function performAll(nextTest){
     })
 }
 performAll(scheduled.pop())
-
-//TODO test whether field from GUI is read correctly
 

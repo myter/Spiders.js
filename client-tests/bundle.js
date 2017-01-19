@@ -397,9 +397,7 @@ performArgSer = () => {
 scheduled.push(performArgSer)
 
 
-
-//TODO need to fill out TODOS in serialisation
-/*var ob = {
+var ob = {
     field : 5
 }
 class testLexObActor extends app.Actor{
@@ -418,11 +416,10 @@ performLexOb = () => {
         app.kill()
     })
 }
-scheduled.push(performLexOb)*/
+scheduled.push(performLexOb)
 
 
-//TODO same here
-/*class testFarRefActor1 extends app.Actor{
+class testFarRefActor1 extends app.Actor{
     constructor(){
         super()
         this.value = 666
@@ -441,7 +438,7 @@ performFarRef = () => {
         app.kill()
     })
 }
-scheduled.push(performFarRef)*/
+scheduled.push(performFarRef)
 
 class testGUIActor extends app.Actor{
     getField(){
@@ -25285,6 +25282,7 @@ class MessageHandler {
                 break;
             case messages_1._OPEN_PORT_:
                 this.handleOpenPort(msg, ports[0]);
+                break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);
                 break;
@@ -25507,6 +25505,7 @@ ValueContainer.errorType = 3;
 ValueContainer.arrayType = 4;
 ValueContainer.isolateType = 5;
 ValueContainer.isolateDefType = 6;
+ValueContainer.clientFarRefType = 7;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -25533,6 +25532,15 @@ class ServerFarRefContainer extends ValueContainer {
     }
 }
 exports.ServerFarRefContainer = ServerFarRefContainer;
+class ClientFarRefContainer extends ValueContainer {
+    constructor(objectId, ownerId, mainId) {
+        super(ValueContainer.clientFarRefType);
+        this.objectId = objectId;
+        this.ownerId = ownerId;
+        this.mainId = mainId;
+    }
+}
+exports.ClientFarRefContainer = ClientFarRefContainer;
 class ErrorContainer extends ValueContainer {
     constructor(error) {
         super(ValueContainer.errorType);
@@ -25572,7 +25580,6 @@ function isIsolateClass(func) {
     return (func.toString().search(/extends.*?Isolate/) != -1);
 }
 function serialisePromise(promise, thisRef, receiverId, commMedium, promisePool, objectPool) {
-    //TODO to refactor it is only needed to change the type of message sent depending on the type of the reference ?
     var wrapper = promisePool.newPromise();
     promise.then((val) => {
         commMedium.sendMessage(receiverId, new messages_1.ResolvePromiseMessage(thisRef, wrapper.promiseId, serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool), true));
@@ -25583,12 +25590,12 @@ function serialisePromise(promise, thisRef, receiverId, commMedium, promisePool,
     return new PromiseContainer(wrapper.promiseId, thisRef.ownerId);
 }
 function serialiseObject(object, thisRef, objectPool) {
-    //TODO depending on type of ref either return server container or client container
     var oId = objectPool.allocateObject(object);
     if (thisRef instanceof farRef_1.ServerFarReference) {
         return new ServerFarRefContainer(oId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
     }
     else {
+        return new ClientFarRefContainer(oId, thisRef.ownerId, thisRef.mainId);
     }
 }
 function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
@@ -25606,10 +25613,12 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             return new ArrayContainer(values);
         }
         else if (value[farRef_1.FarReference.ServerProxyTypeKey]) {
-            var farRef = value[farRef_1.ServerFarReference.farRefAccessorKey];
+            var farRef = value[farRef_1.FarReference.farRefAccessorKey];
             return new ServerFarRefContainer(farRef.objectId, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
         }
         else if (value[farRef_1.FarReference.ClientProxyTypeKey]) {
+            let farRef = value[farRef_1.FarReference.farRefAccessorKey];
+            return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId);
         }
         else if (value[IsolateContainer.checkIsolateFuncKey]) {
             var vars = getObjectVars(value, thisRef, receiverId, commMedium, promisePool, objectPool);
@@ -25645,7 +25654,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
     function deSerialisePromise(promiseContainer) {
         return promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
     }
-    function deSerialiseFarRef(farRefContainer) {
+    function deSerialiseServerFarRef(farRefContainer) {
         var farRef = new farRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, thisRef, commMedium, promisePool, objectPool);
         if (thisRef instanceof farRef_1.ServerFarReference) {
             if (!(commMedium.hasConnection(farRef.ownerId))) {
@@ -25653,6 +25662,12 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
             }
         }
         else {
+        }
+        return farRef.proxyify();
+    }
+    function deSerialiseClientFarRef(farRefContainer) {
+        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool);
+        if (thisRef instanceof farRef_1.ServerFarReference) {
         }
         return farRef.proxyify();
     }
@@ -25683,8 +25698,10 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
             return value.value;
         case ValueContainer.promiseType:
             return deSerialisePromise(value);
+        case ValueContainer.clientFarRefType:
+            return deSerialiseClientFarRef(value);
         case ValueContainer.serverFarRefType:
-            return deSerialiseFarRef(value);
+            return deSerialiseServerFarRef(value);
         case ValueContainer.errorType:
             return deSerialiseError(value);
         case ValueContainer.arrayType:

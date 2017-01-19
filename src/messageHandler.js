@@ -121,6 +121,7 @@ class MessageHandler {
                 break;
             case messages_1._OPEN_PORT_:
                 this.handleOpenPort(msg, ports[0]);
+                break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);
                 break;
