@@ -160,9 +160,10 @@ scheduled.push(performFieldInhSer)
 
 
 
-//TODO BUG!! is unable to find module ?
-/*class testReqActor extends app.Actor{
-    init(){
+//Due to Browserify's static analyser it is impossible to dynamically require a module. therefore require must happen on actor creation time (the required library is available to the actor is a far reference)
+class testReqActor extends app.Actor{
+    constructor(){
+        super()
         this.mod = require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule')
     }
     invoke(){
@@ -176,7 +177,7 @@ performReq = () => {
         app.kill()
     })
 }
-scheduled.push(performReq)*/
+scheduled.push(performReq)
 
 
 class testFieldAccessActor extends app.Actor{
@@ -286,6 +287,7 @@ scheduled.push(performPromiseInvocPipe)
 
 class mIsolate extends spider.Isolate{
     constructor(){
+        super()
         this.field = 6
     }
     m(){

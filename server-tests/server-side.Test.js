@@ -430,6 +430,7 @@ describe("Communication",() => {
         }
         class mIsolate extends spider.Isolate{
             constructor(){
+                super()
                 this.field = 6
             }
             m(){

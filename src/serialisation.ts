@@ -254,7 +254,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
         }
         else if(isClass(value) && isIsolateClass(value)){
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
-            return new IsolateDefinitionContainer(definition)
+            return new IsolateDefinitionContainer(definition.replace("super()",''))
         }
         else if(isClass(value)){
             throw new Error("Serialisation of classes disallowed")

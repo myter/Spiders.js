@@ -224,7 +224,7 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         }
         else if (isClass(value) && isIsolateClass(value)) {
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
-            return new IsolateDefinitionContainer(definition);
+            return new IsolateDefinitionContainer(definition.replace("super()", ''));
         }
         else if (isClass(value)) {
             throw new Error("Serialisation of classes disallowed");

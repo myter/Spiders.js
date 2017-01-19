@@ -6,11 +6,21 @@ class testApp extends spiders.Application{
 
 }
 var app = new testApp()
-class ac1 extends app.Actor{
-
+class testReqActor extends app.Actor{
+    /*constructor(){
+        super()
+        this.mod = require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule')
+    }
+    invoke(){
+        console.log("Mod = " + this.mod.testFunction)
+        return this.mod.testFunction()
+    }*/
+    dummy(){
+        //require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule')
+    }
 }
-class ac2 extends app.Actor{
-
-}
-var actor1 = app.spawnActor(ac1)
-var actor2 = app.spawnActor(ac1)
+var actor = app.spawnActor(testReqActor)
+actor.dummy()
+/*actor.invoke().then((v) => {
+    console.log("v =  " + v)
+})*/
