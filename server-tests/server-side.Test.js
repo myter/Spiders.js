@@ -203,7 +203,9 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
+})
 
+describe("Functionality",() => {
     it("Require",(done) => {
         class testApp extends spider.Application{
 
@@ -223,6 +225,38 @@ describe("Behaviour serialisation",() => {
         }
         var actor = app.spawnActor(testActor)
         actor.invoke().then((v) => {
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Remote",(done) => {
+        class testApp extends spider.Application{
+
+        }
+        var app = new testApp()
+        class testActor1 extends app.Actor{
+            getAndAccess(){
+                return remote("127.0.0.1",8082).then((ref) => {
+                    return ref.getVal()
+                })
+            }
+        }
+        class testActor2 extends app.Actor{
+            getVal(){
+                return 5
+            }
+        }
+        app.spawnActor(testActor2,[],8082)
+        var actor  = app.spawnActor(testActor1)
+        actor.getAndAccess().then((v) => {
             try{
                 expect(v).to.equal(5)
                 app.kill()

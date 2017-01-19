@@ -25069,7 +25069,7 @@ else {
     parentRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, parentId, address, parentPort, thisRef, socketManager, promisePool, objectPool);
     var parentServer = parentRef;
     socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    utils.installSTDLib(parentRef, behaviourObject);
+    utils.installSTDLib(thisRef, parentRef, behaviourObject, socketManager, promisePool);
 }
 
 }).call(this,require('_process'))
@@ -25122,22 +25122,25 @@ class FarReference {
                     return baseObject.isServer;
                 }
                 else {
-                    //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
-                    var prom = baseObject.sendFieldAccess(property.toString());
-                    var ret = function (...args) {
-                        var serialisedArgs = args.map((arg) => {
-                            return serialisation_1.serialise(arg, baseObject, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
-                        });
-                        return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
-                    };
-                    ret["then"] = function (onFull, onRej) {
-                        return prom.then(onFull, onRej);
-                    };
-                    ret["catch"] = function (onRej) {
-                        return prom.catch(onRej);
-                    };
-                    ret[FarReference.proxyWrapperAccessorKey] = true;
-                    return ret;
+                    //Given that a proxified far reference is actually also a promise we need to make sure that JS does not accidentally pipeline the far reference in a chain of promises
+                    if (property.toString() != "then" && property.toString() != "catch") {
+                        //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
+                        var prom = baseObject.sendFieldAccess(property.toString());
+                        var ret = function (...args) {
+                            var serialisedArgs = args.map((arg) => {
+                                return serialisation_1.serialise(arg, baseObject, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
+                            });
+                            return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
+                        };
+                        ret["then"] = function (onFull, onRej) {
+                            return prom.then(onFull, onRej);
+                        };
+                        ret["catch"] = function (onRej) {
+                            return prom.catch(onRej);
+                        };
+                        ret[FarReference.proxyWrapperAccessorKey] = true;
+                        return ret;
+                    }
                 }
             }
         });
@@ -25208,7 +25211,7 @@ class MessageHandler {
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
         channelManag.newConnection(mainId, mainPort);
-        utils.installSTDLib(parentRef, behaviourObject);
+        utils.installSTDLib(thisRef, parentRef, behaviourObject, channelManag, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
@@ -25277,6 +25280,19 @@ class MessageHandler {
             this.promisePool.rejectPromise(msg.promiseId, deSerialised);
         }
     }
+    //Can only be received by a server actor
+    handleConnectRemote(msg) {
+        if (msg.senderType == messages_1.Message.serverSenderType) {
+            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolveConnectionMessage(this.thisRef, msg.promiseId, msg.connectionId));
+        }
+        else {
+        }
+    }
+    handleResolveConnection(msg) {
+        this.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
+        var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
+        this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
+    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects
     dispatch(msg, ports = []) {
         switch (msg.typeTag) {
@@ -25297,6 +25313,12 @@ class MessageHandler {
                 break;
             case messages_1._REJECT_PROMISE_:
                 this.handlePromiseReject(msg);
+                break;
+            case messages_1._CONNECT_REMOTE_:
+                this.handleConnectRemote(msg);
+                break;
+            case messages_1._RESOLVE_CONNECTION_:
+                this.handleResolveConnection(msg);
                 break;
             default:
                 throw "Unknown message in actor : " + msg.toString();
@@ -25385,6 +25407,24 @@ class OpenPortMessage extends Message {
     }
 }
 exports.OpenPortMessage = OpenPortMessage;
+exports._CONNECT_REMOTE_ = 6;
+class ConnectRemoteMessage extends Message {
+    constructor(senderRef, promiseId, connectionId) {
+        super(exports._CONNECT_REMOTE_, senderRef);
+        this.promiseId = promiseId;
+        this.connectionId = connectionId;
+    }
+}
+exports.ConnectRemoteMessage = ConnectRemoteMessage;
+exports._RESOLVE_CONNECTION_ = 7;
+class ResolveConnectionMessage extends Message {
+    constructor(senderRef, promiseId, connectionId) {
+        super(exports._RESOLVE_CONNECTION_, senderRef);
+        this.promiseId = promiseId;
+        this.connectionId = connectionId;
+    }
+}
+exports.ResolveConnectionMessage = ResolveConnectionMessage;
 
 },{"./farRef":113}],116:[function(require,module,exports){
 /**
@@ -25645,7 +25685,7 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             throw new Error("Serialisation of classes disallowed");
         }
         else {
-            throw new Error("Serialisation of functions disallowed");
+            throw new Error("Serialisation of functions disallowed: " + value.toString());
         }
     }
     else {
@@ -25720,6 +25760,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
 exports.deserialise = deserialise;
 
 },{"./farRef":113,"./messages":115}],118:[function(require,module,exports){
+const messages_1 = require("./messages");
 const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
@@ -25734,6 +25775,8 @@ class SocketManager extends commMedium_1.CommMedium {
         this.connectedActors = new Map();
         this.disconnectedActors = [];
         this.pendingMessages = new Map();
+        this.pendingActors = new Map();
+        this.pendingConnectionId = 0;
     }
     init(messageHandler) {
         this.messageHandler = messageHandler;
@@ -25795,10 +25838,25 @@ class SocketManager extends commMedium_1.CommMedium {
             sock.close();
         });
     }
+    connectRemote(sender, address, port, promisePool) {
+        var promiseAllocation = promisePool.newPromise();
+        var connection = require('socket.io-client')('http://' + address + ":" + port);
+        var connectionId = this.pendingConnectionId;
+        this.pendingActors.set(connectionId, connection);
+        this.pendingConnectionId += 1;
+        connection.on('connect', () => {
+            connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
+        });
+        return promiseAllocation.promise;
+    }
+    resolvePendingConnection(actorId, connectionId) {
+        var connection = this.pendingActors.get(connectionId);
+        this.connectedActors.set(actorId, connection);
+    }
 }
 exports.SocketManager = SocketManager;
 
-},{"./commMedium":112,"socket.io":81,"socket.io-client":67}],119:[function(require,module,exports){
+},{"./commMedium":112,"./messages":115,"socket.io":81,"socket.io-client":67}],119:[function(require,module,exports){
 (function (__dirname){
 const sockets_1 = require("./sockets");
 const messageHandler_1 = require("./messageHandler");
@@ -25957,8 +26015,11 @@ function generateId() {
     });
 }
 exports.generateId = generateId;
-function installSTDLib(parentRef, behaviourObject) {
+function installSTDLib(thisRef, parentRef, behaviourObject, commMedium, promisePool) {
     behaviourObject["parent"] = parentRef.proxyify();
+    behaviourObject["remote"] = (address, port) => {
+        return commMedium.connectRemote(thisRef, address, port, promisePool);
+    };
     if (Reflect.has(behaviourObject, "init")) {
         behaviourObject["init"]();
     }

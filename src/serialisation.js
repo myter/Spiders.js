@@ -230,7 +230,7 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             throw new Error("Serialisation of classes disallowed");
         }
         else {
-            throw new Error("Serialisation of functions disallowed");
+            throw new Error("Serialisation of functions disallowed: " + value.toString());
         }
     }
     else {

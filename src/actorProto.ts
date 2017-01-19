@@ -50,5 +50,5 @@ else{
     parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,parentId,address,parentPort,thisRef,socketManager,promisePool,objectPool)
     var parentServer        = parentRef as ServerFarReference
     socketManager.openConnection(parentServer.ownerId,parentServer.ownerAddress,parentServer.ownerPort)
-    utils.installSTDLib(parentRef,behaviourObject)
+    utils.installSTDLib(thisRef,parentRef,behaviourObject,socketManager,promisePool)
 }

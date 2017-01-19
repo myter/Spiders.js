@@ -60,22 +60,25 @@ export abstract class FarReference {
                 }
                 //ES6 proxies don't allow to catch method invocation on objects. To solve this a far reference returns a "callable" promise as the return of a "get"
                 else {
-                    //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
-                    var prom = baseObject.sendFieldAccess(property.toString())
-                    var ret = function(... args){
-                        var serialisedArgs = args.map((arg) => {
-                            return serialise(arg,baseObject,baseObject.ownerId,baseObject.commMedium,baseObject.promisePool,baseObject.objectPool)
-                        })
-                        return baseObject.sendMethodInvocation(property.toString(),serialisedArgs)
+                    //Given that a proxified far reference is actually also a promise we need to make sure that JS does not accidentally pipeline the far reference in a chain of promises
+                    if(property.toString() != "then" && property.toString() != "catch"){
+                        //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
+                        var prom = baseObject.sendFieldAccess(property.toString())
+                        var ret = function(... args){
+                            var serialisedArgs = args.map((arg) => {
+                                return serialise(arg,baseObject,baseObject.ownerId,baseObject.commMedium,baseObject.promisePool,baseObject.objectPool)
+                            })
+                            return baseObject.sendMethodInvocation(property.toString(),serialisedArgs)
+                        }
+                        ret["then"] = function(onFull,onRej){
+                            return prom.then(onFull,onRej)
+                        }
+                        ret["catch"] = function(onRej){
+                            return prom.catch(onRej)
+                        }
+                        ret[FarReference.proxyWrapperAccessorKey] = true
+                        return ret
                     }
-                    ret["then"] = function(onFull,onRej){
-                        return prom.then(onFull,onRej)
-                    }
-                    ret["catch"] = function(onRej){
-                        return prom.catch(onRej)
-                    }
-                    ret[FarReference.proxyWrapperAccessorKey] = true
-                    return ret
                 }
             }
         })

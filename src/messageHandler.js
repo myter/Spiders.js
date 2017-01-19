@@ -41,7 +41,7 @@ class MessageHandler {
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
         channelManag.newConnection(mainId, mainPort);
-        utils.installSTDLib(parentRef, behaviourObject);
+        utils.installSTDLib(thisRef, parentRef, behaviourObject, channelManag, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
@@ -110,6 +110,19 @@ class MessageHandler {
             this.promisePool.rejectPromise(msg.promiseId, deSerialised);
         }
     }
+    //Can only be received by a server actor
+    handleConnectRemote(msg) {
+        if (msg.senderType == messages_1.Message.serverSenderType) {
+            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolveConnectionMessage(this.thisRef, msg.promiseId, msg.connectionId));
+        }
+        else {
+        }
+    }
+    handleResolveConnection(msg) {
+        this.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
+        var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
+        this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
+    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects
     dispatch(msg, ports = []) {
         switch (msg.typeTag) {
@@ -130,6 +143,12 @@ class MessageHandler {
                 break;
             case messages_1._REJECT_PROMISE_:
                 this.handlePromiseReject(msg);
+                break;
+            case messages_1._CONNECT_REMOTE_:
+                this.handleConnectRemote(msg);
+                break;
+            case messages_1._RESOLVE_CONNECTION_:
+                this.handleResolveConnection(msg);
                 break;
             default:
                 throw "Unknown message in actor : " + msg.toString();

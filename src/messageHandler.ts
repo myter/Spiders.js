@@ -1,7 +1,8 @@
 import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
-    RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage
+    RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
+    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_
 } from "./messages";
 import {SocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
@@ -61,7 +62,7 @@ export class MessageHandler{
         var parentRef               = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.thisRef,this.commMedium,this.promisePool,this.objectPool)
         var channelManag            = this.commMedium as ChannelManager
         channelManag.newConnection(mainId,mainPort)
-        utils.installSTDLib(parentRef,behaviourObject)
+        utils.installSTDLib(thisRef,parentRef,behaviourObject,channelManag,this.promisePool)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
@@ -137,6 +138,22 @@ export class MessageHandler{
         }
     }
 
+    //Can only be received by a server actor
+    private handleConnectRemote(msg : ConnectRemoteMessage){
+        if(msg.senderType == Message.serverSenderType){
+            this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,new ResolveConnectionMessage(this.thisRef,msg.promiseId,msg.connectionId))
+        }
+        else{
+            //TODO
+        }
+    }
+
+    private handleResolveConnection(msg : ResolveConnectionMessage){
+        this.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
+        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderId,msg.senderAddress,msg.senderPort,this.thisRef,this.commMedium,this.promisePool,this.objectPool)
+        this.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
+    }
+
     //Ports are needed for client side actor communication and cannot be serialised together with message objects
     dispatch(msg : Message,ports : Array<MessagePort> = []) : void {
         switch(msg.typeTag){
@@ -157,6 +174,12 @@ export class MessageHandler{
                 break
             case _REJECT_PROMISE_:
                 this.handlePromiseReject(msg as RejectPromiseMessage)
+                break
+            case _CONNECT_REMOTE_:
+                this.handleConnectRemote(msg as ConnectRemoteMessage)
+                break
+            case _RESOLVE_CONNECTION_:
+                this.handleResolveConnection(msg as ResolveConnectionMessage)
                 break
             default:
                 throw "Unknown message in actor : " + msg.toString()

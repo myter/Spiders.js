@@ -1,7 +1,10 @@
 import {MessageHandler} from "./messageHandler";
-import {Message} from "./messages";
+import {Message, ConnectRemoteMessage} from "./messages";
 import {Socket} from "net";
 import {CommMedium} from "./commMedium";
+import {FarReference, ServerFarReference} from "./farRef";
+import {PromisePool} from "./PromisePool";
+import {ObjectPool} from "./objectPool";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -13,17 +16,21 @@ export class SocketManager extends CommMedium{
     private socket              : any
     private connectedActors     : Map<string,Socket>
     private disconnectedActors  : Array<string>
+    private pendingActors       : Map<number,Socket>
+    private pendingConnectionId : number
     private pendingMessages     : Map<string,Array<Message>>
     private messageHandler      : MessageHandler
 
     constructor(ip : string,socketPort : number){
         super()
-        this.socketIp           = ip
-        this.socketPort         = socketPort
-        this.socket             = io(socketPort)
-        this.connectedActors    = new Map()
-        this.disconnectedActors = []
-        this.pendingMessages    = new Map()
+        this.socketIp               = ip
+        this.socketPort             = socketPort
+        this.socket                 = io(socketPort)
+        this.connectedActors        = new Map()
+        this.disconnectedActors     = []
+        this.pendingMessages        = new Map()
+        this.pendingActors          = new Map()
+        this.pendingConnectionId    = 0
     }
 
     init(messageHandler : MessageHandler){
@@ -89,5 +96,22 @@ export class SocketManager extends CommMedium{
         this.connectedActors.forEach((sock : any) => {
             sock.close()
         })
+    }
+
+    connectRemote(sender : ServerFarReference,address : string,port : number,promisePool : PromisePool) : Promise<any>{
+        var promiseAllocation       = promisePool.newPromise()
+        var connection              = require('socket.io-client')('http://'+address+":"+port)
+        var connectionId            = this.pendingConnectionId
+        this.pendingActors.set(connectionId,connection)
+        this.pendingConnectionId    += 1
+        connection.on('connect',() => {
+            connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId))
+        })
+        return promiseAllocation.promise
+    }
+
+    resolvePendingConnection(actorId : string,connectionId : number){
+        var connection                  = this.pendingActors.get(connectionId)
+        this.connectedActors.set(actorId,connection)
     }
 }

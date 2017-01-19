@@ -1,5 +1,7 @@
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
-import {FarReference} from "./farRef";
+import {FarReference, ServerFarReference} from "./farRef";
+import {CommMedium} from "./commMedium";
+import {PromisePool} from "./PromisePool";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -21,8 +23,11 @@ export function generateId() : string {
     })
 }
 
-export function installSTDLib(parentRef : FarReference,behaviourObject : Object){
+export function installSTDLib(thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool){
     behaviourObject["parent"] = parentRef.proxyify()
+    behaviourObject["remote"] = (address : string,port : number) : Promise<any> =>  {
+        return commMedium.connectRemote(thisRef,address,port,promisePool)
+    }
     if(Reflect.has(behaviourObject,"init")){
         behaviourObject["init"]()
     }

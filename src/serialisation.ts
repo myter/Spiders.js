@@ -260,7 +260,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             throw new Error("Serialisation of classes disallowed")
         }
         else{
-            throw new Error("Serialisation of functions disallowed")
+            throw new Error("Serialisation of functions disallowed: " + value.toString())
         }
     }
     else {

@@ -1,3 +1,4 @@
+const messages_1 = require("./messages");
 const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
@@ -12,6 +13,8 @@ class SocketManager extends commMedium_1.CommMedium {
         this.connectedActors = new Map();
         this.disconnectedActors = [];
         this.pendingMessages = new Map();
+        this.pendingActors = new Map();
+        this.pendingConnectionId = 0;
     }
     init(messageHandler) {
         this.messageHandler = messageHandler;
@@ -72,6 +75,21 @@ class SocketManager extends commMedium_1.CommMedium {
         this.connectedActors.forEach((sock) => {
             sock.close();
         });
+    }
+    connectRemote(sender, address, port, promisePool) {
+        var promiseAllocation = promisePool.newPromise();
+        var connection = require('socket.io-client')('http://' + address + ":" + port);
+        var connectionId = this.pendingConnectionId;
+        this.pendingActors.set(connectionId, connection);
+        this.pendingConnectionId += 1;
+        connection.on('connect', () => {
+            connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
+        });
+        return promiseAllocation.promise;
+    }
+    resolvePendingConnection(actorId, connectionId) {
+        var connection = this.pendingActors.get(connectionId);
+        this.connectedActors.set(actorId, connection);
     }
 }
 exports.SocketManager = SocketManager;

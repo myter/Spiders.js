@@ -110,4 +110,26 @@ export class OpenPortMessage extends Message {
     }
 }
 
+export const _CONNECT_REMOTE_ : MessageTypeTag = 6
+export class ConnectRemoteMessage extends Message{
+    promiseId       : number
+    connectionId    : number
+    constructor(senderRef : FarReference,promiseId : number,connectionId : number){
+        super(_CONNECT_REMOTE_,senderRef)
+        this.promiseId      = promiseId
+        this.connectionId   = connectionId
+    }
+}
+
+export const _RESOLVE_CONNECTION_ : MessageTypeTag = 7
+export class ResolveConnectionMessage extends Message{
+    promiseId       : number
+    connectionId    : number
+    constructor(senderRef : FarReference,promiseId : number,connectionId : number){
+        super(_RESOLVE_CONNECTION_,senderRef)
+        this.promiseId      = promiseId
+        this.connectionId   = connectionId
+    }
+}
+
 
