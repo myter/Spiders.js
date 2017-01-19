@@ -26,7 +26,6 @@ if(utils.isBrowser()){
     objectPool          = new ObjectPool()
     messageHandler      = new MessageHandler(null,channelManager,promisePool,objectPool)
     channelManager.init(messageHandler)
-
     module.exports = function (self) {
         self.addEventListener('message',function (ev : MessageEvent){
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
