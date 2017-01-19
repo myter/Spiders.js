@@ -70,6 +70,7 @@ export class ServerSocketManager extends CommMedium{
     private socketPort          : number
     private socket              : any
     private socketHandler       : SocketHandler
+    private connectedClients    : Map<string,Socket>
 
     constructor(ip : string,socketPort : number){
         super()
@@ -77,13 +78,14 @@ export class ServerSocketManager extends CommMedium{
         this.socketPort             = socketPort
         this.socket                 = io(socketPort)
         this.socketHandler          = new SocketHandler(this)
+        this.connectedClients       = new Map()
     }
 
     init(messageHandler : MessageHandler){
         this.socketHandler.messageHandler = messageHandler
         this.socket.on('connection',(client) => {
             client.on('message',(data) => {
-                messageHandler.dispatch(data)
+                messageHandler.dispatch(data,[],client)
             })
             client.on('close',() => {
                 //TODO
@@ -96,8 +98,17 @@ export class ServerSocketManager extends CommMedium{
         this.socketHandler.openConnection(actorId,actorAddress,actorPort)
     }
 
+    addNewClient(actorId : string,socket : Socket){
+        this.connectedClients.set(actorId,socket)
+    }
+
     sendMessage(actorId : string,msg : Message) : void{
-        this.socketHandler.sendMessage(actorId,msg)
+        if(this.connectedClients.has(actorId)){
+            this.connectedClients.get(actorId).emit('message',msg)
+        }
+        else{
+            this.socketHandler.sendMessage(actorId,msg)
+        }
     }
 
     hasConnection(actorId : string) : boolean{

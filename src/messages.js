@@ -9,8 +9,9 @@ class Message {
             this.senderPort = senderRef.ownerPort;
         }
         else {
+            var clientRef = senderRef;
             this.senderType = Message.clientSenderType;
-            this.senderMainId = senderRef.mainId;
+            this.senderMainId = clientRef.mainId;
         }
     }
 }

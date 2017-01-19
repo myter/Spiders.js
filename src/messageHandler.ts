@@ -11,6 +11,7 @@ import {ValueContainer, serialise, deserialise, reconstructObject} from "./seria
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {ChannelManager} from "./ChannelManager";
+import {Socket} from "net";
 /**
  * Created by flo on 20/12/2016.
  */
@@ -30,23 +31,18 @@ export class MessageHandler{
     }
 
     private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message){
-        if(this.thisRef instanceof ServerFarReference){
-            if(!(this.commMedium.hasConnection(actorId))){
-                (this.commMedium as ServerSocketManager).openConnection(actorId,actorAddress,actorPort)
-            }
-        }
-        else{
-            //TODO
+        if(!(this.commMedium.hasConnection(actorId))){
+            (this.commMedium as ServerSocketManager).openConnection(actorId,actorAddress,actorPort)
         }
         this.commMedium.sendMessage(actorId,msg)
     }
 
     private sendReturnClient(actorId : string,msg : Message){
-        if(this.thisRef instanceof ServerFarReference){
-            //TODO
+        if(this.thisRef instanceof ClientFarReference){
+            //TODO will need to check whether the return client is from same physical machine (will need to send routing message to contactServer instead)
         }
         else{
-            //TODO will need to check whether the return client is from same physical machine
+            //TODO check whether this actor is the contact actor, otherwise send routing message
         }
         this.commMedium.sendMessage(actorId,msg)
     }
@@ -139,12 +135,15 @@ export class MessageHandler{
     }
 
     //Can only be received by a server actor
-    private handleConnectRemote(msg : ConnectRemoteMessage){
+    private handleConnectRemote(msg : ConnectRemoteMessage,clientSocket : Socket){
+        var resolveMessage = new ResolveConnectionMessage(this.thisRef,msg.promiseId,msg.connectionId)
         if(msg.senderType == Message.serverSenderType){
-            this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,new ResolveConnectionMessage(this.thisRef,msg.promiseId,msg.connectionId))
+            this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,resolveMessage)
         }
         else{
-            //TODO
+            var socketManager = this.commMedium as ServerSocketManager
+            socketManager.addNewClient(msg.senderId,clientSocket)
+            this.sendReturnClient(msg.senderId,resolveMessage)
         }
     }
 
@@ -154,8 +153,9 @@ export class MessageHandler{
         this.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
     }
 
-    //Ports are needed for client side actor communication and cannot be serialised together with message objects
-    dispatch(msg : Message,ports : Array<MessagePort> = []) : void {
+    //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
+    //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
+    dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
         switch(msg.typeTag){
             case _INSTALL_BEHAVIOUR_:
                 this.handleInstall(msg as InstallBehaviourMessage,ports[0])
@@ -176,7 +176,7 @@ export class MessageHandler{
                 this.handlePromiseReject(msg as RejectPromiseMessage)
                 break
             case _CONNECT_REMOTE_:
-                this.handleConnectRemote(msg as ConnectRemoteMessage)
+                this.handleConnectRemote(msg as ConnectRemoteMessage,clientSocket)
                 break
             case _RESOLVE_CONNECTION_:
                 this.handleResolveConnection(msg as ResolveConnectionMessage)

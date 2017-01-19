@@ -25182,9 +25182,12 @@ FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
 FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
 exports.FarReference = FarReference;
 class ClientFarReference extends FarReference {
-    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool) {
+    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool, contactId = null, contactAddress = null, contactPort = null) {
         super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
         this.mainId = mainId;
+        this.contactId = contactId;
+        this.contactAddress = contactAddress;
+        this.contactPort = contactPort;
     }
 }
 exports.ClientFarReference = ClientFarReference;
@@ -25214,17 +25217,13 @@ class MessageHandler {
         this.thisRef = thisRef;
     }
     sendReturnServer(actorId, actorAddress, actorPort, msg) {
-        if (this.thisRef instanceof farRef_1.ServerFarReference) {
-            if (!(this.commMedium.hasConnection(actorId))) {
-                this.commMedium.openConnection(actorId, actorAddress, actorPort);
-            }
-        }
-        else {
+        if (!(this.commMedium.hasConnection(actorId))) {
+            this.commMedium.openConnection(actorId, actorAddress, actorPort);
         }
         this.commMedium.sendMessage(actorId, msg);
     }
     sendReturnClient(actorId, msg) {
-        if (this.thisRef instanceof farRef_1.ServerFarReference) {
+        if (this.thisRef instanceof farRef_1.ClientFarReference) {
         }
         else {
         }
@@ -25311,11 +25310,15 @@ class MessageHandler {
         }
     }
     //Can only be received by a server actor
-    handleConnectRemote(msg) {
+    handleConnectRemote(msg, clientSocket) {
+        var resolveMessage = new messages_1.ResolveConnectionMessage(this.thisRef, msg.promiseId, msg.connectionId);
         if (msg.senderType == messages_1.Message.serverSenderType) {
-            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolveConnectionMessage(this.thisRef, msg.promiseId, msg.connectionId));
+            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, resolveMessage);
         }
         else {
+            var socketManager = this.commMedium;
+            socketManager.addNewClient(msg.senderId, clientSocket);
+            this.sendReturnClient(msg.senderId, resolveMessage);
         }
     }
     handleResolveConnection(msg) {
@@ -25323,8 +25326,9 @@ class MessageHandler {
         var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
     }
-    //Ports are needed for client side actor communication and cannot be serialised together with message objects
-    dispatch(msg, ports = []) {
+    //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
+    //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
+    dispatch(msg, ports = [], clientSocket = null) {
         switch (msg.typeTag) {
             case messages_1._INSTALL_BEHAVIOUR_:
                 this.handleInstall(msg, ports[0]);
@@ -25345,7 +25349,7 @@ class MessageHandler {
                 this.handlePromiseReject(msg);
                 break;
             case messages_1._CONNECT_REMOTE_:
-                this.handleConnectRemote(msg);
+                this.handleConnectRemote(msg, clientSocket);
                 break;
             case messages_1._RESOLVE_CONNECTION_:
                 this.handleResolveConnection(msg);
@@ -25369,8 +25373,9 @@ class Message {
             this.senderPort = senderRef.ownerPort;
         }
         else {
+            var clientRef = senderRef;
             this.senderType = Message.clientSenderType;
-            this.senderMainId = senderRef.mainId;
+            this.senderMainId = clientRef.mainId;
         }
     }
 }
@@ -25606,11 +25611,14 @@ class ServerFarRefContainer extends ValueContainer {
 }
 exports.ServerFarRefContainer = ServerFarRefContainer;
 class ClientFarRefContainer extends ValueContainer {
-    constructor(objectId, ownerId, mainId) {
+    constructor(objectId, ownerId, mainId, contactId, contactAddress, contactPort) {
         super(ValueContainer.clientFarRefType);
         this.objectId = objectId;
         this.ownerId = ownerId;
         this.mainId = mainId;
+        this.contactId = contactId;
+        this.contactAddress = contactAddress;
+        this.contactPort = contactPort;
     }
 }
 exports.ClientFarRefContainer = ClientFarRefContainer;
@@ -25668,7 +25676,8 @@ function serialiseObject(object, thisRef, objectPool) {
         return new ServerFarRefContainer(oId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
     }
     else {
-        return new ClientFarRefContainer(oId, thisRef.ownerId, thisRef.mainId);
+        var clientRef = thisRef;
+        return new ClientFarRefContainer(oId, clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
     }
 }
 function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
@@ -25691,7 +25700,13 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         }
         else if (value[farRef_1.FarReference.ClientProxyTypeKey]) {
             let farRef = value[farRef_1.FarReference.farRefAccessorKey];
-            return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId);
+            if (thisRef instanceof farRef_1.ServerFarReference && farRef.contactId == null) {
+                //Current actor is a server and is the first to obtain a reference to this client actor. conversation with this client should now be rooted through this actor given that it has a socket reference to it
+                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+            }
+            else {
+                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
+            }
         }
         else if (value[IsolateContainer.checkIsolateFuncKey]) {
             var vars = getObjectVars(value, thisRef, receiverId, commMedium, promisePool, objectPool);
@@ -25735,9 +25750,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         return farRef.proxyify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
-        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool);
-        if (thisRef instanceof farRef_1.ServerFarReference) {
-        }
+        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         return farRef.proxyify();
     }
     function deSerialiseError(errorContainer) {
@@ -25845,12 +25858,13 @@ class ServerSocketManager extends commMedium_1.CommMedium {
         this.socketPort = socketPort;
         this.socket = io(socketPort);
         this.socketHandler = new SocketHandler(this);
+        this.connectedClients = new Map();
     }
     init(messageHandler) {
         this.socketHandler.messageHandler = messageHandler;
         this.socket.on('connection', (client) => {
             client.on('message', (data) => {
-                messageHandler.dispatch(data);
+                messageHandler.dispatch(data, [], client);
             });
             client.on('close', () => {
                 //TODO
@@ -25861,8 +25875,16 @@ class ServerSocketManager extends commMedium_1.CommMedium {
     openConnection(actorId, actorAddress, actorPort) {
         this.socketHandler.openConnection(actorId, actorAddress, actorPort);
     }
+    addNewClient(actorId, socket) {
+        this.connectedClients.set(actorId, socket);
+    }
     sendMessage(actorId, msg) {
-        this.socketHandler.sendMessage(actorId, msg);
+        if (this.connectedClients.has(actorId)) {
+            this.connectedClients.get(actorId).emit('message', msg);
+        }
+        else {
+            this.socketHandler.sendMessage(actorId, msg);
+        }
     }
     hasConnection(actorId) {
         return (this.socketHandler.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId);

@@ -57,12 +57,13 @@ class ServerSocketManager extends commMedium_1.CommMedium {
         this.socketPort = socketPort;
         this.socket = io(socketPort);
         this.socketHandler = new SocketHandler(this);
+        this.connectedClients = new Map();
     }
     init(messageHandler) {
         this.socketHandler.messageHandler = messageHandler;
         this.socket.on('connection', (client) => {
             client.on('message', (data) => {
-                messageHandler.dispatch(data);
+                messageHandler.dispatch(data, [], client);
             });
             client.on('close', () => {
                 //TODO
@@ -73,8 +74,16 @@ class ServerSocketManager extends commMedium_1.CommMedium {
     openConnection(actorId, actorAddress, actorPort) {
         this.socketHandler.openConnection(actorId, actorAddress, actorPort);
     }
+    addNewClient(actorId, socket) {
+        this.connectedClients.set(actorId, socket);
+    }
     sendMessage(actorId, msg) {
-        this.socketHandler.sendMessage(actorId, msg);
+        if (this.connectedClients.has(actorId)) {
+            this.connectedClients.get(actorId).emit('message', msg);
+        }
+        else {
+            this.socketHandler.sendMessage(actorId, msg);
+        }
     }
     hasConnection(actorId) {
         return (this.socketHandler.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId);

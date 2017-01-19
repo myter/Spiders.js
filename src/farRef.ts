@@ -86,11 +86,17 @@ export abstract class FarReference {
 }
 
 export class ClientFarReference extends FarReference {
-    mainId : string
+    mainId          : string
+    contactId       : string
+    contactAddress  : string
+    contactPort     : number
 
-    constructor(objectId : number,ownerId : string,mainId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+    constructor(objectId : number,ownerId : string,mainId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,contactId : string = null,contactAddress : string = null,contactPort : number = null){
         super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool,false)
-        this.mainId = mainId
+        this.mainId         = mainId
+        this.contactId      = contactId
+        this.contactAddress = contactAddress
+        this.contactPort    = contactPort
     }
 }
 

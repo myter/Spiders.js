@@ -137,14 +137,21 @@ export class ServerFarRefContainer extends ValueContainer{
 }
 
 export class ClientFarRefContainer extends ValueContainer{
-    objectId    : number
-    ownerId     : string
-    mainId      : string
-    constructor(objectId : number,ownerId : string,mainId : string){
+    objectId        : number
+    ownerId         : string
+    mainId          : string
+    contactId       : string
+    contactAddress  : string
+    contactPort     : number
+
+    constructor(objectId : number,ownerId : string,mainId : string,contactId : string,contactAddress : string, contactPort : number){
         super(ValueContainer.clientFarRefType)
-        this.objectId   = objectId
-        this.ownerId    = ownerId
-        this.mainId     = mainId
+        this.objectId       = objectId
+        this.ownerId        = ownerId
+        this.mainId         = mainId
+        this.contactId      = contactId
+        this.contactAddress = contactAddress
+        this.contactPort    = contactPort
     }
 }
 
@@ -212,7 +219,8 @@ function serialiseObject(object : Object,thisRef : FarReference,objectPool : Obj
         return new ServerFarRefContainer(oId,thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort)
     }
     else{
-        return new ClientFarRefContainer(oId,thisRef.ownerId,(thisRef as ClientFarReference).mainId)
+        var clientRef = thisRef as ClientFarReference
+        return new ClientFarRefContainer(oId,clientRef.ownerId,clientRef.mainId,clientRef.contactId,clientRef.contactAddress,clientRef.contactPort)
     }
 }
 
@@ -236,7 +244,13 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
         }
         else if(value[FarReference.ClientProxyTypeKey]){
             let farRef : ClientFarReference = value[FarReference.farRefAccessorKey]
-            return new ClientFarRefContainer(farRef.objectId,farRef.ownerId,farRef.mainId)
+            if(thisRef instanceof ServerFarReference && farRef.contactId == null){
+                //Current actor is a server and is the first to obtain a reference to this client actor. conversation with this client should now be rooted through this actor given that it has a socket reference to it
+                return new ClientFarRefContainer(farRef.objectId,farRef.ownerId,farRef.mainId,thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort)
+            }
+            else{
+                return new ClientFarRefContainer(farRef.objectId,farRef.ownerId,farRef.mainId,farRef.contactId,farRef.contactAddress,farRef.contactPort)
+            }
         }
         else if(value[IsolateContainer.checkIsolateFuncKey]){
             var vars    = getObjectVars(value,thisRef,receiverId,commMedium,promisePool,objectPool)
@@ -283,10 +297,7 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
     }
 
     function deSerialiseClientFarRef(farRefContainer : ClientFarRefContainer){
-        var farRef = new ClientFarReference(farRefContainer.objectId,farRefContainer.ownerId,farRefContainer.mainId,thisRef,commMedium,promisePool,objectPool)
-        if(thisRef instanceof ServerFarReference){
-            //TODO , also need to check whether this is a client but not from same physical machine
-        }
+        var farRef = new ClientFarReference(farRefContainer.objectId,farRefContainer.ownerId,farRefContainer.mainId,thisRef,commMedium,promisePool,objectPool,farRefContainer.contactId,farRefContainer.contactAddress,farRefContainer.contactPort)
         return farRef.proxyify()
     }
 

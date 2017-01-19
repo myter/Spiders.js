@@ -14,17 +14,13 @@ class MessageHandler {
         this.thisRef = thisRef;
     }
     sendReturnServer(actorId, actorAddress, actorPort, msg) {
-        if (this.thisRef instanceof farRef_1.ServerFarReference) {
-            if (!(this.commMedium.hasConnection(actorId))) {
-                this.commMedium.openConnection(actorId, actorAddress, actorPort);
-            }
-        }
-        else {
+        if (!(this.commMedium.hasConnection(actorId))) {
+            this.commMedium.openConnection(actorId, actorAddress, actorPort);
         }
         this.commMedium.sendMessage(actorId, msg);
     }
     sendReturnClient(actorId, msg) {
-        if (this.thisRef instanceof farRef_1.ServerFarReference) {
+        if (this.thisRef instanceof farRef_1.ClientFarReference) {
         }
         else {
         }
@@ -111,11 +107,15 @@ class MessageHandler {
         }
     }
     //Can only be received by a server actor
-    handleConnectRemote(msg) {
+    handleConnectRemote(msg, clientSocket) {
+        var resolveMessage = new messages_1.ResolveConnectionMessage(this.thisRef, msg.promiseId, msg.connectionId);
         if (msg.senderType == messages_1.Message.serverSenderType) {
-            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, new messages_1.ResolveConnectionMessage(this.thisRef, msg.promiseId, msg.connectionId));
+            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, resolveMessage);
         }
         else {
+            var socketManager = this.commMedium;
+            socketManager.addNewClient(msg.senderId, clientSocket);
+            this.sendReturnClient(msg.senderId, resolveMessage);
         }
     }
     handleResolveConnection(msg) {
@@ -123,8 +123,9 @@ class MessageHandler {
         var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
     }
-    //Ports are needed for client side actor communication and cannot be serialised together with message objects
-    dispatch(msg, ports = []) {
+    //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
+    //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
+    dispatch(msg, ports = [], clientSocket = null) {
         switch (msg.typeTag) {
             case messages_1._INSTALL_BEHAVIOUR_:
                 this.handleInstall(msg, ports[0]);
@@ -145,7 +146,7 @@ class MessageHandler {
                 this.handlePromiseReject(msg);
                 break;
             case messages_1._CONNECT_REMOTE_:
-                this.handleConnectRemote(msg);
+                this.handleConnectRemote(msg, clientSocket);
                 break;
             case messages_1._RESOLVE_CONNECTION_:
                 this.handleResolveConnection(msg);

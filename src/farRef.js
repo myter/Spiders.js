@@ -68,9 +68,12 @@ FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
 FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
 exports.FarReference = FarReference;
 class ClientFarReference extends FarReference {
-    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool) {
+    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool, contactId = null, contactAddress = null, contactPort = null) {
         super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
         this.mainId = mainId;
+        this.contactId = contactId;
+        this.contactAddress = contactAddress;
+        this.contactPort = contactPort;
     }
 }
 exports.ClientFarReference = ClientFarReference;

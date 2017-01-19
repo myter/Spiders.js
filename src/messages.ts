@@ -17,6 +17,10 @@ export class Message{
     senderPort      : number
     //For messages sent by client
     senderMainId    : string
+    contactId       : string
+    contactAddress  : string
+    contactPort     : number
+
     constructor(typeTag : MessageTypeTag,senderRef : FarReference){
         this.typeTag        = typeTag
         this.senderId       = senderRef.ownerId
@@ -26,8 +30,9 @@ export class Message{
             this.senderPort     = (senderRef as ServerFarReference).ownerPort
         }
         else{
+            var clientRef       = senderRef as ClientFarReference
             this.senderType     = Message.clientSenderType
-            this.senderMainId   = (senderRef as ClientFarReference).mainId
+            this.senderMainId   = clientRef.mainId
         }
     }
 }

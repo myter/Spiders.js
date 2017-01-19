@@ -121,11 +121,14 @@ class ServerFarRefContainer extends ValueContainer {
 }
 exports.ServerFarRefContainer = ServerFarRefContainer;
 class ClientFarRefContainer extends ValueContainer {
-    constructor(objectId, ownerId, mainId) {
+    constructor(objectId, ownerId, mainId, contactId, contactAddress, contactPort) {
         super(ValueContainer.clientFarRefType);
         this.objectId = objectId;
         this.ownerId = ownerId;
         this.mainId = mainId;
+        this.contactId = contactId;
+        this.contactAddress = contactAddress;
+        this.contactPort = contactPort;
     }
 }
 exports.ClientFarRefContainer = ClientFarRefContainer;
@@ -183,7 +186,8 @@ function serialiseObject(object, thisRef, objectPool) {
         return new ServerFarRefContainer(oId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
     }
     else {
-        return new ClientFarRefContainer(oId, thisRef.ownerId, thisRef.mainId);
+        var clientRef = thisRef;
+        return new ClientFarRefContainer(oId, clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
     }
 }
 function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
@@ -206,7 +210,13 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         }
         else if (value[farRef_1.FarReference.ClientProxyTypeKey]) {
             let farRef = value[farRef_1.FarReference.farRefAccessorKey];
-            return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId);
+            if (thisRef instanceof farRef_1.ServerFarReference && farRef.contactId == null) {
+                //Current actor is a server and is the first to obtain a reference to this client actor. conversation with this client should now be rooted through this actor given that it has a socket reference to it
+                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+            }
+            else {
+                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
+            }
         }
         else if (value[IsolateContainer.checkIsolateFuncKey]) {
             var vars = getObjectVars(value, thisRef, receiverId, commMedium, promisePool, objectPool);
@@ -250,9 +260,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         return farRef.proxyify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
-        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool);
-        if (thisRef instanceof farRef_1.ServerFarReference) {
-        }
+        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         return farRef.proxyify();
     }
     function deSerialiseError(errorContainer) {
