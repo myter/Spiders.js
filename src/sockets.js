@@ -1,32 +1,13 @@
-const messages_1 = require("./messages");
 const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
  */
 var io = require('socket.io');
-class SocketManager extends commMedium_1.CommMedium {
-    constructor(ip, socketPort) {
-        super();
-        this.socketIp = ip;
-        this.socketPort = socketPort;
-        this.socket = io(socketPort);
-        this.connectedActors = new Map();
+class SocketHandler {
+    constructor(owner) {
+        this.owner = owner;
         this.disconnectedActors = [];
         this.pendingMessages = new Map();
-        this.pendingActors = new Map();
-        this.pendingConnectionId = 0;
-    }
-    init(messageHandler) {
-        this.messageHandler = messageHandler;
-        var that = this;
-        this.socket.on('connection', (client) => {
-            client.on('message', (data) => {
-                that.messageHandler.dispatch(data);
-            });
-            client.on('close', () => {
-                //TODO
-            });
-        });
     }
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId, actorAddress, actorPort) {
@@ -35,7 +16,7 @@ class SocketManager extends commMedium_1.CommMedium {
         that.disconnectedActors.push(actorId);
         that.pendingMessages.set(actorId, []);
         connection.on('connect', () => {
-            that.connectedActors.set(actorId, connection);
+            that.owner.connectedActors.set(actorId, connection);
             that.disconnectedActors = that.disconnectedActors.filter((id) => {
                 id != actorId;
             });
@@ -59,16 +40,44 @@ class SocketManager extends commMedium_1.CommMedium {
             msgs.push(msg);
             this.pendingMessages.set(actorId, msgs);
         }
-        else if (this.connectedActors.has(actorId)) {
-            var sock = this.connectedActors.get(actorId);
+        else if (this.owner.connectedActors.has(actorId)) {
+            var sock = this.owner.connectedActors.get(actorId);
             sock.emit('message', msg);
         }
         else {
             throw new Error("Unable to send message to unknown actor");
         }
     }
+}
+exports.SocketHandler = SocketHandler;
+class ServerSocketManager extends commMedium_1.CommMedium {
+    constructor(ip, socketPort) {
+        super();
+        this.socketIp = ip;
+        this.socketPort = socketPort;
+        this.socket = io(socketPort);
+        this.socketHandler = new SocketHandler(this);
+    }
+    init(messageHandler) {
+        this.socketHandler.messageHandler = messageHandler;
+        this.socket.on('connection', (client) => {
+            client.on('message', (data) => {
+                messageHandler.dispatch(data);
+            });
+            client.on('close', () => {
+                //TODO
+            });
+        });
+    }
+    //Open connection to Node.js instance owning the object to which the far reference refers to
+    openConnection(actorId, actorAddress, actorPort) {
+        this.socketHandler.openConnection(actorId, actorAddress, actorPort);
+    }
+    sendMessage(actorId, msg) {
+        this.socketHandler.sendMessage(actorId, msg);
+    }
     hasConnection(actorId) {
-        return (this.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId);
+        return (this.socketHandler.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId);
     }
     closeAll() {
         this.socket.close();
@@ -76,21 +85,6 @@ class SocketManager extends commMedium_1.CommMedium {
             sock.close();
         });
     }
-    connectRemote(sender, address, port, promisePool) {
-        var promiseAllocation = promisePool.newPromise();
-        var connection = require('socket.io-client')('http://' + address + ":" + port);
-        var connectionId = this.pendingConnectionId;
-        this.pendingActors.set(connectionId, connection);
-        this.pendingConnectionId += 1;
-        connection.on('connect', () => {
-            connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
-        });
-        return promiseAllocation.promise;
-    }
-    resolvePendingConnection(actorId, connectionId) {
-        var connection = this.pendingActors.get(connectionId);
-        this.connectedActors.set(actorId, connection);
-    }
 }
-exports.SocketManager = SocketManager;
+exports.ServerSocketManager = ServerSocketManager;
 //# sourceMappingURL=sockets.js.map

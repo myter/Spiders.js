@@ -24916,6 +24916,7 @@ module.exports = yeast;
 
 },{}],109:[function(require,module,exports){
 const commMedium_1 = require("./commMedium");
+const sockets_1 = require("./sockets");
 /**
  * Created by flo on 18/01/2017.
  */
@@ -24923,6 +24924,7 @@ class ChannelManager extends commMedium_1.CommMedium {
     init(messageHandler) {
         this.messageHandler = messageHandler;
         this.connections = new Map();
+        this.socketHandler = new sockets_1.SocketHandler(this);
     }
     newConnection(actorId, channelPort) {
         channelPort.onmessage = (ev) => {
@@ -24930,12 +24932,19 @@ class ChannelManager extends commMedium_1.CommMedium {
         };
         this.connections.set(actorId, channelPort);
     }
+    //Open connection to Node.js instance owning the object to which the far reference refers to
+    openConnection(actorId, actorAddress, actorPort) {
+        this.socketHandler.openConnection(actorId, actorAddress, actorPort);
+    }
     hasConnection(actorId) {
-        return this.connections.has(actorId);
+        return this.connections.has(actorId) || this.connectedActors.has(actorId);
     }
     sendMessage(actorId, message) {
         if (this.connections.has(actorId)) {
             this.connections.get(actorId).postMessage(JSON.stringify(message));
+        }
+        else if (this.connectedActors.has(actorId)) {
+            this.socketHandler.sendMessage(actorId, message);
         }
         else {
             throw new Error("Unable to send message to unknown actor");
@@ -24944,7 +24953,7 @@ class ChannelManager extends commMedium_1.CommMedium {
 }
 exports.ChannelManager = ChannelManager;
 
-},{"./commMedium":112}],110:[function(require,module,exports){
+},{"./commMedium":112,"./sockets":118}],110:[function(require,module,exports){
 /**
  * Created by flo on 22/12/2016.
  */
@@ -25058,7 +25067,7 @@ else {
     thisId = process.argv[4];
     var parentId = process.argv[5];
     var parentPort = parseInt(process.argv[6]);
-    var socketManager = new sockets_1.SocketManager(address, port);
+    var socketManager = new sockets_1.ServerSocketManager(address, port);
     promisePool = new PromisePool_1.PromisePool();
     objectPool = new objectPool_1.ObjectPool();
     var thisRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, address, port, null, null, null, null);
@@ -25074,14 +25083,35 @@ else {
 
 }).call(this,require('_process'))
 },{"./ChannelManager":109,"./PromisePool":110,"./farRef":113,"./messageHandler":114,"./objectPool":116,"./serialisation":117,"./sockets":118,"./utils":120,"_process":338}],112:[function(require,module,exports){
+const messages_1 = require("./messages");
 /**
  * Created by flo on 17/01/2017.
  */
 class CommMedium {
+    constructor() {
+        this.pendingActors = new Map();
+        this.connectedActors = new Map();
+        this.pendingConnectionId = 0;
+    }
+    connectRemote(sender, address, port, promisePool) {
+        var promiseAllocation = promisePool.newPromise();
+        var connection = require('socket.io-client')('http://' + address + ":" + port);
+        var connectionId = this.pendingConnectionId;
+        this.pendingActors.set(connectionId, connection);
+        this.pendingConnectionId += 1;
+        connection.on('connect', () => {
+            connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
+        });
+        return promiseAllocation.promise;
+    }
+    resolvePendingConnection(actorId, connectionId) {
+        var connection = this.pendingActors.get(connectionId);
+        this.connectedActors.set(actorId, connection);
+    }
 }
 exports.CommMedium = CommMedium;
 
-},{}],113:[function(require,module,exports){
+},{"./messages":115,"socket.io-client":67}],113:[function(require,module,exports){
 const messages_1 = require("./messages");
 const serialisation_1 = require("./serialisation");
 /**
@@ -25699,12 +25729,8 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
     }
     function deSerialiseServerFarRef(farRefContainer) {
         var farRef = new farRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, thisRef, commMedium, promisePool, objectPool);
-        if (thisRef instanceof farRef_1.ServerFarReference) {
-            if (!(commMedium.hasConnection(farRef.ownerId))) {
-                commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
-            }
-        }
-        else {
+        if (!(commMedium.hasConnection(farRef.ownerId))) {
+            commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
         }
         return farRef.proxyify();
     }
@@ -25760,35 +25786,16 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
 exports.deserialise = deserialise;
 
 },{"./farRef":113,"./messages":115}],118:[function(require,module,exports){
-const messages_1 = require("./messages");
 const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
  */
 var io = require('socket.io');
-class SocketManager extends commMedium_1.CommMedium {
-    constructor(ip, socketPort) {
-        super();
-        this.socketIp = ip;
-        this.socketPort = socketPort;
-        this.socket = io(socketPort);
-        this.connectedActors = new Map();
+class SocketHandler {
+    constructor(owner) {
+        this.owner = owner;
         this.disconnectedActors = [];
         this.pendingMessages = new Map();
-        this.pendingActors = new Map();
-        this.pendingConnectionId = 0;
-    }
-    init(messageHandler) {
-        this.messageHandler = messageHandler;
-        var that = this;
-        this.socket.on('connection', (client) => {
-            client.on('message', (data) => {
-                that.messageHandler.dispatch(data);
-            });
-            client.on('close', () => {
-                //TODO
-            });
-        });
     }
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId, actorAddress, actorPort) {
@@ -25797,7 +25804,7 @@ class SocketManager extends commMedium_1.CommMedium {
         that.disconnectedActors.push(actorId);
         that.pendingMessages.set(actorId, []);
         connection.on('connect', () => {
-            that.connectedActors.set(actorId, connection);
+            that.owner.connectedActors.set(actorId, connection);
             that.disconnectedActors = that.disconnectedActors.filter((id) => {
                 id != actorId;
             });
@@ -25821,16 +25828,44 @@ class SocketManager extends commMedium_1.CommMedium {
             msgs.push(msg);
             this.pendingMessages.set(actorId, msgs);
         }
-        else if (this.connectedActors.has(actorId)) {
-            var sock = this.connectedActors.get(actorId);
+        else if (this.owner.connectedActors.has(actorId)) {
+            var sock = this.owner.connectedActors.get(actorId);
             sock.emit('message', msg);
         }
         else {
             throw new Error("Unable to send message to unknown actor");
         }
     }
+}
+exports.SocketHandler = SocketHandler;
+class ServerSocketManager extends commMedium_1.CommMedium {
+    constructor(ip, socketPort) {
+        super();
+        this.socketIp = ip;
+        this.socketPort = socketPort;
+        this.socket = io(socketPort);
+        this.socketHandler = new SocketHandler(this);
+    }
+    init(messageHandler) {
+        this.socketHandler.messageHandler = messageHandler;
+        this.socket.on('connection', (client) => {
+            client.on('message', (data) => {
+                messageHandler.dispatch(data);
+            });
+            client.on('close', () => {
+                //TODO
+            });
+        });
+    }
+    //Open connection to Node.js instance owning the object to which the far reference refers to
+    openConnection(actorId, actorAddress, actorPort) {
+        this.socketHandler.openConnection(actorId, actorAddress, actorPort);
+    }
+    sendMessage(actorId, msg) {
+        this.socketHandler.sendMessage(actorId, msg);
+    }
     hasConnection(actorId) {
-        return (this.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId);
+        return (this.socketHandler.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId);
     }
     closeAll() {
         this.socket.close();
@@ -25838,25 +25873,10 @@ class SocketManager extends commMedium_1.CommMedium {
             sock.close();
         });
     }
-    connectRemote(sender, address, port, promisePool) {
-        var promiseAllocation = promisePool.newPromise();
-        var connection = require('socket.io-client')('http://' + address + ":" + port);
-        var connectionId = this.pendingConnectionId;
-        this.pendingActors.set(connectionId, connection);
-        this.pendingConnectionId += 1;
-        connection.on('connect', () => {
-            connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
-        });
-        return promiseAllocation.promise;
-    }
-    resolvePendingConnection(actorId, connectionId) {
-        var connection = this.pendingActors.get(connectionId);
-        this.connectedActors.set(actorId, connection);
-    }
 }
-exports.SocketManager = SocketManager;
+exports.ServerSocketManager = ServerSocketManager;
 
-},{"./commMedium":112,"./messages":115,"socket.io":81,"socket.io-client":67}],119:[function(require,module,exports){
+},{"./commMedium":112,"socket.io":81,"socket.io-client":67}],119:[function(require,module,exports){
 (function (__dirname){
 const sockets_1 = require("./sockets");
 const messageHandler_1 = require("./messageHandler");
@@ -25943,7 +25963,7 @@ class ServerApplication extends Application {
         this.mainIp = mainIp;
         this.mainPort = mainPort;
         this.spawnedActors = [];
-        this.mainCommMedium = new sockets_1.SocketManager(mainIp, mainPort);
+        this.mainCommMedium = new sockets_1.ServerSocketManager(mainIp, mainPort);
         this.socketManager = this.mainCommMedium;
         this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool);

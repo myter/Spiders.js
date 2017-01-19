@@ -1,6 +1,6 @@
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 import {MessageHandler} from "./messageHandler";
-import {SocketManager} from "./sockets";
+import {ServerSocketManager} from "./sockets";
 import {ObjectPool} from "./objectPool";
 import {FarReference, ServerFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
@@ -39,7 +39,7 @@ else{
     thisId                  = process.argv[4]
     var parentId : string   = process.argv[5]
     var parentPort : number = parseInt(process.argv[6])
-    var socketManager       = new SocketManager(address,port)
+    var socketManager       = new ServerSocketManager(address,port)
     promisePool             = new PromisePool()
     objectPool              = new ObjectPool()
     var thisRef             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,thisId,address,port,null,null,null,null)

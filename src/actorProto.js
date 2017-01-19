@@ -35,7 +35,7 @@ else {
     thisId = process.argv[4];
     var parentId = process.argv[5];
     var parentPort = parseInt(process.argv[6]);
-    var socketManager = new sockets_1.SocketManager(address, port);
+    var socketManager = new sockets_1.ServerSocketManager(address, port);
     promisePool = new PromisePool_1.PromisePool();
     objectPool = new objectPool_1.ObjectPool();
     var thisRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, address, port, null, null, null, null);

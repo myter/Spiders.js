@@ -1,5 +1,5 @@
 import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {SocketManager} from "./sockets";
+import {ServerSocketManager} from "./sockets";
 import {ResolvePromiseMessage, RejectPromiseMessage} from "./messages";
 import {ObjectPool} from "./objectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
@@ -276,13 +276,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
 
     function deSerialiseServerFarRef(farRefContainer : ServerFarRefContainer){
         var farRef = new ServerFarReference(farRefContainer.objectId,farRefContainer.ownerId,farRefContainer.ownerAddress,farRefContainer.ownerPort,thisRef,commMedium,promisePool,objectPool)
-        if(thisRef instanceof ServerFarReference){
-            if(!(commMedium.hasConnection(farRef.ownerId))){
-                (commMedium as SocketManager).openConnection(farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
-            }
-        }
-        else{
-            //TODO
+        if(!(commMedium.hasConnection(farRef.ownerId))){
+            commMedium.openConnection(farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
         }
         return farRef.proxyify()
     }

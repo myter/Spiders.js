@@ -1,4 +1,4 @@
-import {SocketManager} from "./sockets";
+import {ServerSocketManager} from "./sockets";
 import {PromisePool, PromiseAllocation} from "./PromisePool";
 import {FieldAccessMessage, MethodInvocationMessage, Message} from "./messages";
 import {serialise} from "./serialisation";

@@ -83,7 +83,7 @@ class ServerApplication extends Application {
         this.mainIp = mainIp;
         this.mainPort = mainPort;
         this.spawnedActors = [];
-        this.mainCommMedium = new sockets_1.SocketManager(mainIp, mainPort);
+        this.mainCommMedium = new sockets_1.ServerSocketManager(mainIp, mainPort);
         this.socketManager = this.mainCommMedium;
         this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool);

@@ -4,7 +4,7 @@ import {
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
     ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_
 } from "./messages";
-import {SocketManager} from "./sockets";
+import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
 import {ValueContainer, serialise, deserialise, reconstructObject} from "./serialisation";
@@ -32,7 +32,7 @@ export class MessageHandler{
     private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message){
         if(this.thisRef instanceof ServerFarReference){
             if(!(this.commMedium.hasConnection(actorId))){
-                (this.commMedium as SocketManager).openConnection(actorId,actorAddress,actorPort)
+                (this.commMedium as ServerSocketManager).openConnection(actorId,actorAddress,actorPort)
             }
         }
         else{
