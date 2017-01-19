@@ -25069,10 +25069,7 @@ else {
     parentRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, parentId, address, parentPort, thisRef, socketManager, promisePool, objectPool);
     var parentServer = parentRef;
     socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    behaviourObject["parent"] = parentRef.proxyify();
-    if (Reflect.has(behaviourObject, "init")) {
-        behaviourObject["init"]();
-    }
+    utils.installSTDLib(parentRef, behaviourObject);
 }
 
 }).call(this,require('_process'))
@@ -25209,12 +25206,9 @@ class MessageHandler {
         this.objectPool.installBehaviourObject(behaviourObject);
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
-        behaviourObject["parent"] = parentRef.proxyify();
         var channelManag = this.commMedium;
         channelManag.newConnection(mainId, mainPort);
-        if (Reflect.has(behaviourObject, "init")) {
-            behaviourObject["init"]();
-        }
+        utils.installSTDLib(parentRef, behaviourObject);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
@@ -25941,7 +25935,6 @@ else {
 }).call(this,"/src")
 },{"./ChannelManager":109,"./PromisePool":110,"./actorProto":111,"./farRef":113,"./messageHandler":114,"./messages":115,"./objectPool":116,"./serialisation":117,"./sockets":118,"./utils":120,"child_process":121,"webworkify":91}],120:[function(require,module,exports){
 (function (process){
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 /**
  * Created by flo on 05/12/2016.
  */
@@ -25964,7 +25957,13 @@ function generateId() {
     });
 }
 exports.generateId = generateId;
-exports._BEH_OBJ_ID = 0;
+function installSTDLib(parentRef, behaviourObject) {
+    behaviourObject["parent"] = parentRef.proxyify();
+    if (Reflect.has(behaviourObject, "init")) {
+        behaviourObject["init"]();
+    }
+}
+exports.installSTDLib = installSTDLib;
 
 }).call(this,require('_process'))
 },{"_process":338}],121:[function(require,module,exports){

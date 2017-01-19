@@ -1,4 +1,5 @@
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
+import {FarReference} from "./farRef";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -19,4 +20,10 @@ export function generateId() : string {
         return v.toString(16);
     })
 }
-export const _BEH_OBJ_ID = 0
+
+export function installSTDLib(parentRef : FarReference,behaviourObject : Object){
+    behaviourObject["parent"] = parentRef.proxyify()
+    if(Reflect.has(behaviourObject,"init")){
+        behaviourObject["init"]()
+    }
+}

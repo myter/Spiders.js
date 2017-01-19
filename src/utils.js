@@ -1,4 +1,3 @@
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 /**
  * Created by flo on 05/12/2016.
  */
@@ -21,5 +20,11 @@ function generateId() {
     });
 }
 exports.generateId = generateId;
-exports._BEH_OBJ_ID = 0;
+function installSTDLib(parentRef, behaviourObject) {
+    behaviourObject["parent"] = parentRef.proxyify();
+    if (Reflect.has(behaviourObject, "init")) {
+        behaviourObject["init"]();
+    }
+}
+exports.installSTDLib = installSTDLib;
 //# sourceMappingURL=utils.js.map

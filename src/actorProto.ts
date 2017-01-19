@@ -50,8 +50,5 @@ else{
     parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,parentId,address,parentPort,thisRef,socketManager,promisePool,objectPool)
     var parentServer        = parentRef as ServerFarReference
     socketManager.openConnection(parentServer.ownerId,parentServer.ownerAddress,parentServer.ownerPort)
-    behaviourObject["parent"] = parentRef.proxyify()
-    if(Reflect.has(behaviourObject,"init")){
-        behaviourObject["init"]()
-    }
+    utils.installSTDLib(parentRef,behaviourObject)
 }

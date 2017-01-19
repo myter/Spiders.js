@@ -39,12 +39,9 @@ class MessageHandler {
         this.objectPool.installBehaviourObject(behaviourObject);
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
-        behaviourObject["parent"] = parentRef.proxyify();
         var channelManag = this.commMedium;
         channelManag.newConnection(mainId, mainPort);
-        if (Reflect.has(behaviourObject, "init")) {
-            behaviourObject["init"]();
-        }
+        utils.installSTDLib(parentRef, behaviourObject);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
