@@ -12,6 +12,9 @@ class Message {
             var clientRef = senderRef;
             this.senderType = Message.clientSenderType;
             this.senderMainId = clientRef.mainId;
+            this.contactId = clientRef.contactId;
+            this.contactAddress = clientRef.contactAddress;
+            this.contactPort = clientRef.contactPort;
         }
     }
 }
@@ -96,4 +99,13 @@ class ResolveConnectionMessage extends Message {
     }
 }
 exports.ResolveConnectionMessage = ResolveConnectionMessage;
+exports._ROUTE_ = 8;
+class RouteMessage extends Message {
+    constructor(senderRef, targetId, message) {
+        super(exports._ROUTE_, senderRef);
+        this.message = message;
+        this.targetId = targetId;
+    }
+}
+exports.RouteMessage = RouteMessage;
 //# sourceMappingURL=messages.js.map

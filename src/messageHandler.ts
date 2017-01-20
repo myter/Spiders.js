@@ -2,7 +2,7 @@ import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
-    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_
+    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_
 } from "./messages";
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
@@ -32,19 +32,24 @@ export class MessageHandler{
 
     private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message){
         if(!(this.commMedium.hasConnection(actorId))){
-            (this.commMedium as ServerSocketManager).openConnection(actorId,actorAddress,actorPort)
+            this.commMedium.openConnection(actorId,actorAddress,actorPort)
         }
         this.commMedium.sendMessage(actorId,msg)
     }
 
     private sendReturnClient(actorId : string,msg : Message){
         if(this.thisRef instanceof ClientFarReference){
-            //TODO will need to check whether the return client is from same physical machine (will need to send routing message to contactServer instead)
+            //Message to which actor is replying came from a different client host, send routing message to contact server actor
+            if((this.thisRef as ClientFarReference).mainId != msg.senderMainId){
+                this.sendReturnServer(msg.contactId,msg.contactAddress,msg.contactPort,new RouteMessage(this.thisRef,actorId,msg))
+            }
+            else{
+                this.commMedium.sendMessage(actorId,msg)
+            }
         }
         else{
-            //TODO check whether this actor is the contact actor, otherwise send routing message
+            this.commMedium.sendMessage(actorId,msg)
         }
-        this.commMedium.sendMessage(actorId,msg)
     }
 
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
@@ -153,6 +158,10 @@ export class MessageHandler{
         this.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
     }
 
+    private handleRoute(msg : RouteMessage){
+        this.commMedium.sendMessage(msg.targetId,msg.message)
+    }
+
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
@@ -180,6 +189,9 @@ export class MessageHandler{
                 break
             case _RESOLVE_CONNECTION_:
                 this.handleResolveConnection(msg as ResolveConnectionMessage)
+                break
+            case _ROUTE_:
+                this.handleRoute(msg as RouteMessage)
                 break
             default:
                 throw "Unknown message in actor : " + msg.toString()

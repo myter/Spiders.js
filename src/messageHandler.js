@@ -21,10 +21,17 @@ class MessageHandler {
     }
     sendReturnClient(actorId, msg) {
         if (this.thisRef instanceof farRef_1.ClientFarReference) {
+            //Message to which actor is replying came from a different client host, send routing message to contact server actor
+            if (this.thisRef.mainId != msg.senderMainId) {
+                this.sendReturnServer(msg.contactId, msg.contactAddress, msg.contactPort, new messages_1.RouteMessage(this.thisRef, actorId, msg));
+            }
+            else {
+                this.commMedium.sendMessage(actorId, msg);
+            }
         }
         else {
+            this.commMedium.sendMessage(actorId, msg);
         }
-        this.commMedium.sendMessage(actorId, msg);
     }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
     handleInstall(msg, mainPort) {
@@ -123,6 +130,9 @@ class MessageHandler {
         var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
     }
+    handleRoute(msg) {
+        this.commMedium.sendMessage(msg.targetId, msg.message);
+    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg, ports = [], clientSocket = null) {
@@ -150,6 +160,9 @@ class MessageHandler {
                 break;
             case messages_1._RESOLVE_CONNECTION_:
                 this.handleResolveConnection(msg);
+                break;
+            case messages_1._ROUTE_:
+                this.handleRoute(msg);
                 break;
             default:
                 throw "Unknown message in actor : " + msg.toString();

@@ -79,7 +79,7 @@ class ServerSocketManager extends commMedium_1.CommMedium {
     }
     sendMessage(actorId, msg) {
         if (this.connectedClients.has(actorId)) {
-            this.connectedClients.get(actorId).emit('message', msg);
+            this.connectedClients.get(actorId).emit('message', JSON.stringify(msg));
         }
         else {
             this.socketHandler.sendMessage(actorId, msg);

@@ -1,7 +1,8 @@
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
-import {FarReference, ServerFarReference} from "./farRef";
+import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {PromisePool} from "./PromisePool";
+import {Message, RouteMessage} from "./messages";
 /**
  * Created by flo on 05/12/2016.
  */

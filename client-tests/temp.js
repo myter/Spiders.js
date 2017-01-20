@@ -16,6 +16,7 @@ class testReqActor extends app.Actor{
         return this.mod.testFunction()
     }*/
     dummy(){
+        console.log("Hello dummy")
         //require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule')
     }
 }

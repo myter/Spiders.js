@@ -1,6 +1,6 @@
 import {ServerSocketManager} from "./sockets";
 import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {FieldAccessMessage, MethodInvocationMessage, Message} from "./messages";
+import {FieldAccessMessage, MethodInvocationMessage, Message, RouteMessage} from "./messages";
 import {serialise} from "./serialisation";
 import {ObjectPool} from "./objectPool";
 import {CommMedium} from "./commMedium";
@@ -97,6 +97,46 @@ export class ClientFarReference extends FarReference {
         this.contactId      = contactId
         this.contactAddress = contactAddress
         this.contactPort    = contactPort
+    }
+
+    private sendRoute(toId : string,msg : Message){
+        if(!this.commMedium.hasConnection(this.contactId)){
+            this.commMedium.openConnection(this.contactId,this.contactAddress,this.contactPort)
+        }
+        this.commMedium.sendMessage(this.contactId,new RouteMessage(this,this.ownerId,msg))
+    }
+
+    private send(toId : string,msg : Message){
+        if(this.holderRef instanceof ServerFarReference){
+            if(this.holderRef.ownerId == this.contactId){
+                this.commMedium.sendMessage(toId,msg)
+            }
+            else{
+                this.sendRoute(this.contactId,new RouteMessage(this,this.ownerId,msg))
+            }
+        }
+        else{
+            if((this.holderRef as ClientFarReference).mainId == this.mainId){
+                this.commMedium.sendMessage(this.ownerId,msg)
+            }
+            else{
+                this.sendRoute(this.contactId,new RouteMessage(this,this.ownerId,msg))
+            }
+        }
+    }
+
+    sendFieldAccess(fieldName : string) : Promise<any>{
+        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
+        var message = new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId)
+        this.send(this.ownerId,message)
+        return promiseAlloc.promise
+    }
+
+    sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
+        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
+        var message = new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId)
+        this.send(this.ownerId,message)
+        return promiseAlloc.promise
     }
 }
 

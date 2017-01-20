@@ -75,6 +75,42 @@ class ClientFarReference extends FarReference {
         this.contactAddress = contactAddress;
         this.contactPort = contactPort;
     }
+    sendRoute(toId, msg) {
+        if (!this.commMedium.hasConnection(this.contactId)) {
+            this.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
+        }
+        this.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+    }
+    send(toId, msg) {
+        if (this.holderRef instanceof ServerFarReference) {
+            if (this.holderRef.ownerId == this.contactId) {
+                this.commMedium.sendMessage(toId, msg);
+            }
+            else {
+                this.sendRoute(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+            }
+        }
+        else {
+            if (this.holderRef.mainId == this.mainId) {
+                this.commMedium.sendMessage(this.ownerId, msg);
+            }
+            else {
+                this.sendRoute(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+            }
+        }
+    }
+    sendFieldAccess(fieldName) {
+        var promiseAlloc = this.promisePool.newPromise();
+        var message = new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId);
+        this.send(this.ownerId, message);
+        return promiseAlloc.promise;
+    }
+    sendMethodInvocation(methodName, args) {
+        var promiseAlloc = this.promisePool.newPromise();
+        var message = new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId);
+        this.send(this.ownerId, message);
+        return promiseAlloc.promise;
+    }
 }
 exports.ClientFarReference = ClientFarReference;
 class ServerFarReference extends FarReference {

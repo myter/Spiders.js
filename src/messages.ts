@@ -33,6 +33,9 @@ export class Message{
             var clientRef       = senderRef as ClientFarReference
             this.senderType     = Message.clientSenderType
             this.senderMainId   = clientRef.mainId
+            this.contactId      = clientRef.contactId
+            this.contactAddress = clientRef.contactAddress
+            this.contactPort    = clientRef.contactPort
         }
     }
 }
@@ -134,6 +137,17 @@ export class ResolveConnectionMessage extends Message{
         super(_RESOLVE_CONNECTION_,senderRef)
         this.promiseId      = promiseId
         this.connectionId   = connectionId
+    }
+}
+
+export const _ROUTE_ : MessageTypeTag = 8
+export class RouteMessage extends Message {
+    targetId    : string
+    message     : Message
+    constructor(senderRef : FarReference,targetId : string,message : Message){
+        super(_ROUTE_,senderRef)
+        this.message    = message
+        this.targetId   = targetId
     }
 }
 

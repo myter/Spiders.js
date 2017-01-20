@@ -25189,6 +25189,42 @@ class ClientFarReference extends FarReference {
         this.contactAddress = contactAddress;
         this.contactPort = contactPort;
     }
+    sendRoute(toId, msg) {
+        if (!this.commMedium.hasConnection(this.contactId)) {
+            this.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
+        }
+        this.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+    }
+    send(toId, msg) {
+        if (this.holderRef instanceof ServerFarReference) {
+            if (this.holderRef.ownerId == this.contactId) {
+                this.commMedium.sendMessage(toId, msg);
+            }
+            else {
+                this.sendRoute(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+            }
+        }
+        else {
+            if (this.holderRef.mainId == this.mainId) {
+                this.commMedium.sendMessage(this.ownerId, msg);
+            }
+            else {
+                this.sendRoute(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+            }
+        }
+    }
+    sendFieldAccess(fieldName) {
+        var promiseAlloc = this.promisePool.newPromise();
+        var message = new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId);
+        this.send(this.ownerId, message);
+        return promiseAlloc.promise;
+    }
+    sendMethodInvocation(methodName, args) {
+        var promiseAlloc = this.promisePool.newPromise();
+        var message = new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId);
+        this.send(this.ownerId, message);
+        return promiseAlloc.promise;
+    }
 }
 exports.ClientFarReference = ClientFarReference;
 class ServerFarReference extends FarReference {
@@ -25224,10 +25260,17 @@ class MessageHandler {
     }
     sendReturnClient(actorId, msg) {
         if (this.thisRef instanceof farRef_1.ClientFarReference) {
+            //Message to which actor is replying came from a different client host, send routing message to contact server actor
+            if (this.thisRef.mainId != msg.senderMainId) {
+                this.sendReturnServer(msg.contactId, msg.contactAddress, msg.contactPort, new messages_1.RouteMessage(this.thisRef, actorId, msg));
+            }
+            else {
+                this.commMedium.sendMessage(actorId, msg);
+            }
         }
         else {
+            this.commMedium.sendMessage(actorId, msg);
         }
-        this.commMedium.sendMessage(actorId, msg);
     }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
     handleInstall(msg, mainPort) {
@@ -25326,6 +25369,9 @@ class MessageHandler {
         var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
     }
+    handleRoute(msg) {
+        this.commMedium.sendMessage(msg.targetId, msg.message);
+    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg, ports = [], clientSocket = null) {
@@ -25354,6 +25400,9 @@ class MessageHandler {
             case messages_1._RESOLVE_CONNECTION_:
                 this.handleResolveConnection(msg);
                 break;
+            case messages_1._ROUTE_:
+                this.handleRoute(msg);
+                break;
             default:
                 throw "Unknown message in actor : " + msg.toString();
         }
@@ -25376,6 +25425,9 @@ class Message {
             var clientRef = senderRef;
             this.senderType = Message.clientSenderType;
             this.senderMainId = clientRef.mainId;
+            this.contactId = clientRef.contactId;
+            this.contactAddress = clientRef.contactAddress;
+            this.contactPort = clientRef.contactPort;
         }
     }
 }
@@ -25460,6 +25512,15 @@ class ResolveConnectionMessage extends Message {
     }
 }
 exports.ResolveConnectionMessage = ResolveConnectionMessage;
+exports._ROUTE_ = 8;
+class RouteMessage extends Message {
+    constructor(senderRef, targetId, message) {
+        super(exports._ROUTE_, senderRef);
+        this.message = message;
+        this.targetId = targetId;
+    }
+}
+exports.RouteMessage = RouteMessage;
 
 },{"./farRef":113}],116:[function(require,module,exports){
 /**
@@ -25880,7 +25941,7 @@ class ServerSocketManager extends commMedium_1.CommMedium {
     }
     sendMessage(actorId, msg) {
         if (this.connectedClients.has(actorId)) {
-            this.connectedClients.get(actorId).emit('message', msg);
+            this.connectedClients.get(actorId).emit('message', JSON.stringify(msg));
         }
         else {
             this.socketHandler.sendMessage(actorId, msg);
