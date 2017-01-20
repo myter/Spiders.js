@@ -3,6 +3,7 @@ import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {PromisePool} from "./PromisePool";
 import {Message, RouteMessage} from "./messages";
+import {MessageHandler} from "./messageHandler";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -24,10 +25,10 @@ export function generateId() : string {
     })
 }
 
-export function installSTDLib(thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool){
+export function installSTDLib(thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,messageHandler : MessageHandler,commMedium : CommMedium,promisePool : PromisePool){
     behaviourObject["parent"] = parentRef.proxyify()
     behaviourObject["remote"] = (address : string,port : number) : Promise<any> =>  {
-        return commMedium.connectRemote(thisRef,address,port,promisePool)
+        return commMedium.connectRemote(thisRef,address,port,messageHandler,promisePool)
     }
     if(Reflect.has(behaviourObject,"init")){
         behaviourObject["init"]()

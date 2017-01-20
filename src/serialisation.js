@@ -260,7 +260,14 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         return farRef.proxyify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
-        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+        var farRef;
+        if ((thisRef instanceof farRef_1.ServerFarReference) && farRefContainer.contactId == null) {
+            //This is the first server side actor to come into contact with this client-side far reference and will henceforth be the contact point for all messages sent to this far reference
+            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+        }
+        else {
+            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+        }
         return farRef.proxyify();
     }
     function deSerialiseError(errorContainer) {

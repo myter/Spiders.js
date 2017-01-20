@@ -19,18 +19,18 @@ class MessageHandler {
         }
         this.commMedium.sendMessage(actorId, msg);
     }
-    sendReturnClient(actorId, msg) {
+    sendReturnClient(actorId, originalMsg, returnMsg) {
         if (this.thisRef instanceof farRef_1.ClientFarReference) {
             //Message to which actor is replying came from a different client host, send routing message to contact server actor
-            if (this.thisRef.mainId != msg.senderMainId) {
-                this.sendReturnServer(msg.contactId, msg.contactAddress, msg.contactPort, new messages_1.RouteMessage(this.thisRef, actorId, msg));
+            if (this.thisRef.mainId != originalMsg.senderMainId) {
+                this.sendReturnServer(originalMsg.contactId, originalMsg.contactAddress, originalMsg.contactPort, new messages_1.RouteMessage(this.thisRef, actorId, returnMsg));
             }
             else {
-                this.commMedium.sendMessage(actorId, msg);
+                this.commMedium.sendMessage(actorId, returnMsg);
             }
         }
         else {
-            this.commMedium.sendMessage(actorId, msg);
+            this.commMedium.sendMessage(actorId, returnMsg);
         }
     }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
@@ -44,7 +44,7 @@ class MessageHandler {
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
         channelManag.newConnection(mainId, mainPort);
-        utils.installSTDLib(thisRef, parentRef, behaviourObject, channelManag, this.promisePool);
+        utils.installSTDLib(thisRef, parentRef, behaviourObject, this, channelManag, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
@@ -61,7 +61,7 @@ class MessageHandler {
                 this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
-                this.sendReturnClient(msg.senderId, message);
+                this.sendReturnClient(msg.senderId, msg, message);
             }
         }
     }
@@ -81,7 +81,7 @@ class MessageHandler {
                 this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
-                this.sendReturnClient(msg.senderId, message);
+                this.sendReturnClient(msg.senderId, msg, message);
             }
         }
         catch (reason) {
@@ -91,7 +91,7 @@ class MessageHandler {
                 this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
-                this.sendReturnClient(msg.senderId, message);
+                this.sendReturnClient(msg.senderId, msg, message);
             }
         }
     }
@@ -122,7 +122,7 @@ class MessageHandler {
         else {
             var socketManager = this.commMedium;
             socketManager.addNewClient(msg.senderId, clientSocket);
-            this.sendReturnClient(msg.senderId, resolveMessage);
+            this.sendReturnClient(msg.senderId, msg, resolveMessage);
         }
     }
     handleResolveConnection(msg) {

@@ -45,7 +45,7 @@ class SocketHandler {
             sock.emit('message', msg);
         }
         else {
-            throw new Error("Unable to send message to unknown actor");
+            throw new Error("Unable to send message to unknown actor (socket handler)");
         }
     }
 }

@@ -24937,17 +24937,20 @@ class ChannelManager extends commMedium_1.CommMedium {
         this.socketHandler.openConnection(actorId, actorAddress, actorPort);
     }
     hasConnection(actorId) {
-        return this.connections.has(actorId) || this.connectedActors.has(actorId);
+        var inChannel = this.connections.has(actorId);
+        var connected = this.connectedActors.has(actorId);
+        var disconnected = this.socketHandler.disconnectedActors.indexOf(actorId) != -1;
+        return inChannel || connected || disconnected;
     }
     sendMessage(actorId, message) {
         if (this.connections.has(actorId)) {
             this.connections.get(actorId).postMessage(JSON.stringify(message));
         }
-        else if (this.connectedActors.has(actorId)) {
+        else if (this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1) {
             this.socketHandler.sendMessage(actorId, message);
         }
         else {
-            throw new Error("Unable to send message to unknown actor");
+            throw new Error("Unable to send message to unknown actor (channel manager)");
         }
     }
 }
@@ -25078,12 +25081,13 @@ else {
     parentRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, parentId, address, parentPort, thisRef, socketManager, promisePool, objectPool);
     var parentServer = parentRef;
     socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    utils.installSTDLib(thisRef, parentRef, behaviourObject, socketManager, promisePool);
+    utils.installSTDLib(thisRef, parentRef, behaviourObject, messageHandler, socketManager, promisePool);
 }
 
 }).call(this,require('_process'))
 },{"./ChannelManager":109,"./PromisePool":110,"./farRef":113,"./messageHandler":114,"./objectPool":116,"./serialisation":117,"./sockets":118,"./utils":120,"_process":338}],112:[function(require,module,exports){
 const messages_1 = require("./messages");
+const farRef_1 = require("./farRef");
 /**
  * Created by flo on 17/01/2017.
  */
@@ -25093,7 +25097,7 @@ class CommMedium {
         this.connectedActors = new Map();
         this.pendingConnectionId = 0;
     }
-    connectRemote(sender, address, port, promisePool) {
+    connectRemote(sender, address, port, messageHandler, promisePool) {
         var promiseAllocation = promisePool.newPromise();
         var connection = require('socket.io-client')('http://' + address + ":" + port);
         var connectionId = this.pendingConnectionId;
@@ -25101,6 +25105,14 @@ class CommMedium {
         this.pendingConnectionId += 1;
         connection.on('connect', () => {
             connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
+        });
+        connection.on('message', (data) => {
+            if (sender instanceof farRef_1.ServerFarReference) {
+                messageHandler.dispatch(data);
+            }
+            else {
+                messageHandler.dispatch(JSON.parse(data));
+            }
         });
         return promiseAllocation.promise;
     }
@@ -25111,7 +25123,7 @@ class CommMedium {
 }
 exports.CommMedium = CommMedium;
 
-},{"./messages":115,"socket.io-client":67}],113:[function(require,module,exports){
+},{"./farRef":113,"./messages":115,"socket.io-client":67}],113:[function(require,module,exports){
 const messages_1 = require("./messages");
 const serialisation_1 = require("./serialisation");
 /**
@@ -25158,7 +25170,7 @@ class FarReference {
                         var prom = baseObject.sendFieldAccess(property.toString());
                         var ret = function (...args) {
                             var serialisedArgs = args.map((arg) => {
-                                return serialisation_1.serialise(arg, baseObject, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
+                                return serialisation_1.serialise(arg, baseObject.holderRef, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
                             });
                             return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
                         };
@@ -25193,6 +25205,10 @@ class ClientFarReference extends FarReference {
         if (!this.commMedium.hasConnection(this.contactId)) {
             this.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
         }
+        //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
+        msg.contactId = this.contactId;
+        msg.contactAddress = this.contactAddress;
+        msg.contactPort = this.contactPort;
         this.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
     }
     send(toId, msg) {
@@ -25201,7 +25217,7 @@ class ClientFarReference extends FarReference {
                 this.commMedium.sendMessage(toId, msg);
             }
             else {
-                this.sendRoute(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+                this.sendRoute(this.contactId, msg);
             }
         }
         else {
@@ -25209,7 +25225,7 @@ class ClientFarReference extends FarReference {
                 this.commMedium.sendMessage(this.ownerId, msg);
             }
             else {
-                this.sendRoute(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+                this.sendRoute(this.contactId, msg);
             }
         }
     }
@@ -25258,18 +25274,18 @@ class MessageHandler {
         }
         this.commMedium.sendMessage(actorId, msg);
     }
-    sendReturnClient(actorId, msg) {
+    sendReturnClient(actorId, originalMsg, returnMsg) {
         if (this.thisRef instanceof farRef_1.ClientFarReference) {
             //Message to which actor is replying came from a different client host, send routing message to contact server actor
-            if (this.thisRef.mainId != msg.senderMainId) {
-                this.sendReturnServer(msg.contactId, msg.contactAddress, msg.contactPort, new messages_1.RouteMessage(this.thisRef, actorId, msg));
+            if (this.thisRef.mainId != originalMsg.senderMainId) {
+                this.sendReturnServer(originalMsg.contactId, originalMsg.contactAddress, originalMsg.contactPort, new messages_1.RouteMessage(this.thisRef, actorId, returnMsg));
             }
             else {
-                this.commMedium.sendMessage(actorId, msg);
+                this.commMedium.sendMessage(actorId, returnMsg);
             }
         }
         else {
-            this.commMedium.sendMessage(actorId, msg);
+            this.commMedium.sendMessage(actorId, returnMsg);
         }
     }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
@@ -25283,7 +25299,7 @@ class MessageHandler {
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
         channelManag.newConnection(mainId, mainPort);
-        utils.installSTDLib(thisRef, parentRef, behaviourObject, channelManag, this.promisePool);
+        utils.installSTDLib(thisRef, parentRef, behaviourObject, this, channelManag, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
@@ -25300,7 +25316,7 @@ class MessageHandler {
                 this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
-                this.sendReturnClient(msg.senderId, message);
+                this.sendReturnClient(msg.senderId, msg, message);
             }
         }
     }
@@ -25320,7 +25336,7 @@ class MessageHandler {
                 this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
-                this.sendReturnClient(msg.senderId, message);
+                this.sendReturnClient(msg.senderId, msg, message);
             }
         }
         catch (reason) {
@@ -25330,7 +25346,7 @@ class MessageHandler {
                 this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
             }
             else {
-                this.sendReturnClient(msg.senderId, message);
+                this.sendReturnClient(msg.senderId, msg, message);
             }
         }
     }
@@ -25361,7 +25377,7 @@ class MessageHandler {
         else {
             var socketManager = this.commMedium;
             socketManager.addNewClient(msg.senderId, clientSocket);
-            this.sendReturnClient(msg.senderId, resolveMessage);
+            this.sendReturnClient(msg.senderId, msg, resolveMessage);
         }
     }
     handleResolveConnection(msg) {
@@ -25811,7 +25827,14 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         return farRef.proxyify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
-        var farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+        var farRef;
+        if ((thisRef instanceof farRef_1.ServerFarReference) && farRefContainer.contactId == null) {
+            //This is the first server side actor to come into contact with this client-side far reference and will henceforth be the contact point for all messages sent to this far reference
+            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+        }
+        else {
+            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+        }
         return farRef.proxyify();
     }
     function deSerialiseError(errorContainer) {
@@ -25907,7 +25930,7 @@ class SocketHandler {
             sock.emit('message', msg);
         }
         else {
-            throw new Error("Unable to send message to unknown actor");
+            throw new Error("Unable to send message to unknown actor (socket handler)");
         }
     }
 }
@@ -26118,10 +26141,10 @@ function generateId() {
     });
 }
 exports.generateId = generateId;
-function installSTDLib(thisRef, parentRef, behaviourObject, commMedium, promisePool) {
+function installSTDLib(thisRef, parentRef, behaviourObject, messageHandler, commMedium, promisePool) {
     behaviourObject["parent"] = parentRef.proxyify();
     behaviourObject["remote"] = (address, port) => {
-        return commMedium.connectRemote(thisRef, address, port, promisePool);
+        return commMedium.connectRemote(thisRef, address, port, messageHandler, promisePool);
     };
     if (Reflect.has(behaviourObject, "init")) {
         behaviourObject["init"]();

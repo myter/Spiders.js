@@ -66,7 +66,7 @@ export abstract class FarReference {
                         var prom = baseObject.sendFieldAccess(property.toString())
                         var ret = function(... args){
                             var serialisedArgs = args.map((arg) => {
-                                return serialise(arg,baseObject,baseObject.ownerId,baseObject.commMedium,baseObject.promisePool,baseObject.objectPool)
+                                return serialise(arg,baseObject.holderRef,baseObject.ownerId,baseObject.commMedium,baseObject.promisePool,baseObject.objectPool)
                             })
                             return baseObject.sendMethodInvocation(property.toString(),serialisedArgs)
                         }
@@ -103,6 +103,10 @@ export class ClientFarReference extends FarReference {
         if(!this.commMedium.hasConnection(this.contactId)){
             this.commMedium.openConnection(this.contactId,this.contactAddress,this.contactPort)
         }
+        //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
+        msg.contactId = this.contactId
+        msg.contactAddress = this.contactAddress
+        msg.contactPort = this.contactPort
         this.commMedium.sendMessage(this.contactId,new RouteMessage(this,this.ownerId,msg))
     }
 
@@ -112,7 +116,7 @@ export class ClientFarReference extends FarReference {
                 this.commMedium.sendMessage(toId,msg)
             }
             else{
-                this.sendRoute(this.contactId,new RouteMessage(this,this.ownerId,msg))
+                this.sendRoute(this.contactId,msg)
             }
         }
         else{
@@ -120,7 +124,7 @@ export class ClientFarReference extends FarReference {
                 this.commMedium.sendMessage(this.ownerId,msg)
             }
             else{
-                this.sendRoute(this.contactId,new RouteMessage(this,this.ownerId,msg))
+                this.sendRoute(this.contactId,msg)
             }
         }
     }

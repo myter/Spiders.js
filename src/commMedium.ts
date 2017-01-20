@@ -1,6 +1,6 @@
 import {MessageHandler} from "./messageHandler";
 import {Message, ConnectRemoteMessage} from "./messages";
-import {FarReference} from "./farRef";
+import {FarReference, ServerFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
 import {Socket} from "net";
 /**
@@ -24,7 +24,7 @@ export abstract class CommMedium{
         this.pendingConnectionId    = 0
     }
 
-    connectRemote(sender : FarReference,address : string,port : number,promisePool : PromisePool) : Promise<any>{
+    connectRemote(sender : FarReference,address : string,port : number,messageHandler : MessageHandler,promisePool : PromisePool) : Promise<any>{
         var promiseAllocation       = promisePool.newPromise()
         var connection              = require('socket.io-client')('http://'+address+":"+port)
         var connectionId            = this.pendingConnectionId
@@ -32,6 +32,14 @@ export abstract class CommMedium{
         this.pendingConnectionId    += 1
         connection.on('connect',() => {
             connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId))
+        })
+        connection.on('message',(data) => {
+            if(sender instanceof ServerFarReference){
+                messageHandler.dispatch(data)
+            }
+            else{
+                messageHandler.dispatch(JSON.parse(data))
+            }
         })
         return promiseAllocation.promise
     }

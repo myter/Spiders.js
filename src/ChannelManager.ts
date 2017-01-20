@@ -29,18 +29,21 @@ export class ChannelManager extends CommMedium{
     }
 
     hasConnection(actorId : string) : boolean{
-        return this.connections.has(actorId) || this.connectedActors.has(actorId)
+        var inChannel       = this.connections.has(actorId)
+        var connected       = this.connectedActors.has(actorId)
+        var disconnected    = this.socketHandler.disconnectedActors.indexOf(actorId) != -1
+        return inChannel || connected || disconnected
     }
 
     sendMessage(actorId : string,message : Message){
         if(this.connections.has(actorId)){
             this.connections.get(actorId).postMessage(JSON.stringify(message))
         }
-        else if(this.connectedActors.has(actorId)){
+        else if(this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1){
             this.socketHandler.sendMessage(actorId,message)
         }
         else{
-            throw new Error("Unable to send message to unknown actor")
+            throw new Error("Unable to send message to unknown actor (channel manager)")
         }
     }
 }
