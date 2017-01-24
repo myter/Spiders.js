@@ -162,8 +162,8 @@ abstract class ClientApplication extends Application{
 }
 
 export interface SpiderLib{
-    Application : Function
-    Actor       : Function
+    Application : Class
+    Actor       : Class
 }
 
 if(utils.isBrowser()){
