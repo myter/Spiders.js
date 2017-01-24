@@ -86,12 +86,17 @@ abstract class Application {
     mainObjectPool      : ObjectPool
     mainCommMedium      : CommMedium
     mainRef             : FarReference
-    Actor               : Class
+    appActors           : number = 0
 
     constructor(){
-        this.mainId             = utils.generateId()
-        this.mainPromisePool    = new PromisePool()
-        this.mainObjectPool     = new ObjectPool(this)
+        if(this.appActors == 0){
+            this.mainId             = utils.generateId()
+            this.mainPromisePool    = new PromisePool()
+            this.mainObjectPool     = new ObjectPool(this)
+        }
+        else{
+            throw new Error("Cannot create more than one application actor")
+        }
     }
 }
 
@@ -111,7 +116,6 @@ abstract class ServerApplication extends Application{
         this.mainRef            = new ServerFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainIp,this.mainPort,null,this.mainCommMedium as ServerSocketManager,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool)
         this.socketManager.init(this.mainMessageHandler)
-        this.Actor              = ServerActor as Class
     }
 
     spawnActor(actorClass : Class,constructorArgs : Array<any> = [],port : number = 8080){
@@ -139,7 +143,6 @@ abstract class ClientApplication extends Application{
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool)
         this.channelManager.init(this.mainMessageHandler)
-        this.Actor              = ClientActor as Class
     }
 
     spawnActor(actorClass : Class,constructorArgs : Array<any>){
@@ -158,9 +161,11 @@ abstract class ClientApplication extends Application{
 
 if(utils.isBrowser()){
     exports.Application = ClientApplication
+    exports.Actor       = ClientActor
 }
 else{
     exports.Application = ServerApplication
+    exports.Actor       = ServerActor
 }
 
 

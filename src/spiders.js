@@ -72,9 +72,15 @@ class ServerActor {
 }
 class Application {
     constructor() {
-        this.mainId = utils.generateId();
-        this.mainPromisePool = new PromisePool_1.PromisePool();
-        this.mainObjectPool = new objectPool_1.ObjectPool(this);
+        this.appActors = 0;
+        if (this.appActors == 0) {
+            this.mainId = utils.generateId();
+            this.mainPromisePool = new PromisePool_1.PromisePool();
+            this.mainObjectPool = new objectPool_1.ObjectPool(this);
+        }
+        else {
+            throw new Error("Cannot create more than one application actor");
+        }
     }
 }
 class ServerApplication extends Application {
@@ -88,7 +94,6 @@ class ServerApplication extends Application {
         this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool);
         this.socketManager.init(this.mainMessageHandler);
-        this.Actor = ServerActor;
     }
     spawnActor(actorClass, constructorArgs = [], port = 8080) {
         var actorObject = new actorClass(constructorArgs);
@@ -110,7 +115,6 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
-        this.Actor = ClientActor;
     }
     spawnActor(actorClass, constructorArgs) {
         var actorObject = new actorClass(constructorArgs);
@@ -125,8 +129,10 @@ class ClientApplication extends Application {
 }
 if (utils.isBrowser()) {
     exports.Application = ClientApplication;
+    exports.Actor = ClientActor;
 }
 else {
     exports.Application = ServerApplication;
+    exports.Actor = ServerActor;
 }
 //# sourceMappingURL=spiders.js.map

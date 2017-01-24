@@ -18,7 +18,6 @@ var parentRef       : FarReference
 var thisId          : string
 
 
-
 if(utils.isBrowser()){
     //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
     var channelManager  = new ChannelManager()

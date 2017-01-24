@@ -42,7 +42,7 @@ function log(result){
     }
 }
 
-class testFieldSerActor extends app.Actor{
+class testFieldSerActor extends spider.Actor{
     constructor(){
         super()
         this.val = 10
@@ -58,7 +58,7 @@ var performFieldSer = () => {
 scheduled.push(performFieldSer)
 
 
-class testMethSerActor extends app.Actor{
+class testMethSerActor extends spider.Actor{
     msub(){
         return 5
     }
@@ -77,7 +77,7 @@ scheduled.push(performMethSer)
 
 
 var aValue = 5
-class testConSerActor extends app.Actor{
+class testConSerActor extends spider.Actor{
     constructor(){
         super()
         this.val = aValue
@@ -96,7 +96,7 @@ var performConSer = () => {
 scheduled.push(performConSer)
 
 
-class testInitSerActor extends app.Actor{
+class testInitSerActor extends spider.Actor{
     constructor(){
         super()
         this.val = 10
@@ -115,7 +115,7 @@ var peformInitSer = () => {
 scheduled.push(peformInitSer)
 
 
-class testScopeActor extends app.Actor{
+class testScopeActor extends spider.Actor{
     get(){
         return this.promisePool
     }
@@ -129,7 +129,7 @@ performScopeSer = () => {
 }
 scheduled.push(performScopeSer)
 
-class baseMethodInhActor extends app.Actor{
+class baseMethodInhActor extends spider.Actor{
     test(){
         return 5
     }
@@ -149,7 +149,7 @@ performMethodInhSer = () => {
 scheduled.push(performMethodInhSer)
 
 
-class baseFieldInhActor extends app.Actor{
+class baseFieldInhActor extends spider.Actor{
     constructor(){
         super()
         this.baseField = 5
@@ -171,7 +171,8 @@ scheduled.push(performFieldInhSer)
 
 
 //Due to Browserify's static analyser it is impossible to dynamically require a module. therefore require must happen on actor creation time (the required library is available to the actor is a far reference)
-class testReqActor extends app.Actor{
+//Warning, this entails that all work done by the required librarby is performed on the spawning thread (use importscripts if needed to require in actor self)
+class testReqActor extends spider.Actor{
     constructor(){
         super()
         this.mod = require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule')
@@ -190,7 +191,7 @@ performReq = () => {
 scheduled.push(performReq)
 
 
-class testFieldAccessActor extends app.Actor{
+class testFieldAccessActor extends spider.Actor{
     constructor(){
         super()
         this.value = 10
@@ -206,7 +207,7 @@ performFieldAccess = () => {
 scheduled.push(performFieldAccess)
 
 
-class testMethodInvocActor extends app.Actor{
+class testMethodInvocActor extends spider.Actor{
     m(){
         return 10
     }
@@ -221,7 +222,7 @@ performMethodInvoc = () => {
 scheduled.push(performMethodInvoc)
 
 
-class testParentAccessActor extends app.Actor{
+class testParentAccessActor extends spider.Actor{
     access(){
         return parent.mainValue
     }
@@ -236,7 +237,7 @@ performParentAccess = () => {
 scheduled.push(performParentAccess)
 
 
-class testParentInvokeActor extends app.Actor{
+class testParentInvokeActor extends spider.Actor{
     invoke(){
         return parent.mainMethod()
     }
@@ -250,7 +251,7 @@ performParentInvoke = () => {
 }
 scheduled.push(performParentInvoke)
 
-class testPromiseRejectActor extends app.Actor{
+class testPromiseRejectActor extends spider.Actor{
     m(){
         throw new Error("This is an error")
     }
@@ -265,7 +266,7 @@ performPromiseReject = () => {
 scheduled.push(performPromiseReject)
 
 
-class testPromisePipeActor extends app.Actor{
+class testPromisePipeActor extends spider.Actor{
     get(){
         return parent.field
     }
@@ -280,7 +281,7 @@ performPromisePipe = () => {
 scheduled.push(performPromisePipe)
 
 
-class testPromiseInvocPipeActor extends app.Actor{
+class testPromiseInvocPipeActor extends spider.Actor{
     get(){
         return parent.mainMethod()
     }
@@ -305,7 +306,7 @@ class mIsolate extends spider.Isolate{
     }
 }
 var app = new testApp()
-class testIsolateActor extends app.Actor{
+class testIsolateActor extends spider.Actor{
     constructor(){
         super()
         this.mIsolate = mIsolate
@@ -323,7 +324,7 @@ performIsolate = () => {
 }
 scheduled.push(performIsolate)
 
-class testNumSerActor extends app.Actor{
+class testNumSerActor extends spider.Actor{
     compute(num){
         return num + 5
     }
@@ -338,7 +339,7 @@ performNumSer = () => {
 scheduled.push(performNumSer)
 
 
-class testStringSerActor extends app.Actor{
+class testStringSerActor extends spider.Actor{
     append(str){
         return str + 5
     }
@@ -353,7 +354,7 @@ performStringSer = () => {
 scheduled.push(performStringSer)
 
 
-class testBoolSerActor extends app.Actor{
+class testBoolSerActor extends spider.Actor{
     test(bool){
         if(bool){
             return "ok"
@@ -374,7 +375,7 @@ scheduled.push(performBoolSer)
 
 
 
-class testUserPromActor extends app.Actor{
+class testUserPromActor extends spider.Actor{
     async(){
         return new Promise((resolve,reject) => {
             setTimeout(() => {
@@ -393,7 +394,7 @@ performUserProm = () => {
 scheduled.push(performUserProm)
 
 
-class testArgSerActor extends app.Actor{
+class testArgSerActor extends spider.Actor{
     m(num,str,bool){
         return [num,str,bool]
     }
@@ -411,7 +412,7 @@ scheduled.push(performArgSer)
 var ob = {
     field : 5
 }
-class testLexObActor extends app.Actor{
+class testLexObActor extends spider.Actor{
     constructor(){
         super()
         this.farRef = ob
@@ -430,13 +431,13 @@ performLexOb = () => {
 scheduled.push(performLexOb)
 
 
-class testFarRefActor1 extends app.Actor{
+class testFarRefActor1 extends spider.Actor{
     constructor(){
         super()
         this.value = 666
     }
 }
-class testFarRefActor2 extends app.Actor{
+class testFarRefActor2 extends spider.Actor{
     obtainAndAccess(farRef){
         return farRef.value
     }
@@ -451,7 +452,7 @@ performFarRef = () => {
 }
 scheduled.push(performFarRef)
 
-class testGUIActor extends app.Actor{
+class testGUIActor extends spider.Actor{
     getField(){
         return parent.getGUI()
     }
@@ -26058,9 +26059,15 @@ class ServerActor {
 }
 class Application {
     constructor() {
-        this.mainId = utils.generateId();
-        this.mainPromisePool = new PromisePool_1.PromisePool();
-        this.mainObjectPool = new objectPool_1.ObjectPool(this);
+        this.appActors = 0;
+        if (this.appActors == 0) {
+            this.mainId = utils.generateId();
+            this.mainPromisePool = new PromisePool_1.PromisePool();
+            this.mainObjectPool = new objectPool_1.ObjectPool(this);
+        }
+        else {
+            throw new Error("Cannot create more than one application actor");
+        }
     }
 }
 class ServerApplication extends Application {
@@ -26074,7 +26081,6 @@ class ServerApplication extends Application {
         this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool);
         this.socketManager.init(this.mainMessageHandler);
-        this.Actor = ServerActor;
     }
     spawnActor(actorClass, constructorArgs = [], port = 8080) {
         var actorObject = new actorClass(constructorArgs);
@@ -26096,7 +26102,6 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
-        this.Actor = ClientActor;
     }
     spawnActor(actorClass, constructorArgs) {
         var actorObject = new actorClass(constructorArgs);
@@ -26111,9 +26116,11 @@ class ClientApplication extends Application {
 }
 if (utils.isBrowser()) {
     exports.Application = ClientApplication;
+    exports.Actor = ClientActor;
 }
 else {
     exports.Application = ServerApplication;
+    exports.Actor = ServerActor;
 }
 
 }).call(this,"/src")

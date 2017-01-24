@@ -15,7 +15,7 @@ describe("Behaviour serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.val = 10
@@ -41,7 +41,7 @@ describe("Behaviour serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             msub(){
                 return 5
             }
@@ -71,7 +71,7 @@ describe("Behaviour serialisation",() => {
         }
         var app = new testApp()
         var aValue = 5
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.val = aValue
@@ -100,7 +100,7 @@ describe("Behaviour serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.val = 10
@@ -128,7 +128,7 @@ describe("Behaviour serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             get(){
                 return this.promisePool
             }
@@ -152,7 +152,7 @@ describe("Behaviour serialisation",() => {
 
         }
         var app = new testApp()
-        class baseActor extends app.Actor{
+        class baseActor extends spider.Actor{
             test(){
                 return 5
             }
@@ -181,7 +181,7 @@ describe("Behaviour serialisation",() => {
 
         }
         var app = new testApp()
-        class baseActor extends app.Actor{
+        class baseActor extends spider.Actor{
             constructor(){
                 super()
                 this.baseField = 5
@@ -211,7 +211,7 @@ describe("Functionality",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.directory = __dirname
@@ -242,14 +242,14 @@ describe("Functionality",() => {
 
         }
         var app = new testApp()
-        class testActor1 extends app.Actor{
+        class testActor1 extends spider.Actor{
             getAndAccess(){
                 return remote("127.0.0.1",8082).then((ref) => {
                     return ref.getVal()
                 })
             }
         }
-        class testActor2 extends app.Actor{
+        class testActor2 extends spider.Actor{
             getVal(){
                 return 5
             }
@@ -278,7 +278,7 @@ describe("Communication",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.value = 10
@@ -304,7 +304,7 @@ describe("Communication",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             m(){
                 return 10
             }
@@ -345,7 +345,7 @@ describe("Communication",() => {
             }
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             access(){
                 this.parent.mainValue.then((value) => {
                     this.parent.checkValue(value)
@@ -372,7 +372,7 @@ describe("Communication",() => {
             }
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             invoke(){
                 this.parent.m()
             }
@@ -386,7 +386,7 @@ describe("Communication",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             m(){
                 throw new Error("This is an error")
             }
@@ -413,7 +413,7 @@ describe("Communication",() => {
             }
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             get(){
                 return parent.field
             }
@@ -439,7 +439,7 @@ describe("Communication",() => {
             }
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             get(){
                 return parent.get()
             }
@@ -472,7 +472,7 @@ describe("Communication",() => {
             }
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.mIsolate = mIsolate
@@ -503,7 +503,7 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             compute(num){
                 return num + 5
             }
@@ -527,7 +527,7 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             append(str){
                 return str + 5
             }
@@ -551,7 +551,7 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             test(bool){
                 if(bool){
                     return "ok"
@@ -580,7 +580,7 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             async(){
                 return new Promise((resolve,reject) => {
                     setTimeout(() => {
@@ -608,7 +608,7 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             m(num,str,bool){
                 return [num,str,bool]
             }
@@ -637,7 +637,7 @@ describe("General Serialisation",() => {
         var ob = {
             field : 5
         }
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             constructor(){
                 super()
                 this.farRef = ob
@@ -665,13 +665,13 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor1 extends app.Actor{
+        class testActor1 extends spider.Actor{
             constructor(){
                 super()
                 this.value = 666
             }
         }
-        class testActor2 extends app.Actor{
+        class testActor2 extends spider.Actor{
             obtainAndAccess(farRef){
                 return farRef.value
             }
@@ -697,7 +697,7 @@ describe("General Serialisation",() => {
 
         }
         var app = new testApp()
-        class testActor extends app.Actor{
+        class testActor extends spider.Actor{
             m(){
                 return function(){
                     return 5
