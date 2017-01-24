@@ -115,3 +115,42 @@ export class Config {
     static nQueensSolutions     = 400
     static nQueensPriorities    = 10
 }
+
+export class SpiderBenchmarkRunner{
+    scheduled       : Array<SpiderBenchmark>
+    currentBench    : number
+    Benchmark = require('benchmark');
+
+    constructor(){
+        this.scheduled = []
+    }
+
+    schedule(benchmark : SpiderBenchmark){
+        this.scheduled.push(benchmark)
+    }
+
+    nextBenchmark(){
+        this.currentBench += 1
+        if(this.currentBench < this.scheduled.length){
+            this.scheduled.pop().runBenchmark()
+        }
+    }
+}
+
+export abstract class SpiderBenchmark{
+    benchDone       : Function
+    name            : string
+    cycleMessage    : string
+    completeMessage : string
+    scheduleMessage : string
+
+    constructor(name : string,cycleMessage : string,completeMessage : string,scheduleMessage : string,benchDone : Function){
+        this.benchDone          = benchDone
+        this.name               = name
+        this.cycleMessage       = cycleMessage
+        this.completeMessage    = completeMessage
+        this.scheduleMessage    = scheduleMessage
+    }
+
+    abstract runBenchmark()
+}
