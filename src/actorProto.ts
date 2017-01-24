@@ -42,7 +42,7 @@ else{
     promisePool             = new PromisePool()
     objectPool              = new ObjectPool()
     var thisRef             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,thisId,address,port,null,null,null,null)
-    var behaviourObject     = reconstructObject(JSON.parse(process.argv[7]),JSON.parse(process.argv[8]),thisRef,promisePool,socketManager,objectPool)
+    var behaviourObject     = reconstructObject({},JSON.parse(process.argv[7]),JSON.parse(process.argv[8]),thisRef,promisePool,socketManager,objectPool)
     objectPool.installBehaviourObject(behaviourObject)
     messageHandler          = new MessageHandler(thisRef,socketManager,promisePool,objectPool)
     socketManager.init(messageHandler)

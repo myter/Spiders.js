@@ -4,6 +4,8 @@ import {ResolvePromiseMessage, RejectPromiseMessage} from "./messages";
 import {ObjectPool} from "./objectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
+import getPrototypeOf = Reflect.getPrototypeOf;
+import {Isolate} from "./spiders";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -70,21 +72,27 @@ export function deconstructBehaviour(object : any,accumVars : Array<any>,accumMe
     }
 }
 
-export function reconstructObject(variables : Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
-    var ob = {}
-    for(var i in variables){
-        var key     = variables[i][0]
-        var rawVal  = variables[i][1]
+export function reconstructObject(baseObject : Object,variables : Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
+    variables.forEach((varEntry) => {
+        var key     = varEntry[0]
+        var rawVal  = varEntry[1]
         var val     = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
-        ob[key]     = val
-    }
-    for(var i in methods){
-        var key             = methods[i][0]
-        var functionSource  = methods[i][1]
-        var method =  eval("with(ob){(function " + functionSource + ")}")
-        ob[key]             = method
-    }
-    return ob
+        baseObject[key]     = val
+    })
+    methods.forEach((methodEntry) => {
+        var key                                     = methodEntry[0]
+        var functionSource                          = methodEntry[1]
+        //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
+        if(functionSource.startsWith("function")){
+            var method =  eval("with(baseObject){(" + functionSource + ")}")
+        }
+        else{
+            var method =  eval("with(baseObject){(function " + functionSource + ")}")
+        }
+
+        Object.getPrototypeOf(baseObject)[key]              = method
+    })
+    return baseObject
 }
 
 export abstract class ValueContainer{
@@ -323,8 +331,7 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
     }
 
     function deSerialiseIsolate(isolateContainer : IsolateContainer){
-        var isolate = reconstructObject(JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool)
-        isolate[IsolateContainer.checkIsolateFuncKey] = true
+        var isolate = reconstructObject(new Isolate(),JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool)
         return isolate
     }
 

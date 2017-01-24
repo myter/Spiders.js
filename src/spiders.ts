@@ -3,7 +3,7 @@ import {MessageHandler} from "./messageHandler";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {deconstructBehaviour} from "./serialisation";
+import {deconstructBehaviour, IsolateContainer} from "./serialisation";
 import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
@@ -15,8 +15,10 @@ var utils                           = require('./utils')
 
 type Class = { new(...args: any[]): any; };
 
-export abstract class Isolate{
-
+export class Isolate{
+    constructor(){
+        this[IsolateContainer.checkIsolateFuncKey] = true
+    }
 }
 
 function updateChannels(app : ClientApplication){

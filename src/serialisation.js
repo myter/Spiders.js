@@ -1,5 +1,6 @@
 const messages_1 = require("./messages");
 const farRef_1 = require("./farRef");
+const spiders_1 = require("./spiders");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -64,21 +65,26 @@ function deconstructBehaviour(object, accumVars, accumMethods, thisRef, receiver
     }
 }
 exports.deconstructBehaviour = deconstructBehaviour;
-function reconstructObject(variables, methods, thisRef, promisePool, commMedium, objectPool) {
-    var ob = {};
-    for (var i in variables) {
-        var key = variables[i][0];
-        var rawVal = variables[i][1];
+function reconstructObject(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool) {
+    variables.forEach((varEntry) => {
+        var key = varEntry[0];
+        var rawVal = varEntry[1];
         var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool);
-        ob[key] = val;
-    }
-    for (var i in methods) {
-        var key = methods[i][0];
-        var functionSource = methods[i][1];
-        var method = eval("with(ob){(function " + functionSource + ")}");
-        ob[key] = method;
-    }
-    return ob;
+        baseObject[key] = val;
+    });
+    methods.forEach((methodEntry) => {
+        var key = methodEntry[0];
+        var functionSource = methodEntry[1];
+        //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
+        if (functionSource.startsWith("function")) {
+            var method = eval("with(baseObject){(" + functionSource + ")}");
+        }
+        else {
+            var method = eval("with(baseObject){(function " + functionSource + ")}");
+        }
+        Object.getPrototypeOf(baseObject)[key] = method;
+    });
+    return baseObject;
 }
 exports.reconstructObject = reconstructObject;
 class ValueContainer {
@@ -283,8 +289,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         return deserialised;
     }
     function deSerialiseIsolate(isolateContainer) {
-        var isolate = reconstructObject(JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), thisRef, promisePool, commMedium, objectPool);
-        isolate[IsolateContainer.checkIsolateFuncKey] = true;
+        var isolate = reconstructObject(new spiders_1.Isolate(), JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), thisRef, promisePool, commMedium, objectPool);
         return isolate;
     }
     function deSerialiseIsolateDefinition(isolateDefContainer) {

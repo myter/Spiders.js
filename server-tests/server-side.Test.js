@@ -495,6 +495,54 @@ describe("Communication",() => {
             }
         })
     })
+
+    it("Nested isolate passing",(done) => {
+        class testApp extends spider.Application { }
+        class innerIsolate extends spider.Isolate {
+            constructor(){
+                super()
+                this.innerField = 5
+            }
+        }
+        class outerIsolate extends spider.Isolate {
+            constructor() {
+                super();
+                this.outerField = 6
+                this.innerIsol = new innerIsolate()
+
+            }
+            getOuterField(){
+                return outerField
+            }
+            getInnerIsolate(){
+                return innerIsol
+            }
+        }
+
+        var app = new testApp();
+        class testActor extends spider.Actor {
+            constructor(){
+                super();
+                this.mIsolate = new outerIsolate();
+            }
+            getIsolate(){
+                return this.mIsolate
+            }
+        }
+        var actor = app.spawnActor(testActor);
+        actor.getIsolate().then((isol) => {
+            try{
+                expect(isol.getOuterField()).to.equal(6)
+                expect(isol.getInnerIsolate().innerField).to.equal(5)
+                app.kill();
+                done()
+            }
+            catch(e){
+                app.kill();
+                done(e)
+            }
+        })
+    })
 })
 
 describe("General Serialisation",() => {

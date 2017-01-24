@@ -11,6 +11,9 @@ const messages_1 = require("./messages");
  */
 var utils = require('./utils');
 class Isolate {
+    constructor() {
+        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
+    }
 }
 exports.Isolate = Isolate;
 function updateChannels(app) {

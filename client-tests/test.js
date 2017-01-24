@@ -295,7 +295,7 @@ class mIsolate extends spider.Isolate{
         return 5
     }
 }
-var app = new testApp()
+
 class testIsolateActor extends spider.Actor{
     constructor(){
         super()
@@ -313,6 +313,47 @@ performIsolate = () => {
     })
 }
 scheduled.push(performIsolate)
+
+class innerIsolate extends spider.Isolate {
+    constructor(){
+        super()
+        this.innerField = 5
+    }
+}
+class outerIsolate extends spider.Isolate {
+    constructor() {
+        super();
+        this.outerField = 6
+        this.innerIsol = new innerIsolate()
+
+    }
+    getOuterField(){
+        return outerField
+    }
+    getInnerIsolate(){
+        return innerIsol
+    }
+}
+
+var app = new testApp();
+class testNestedIsolateActor extends spider.Actor {
+    constructor(){
+        super();
+        this.mIsolate = new outerIsolate();
+    }
+    getIsolate(){
+        return this.mIsolate
+    }
+}
+performNestedIsolate = () => {
+    var actor = app.spawnActor(testNestedIsolateActor);
+    return actor.getIsolate().then((isol) => {
+        log("Nested Isolate passing: " + (isol.getOuterField() == 6) + " , " + (isol.getInnerIsolate().innerField == 5))
+        app.kill()
+    })
+}
+scheduled.push(performNestedIsolate)
+
 
 class testNumSerActor extends spider.Actor{
     compute(num){
