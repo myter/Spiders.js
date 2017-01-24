@@ -13,7 +13,7 @@ import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
  */
 var utils                           = require('./utils')
 
-type Class = { new(...args: any[]): any; };
+type Class = { new(...args: any[]): Object; };
 
 export class Isolate{
     constructor(){
@@ -120,7 +120,7 @@ abstract class ServerApplication extends Application{
         this.socketManager.init(this.mainMessageHandler)
     }
 
-    spawnActor(actorClass : Class,constructorArgs : Array<any> = [],port : number = 8080){
+    spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = 8080){
         var actorObject = new actorClass(constructorArgs)
         return actorObject.spawn(this,port)
     }
@@ -147,7 +147,7 @@ abstract class ClientApplication extends Application{
         this.channelManager.init(this.mainMessageHandler)
     }
 
-    spawnActor(actorClass : Class,constructorArgs : Array<any>){
+    spawnActor(actorClass ,constructorArgs : Array<any>){
         var actorObject = new actorClass(constructorArgs)
         return actorObject.spawn(this)
     }
