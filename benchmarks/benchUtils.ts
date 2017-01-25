@@ -197,7 +197,7 @@ export class SpiderBenchmarkRunner{
 }
 
 export abstract class SpiderBenchmark{
-    benchDone       : Function
+    stopPromise
     name            : string
     cycleMessage    : string
     completeMessage : string
@@ -213,7 +213,7 @@ export abstract class SpiderBenchmark{
     }
 
     setBenchDone(benchDone : Function){
-        this.benchDone = benchDone
+        this.stopPromise = benchDone
     }
 
     cleanWorkers(workerRefs){

@@ -1,4 +1,4 @@
-import {SpiderBenchmark, BenchConfig} from "../../benchUtils";
+import {SpiderBenchmark, BenchConfig} from "../../../benchUtils";
 /**
  * Created by flo on 25/01/2017.
  */
@@ -10,7 +10,6 @@ import {SpiderBenchmark, BenchConfig} from "../../benchUtils";
 export class NatCountBench extends SpiderBenchmark{
     prodWorker
     countWorker
-    stopPromise
     constructor(){
         super("Native count","Native count cycle completed","Native count completed","Native count scheduled")
     }
@@ -53,9 +52,9 @@ export class NatCountBench extends SpiderBenchmark{
             }
         }
 
-        this.prodWorker = this.spawnWorker(require('./natCountProducer.js'))
+        this.prodWorker = this.spawnWorker(require('./CountProducer.js'))
         this.prodWorker.onmessage = messageHandler
-        this.countWorker = this.spawnWorker(require('./natCountCounter.js'))
+        this.countWorker = this.spawnWorker(require('./CountCounter.js'))
         this.countWorker.onmessage = messageHandler
         var chan = new MessageChannel()
         this.prodWorker.postMessage(["config",BenchConfig.count],[chan.port1])
@@ -64,9 +63,5 @@ export class NatCountBench extends SpiderBenchmark{
 
     cleanUp(){
         this.cleanWorkers([this.prodWorker,this.countWorker])
-    }
-
-    setBenchDone(benchDone){
-        this.stopPromise = benchDone
     }
 }

@@ -1,4 +1,4 @@
-import {SpiderBenchmark, BenchConfig} from "../../benchUtils";
+import {SpiderBenchmark, BenchConfig} from "../../../benchUtils";
 /**
  * Created by flo on 24/01/2017.
  */
@@ -7,7 +7,6 @@ import {SpiderBenchmark, BenchConfig} from "../../benchUtils";
 export class NatPingPongBench extends SpiderBenchmark{
     pingWorker
     pongWorker
-    stopPromise
 
     constructor(){
         super("Native Ping Pong","Native Ping Pong cycle completed","Native Ping Pong completed","Native Ping Pong Scheduled")
@@ -53,9 +52,9 @@ export class NatPingPongBench extends SpiderBenchmark{
                     break;
             }
         }
-        this.pingWorker      = this.spawnWorker(require('./NatPingActor'))
+        this.pingWorker      = this.spawnWorker(require('./PingActor'))
         this.pingWorker.addEventListener('message',messageHandler)
-        this.pongWorker      = this.spawnWorker(require('./NatPongActor'))
+        this.pongWorker      = this.spawnWorker(require('./PongActor'))
         this.pongWorker.addEventListener('message',messageHandler)
         var chan            = new MessageChannel()
         this.pingWorker.postMessage(["config",BenchConfig.pingAmount],[chan.port1])
@@ -64,9 +63,5 @@ export class NatPingPongBench extends SpiderBenchmark{
 
     cleanUp(){
         this.cleanWorkers([this.pingWorker,this.pongWorker])
-    }
-
-    setBenchDone(benchDone){
-        this.stopPromise = benchDone
     }
 }
