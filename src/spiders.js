@@ -34,7 +34,9 @@ function updateChannels(app) {
         }
     }
 }
-class ClientActor {
+class Actor {
+}
+class ClientActor extends Actor {
     spawn(app) {
         var actorId = utils.generateId();
         var work = require('webworkify');
@@ -56,7 +58,7 @@ class ClientActor {
         return ref.proxyify();
     }
 }
-class ServerActor {
+class ServerActor extends Actor {
     spawn(app, port) {
         var socketManager = app.mainCommMedium;
         var fork = require('child_process').fork;
@@ -125,6 +127,7 @@ class ClientApplication extends Application {
     }
     kill() {
         this.spawnedActors.forEach((workerPair) => {
+            workerPair[1].terminate();
             URL.revokeObjectURL(workerPair[1]);
         });
         this.spawnedActors = [];

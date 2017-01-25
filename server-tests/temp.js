@@ -1,36 +1,30 @@
 /**
- * Created by flo on 10/01/2017.
+ * Created by flo on 25/01/2017.
  */
-var spider = require('../src/spiders')
-class testApp extends spider.Application { }
-class mInnerIsolate extends spider.Isolate{
-    constructor(){
-        super()
-        this.innerField = 10
+var spider = require('../src/spiders');
+//class testApp extends spider.Application{}
+var app = new spider.Application();
+class mIsolate extends spider.Isolate {
+    perform() {
+        var x = 6;
+        return 6 + x;
     }
 }
-class mIsolate extends spider.Isolate {
+class testActor extends spider.Actor {
     constructor() {
         super();
-        this.superField = 6
-        this.innerIsol = new mInnerIsolate()
+        this.isol = mIsolate;
     }
-    getInnerIsolate(){
-        return innerIsol
+    calc() {
+        var x = 6;
+        return 5 + x;
     }
-}
-
-var app = new testApp();
-class testActor extends spider.Actor {
-    constructor(){
-        super();
-        this.mIsolate = new mIsolate();
-    }
-    getIsolate(){
-        return this.mIsolate
+    getNewIsol() {
+        return new this.isol();
     }
 }
 var actor = app.spawnActor(testActor);
-actor.getIsolate().then((isol) => {
-    console.log("Got : " + isol.getInnerIsolate().innerField)
-})
+actor.getNewIsol().then((iso) => {
+    console.log("Got : " + iso.perform());
+});
+//# sourceMappingURL=temp.js.map

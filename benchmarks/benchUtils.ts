@@ -1,11 +1,13 @@
+
+import BenchmarkType = require("../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_benchmark_index");
 /**
  * Created by flo on 24/01/2017.
  */
-export class Config {
+export class BenchConfig {
     //Ping pong 
-    static pingAmount           = 50000
+    static pingAmount           = 10000
     //Count 
-    static count                = 1000000
+    static count                = 100000
     //Fork join throughput 
     static fjThroughputActors   = 20
     static fjThroughputMessages = 1000
@@ -55,7 +57,7 @@ export class Config {
     //Banking
     static bankingAccounts      = 20
     static bankingTransactions  = 500
-    static bankingInitialBalance= Config.bankingAccounts * Config.bankingTransactions
+    static bankingInitialBalance= BenchConfig.bankingAccounts * BenchConfig.bankingTransactions
     //Radix sort
     static radixSortDataSize    = 500
     static radixSortMaxVal      = 1000
@@ -115,24 +117,81 @@ export class Config {
     static nQueensSolutions     = 400
     static nQueensPriorities    = 10
 }
+var Benchmark = require('benchmark');
+(window as any).Benchmark = Benchmark;
+import Options = BenchmarkType.Options;
+
+class SpiderBenchmarkOptions implements Options {
+    defer = true
+    async = true
+    spiderBench
+    runner
+    constructor(runner : SpiderBenchmarkRunner,spiderBench : SpiderBenchmark){
+        this.spiderBench = spiderBench
+        this.runner = runner
+    }
+    fn(deffered){
+        console.log("Fn called")
+        this.spiderBench.setBenchDone(deffered)
+        console.log("Starting run")
+        this.spiderBench.runBenchmark()
+    }
+    tearDown(){
+        this.spiderBench.cleanUp()
+    }
+    onCylce(){
+        console.log(this.spiderBench.cycleMessage)
+    }
+    onComplete(){
+        //This will actually be bound to type
+        console.log(this.spiderBench.completeMessage + (this as any).stats.mean)
+        console.log("Error margin: " + (this as any).stats.moe)
+        this.spiderBench.cleanUp()
+        this.runner.nextBenchmark()
+    }
+}
 
 export class SpiderBenchmarkRunner{
-    scheduled       : Array<SpiderBenchmark>
+    scheduled       : Array<BenchmarkType>
     currentBench    : number
-    Benchmark = require('benchmark');
+
 
     constructor(){
         this.scheduled = []
     }
 
-    schedule(benchmark : SpiderBenchmark){
-        this.scheduled.push(benchmark)
+    schedule(benchmarkClass){
+        var that = this
+        var spiderBench = new benchmarkClass()
+        var bench = new Benchmark(spiderBench.name,{
+            defer: true,
+            async: true,
+            fn: function(deffered){
+                spiderBench.setBenchDone(deffered)
+                spiderBench.runBenchmark()
+            },
+            teardown: function(){
+                spiderBench.cleanUp()
+            },
+            onCycle: function(){
+                console.log(spiderBench.cycleMessage)
+            },
+            onComplete: function(){
+                //This will actually be bound to type
+                console.log(spiderBench.completeMessage + (this as any).stats.mean)
+                console.log("Error margin: " + (this as any).stats.moe)
+                spiderBench.cleanUp()
+                that.nextBenchmark()
+            },
+        })
+        this.scheduled.push(bench)
+        console.log(spiderBench.scheduleMessage)
     }
 
     nextBenchmark(){
         this.currentBench += 1
-        if(this.currentBench < this.scheduled.length){
-            this.scheduled.pop().runBenchmark()
+        if(this.scheduled.length != 0){
+            this.scheduled.pop().run()
         }
     }
 }
@@ -143,14 +202,27 @@ export abstract class SpiderBenchmark{
     cycleMessage    : string
     completeMessage : string
     scheduleMessage : string
+    spawnWorker
 
-    constructor(name : string,cycleMessage : string,completeMessage : string,scheduleMessage : string,benchDone : Function){
-        this.benchDone          = benchDone
+    constructor(name : string,cycleMessage : string,completeMessage : string,scheduleMessage : string){
         this.name               = name
         this.cycleMessage       = cycleMessage
         this.completeMessage    = completeMessage
         this.scheduleMessage    = scheduleMessage
+        this.spawnWorker        = require('webworkify')
+    }
+
+    setBenchDone(benchDone : Function){
+        this.benchDone = benchDone
+    }
+
+    cleanWorkers(workerRefs){
+        workerRefs.forEach((worker) => {
+            worker.terminate()
+            //URL.revokeObjectURL(worker)
+        })
     }
 
     abstract runBenchmark()
+    abstract cleanUp()
 }

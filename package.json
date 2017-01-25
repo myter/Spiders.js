@@ -4,7 +4,8 @@
   "scripts": {
     "build-client-tests": "browserify client-tests/test.js -o client-tests/bundle.js",
     "build-full-tests-client1": "browserify full-tests/client1.js -o full-tests/full-bundle1.js",
-    "build-full-tests-client2": "browserify full-tests/client2.js -o full-tests/full-bundle2.js"
+    "build-full-tests-client2": "browserify full-tests/client2.js -o full-tests/full-bundle2.js",
+    "build-client-benchmarks": "browserify benchmarks/Client-Benchmarks/ClientBenchmarks.js -o benchmarks/Client-Benchmarks/bundle.js"
   },
   "dependencies": {
     "webworkify": "1.4.0",

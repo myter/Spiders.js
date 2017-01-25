@@ -17,5 +17,6 @@
     <orderEntry type="library" name="protobufjs-DefinitelyTyped" level="project" />
     <orderEntry type="library" name="socket.io-DefinitelyTyped" level="project" />
     <orderEntry type="library" name="socket.io-client-DefinitelyTyped" level="project" />
+    <orderEntry type="library" name="benchmark-DefinitelyTyped" level="application" />
   </component>
 </module>

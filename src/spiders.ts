@@ -13,8 +13,6 @@ import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
  */
 var utils                           = require('./utils')
 
-type Class = { new(...args: any[]): Object; };
-
 export class Isolate{
     constructor(){
         this[IsolateContainer.checkIsolateFuncKey] = true
@@ -40,7 +38,9 @@ function updateChannels(app : ClientApplication){
     }
 }
 
-abstract class ClientActor{
+abstract class Actor{}
+
+abstract class ClientActor extends Actor{
     spawn(app : ClientApplication){
         var actorId         = utils.generateId()
         var work            = require('webworkify')
@@ -63,7 +63,7 @@ abstract class ClientActor{
     }
 }
 
-abstract class ServerActor{
+abstract class ServerActor extends Actor{
     spawn(app : ServerApplication,port : number){
         var socketManager               = app.mainCommMedium as ServerSocketManager
         var fork		                = require('child_process').fork
@@ -100,9 +100,13 @@ abstract class Application {
             throw new Error("Cannot create more than one application actor")
         }
     }
+
+    abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
+
+    abstract kill()
 }
 
-abstract class ServerApplication extends Application{
+class ServerApplication extends Application{
     mainIp                          : string
     mainPort                        : number
     spawnedActors                   : Array<ChildProcess>
@@ -133,7 +137,7 @@ abstract class ServerApplication extends Application{
     }
 }
 
-abstract class ClientApplication extends Application{
+class ClientApplication extends Application{
     channelManager  : ChannelManager
     spawnedActors   : Array<any>
 
@@ -154,6 +158,7 @@ abstract class ClientApplication extends Application{
 
     kill(){
         this.spawnedActors.forEach((workerPair) => {
+            workerPair[1].terminate()
             URL.revokeObjectURL(workerPair[1])
         })
         this.spawnedActors = []
@@ -161,11 +166,17 @@ abstract class ClientApplication extends Application{
 
 }
 
+export type ApplicationClass = {new(...args : any[]): Application}
+export type ActorClass = {new(...args : any[]): Actor}
+export type IsolateClass = {new(...args : any[]): Isolate}
+
 export interface SpiderLib{
-    Application : Class
-    Actor       : Class
-    Isolate     : Class
+    Application : ApplicationClass
+    Actor       : ActorClass
+    Isolate     : IsolateClass
 }
+//Ugly, but a far reference has no static interface
+export type FarRef = any
 
 if(utils.isBrowser()){
     exports.Application = ClientApplication
