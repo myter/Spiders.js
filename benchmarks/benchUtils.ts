@@ -112,44 +112,14 @@ export class BenchConfig {
     static aStarGridSize        = 5
     //N queens
     static nQueensWorkers       = 20
-    static nQueensSize          = 5
+    static nQueensSize          = 4
     static nQueensThreshold     = 2
-    static nQueensSolutions     = 400
+    static nQueensSolutions     = 500
     static nQueensPriorities    = 10
 }
 var Benchmark = require('benchmark');
 (window as any).Benchmark = Benchmark;
 import Options = BenchmarkType.Options;
-
-class SpiderBenchmarkOptions implements Options {
-    defer = true
-    async = true
-    spiderBench
-    runner
-    constructor(runner : SpiderBenchmarkRunner,spiderBench : SpiderBenchmark){
-        this.spiderBench = spiderBench
-        this.runner = runner
-    }
-    fn(deffered){
-        console.log("Fn called")
-        this.spiderBench.setBenchDone(deffered)
-        console.log("Starting run")
-        this.spiderBench.runBenchmark()
-    }
-    tearDown(){
-        this.spiderBench.cleanUp()
-    }
-    onCylce(){
-        console.log(this.spiderBench.cycleMessage)
-    }
-    onComplete(){
-        //This will actually be bound to type
-        console.log(this.spiderBench.completeMessage + (this as any).stats.mean)
-        console.log("Error margin: " + (this as any).stats.moe)
-        this.spiderBench.cleanUp()
-        this.runner.nextBenchmark()
-    }
-}
 
 export class SpiderBenchmarkRunner{
     scheduled       : Array<BenchmarkType>
@@ -219,7 +189,6 @@ export abstract class SpiderBenchmark{
     cleanWorkers(workerRefs){
         workerRefs.forEach((worker) => {
             worker.terminate()
-            //URL.revokeObjectURL(worker)
         })
     }
 
