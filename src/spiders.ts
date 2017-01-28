@@ -151,7 +151,7 @@ class ClientApplication extends Application{
         this.channelManager.init(this.mainMessageHandler)
     }
 
-    spawnActor(actorClass ,constructorArgs : Array<any>){
+    spawnActor(actorClass ,constructorArgs : Array<any> = []){
         var actorObject = new actorClass(...constructorArgs)
         return actorObject.spawn(this)
     }

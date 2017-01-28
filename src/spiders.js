@@ -121,7 +121,7 @@ class ClientApplication extends Application {
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
     }
-    spawnActor(actorClass, constructorArgs) {
+    spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this);
     }
