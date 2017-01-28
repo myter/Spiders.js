@@ -50,6 +50,9 @@ class MessageHandler {
         var channelManager = this.commMedium;
         channelManager.newConnection(msg.actorId, port);
     }
+    handlePortsOpened() {
+        this.commMedium.portsInit();
+    }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
         var fieldVal = Reflect.get(targetObject, msg.fieldName);
@@ -142,6 +145,9 @@ class MessageHandler {
                 break;
             case messages_1._OPEN_PORT_:
                 this.handleOpenPort(msg, ports[0]);
+                break;
+            case messages_1._PORTS_OPENED_:
+                this.handlePortsOpened();
                 break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);

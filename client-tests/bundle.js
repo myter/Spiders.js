@@ -507,6 +507,30 @@ performGUI = () => {
 }
 scheduled.push(performGUI)
 
+class testReferencePassing_ReferencedActor extends spider.Actor {
+    setValue(x) { this.x = x; }
+    getValue() { return this.x; }
+}
+class testReferencePassing_ReferencingActor extends spider.Actor {
+    constructor(ref) {
+        super();
+        this.actorreference = ref;
+    }
+    init() {
+        this.actorreference.setValue(0);
+    }
+    getValue() { return this.actorreference.getValue()}
+}
+performActorReferencePassingTest = () => {
+    var actor1 = app.spawnActor(testReferencePassing_ReferencedActor);
+    var actor2 = app.spawnActor(testReferencePassing_ReferencingActor, [actor1], 8081);
+    return actor2.getValue().then((v) => {
+        log("Actor reference passing and referencing in init: " + (v == 0))
+        app.kill()
+    })
+}
+scheduled.push(performActorReferencePassingTest)
+
 function performAll(nextTest){
     nextTest().then((dc) => {
         if(scheduled.length > 0) {
@@ -24967,6 +24991,16 @@ class ChannelManager extends commMedium_1.CommMedium {
         this.messageHandler = messageHandler;
         this.connections = new Map();
         this.socketHandler = new sockets_1.SocketHandler(this);
+        this.portsOpened = false;
+        this.bufferedMsgs = new Map();
+    }
+    portsInit() {
+        this.portsOpened = true;
+        this.bufferedMsgs.forEach((msgs, receiverId) => {
+            msgs.forEach((msg) => {
+                this.sendMessage(receiverId, msg);
+            });
+        });
     }
     newConnection(actorId, channelPort) {
         channelPort.onmessage = (ev) => {
@@ -24985,7 +25019,15 @@ class ChannelManager extends commMedium_1.CommMedium {
         return inChannel || connected || disconnected;
     }
     sendMessage(actorId, message) {
-        if (this.connections.has(actorId)) {
+        if (!this.portsOpened) {
+            if (this.bufferedMsgs.has(actorId)) {
+                this.bufferedMsgs.get(actorId).push(message);
+            }
+            else {
+                this.bufferedMsgs.set(actorId, [message]);
+            }
+        }
+        else if (this.connections.has(actorId)) {
             this.connections.get(actorId).postMessage(JSON.stringify(message));
         }
         else if (this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1) {
@@ -25347,6 +25389,9 @@ class MessageHandler {
         var channelManager = this.commMedium;
         channelManager.newConnection(msg.actorId, port);
     }
+    handlePortsOpened() {
+        this.commMedium.portsInit();
+    }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
         var fieldVal = Reflect.get(targetObject, msg.fieldName);
@@ -25439,6 +25484,9 @@ class MessageHandler {
                 break;
             case messages_1._OPEN_PORT_:
                 this.handleOpenPort(msg, ports[0]);
+                break;
+            case messages_1._PORTS_OPENED_:
+                this.handlePortsOpened();
                 break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);
@@ -25552,7 +25600,14 @@ class OpenPortMessage extends Message {
     }
 }
 exports.OpenPortMessage = OpenPortMessage;
-exports._CONNECT_REMOTE_ = 6;
+exports._PORTS_OPENED_ = 6;
+class PortsOpenedMessage extends Message {
+    constructor(senderRef) {
+        super(exports._PORTS_OPENED_, senderRef);
+    }
+}
+exports.PortsOpenedMessage = PortsOpenedMessage;
+exports._CONNECT_REMOTE_ = 7;
 class ConnectRemoteMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._CONNECT_REMOTE_, senderRef);
@@ -25561,7 +25616,7 @@ class ConnectRemoteMessage extends Message {
     }
 }
 exports.ConnectRemoteMessage = ConnectRemoteMessage;
-exports._RESOLVE_CONNECTION_ = 7;
+exports._RESOLVE_CONNECTION_ = 8;
 class ResolveConnectionMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._RESOLVE_CONNECTION_, senderRef);
@@ -25570,7 +25625,7 @@ class ResolveConnectionMessage extends Message {
     }
 }
 exports.ResolveConnectionMessage = ResolveConnectionMessage;
-exports._ROUTE_ = 8;
+exports._ROUTE_ = 9;
 class RouteMessage extends Message {
     constructor(senderRef, targetId, message) {
         super(exports._ROUTE_, senderRef);
@@ -26049,7 +26104,7 @@ class Isolate {
     }
 }
 exports.Isolate = Isolate;
-function updateChannels(app) {
+function updateChannels(app, newActor) {
     var actors = app.spawnedActors;
     for (var i in actors) {
         var workerRef1 = actors[i];
@@ -26066,8 +26121,11 @@ function updateChannels(app) {
             }
         }
     }
+    newActor.postMessage(JSON.stringify(new messages_1.PortsOpenedMessage(app.mainRef)));
 }
-class ClientActor {
+class Actor {
+}
+class ClientActor extends Actor {
     spawn(app) {
         var actorId = utils.generateId();
         var work = require('webworkify');
@@ -26085,11 +26143,11 @@ class ClientActor {
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         app.spawnedActors.push([actorId, webWorker]);
-        updateChannels(app);
+        updateChannels(app, webWorker);
         return ref.proxyify();
     }
 }
-class ServerActor {
+class ServerActor extends Actor {
     spawn(app, port) {
         var socketManager = app.mainCommMedium;
         var fork = require('child_process').fork;
@@ -26132,7 +26190,7 @@ class ServerApplication extends Application {
         this.socketManager.init(this.mainMessageHandler);
     }
     spawnActor(actorClass, constructorArgs = [], port = 8080) {
-        var actorObject = new actorClass(constructorArgs);
+        var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, port);
     }
     kill() {
@@ -26151,13 +26209,15 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
+        this.channelManager.portsInit();
     }
-    spawnActor(actorClass, constructorArgs) {
-        var actorObject = new actorClass(constructorArgs);
+    spawnActor(actorClass, constructorArgs = []) {
+        var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this);
     }
     kill() {
         this.spawnedActors.forEach((workerPair) => {
+            workerPair[1].terminate();
             URL.revokeObjectURL(workerPair[1]);
         });
         this.spawnedActors = [];

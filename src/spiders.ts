@@ -7,7 +7,7 @@ import {deconstructBehaviour, IsolateContainer} from "./serialisation";
 import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
-import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
+import {InstallBehaviourMessage, OpenPortMessage, PortsOpenedMessage} from "./messages";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -19,7 +19,7 @@ export class Isolate{
     }
 }
 
-function updateChannels(app : ClientApplication){
+function updateChannels(app : ClientApplication,newActor){
     var actors = app.spawnedActors
     for(var i in actors){
         var workerRef1  = actors[i]
@@ -36,6 +36,7 @@ function updateChannels(app : ClientApplication){
             }
         }
     }
+    newActor.postMessage(JSON.stringify(new PortsOpenedMessage(app.mainRef)))
 }
 
 abstract class Actor{}
@@ -58,7 +59,7 @@ abstract class ClientActor extends Actor{
         channelManager.newConnection(actorId,mainChannel.port2)
         var ref             = new ClientFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainId,app.mainRef,app.channelManager,app.mainPromisePool,app.mainObjectPool)
         app.spawnedActors.push([actorId,webWorker])
-        updateChannels(app)
+        updateChannels(app,webWorker)
         return ref.proxyify()
     }
 }
@@ -149,6 +150,7 @@ class ClientApplication extends Application{
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool)
         this.channelManager.init(this.mainMessageHandler)
+        this.channelManager.portsInit()
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){

@@ -118,7 +118,14 @@ export class OpenPortMessage extends Message {
     }
 }
 
-export const _CONNECT_REMOTE_ : MessageTypeTag = 6
+export const _PORTS_OPENED_ : MessageTypeTag = 6
+export class PortsOpenedMessage extends Message{
+    constructor(senderRef : FarReference){
+        super(_PORTS_OPENED_,senderRef)
+    }
+}
+
+export const _CONNECT_REMOTE_ : MessageTypeTag = 7
 export class ConnectRemoteMessage extends Message{
     promiseId       : number
     connectionId    : number
@@ -129,7 +136,7 @@ export class ConnectRemoteMessage extends Message{
     }
 }
 
-export const _RESOLVE_CONNECTION_ : MessageTypeTag = 7
+export const _RESOLVE_CONNECTION_ : MessageTypeTag = 8
 export class ResolveConnectionMessage extends Message{
     promiseId       : number
     connectionId    : number
@@ -140,7 +147,7 @@ export class ResolveConnectionMessage extends Message{
     }
 }
 
-export const _ROUTE_ : MessageTypeTag = 8
+export const _ROUTE_ : MessageTypeTag = 9
 export class RouteMessage extends Message {
     targetId    : string
     message     : Message

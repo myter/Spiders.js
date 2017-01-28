@@ -9,11 +9,24 @@ export class ChannelManager extends CommMedium{
     private messageHandler  : MessageHandler
     private connections     : Map<string,MessagePort>
     private socketHandler   : SocketHandler
+    private portsOpened     : boolean
+    private bufferedMsgs    : Map<string,Array<Message>>
 
     init(messageHandler : MessageHandler){
         this.messageHandler = messageHandler
         this.connections    = new Map()
         this.socketHandler  = new SocketHandler(this)
+        this.portsOpened    = false
+        this.bufferedMsgs   = new Map()
+    }
+
+    portsInit(){
+        this.portsOpened = true
+        this.bufferedMsgs.forEach((msgs,receiverId) => {
+            msgs.forEach((msg) => {
+                this.sendMessage(receiverId,msg)
+            })
+        })
     }
 
     newConnection(actorId : string,channelPort : MessagePort){
@@ -36,7 +49,15 @@ export class ChannelManager extends CommMedium{
     }
 
     sendMessage(actorId : string,message : Message){
-        if(this.connections.has(actorId)){
+        if(!this.portsOpened){
+            if(this.bufferedMsgs.has(actorId)){
+                this.bufferedMsgs.get(actorId).push(message)
+            }
+            else{
+                this.bufferedMsgs.set(actorId,[message])
+            }
+        }
+        else if(this.connections.has(actorId)){
             this.connections.get(actorId).postMessage(JSON.stringify(message))
         }
         else if(this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1){

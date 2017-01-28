@@ -497,6 +497,30 @@ performGUI = () => {
 }
 scheduled.push(performGUI)
 
+class testReferencePassing_ReferencedActor extends spider.Actor {
+    setValue(x) { this.x = x; }
+    getValue() { return this.x; }
+}
+class testReferencePassing_ReferencingActor extends spider.Actor {
+    constructor(ref) {
+        super();
+        this.actorreference = ref;
+    }
+    init() {
+        this.actorreference.setValue(0);
+    }
+    getValue() { return this.actorreference.getValue()}
+}
+performActorReferencePassingTest = () => {
+    var actor1 = app.spawnActor(testReferencePassing_ReferencedActor);
+    var actor2 = app.spawnActor(testReferencePassing_ReferencingActor, [actor1], 8081);
+    return actor2.getValue().then((v) => {
+        log("Actor reference passing and referencing in init: " + (v == 0))
+        app.kill()
+    })
+}
+scheduled.push(performActorReferencePassingTest)
+
 function performAll(nextTest){
     nextTest().then((dc) => {
         if(scheduled.length > 0) {

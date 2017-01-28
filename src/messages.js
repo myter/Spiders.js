@@ -81,7 +81,14 @@ class OpenPortMessage extends Message {
     }
 }
 exports.OpenPortMessage = OpenPortMessage;
-exports._CONNECT_REMOTE_ = 6;
+exports._PORTS_OPENED_ = 6;
+class PortsOpenedMessage extends Message {
+    constructor(senderRef) {
+        super(exports._PORTS_OPENED_, senderRef);
+    }
+}
+exports.PortsOpenedMessage = PortsOpenedMessage;
+exports._CONNECT_REMOTE_ = 7;
 class ConnectRemoteMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._CONNECT_REMOTE_, senderRef);
@@ -90,7 +97,7 @@ class ConnectRemoteMessage extends Message {
     }
 }
 exports.ConnectRemoteMessage = ConnectRemoteMessage;
-exports._RESOLVE_CONNECTION_ = 7;
+exports._RESOLVE_CONNECTION_ = 8;
 class ResolveConnectionMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._RESOLVE_CONNECTION_, senderRef);
@@ -99,7 +106,7 @@ class ResolveConnectionMessage extends Message {
     }
 }
 exports.ResolveConnectionMessage = ResolveConnectionMessage;
-exports._ROUTE_ = 8;
+exports._ROUTE_ = 9;
 class RouteMessage extends Message {
     constructor(senderRef, targetId, message) {
         super(exports._ROUTE_, senderRef);

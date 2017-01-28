@@ -16,7 +16,7 @@ class Isolate {
     }
 }
 exports.Isolate = Isolate;
-function updateChannels(app) {
+function updateChannels(app, newActor) {
     var actors = app.spawnedActors;
     for (var i in actors) {
         var workerRef1 = actors[i];
@@ -33,6 +33,7 @@ function updateChannels(app) {
             }
         }
     }
+    newActor.postMessage(JSON.stringify(new messages_1.PortsOpenedMessage(app.mainRef)));
 }
 class Actor {
 }
@@ -54,7 +55,7 @@ class ClientActor extends Actor {
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         app.spawnedActors.push([actorId, webWorker]);
-        updateChannels(app);
+        updateChannels(app, webWorker);
         return ref.proxyify();
     }
 }
@@ -120,6 +121,7 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
+        this.channelManager.portsInit();
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);

@@ -2,7 +2,7 @@ import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
-    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_
+    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_, _PORTS_OPENED_
 } from "./messages";
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
@@ -69,6 +69,10 @@ export class MessageHandler{
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
         var channelManager = (this.commMedium as ChannelManager)
         channelManager.newConnection(msg.actorId,port)
+    }
+
+    private handlePortsOpened(){
+        (this.commMedium as ChannelManager).portsInit()
     }
 
     private handleFieldAccess(msg : FieldAccessMessage){
@@ -171,6 +175,9 @@ export class MessageHandler{
                 break
             case _OPEN_PORT_:
                 this.handleOpenPort(msg as OpenPortMessage,ports[0])
+                break
+            case _PORTS_OPENED_:
+                this.handlePortsOpened()
                 break
             case _FIELD_ACCESS_:
                 this.handleFieldAccess(msg as FieldAccessMessage)
