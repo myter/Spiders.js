@@ -4,30 +4,35 @@ import {SpiderLib, FarRef} from "../src/spiders";
  */
 var spider : SpiderLib = require('../src/spiders')
 //class testApp extends spider.Application{}
-var app = new spider.Application()
-class mIsolate extends spider.Isolate{
-    perform() : number {
-        var x : number = 6
-        return 6 + x
+    class referencedActor extends spider.Actor {
+        getValue() {
+            return 5;
+        }
     }
-}
-class testActor extends spider.Actor{
-    isol
-    constructor(){
-        super()
-        this.isol = mIsolate
-    }
-
-    calc() : number{
-        var x : number = 6
-        return 5 + x
+    class referencingActor extends spider.Actor {
+        constructor(actorReference) {
+            super();
+            //console.log("Creating with : " + actorReference)
+            this.ref = actorReference;
+        }
+        getValue(){
+            return this.ref.getValue().then((v) => { return v; });
+        }
     }
 
-    getNewIsol() : mIsolate{
-        return new this.isol()
-    }
+    var app = new spider.Application()
+
+    var actor1 = app.spawnActor(referencedActor);
+    var actor2 = app.spawnActor(referencingActor,[actor1],8081);
+    actor2.getValue().then((v) => {
+        console.log("Got : " + v )
+    })
+
+/*class X{
+        constructor(val){
+            this.v = val
+        }
 }
-var actor : FarRef = app.spawnActor(testActor)
-actor.getNewIsol().then((iso) => {
-    console.log("Got : " + iso.perform())
-})
+var Xer = X
+var xx = new Xer(...[5])
+console.log(xx.v)*/

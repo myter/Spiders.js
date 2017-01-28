@@ -101,7 +101,7 @@ class ServerApplication extends Application {
         this.socketManager.init(this.mainMessageHandler);
     }
     spawnActor(actorClass, constructorArgs = [], port = 8080) {
-        var actorObject = new actorClass(constructorArgs);
+        var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, port);
     }
     kill() {

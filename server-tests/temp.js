@@ -3,28 +3,33 @@
  */
 var spider = require('../src/spiders');
 //class testApp extends spider.Application{}
-var app = new spider.Application();
-class mIsolate extends spider.Isolate {
-    perform() {
-        var x = 6;
-        return 6 + x;
+class referencedActor extends spider.Actor {
+    getValue() {
+        return 5;
     }
 }
-class testActor extends spider.Actor {
-    constructor() {
+class referencingActor extends spider.Actor {
+    constructor(actorReference) {
         super();
-        this.isol = mIsolate;
+        //console.log("Creating with : " + actorReference)
+        this.ref = actorReference;
     }
-    calc() {
-        var x = 6;
-        return 5 + x;
-    }
-    getNewIsol() {
-        return new this.isol();
+    getValue() {
+        return this.ref.getValue().then((v) => { return v; });
     }
 }
-var actor = app.spawnActor(testActor);
-actor.getNewIsol().then((iso) => {
-    console.log("Got : " + iso.perform());
+var app = new spider.Application();
+var actor1 = app.spawnActor(referencedActor);
+var actor2 = app.spawnActor(referencingActor, [actor1], 8081);
+actor2.getValue().then((v) => {
+    console.log("Got : " + v);
 });
+/*class X{
+        constructor(val){
+            this.v = val
+        }
+}
+var Xer = X
+var xx = new Xer(...[5])
+console.log(xx.v)*/ 
 //# sourceMappingURL=temp.js.map

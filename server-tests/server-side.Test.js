@@ -95,6 +95,40 @@ describe("Behaviour serialisation",() => {
 
     })
 
+    it("Actor reference passing via constructor",(done) => {
+        class testApp extends spider.Application { }
+        class referencedActor extends spider.Actor {
+            getValue() {
+                return 5;
+            }
+        }
+        class referencingActor extends spider.Actor {
+            constructor(actorReference) {
+                super();
+                this.ref = actorReference;
+            }
+            getValue(){
+                return this.ref.getValue().then((v) => { return v; });
+            }
+        }
+
+        var app = new testApp();
+
+        var actor1 = app.spawnActor(referencedActor);
+        var actor2 = app.spawnActor(referencingActor, [actor1], 8081);
+        actor2.getValue().then((v) => {
+            try{
+                expect(v).to.equal(5);
+                app.kill();
+                done()
+            }
+            catch(e){
+                app.kill();
+                done(e)
+            }
+        })
+    })
+
     it("Initialisation",(done) => {
         class testApp extends spider.Application{
 
