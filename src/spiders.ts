@@ -152,7 +152,7 @@ class ClientApplication extends Application{
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any>){
-        var actorObject = new actorClass(constructorArgs)
+        var actorObject = new actorClass(...constructorArgs)
         return actorObject.spawn(this)
     }
 

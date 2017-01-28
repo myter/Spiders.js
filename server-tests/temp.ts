@@ -10,6 +10,7 @@ var spider : SpiderLib = require('../src/spiders')
         }
     }
     class referencingActor extends spider.Actor {
+        ref
         constructor(actorReference) {
             super();
             //console.log("Creating with : " + actorReference)

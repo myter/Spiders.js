@@ -122,7 +122,7 @@ class ClientApplication extends Application {
         this.channelManager.init(this.mainMessageHandler);
     }
     spawnActor(actorClass, constructorArgs) {
-        var actorObject = new actorClass(constructorArgs);
+        var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this);
     }
     kill() {
