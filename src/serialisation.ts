@@ -111,7 +111,7 @@ export abstract class ValueContainer{
     }
 }
 
-type NativeValue =  number | boolean | string
+type NativeValue =  number | boolean | string | null
 export class NativeContainer extends ValueContainer{
     value : NativeValue
     constructor(value : NativeValue){
@@ -234,7 +234,10 @@ function serialiseObject(object : Object,thisRef : FarReference,objectPool : Obj
 
 export function serialise(value,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool) : ValueContainer{
     if(typeof value == 'object'){
-        if(value instanceof Promise){
+        if(value == null){
+            return new NativeContainer(null)
+        }
+        else if(value instanceof Promise){
             return serialisePromise(value,thisRef,receiverId,commMedium,promisePool,objectPool)
         }
         else if(value instanceof Error){

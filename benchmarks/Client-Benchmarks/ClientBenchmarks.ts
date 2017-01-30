@@ -27,6 +27,7 @@ import {NatAllPairShortestPathBench} from "./Native/All-Pairs-Shortest-Path/AllP
 import {NatSuccessiveOverRelaxationBench} from "./Native/Successive-Over-Relaxation/SuccessiveOverRelaxationMain";
 import {NatAStarSearchBench} from "./Native/A-Star-Search/AStarSearchMain";
 import {NatNQueensFirstNSolutionsBench} from "./Native/N-Queens-First-N-Solutions/NQueensFirstNSolutionsMain";
+import {SpiderPinPongBench} from "./Spiders/PingPong";
 /**
  * Created by flo on 24/01/2017.
  */
@@ -58,6 +59,7 @@ var runner = new SpiderBenchmarkRunner()
 //runner.schedule(NatAllPairShortestPathBench)
 //runner.schedule(NatSuccessiveOverRelaxationBench)
 //runner.schedule(NatAStarSearchBench)
-runner.schedule(NatNQueensFirstNSolutionsBench)
+//runner.schedule(NatNQueensFirstNSolutionsBench)
+runner.schedule(SpiderPinPongBench)
 console.log("Starting Benchmark")
 runner.nextBenchmark()

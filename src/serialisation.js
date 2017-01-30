@@ -198,7 +198,10 @@ function serialiseObject(object, thisRef, objectPool) {
 }
 function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
     if (typeof value == 'object') {
-        if (value instanceof Promise) {
+        if (value == null) {
+            return new NativeContainer(null);
+        }
+        else if (value instanceof Promise) {
             return serialisePromise(value, thisRef, receiverId, commMedium, promisePool, objectPool);
         }
         else if (value instanceof Error) {

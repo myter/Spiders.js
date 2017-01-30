@@ -39,7 +39,9 @@ function updateChannels(app : ClientApplication,newActor){
     newActor.postMessage(JSON.stringify(new PortsOpenedMessage(app.mainRef)))
 }
 
-abstract class Actor{}
+abstract class Actor{
+    parent
+}
 
 abstract class ClientActor extends Actor{
     spawn(app : ClientApplication){
@@ -102,9 +104,9 @@ abstract class Application {
         }
     }
 
-    abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
-
-    abstract kill()
+    //TODO causes issues with user-level apps not implementing following two functions
+    //abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
+    //abstract kill()
 }
 
 class ServerApplication extends Application{
