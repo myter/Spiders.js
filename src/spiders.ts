@@ -104,9 +104,8 @@ abstract class Application {
         }
     }
 
-    //TODO causes issues with user-level apps not implementing following two functions
-    //abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
-    //abstract kill()
+    abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
+    abstract kill()
 }
 
 class ServerApplication extends Application{
@@ -169,8 +168,11 @@ class ClientApplication extends Application{
     }
 
 }
-
-export type ApplicationClass = {new(...args : any[]): Application}
+interface AppType {
+    spawnActor
+    kill
+}
+export type ApplicationClass = {new(...args : any[]): AppType}
 export type ActorClass = {new(...args : any[]): Actor}
 export type IsolateClass = {new(...args : any[]): Isolate}
 

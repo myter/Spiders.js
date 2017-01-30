@@ -28,6 +28,21 @@ import {NatSuccessiveOverRelaxationBench} from "./Native/Successive-Over-Relaxat
 import {NatAStarSearchBench} from "./Native/A-Star-Search/AStarSearchMain";
 import {NatNQueensFirstNSolutionsBench} from "./Native/N-Queens-First-N-Solutions/NQueensFirstNSolutionsMain";
 import {SpiderPinPongBench} from "./Spiders/PingPong";
+import {SpiderCountingActorBench} from "./Spiders/CountingActor";
+import {SpiderForkJoinThroughputBench} from "./Spiders/ForkJoin-Throughput";
+import {SpiderForkJoinCreationBench} from "./Spiders/ForkJoin-Creation";
+import {SpiderThreadRingBench} from "./Spiders/ThreadRing";
+import {SpiderChameneoBench} from "./Spiders/Chameneos";
+import {SpiderBigBench} from "./Spiders/Big";
+import {SpiderConcurrentDictionaryBench} from "./Spiders/ConcurrentDictionary";
+import {SpiderProducerConsumerBench} from "./Spiders/ProducerConsumer";
+import {SpiderDiningPhilosophersBench} from "./Spiders/DiningPhilosophers";
+import {SpiderSleepingBarberBench} from "./Spiders/SleepingBarber";
+import {SpiderCigaretteSmokersBench} from "./Spiders/CigaretteSmokers";
+import {SpiderLogisticMapSeriesBench} from "./Spiders/LogisticMapSeries";
+import {SpiderRadixSortBench} from "./Spiders/RadixSort";
+import {SpiderFilterBankBench} from "./Spiders/FilterBank";
+import {SpiderSieveOfEratosthenesBench} from "./Spiders/SieveOfEratosthenes";
 /**
  * Created by flo on 24/01/2017.
  */
@@ -60,6 +75,22 @@ var runner = new SpiderBenchmarkRunner()
 //runner.schedule(NatSuccessiveOverRelaxationBench)
 //runner.schedule(NatAStarSearchBench)
 //runner.schedule(NatNQueensFirstNSolutionsBench)
-runner.schedule(SpiderPinPongBench)
+//runner.schedule(SpiderPinPongBench)
+//runner.schedule(SpiderCountingActorBench)
+//runner.schedule(SpiderForkJoinThroughputBench)
+//runner.schedule(SpiderForkJoinCreationBench)
+//runner.schedule(SpiderThreadRingBench)
+//runner.schedule(SpiderChameneoBench)
+//runner.schedule(SpiderBigBench)
+//runner.schedule(SpiderConcurrentDictionaryBench)
+//runner.schedule(SpiderConcurrentDictionaryBench)
+//runner.schedule(SpiderProducerConsumerBench)
+//runner.schedule(SpiderDiningPhilosophersBench)
+//runner.schedule(SpiderSleepingBarberBench)
+//runner.schedule(SpiderCigaretteSmokersBench)
+//runner.schedule(SpiderLogisticMapSeriesBench)
+//runner.schedule(SpiderRadixSortBench)
+//runner.schedule(SpiderFilterBankBench)
+runner.schedule(SpiderSieveOfEratosthenesBench)
 console.log("Starting Benchmark")
 runner.nextBenchmark()
