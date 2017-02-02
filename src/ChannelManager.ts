@@ -1,39 +1,27 @@
 import {CommMedium} from "./commMedium";
 import {MessageHandler} from "./messageHandler";
-import {Message} from "./messages";
+import {Message, FieldAccessMessage} from "./messages";
 import {SocketHandler} from "./sockets";
 /**
  * Created by flo on 18/01/2017.
  */
+var utils = require("./utils")
 export class ChannelManager extends CommMedium{
     private messageHandler  : MessageHandler
     private connections     : Map<string,MessagePort>
     private socketHandler   : SocketHandler
-    private portsOpened     : boolean
-    private bufferedMsgs    : Map<string,Array<Message>>
 
     init(messageHandler : MessageHandler){
         this.messageHandler = messageHandler
         this.connections    = new Map()
         this.socketHandler  = new SocketHandler(this)
-        this.portsOpened    = false
-        this.bufferedMsgs   = new Map()
-    }
-
-    portsInit(){
-        this.portsOpened = true
-        this.bufferedMsgs.forEach((msgs,receiverId) => {
-            msgs.forEach((msg) => {
-                this.sendMessage(receiverId,msg)
-            })
-        })
     }
 
     newConnection(actorId : string,channelPort : MessagePort){
+        this.connections.set(actorId,channelPort)
         channelPort.onmessage = (ev : MessageEvent) => {
             this.messageHandler.dispatch(JSON.parse(ev.data),ev.ports)
         }
-        this.connections.set(actorId,channelPort)
     }
 
     //Open connection to Node.js instance owning the object to which the far reference refers to
@@ -48,23 +36,25 @@ export class ChannelManager extends CommMedium{
         return inChannel || connected || disconnected
     }
 
-    sendMessage(actorId : string,message : Message){
-        if(!this.portsOpened){
-            if(this.bufferedMsgs.has(actorId)){
-                this.bufferedMsgs.get(actorId).push(message)
-            }
-            else{
-                this.bufferedMsgs.set(actorId,[message])
-            }
-        }
-        else if(this.connections.has(actorId)){
+    sendMessage(actorId : string,message : Message,first = true){
+        if(this.connections.has(actorId)){
             this.connections.get(actorId).postMessage(JSON.stringify(message))
         }
         else if(this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1){
             this.socketHandler.sendMessage(actorId,message)
         }
         else{
-            throw new Error("Unable to send message to unknown actor (channel manager)")
+            //Dirty, but it could be that an actor sends a message to the application actor, leading it to spawn a new actor and returning this new reference.
+            //Upon receiving this reference the spawning actor immediatly invokes a method on the reference, but hasn't received the open ports message
+            if(first){
+                var that = this
+                setTimeout(()=>{
+                    that.sendMessage(actorId,message,false)
+                },10)
+            }
+            else{
+                throw new Error("Unable to send message to unknown actor (channel manager)" + (message as FieldAccessMessage).fieldName + " " + actorId + " in " + this.messageHandler.thisRef.ownerId)
+            }
         }
     }
 }

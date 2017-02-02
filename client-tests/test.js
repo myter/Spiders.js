@@ -521,6 +521,25 @@ performActorReferencePassingTest = () => {
 }
 scheduled.push(performActorReferencePassingTest)
 
+class arrayIsolate1 extends spider.Actor{
+    getArrayLength(arr){
+        return arr.length
+    }
+}
+class arrayIsolate2 extends spider.Actor{
+    sendArray(ref){
+        return ref.getArrayLength(new this.ArrayIsolate([1,2,3,4,5]))
+    }
+}
+performArrayIsolateTest = () =>{
+    var actor1 = app.spawnActor(arrayIsolate1)
+    var actor2 = app.spawnActor(arrayIsolate2)
+    return actor2.sendArray(actor1).then((v)=>{
+        log("Array Isolate passing : " + (v == 5))
+    })
+}
+scheduled.push(performArrayIsolateTest)
+
 function performAll(nextTest){
     nextTest().then((dc) => {
         if(scheduled.length > 0) {

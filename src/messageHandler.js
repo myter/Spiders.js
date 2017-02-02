@@ -34,24 +34,27 @@ class MessageHandler {
         }
     }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
-    handleInstall(msg, mainPort) {
+    handleInstall(msg, ports) {
         var thisId = msg.actorId;
         var mainId = msg.mainId;
         var thisRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, mainId, null, this.commMedium, this.promisePool, this.objectPool);
         var behaviourObject = serialisation_1.reconstructObject({}, msg.vars, msg.methods, thisRef, this.promisePool, this.commMedium, this.objectPool);
+        var otherActorIds = msg.otherActorIds;
         this.objectPool.installBehaviourObject(behaviourObject);
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
+        var mainPort = ports[0];
         channelManag.newConnection(mainId, mainPort);
+        otherActorIds.forEach((id, index) => {
+            //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
+            channelManag.newConnection(id, ports[index + 1]);
+        });
         utils.installSTDLib(thisRef, parentRef, behaviourObject, this, channelManag, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
         channelManager.newConnection(msg.actorId, port);
-    }
-    handlePortsOpened() {
-        this.commMedium.portsInit();
     }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
@@ -77,7 +80,8 @@ class MessageHandler {
         });
         var retVal;
         try {
-            retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
+            //retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
+            retVal = targetObject[methodName](...deserialisedArgs);
             var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
             var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
@@ -141,13 +145,10 @@ class MessageHandler {
     dispatch(msg, ports = [], clientSocket = null) {
         switch (msg.typeTag) {
             case messages_1._INSTALL_BEHAVIOUR_:
-                this.handleInstall(msg, ports[0]);
+                this.handleInstall(msg, ports);
                 break;
             case messages_1._OPEN_PORT_:
                 this.handleOpenPort(msg, ports[0]);
-                break;
-            case messages_1._PORTS_OPENED_:
-                this.handlePortsOpened();
                 break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);

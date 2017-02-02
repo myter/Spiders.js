@@ -23,12 +23,13 @@ Message.clientSenderType = "_CLIENT_";
 exports.Message = Message;
 exports._INSTALL_BEHAVIOUR_ = 0;
 class InstallBehaviourMessage extends Message {
-    constructor(senderRef, mainId, actorId, vars, methods) {
+    constructor(senderRef, mainId, actorId, vars, methods, otherActorIds) {
         super(exports._INSTALL_BEHAVIOUR_, senderRef);
         this.mainId = mainId;
         this.actorId = actorId;
         this.vars = vars;
         this.methods = methods;
+        this.otherActorIds = otherActorIds;
     }
 }
 exports.InstallBehaviourMessage = InstallBehaviourMessage;
@@ -81,14 +82,7 @@ class OpenPortMessage extends Message {
     }
 }
 exports.OpenPortMessage = OpenPortMessage;
-exports._PORTS_OPENED_ = 6;
-class PortsOpenedMessage extends Message {
-    constructor(senderRef) {
-        super(exports._PORTS_OPENED_, senderRef);
-    }
-}
-exports.PortsOpenedMessage = PortsOpenedMessage;
-exports._CONNECT_REMOTE_ = 7;
+exports._CONNECT_REMOTE_ = 6;
 class ConnectRemoteMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._CONNECT_REMOTE_, senderRef);
@@ -97,7 +91,7 @@ class ConnectRemoteMessage extends Message {
     }
 }
 exports.ConnectRemoteMessage = ConnectRemoteMessage;
-exports._RESOLVE_CONNECTION_ = 8;
+exports._RESOLVE_CONNECTION_ = 7;
 class ResolveConnectionMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._RESOLVE_CONNECTION_, senderRef);
@@ -106,7 +100,7 @@ class ResolveConnectionMessage extends Message {
     }
 }
 exports.ResolveConnectionMessage = ResolveConnectionMessage;
-exports._ROUTE_ = 9;
+exports._ROUTE_ = 8;
 class RouteMessage extends Message {
     constructor(senderRef, targetId, message) {
         super(exports._ROUTE_, senderRef);

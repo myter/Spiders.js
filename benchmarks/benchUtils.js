@@ -74,7 +74,7 @@ BenchConfig.uctStdevCompSize = 500;
 BenchConfig.uctBinomial = 5;
 BenchConfig.uctPercent = 70;
 //Fac loc
-BenchConfig.facLocNumPoints = 10000;
+BenchConfig.facLocNumPoints = 1000;
 BenchConfig.facLocGridSize = 500;
 BenchConfig.facLocF = Math.sqrt(2) * 500;
 BenchConfig.facLocAlpha = 2.0;
@@ -107,12 +107,12 @@ BenchConfig.sorOmega = 1.25;
 BenchConfig.sorN = 1;
 //A star search 
 BenchConfig.aStarWorkers = 30;
-BenchConfig.aStarThreshold = 200;
+BenchConfig.aStarThreshold = 100;
 BenchConfig.aStarGridSize = 5;
 //N queens
 BenchConfig.nQueensWorkers = 20;
-BenchConfig.nQueensSize = 3;
-BenchConfig.nQueensThreshold = 2;
+BenchConfig.nQueensSize = 5;
+BenchConfig.nQueensThreshold = 4;
 BenchConfig.nQueensSolutions = 500;
 BenchConfig.nQueensPriorities = 10;
 exports.BenchConfig = BenchConfig;

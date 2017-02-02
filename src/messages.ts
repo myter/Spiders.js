@@ -42,16 +42,18 @@ export class Message{
 
 export const _INSTALL_BEHAVIOUR_ : MessageTypeTag = 0
 export class InstallBehaviourMessage extends Message{
-    mainId  : string
-    actorId : string
-    vars    : Array<any>
-    methods : Array<any>
-    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>){
+    mainId          : string
+    actorId         : string
+    vars            : Array<any>
+    methods         : Array<any>
+    otherActorIds   : Array<string>
+    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>,otherActorIds : Array<string>){
         super(_INSTALL_BEHAVIOUR_,senderRef)
-        this.mainId     = mainId
-        this.actorId    = actorId
-        this.vars       = vars
-        this.methods    = methods
+        this.mainId         = mainId
+        this.actorId        = actorId
+        this.vars           = vars
+        this.methods        = methods
+        this.otherActorIds  = otherActorIds
     }
 }
 
@@ -118,14 +120,7 @@ export class OpenPortMessage extends Message {
     }
 }
 
-export const _PORTS_OPENED_ : MessageTypeTag = 6
-export class PortsOpenedMessage extends Message{
-    constructor(senderRef : FarReference){
-        super(_PORTS_OPENED_,senderRef)
-    }
-}
-
-export const _CONNECT_REMOTE_ : MessageTypeTag = 7
+export const _CONNECT_REMOTE_ : MessageTypeTag = 6
 export class ConnectRemoteMessage extends Message{
     promiseId       : number
     connectionId    : number
@@ -136,7 +131,7 @@ export class ConnectRemoteMessage extends Message{
     }
 }
 
-export const _RESOLVE_CONNECTION_ : MessageTypeTag = 8
+export const _RESOLVE_CONNECTION_ : MessageTypeTag = 7
 export class ResolveConnectionMessage extends Message{
     promiseId       : number
     connectionId    : number
@@ -147,7 +142,7 @@ export class ResolveConnectionMessage extends Message{
     }
 }
 
-export const _ROUTE_ : MessageTypeTag = 9
+export const _ROUTE_ : MessageTypeTag = 8
 export class RouteMessage extends Message {
     targetId    : string
     message     : Message

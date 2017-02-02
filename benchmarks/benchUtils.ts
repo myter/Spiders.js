@@ -75,7 +75,7 @@ export class BenchConfig {
     static uctBinomial          = 5
     static uctPercent           = 70
     //Fac loc
-    static facLocNumPoints      = 10000
+    static facLocNumPoints      = 1000
     static facLocGridSize       = 500
     static facLocF              = Math.sqrt(2) * 500
     static facLocAlpha          = 2.0
@@ -108,12 +108,12 @@ export class BenchConfig {
     static sorN                 = 1
     //A star search 
     static aStarWorkers         = 30
-    static aStarThreshold       = 200
+    static aStarThreshold       = 100
     static aStarGridSize        = 5
     //N queens
     static nQueensWorkers       = 20
-    static nQueensSize          = 3
-    static nQueensThreshold     = 2
+    static nQueensSize          = 5
+    static nQueensThreshold     = 4
     static nQueensSolutions     = 500
     static nQueensPriorities    = 10
 }

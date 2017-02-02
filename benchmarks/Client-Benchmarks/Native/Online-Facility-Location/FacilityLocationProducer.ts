@@ -13,6 +13,12 @@ module.exports = function(self){
             return {
                 x: xVal,
                 y: yVal,
+                getDistance: function(p){
+                    var xDiff = p.x - this.x
+                    var yDiff = p.y - this.y
+                    var distance = Math.sqrt((xDiff * xDiff) + (yDiff * yDiff))
+                    return distance
+                }
             }
         }
 

@@ -43,6 +43,16 @@ import {SpiderLogisticMapSeriesBench} from "./Spiders/LogisticMapSeries";
 import {SpiderRadixSortBench} from "./Spiders/RadixSort";
 import {SpiderFilterBankBench} from "./Spiders/FilterBank";
 import {SpiderSieveOfEratosthenesBench} from "./Spiders/SieveOfEratosthenes";
+import {SpiderUnbalancedCobwebbedTreeBench} from "./Spiders/UnbalancedCobwebbedTree";
+import {SpiderOnlineFacilityLocationBench} from "./Spiders/OnlineFacilityLocation";
+import {SpiderTrapezoidalApproximationBench} from "./Spiders/TrapezoidalApproximation";
+import {SpiderPrecisePiComputationBench} from "./Spiders/PrecisePiComputation";
+import {SpiderRecursiveMatrixMultiplicationBench} from "./Spiders/RecursiveMatrixMultiplication";
+import {SpiderQuickSortBench} from "./Spiders/QuickSort";
+import {SpiderAllPairShortestPathBench} from "./Spiders/AllPairShortestPath";
+import {SpiderSuccessiveOverRelaxationBench} from "./Spiders/SuccessiveOverRelaxation";
+import {SpiderAStarSearchBench} from "./Spiders/AStarSearch";
+import {SpiderNQueensFirstNSolutionsBench} from "./Spiders/NQueensFirstNSolutions";
 /**
  * Created by flo on 24/01/2017.
  */
@@ -91,6 +101,16 @@ var runner = new SpiderBenchmarkRunner()
 //runner.schedule(SpiderLogisticMapSeriesBench)
 //runner.schedule(SpiderRadixSortBench)
 //runner.schedule(SpiderFilterBankBench)
-runner.schedule(SpiderSieveOfEratosthenesBench)
+//runner.schedule(SpiderSieveOfEratosthenesBench)
+//runner.schedule(SpiderUnbalancedCobwebbedTreeBench)
+//runner.schedule(SpiderOnlineFacilityLocationBench)
+//runner.schedule(SpiderTrapezoidalApproximationBench)
+//runner.schedule(SpiderPrecisePiComputationBench)
+//runner.schedule(SpiderRecursiveMatrixMultiplicationBench)
+//runner.schedule(SpiderQuickSortBench)
+//runner.schedule(SpiderAllPairShortestPathBench)
+//runner.schedule(SpiderSuccessiveOverRelaxationBench)
+//runner.schedule(SpiderAStarSearchBench)
+runner.schedule(SpiderNQueensFirstNSolutionsBench)
 console.log("Starting Benchmark")
 runner.nextBenchmark()

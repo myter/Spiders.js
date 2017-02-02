@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const benchUtils_1 = require("../benchUtils");
-const SieveOfEratosthenes_1 = require("./Spiders/SieveOfEratosthenes");
+const NQueensFirstNSolutions_1 = require("./Spiders/NQueensFirstNSolutions");
 /**
  * Created by flo on 24/01/2017.
  */
@@ -49,108 +49,178 @@ var runner = new benchUtils_1.SpiderBenchmarkRunner();
 //runner.schedule(SpiderLogisticMapSeriesBench)
 //runner.schedule(SpiderRadixSortBench)
 //runner.schedule(SpiderFilterBankBench)
-runner.schedule(SieveOfEratosthenes_1.SpiderSieveOfEratosthenesBench);
+//runner.schedule(SpiderSieveOfEratosthenesBench)
+//runner.schedule(SpiderUnbalancedCobwebbedTreeBench)
+//runner.schedule(SpiderOnlineFacilityLocationBench)
+//runner.schedule(SpiderTrapezoidalApproximationBench)
+//runner.schedule(SpiderPrecisePiComputationBench)
+//runner.schedule(SpiderRecursiveMatrixMultiplicationBench)
+//runner.schedule(SpiderQuickSortBench)
+//runner.schedule(SpiderAllPairShortestPathBench)
+//runner.schedule(SpiderSuccessiveOverRelaxationBench)
+//runner.schedule(SpiderAStarSearchBench)
+runner.schedule(NQueensFirstNSolutions_1.SpiderNQueensFirstNSolutionsBench);
 console.log("Starting Benchmark");
 runner.nextBenchmark();
 
-},{"../benchUtils":3,"./Spiders/SieveOfEratosthenes":2}],2:[function(require,module,exports){
+},{"../benchUtils":3,"./Spiders/NQueensFirstNSolutions":2}],2:[function(require,module,exports){
 const benchUtils_1 = require("../../benchUtils");
 /**
- * Created by flo on 30/01/2017.
+ * Created by flo on 02/02/2017.
  */
 var spiders = require("../../../src/spiders");
-class PrimeFilter extends spiders.Actor {
+class Worker extends spiders.Actor {
     constructor() {
         super(...arguments);
-        this.local = null;
+        this.masterRef = null;
         this.id = null;
-        this.initPrime = null;
-        this.nextFilter = null;
-        this.localPrimes = [];
-        this.available = 1;
+        this.threshold = null;
+        this.size = null;
     }
-    config(id, initPrime, local) {
-        this.local = local;
+    config(masterRef, id, threshold, size) {
+        this.masterRef = masterRef;
         this.id = id;
-        this.initPrime = initPrime;
+        this.threshold = threshold;
+        this.size = size;
         this.parent.actorInit();
-        this.localPrimes[0] = initPrime;
     }
-    isLocallyPrime(candidate, startInc, endExc) {
-        for (var i = startInc; i < endExc; i++) {
-            var remainder = candidate % this.localPrimes[i];
-            if (remainder == 0) {
-                return false;
+    arraycopy(a1, start1, a2, start2, until) {
+        var index = start2;
+        for (var i = start1; i < until; i++) {
+            a2[index] = a1[i];
+            index += 1;
+        }
+    }
+    boardValid(depth, data) {
+        var p = 0;
+        var q = 0;
+        for (var i = 0; i < depth; i++) {
+            p = data[i];
+            for (var j = (i + 1); j < data; j++) {
+                q = data[j];
+                if (q == p || q == p - (j - i) || q == p + (j - 1)) {
+                    return false;
+                }
             }
         }
         return true;
     }
-    handleNewPrime(candidate) {
-        if (this.available < this.local) {
-            this.localPrimes[this.available] = candidate;
-            this.available += 1;
+    workSequential(data, depth) {
+        if (this.size == depth) {
+            this.masterRef.result();
         }
         else {
-            this.parent.spawnNew(this.id + 1, candidate).then((ref) => {
-                this.nextFilter = ref;
-            });
-        }
-    }
-    longBox(candidate) {
-        var localPrime = this.isLocallyPrime(candidate, 0, this.available);
-        if (localPrime) {
-            if (this.nextFilter == null) {
-                this.handleNewPrime(candidate);
+            var b = [];
+            for (var i = 0; i < depth + 1; i++) {
+                b.push(0);
             }
-            else {
-                this.nextFilter.longBox(candidate);
+            var i = 0;
+            while (i < this.size) {
+                this.arraycopy(data, 0, b, 0, depth);
+                b[depth] = i;
+                if (this.boardValid(depth + 1, b)) {
+                    this.workSequential(b, depth + 1);
+                }
+                i += 1;
             }
         }
     }
-    stop() {
-        if (this.nextFilter == null) {
-            this.parent.end();
+    work(priority, data, depth) {
+        if (this.size == depth) {
+            this.masterRef.result();
+        }
+        else if (depth >= this.threshold) {
+            this.workSequential(data, depth);
         }
         else {
-            this.nextFilter.stop();
+            var newPriority = priority - 1;
+            var newDepth = depth + 1;
+            var i = 0;
+            while (i < this.size) {
+                var b = [];
+                for (var j = 0; j < newDepth; j++) {
+                    b[j] = 0;
+                }
+                this.arraycopy(data, 0, b, 0, depth);
+                b[depth] = i;
+                if (this.boardValid(newDepth, b)) {
+                    this.masterRef.sendWork(newPriority, new this.ArrayIsolate(b), newDepth);
+                }
+                else {
+                }
+                i += 1;
+            }
         }
+        this.masterRef.done();
     }
 }
-class NumberProducer extends spiders.Actor {
+class Master extends spiders.Actor {
     constructor() {
         super(...arguments);
-        this.limit = null;
-        this.filterRef = null;
+        this.solutions = null;
+        this.priorities = null;
+        this.numWorkers = null;
+        this.workers = [];
+        this.messageCounter = 0;
+        this.numWorkersTerminated = 0;
+        this.numWorkSent = 0;
+        this.numWorkCompleted = 0;
+        this.resultCounter = 0;
     }
-    config(limit, filterRef) {
-        this.limit = limit;
-        this.filterRef = filterRef;
+    config(solutions, priorities, numWorkers) {
+        this.solutions = solutions;
+        this.priorities = priorities;
+        this.numWorkers = numWorkers;
+    }
+    addWorker(workerRef, id) {
+        this.workers[id] = workerRef;
+    }
+    configDone() {
         this.parent.actorInit();
     }
     start() {
-        var candidate = 3;
-        while (candidate < this.limit) {
-            this.filterRef.longBox(candidate);
-            candidate += 2;
+        this.sendWork(this.priorities, [], 0);
+    }
+    sendWork(priority, data, depth) {
+        this.workers[this.messageCounter].work(priority, new this.ArrayIsolate(data), depth);
+        this.messageCounter = (this.messageCounter + 1) % this.numWorkers;
+        this.numWorkSent += 1;
+    }
+    result() {
+        this.resultCounter += 1;
+        if (this.resultCounter >= this.solutions) {
+            this.parent.end();
         }
-        this.filterRef.stop();
+    }
+    done() {
+        this.numWorkCompleted += 1;
+        if (this.numWorkCompleted == this.numWorkSent) {
+            this.parent.end();
+        }
     }
 }
-class SieveOfEratosthenesApp extends spiders.Application {
+class NQueensFirstNSolutionsApp extends spiders.Application {
     constructor(bench) {
         super();
         this.actorsInitialised = 0;
+        this.actorsExited = 0;
         this.bench = bench;
     }
     setup() {
-        var filterRef = this.spawnActor(PrimeFilter);
-        filterRef.config(1, 2, benchUtils_1.BenchConfig.sieveLocal);
-        this.producerRef = this.spawnActor(NumberProducer);
-        this.producerRef.config(benchUtils_1.BenchConfig.sieveLimit, filterRef);
+        this.masterRef = this.spawnActor(Master);
+        this.masterRef.config(benchUtils_1.BenchConfig.nQueensSolutions, benchUtils_1.BenchConfig.nQueensPriorities, benchUtils_1.BenchConfig.nQueensWorkers);
+        var id = 0;
+        for (var i = 0; i < benchUtils_1.BenchConfig.nQueensWorkers; i++) {
+            var workerRef = this.spawnActor(Worker);
+            workerRef.config(this.masterRef, id, benchUtils_1.BenchConfig.nQueensThreshold, benchUtils_1.BenchConfig.nQueensSize);
+            this.masterRef.addWorker(workerRef, id);
+            id += 1;
+        }
+        this.masterRef.configDone();
     }
     checkConfig() {
-        if (this.actorsInitialised == 2) {
-            this.producerRef.start();
+        if (this.actorsInitialised == 1 + benchUtils_1.BenchConfig.nQueensWorkers) {
+            this.masterRef.start();
         }
     }
     actorInit() {
@@ -160,25 +230,20 @@ class SieveOfEratosthenesApp extends spiders.Application {
     end() {
         this.bench.stopPromise.resolve();
     }
-    spawnNew(id, initPrime) {
-        var ref = this.spawnActor(PrimeFilter);
-        ref.config(id, initPrime, benchUtils_1.BenchConfig.sieveLocal);
-        return ref;
-    }
 }
-class SpiderSieveOfEratosthenesBench extends benchUtils_1.SpiderBenchmark {
+class SpiderNQueensFirstNSolutionsBench extends benchUtils_1.SpiderBenchmark {
     constructor() {
-        super("Spiders.js Sieve Of Eratosthenes", "Spiders.js Sieve Of Eratosthenes cycle completed", "Spiders.js Sieve Of Eratosthenes completed", "Spiders.js Sieve Of Eratosthenes scheduled");
+        super("Spiders.js N Queens First N Solutions", "Spiders.js N Queens First N Solutions cycle completed", "Spiders.js N Queens First N Solutions completed", "Spiders.js N Queens First N Solutions scheduled");
     }
     runBenchmark() {
-        this.sieveOfEratosthenesApp = new SieveOfEratosthenesApp(this);
-        this.sieveOfEratosthenesApp.setup();
+        this.nQueensFirstNSolutionsApp = new NQueensFirstNSolutionsApp(this);
+        this.nQueensFirstNSolutionsApp.setup();
     }
     cleanUp() {
-        this.sieveOfEratosthenesApp.kill();
+        this.nQueensFirstNSolutionsApp.kill();
     }
 }
-exports.SpiderSieveOfEratosthenesBench = SpiderSieveOfEratosthenesBench;
+exports.SpiderNQueensFirstNSolutionsBench = SpiderNQueensFirstNSolutionsBench;
 
 },{"../../../src/spiders":123,"../../benchUtils":3}],3:[function(require,module,exports){
 /**
@@ -257,7 +322,7 @@ BenchConfig.uctStdevCompSize = 500;
 BenchConfig.uctBinomial = 5;
 BenchConfig.uctPercent = 70;
 //Fac loc
-BenchConfig.facLocNumPoints = 10000;
+BenchConfig.facLocNumPoints = 1000;
 BenchConfig.facLocGridSize = 500;
 BenchConfig.facLocF = Math.sqrt(2) * 500;
 BenchConfig.facLocAlpha = 2.0;
@@ -290,12 +355,12 @@ BenchConfig.sorOmega = 1.25;
 BenchConfig.sorN = 1;
 //A star search 
 BenchConfig.aStarWorkers = 30;
-BenchConfig.aStarThreshold = 200;
+BenchConfig.aStarThreshold = 100;
 BenchConfig.aStarGridSize = 5;
 //N queens
 BenchConfig.nQueensWorkers = 20;
-BenchConfig.nQueensSize = 3;
-BenchConfig.nQueensThreshold = 2;
+BenchConfig.nQueensSize = 5;
+BenchConfig.nQueensThreshold = 4;
 BenchConfig.nQueensSolutions = 500;
 BenchConfig.nQueensPriorities = 10;
 exports.BenchConfig = BenchConfig;
@@ -45878,27 +45943,18 @@ const sockets_1 = require("./sockets");
 /**
  * Created by flo on 18/01/2017.
  */
+var utils = require("./utils");
 class ChannelManager extends commMedium_1.CommMedium {
     init(messageHandler) {
         this.messageHandler = messageHandler;
         this.connections = new Map();
         this.socketHandler = new sockets_1.SocketHandler(this);
-        this.portsOpened = false;
-        this.bufferedMsgs = new Map();
-    }
-    portsInit() {
-        this.portsOpened = true;
-        this.bufferedMsgs.forEach((msgs, receiverId) => {
-            msgs.forEach((msg) => {
-                this.sendMessage(receiverId, msg);
-            });
-        });
     }
     newConnection(actorId, channelPort) {
+        this.connections.set(actorId, channelPort);
         channelPort.onmessage = (ev) => {
             this.messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
         };
-        this.connections.set(actorId, channelPort);
     }
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId, actorAddress, actorPort) {
@@ -45910,29 +45966,31 @@ class ChannelManager extends commMedium_1.CommMedium {
         var disconnected = this.socketHandler.disconnectedActors.indexOf(actorId) != -1;
         return inChannel || connected || disconnected;
     }
-    sendMessage(actorId, message) {
-        if (!this.portsOpened) {
-            if (this.bufferedMsgs.has(actorId)) {
-                this.bufferedMsgs.get(actorId).push(message);
-            }
-            else {
-                this.bufferedMsgs.set(actorId, [message]);
-            }
-        }
-        else if (this.connections.has(actorId)) {
+    sendMessage(actorId, message, first = true) {
+        if (this.connections.has(actorId)) {
             this.connections.get(actorId).postMessage(JSON.stringify(message));
         }
         else if (this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1) {
             this.socketHandler.sendMessage(actorId, message);
         }
         else {
-            throw new Error("Unable to send message to unknown actor (channel manager)");
+            //Dirty, but it could be that an actor sends a message to the application actor, leading it to spawn a new actor and returning this new reference.
+            //Upon receiving this reference the spawning actor immediatly invokes a method on the reference, but hasn't received the open ports message
+            if (first) {
+                var that = this;
+                setTimeout(() => {
+                    that.sendMessage(actorId, message, false);
+                }, 10);
+            }
+            else {
+                throw new Error("Unable to send message to unknown actor (channel manager)" + message.fieldName + " " + actorId + " in " + this.messageHandler.thisRef.ownerId);
+            }
         }
     }
 }
 exports.ChannelManager = ChannelManager;
 
-},{"./commMedium":116,"./sockets":122}],114:[function(require,module,exports){
+},{"./commMedium":116,"./sockets":122,"./utils":124}],114:[function(require,module,exports){
 /**
  * Created by flo on 22/12/2016.
  */
@@ -46265,24 +46323,27 @@ class MessageHandler {
         }
     }
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
-    handleInstall(msg, mainPort) {
+    handleInstall(msg, ports) {
         var thisId = msg.actorId;
         var mainId = msg.mainId;
         var thisRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, mainId, null, this.commMedium, this.promisePool, this.objectPool);
         var behaviourObject = serialisation_1.reconstructObject({}, msg.vars, msg.methods, thisRef, this.promisePool, this.commMedium, this.objectPool);
+        var otherActorIds = msg.otherActorIds;
         this.objectPool.installBehaviourObject(behaviourObject);
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
+        var mainPort = ports[0];
         channelManag.newConnection(mainId, mainPort);
+        otherActorIds.forEach((id, index) => {
+            //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
+            channelManag.newConnection(id, ports[index + 1]);
+        });
         utils.installSTDLib(thisRef, parentRef, behaviourObject, this, channelManag, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
         channelManager.newConnection(msg.actorId, port);
-    }
-    handlePortsOpened() {
-        this.commMedium.portsInit();
     }
     handleFieldAccess(msg) {
         var targetObject = this.objectPool.getObject(msg.objectId);
@@ -46308,7 +46369,8 @@ class MessageHandler {
         });
         var retVal;
         try {
-            retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
+            //retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
+            retVal = targetObject[methodName](...deserialisedArgs);
             var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
             var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
@@ -46372,13 +46434,10 @@ class MessageHandler {
     dispatch(msg, ports = [], clientSocket = null) {
         switch (msg.typeTag) {
             case messages_1._INSTALL_BEHAVIOUR_:
-                this.handleInstall(msg, ports[0]);
+                this.handleInstall(msg, ports);
                 break;
             case messages_1._OPEN_PORT_:
                 this.handleOpenPort(msg, ports[0]);
-                break;
-            case messages_1._PORTS_OPENED_:
-                this.handlePortsOpened();
                 break;
             case messages_1._FIELD_ACCESS_:
                 this.handleFieldAccess(msg);
@@ -46434,12 +46493,13 @@ Message.clientSenderType = "_CLIENT_";
 exports.Message = Message;
 exports._INSTALL_BEHAVIOUR_ = 0;
 class InstallBehaviourMessage extends Message {
-    constructor(senderRef, mainId, actorId, vars, methods) {
+    constructor(senderRef, mainId, actorId, vars, methods, otherActorIds) {
         super(exports._INSTALL_BEHAVIOUR_, senderRef);
         this.mainId = mainId;
         this.actorId = actorId;
         this.vars = vars;
         this.methods = methods;
+        this.otherActorIds = otherActorIds;
     }
 }
 exports.InstallBehaviourMessage = InstallBehaviourMessage;
@@ -46492,14 +46552,7 @@ class OpenPortMessage extends Message {
     }
 }
 exports.OpenPortMessage = OpenPortMessage;
-exports._PORTS_OPENED_ = 6;
-class PortsOpenedMessage extends Message {
-    constructor(senderRef) {
-        super(exports._PORTS_OPENED_, senderRef);
-    }
-}
-exports.PortsOpenedMessage = PortsOpenedMessage;
-exports._CONNECT_REMOTE_ = 7;
+exports._CONNECT_REMOTE_ = 6;
 class ConnectRemoteMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._CONNECT_REMOTE_, senderRef);
@@ -46508,7 +46561,7 @@ class ConnectRemoteMessage extends Message {
     }
 }
 exports.ConnectRemoteMessage = ConnectRemoteMessage;
-exports._RESOLVE_CONNECTION_ = 8;
+exports._RESOLVE_CONNECTION_ = 7;
 class ResolveConnectionMessage extends Message {
     constructor(senderRef, promiseId, connectionId) {
         super(exports._RESOLVE_CONNECTION_, senderRef);
@@ -46517,7 +46570,7 @@ class ResolveConnectionMessage extends Message {
     }
 }
 exports.ResolveConnectionMessage = ResolveConnectionMessage;
-exports._ROUTE_ = 9;
+exports._ROUTE_ = 8;
 class RouteMessage extends Message {
     constructor(senderRef, targetId, message) {
         super(exports._ROUTE_, senderRef);
@@ -46656,6 +46709,7 @@ ValueContainer.arrayType = 4;
 ValueContainer.isolateType = 5;
 ValueContainer.isolateDefType = 6;
 ValueContainer.clientFarRefType = 7;
+ValueContainer.arrayIsolateType = 8;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -46726,6 +46780,14 @@ class IsolateDefinitionContainer extends ValueContainer {
     }
 }
 exports.IsolateDefinitionContainer = IsolateDefinitionContainer;
+class ArrayIsolateContainer extends ValueContainer {
+    constructor(array) {
+        super(ValueContainer.arrayIsolateType);
+        this.array = array;
+    }
+}
+ArrayIsolateContainer.checkArrayIsolateFuncKey = "_INSTANCEOF_ARRAY_ISOLATE_";
+exports.ArrayIsolateContainer = ArrayIsolateContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -46763,12 +46825,6 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         else if (value instanceof Error) {
             return new ErrorContainer(value);
         }
-        else if (value instanceof Array) {
-            var values = value.map((val) => {
-                return serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
-            });
-            return new ArrayContainer(values);
-        }
         else if (value[farRef_1.FarReference.ServerProxyTypeKey]) {
             var farRef = value[farRef_1.FarReference.farRefAccessorKey];
             return new ServerFarRefContainer(farRef.objectId, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
@@ -46782,6 +46838,15 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             else {
                 return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
             }
+        }
+        else if (value[ArrayIsolateContainer.checkArrayIsolateFuncKey]) {
+            return new ArrayIsolateContainer(value.array);
+        }
+        else if (value instanceof Array) {
+            var values = value.map((val) => {
+                return serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
+            });
+            return new ArrayContainer(values);
         }
         else if (value[IsolateContainer.checkIsolateFuncKey]) {
             var vars = getObjectVars(value, thisRef, receiverId, commMedium, promisePool, objectPool);
@@ -46856,6 +46921,9 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         classObj.prototype[IsolateContainer.checkIsolateFuncKey] = true;
         return classObj;
     }
+    function deSerialiseArrayIsolate(arrayIsolateContainer) {
+        return arrayIsolateContainer.array;
+    }
     switch (value.type) {
         case ValueContainer.nativeType:
             return value.value;
@@ -46873,8 +46941,10 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
             return deSerialiseIsolate(value);
         case ValueContainer.isolateDefType:
             return deSerialiseIsolateDefinition(value);
+        case ValueContainer.arrayIsolateType:
+            return deSerialiseArrayIsolate(value);
         default:
-            throw "Unknown value container type :  " + value;
+            throw "Unknown value container type :  " + value.type;
     }
 }
 exports.deserialise = deserialise;
@@ -46999,30 +47069,31 @@ class Isolate {
     }
 }
 exports.Isolate = Isolate;
-function updateChannels(app, newActor) {
-    var actors = app.spawnedActors;
-    for (var i in actors) {
-        var workerRef1 = actors[i];
-        var worker1Id = workerRef1[0];
-        var worker1 = workerRef1[1];
-        for (var j in actors) {
-            if (i != j) {
-                var workerRef2 = actors[j];
-                var worker2Id = workerRef2[0];
-                var worker2 = workerRef2[1];
-                var channel = new MessageChannel();
-                worker1.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker2Id)), [channel.port1]);
-                worker2.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker1Id)), [channel.port2]);
-            }
-        }
+class ArrayIsolate {
+    constructor(array) {
+        this[serialisation_1.ArrayIsolateContainer.checkArrayIsolateFuncKey] = true;
+        this.array = array;
     }
-    newActor.postMessage(JSON.stringify(new messages_1.PortsOpenedMessage(app.mainRef)));
+}
+exports.ArrayIsolate = ArrayIsolate;
+function updateExistingChannels(mainRef, existingActors, newActorId) {
+    var mappings = [[], []];
+    existingActors.forEach((actorPair) => {
+        var workerId = actorPair[0];
+        var worker = actorPair[1];
+        var channel = new MessageChannel();
+        worker.postMessage(JSON.stringify(new messages_1.OpenPortMessage(mainRef, newActorId)), [channel.port1]);
+        mappings[0].push(workerId);
+        mappings[1].push(channel.port2);
+    });
+    return mappings;
 }
 class Actor {
 }
 class ClientActor extends Actor {
     spawn(app) {
         var actorId = utils.generateId();
+        var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
         var webWorker = work(require('./actorProto'));
         webWorker.addEventListener('message', (event) => {
@@ -47033,12 +47104,12 @@ class ClientActor extends Actor {
         var actorMethods = decon[1];
         var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods)), [mainChannel.port1]);
+        var newActorChannels = [mainChannel.port1].concat(channelMappings[1]);
+        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods, channelMappings[0])), newActorChannels);
         var channelManager = app.mainCommMedium;
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         app.spawnedActors.push([actorId, webWorker]);
-        updateChannels(app, webWorker);
         return ref.proxyify();
     }
 }
@@ -47104,7 +47175,6 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
-        this.channelManager.portsInit();
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);
@@ -47130,6 +47200,7 @@ else {
 }).call(this,"/src")
 },{"./ChannelManager":113,"./PromisePool":114,"./actorProto":115,"./farRef":117,"./messageHandler":118,"./messages":119,"./objectPool":120,"./serialisation":121,"./sockets":122,"./utils":124,"child_process":125,"webworkify":95}],124:[function(require,module,exports){
 (function (process){
+const spiders_1 = require("./spiders");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -47157,6 +47228,8 @@ function installSTDLib(thisRef, parentRef, behaviourObject, messageHandler, comm
     behaviourObject["remote"] = (address, port) => {
         return commMedium.connectRemote(thisRef, address, port, messageHandler, promisePool);
     };
+    behaviourObject["Isolate"] = spiders_1.Isolate;
+    behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
     if (Reflect.has(behaviourObject, "init")) {
         behaviourObject["init"]();
     }
@@ -47164,7 +47237,7 @@ function installSTDLib(thisRef, parentRef, behaviourObject, messageHandler, comm
 exports.installSTDLib = installSTDLib;
 
 }).call(this,require('_process'))
-},{"_process":342}],125:[function(require,module,exports){
+},{"./spiders":123,"_process":342}],125:[function(require,module,exports){
 
 },{}],126:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0

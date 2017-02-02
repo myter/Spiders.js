@@ -1,3 +1,4 @@
+const spiders_1 = require("./spiders");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -25,6 +26,8 @@ function installSTDLib(thisRef, parentRef, behaviourObject, messageHandler, comm
     behaviourObject["remote"] = (address, port) => {
         return commMedium.connectRemote(thisRef, address, port, messageHandler, promisePool);
     };
+    behaviourObject["Isolate"] = spiders_1.Isolate;
+    behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
     if (Reflect.has(behaviourObject, "init")) {
         behaviourObject["init"]();
     }

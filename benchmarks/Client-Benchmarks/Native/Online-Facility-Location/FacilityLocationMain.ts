@@ -38,6 +38,7 @@ export class NatFacilityLocationBench extends SpiderBenchmark{
             }
 
             function spawnQuad(parent,index,positionToParent,bx1,by1,bx2,by2,threshold,depth,initKnownFacilities,initMaxDepthOpenFac){
+
                 var c = new MessageChannel()
                 parent.postMessage(["childQuadSpawned",index],[c.port2])
                 var ref = that.spawnWorker(require('./FacilityLocationQuadrant.js'))
@@ -62,9 +63,10 @@ export class NatFacilityLocationBench extends SpiderBenchmark{
             }
         }
         var threshold 	= BenchConfig.facLocAlpha * BenchConfig.facLocF
+        console.log("Threshold = " + threshold)
         that.quadRef    = that.spawnWorker(require('./FacilityLocationQuadrant.js'))
         that.quadRef.onmessage = sysHandle
-        that.quadRef.postMessage(["config",true,0,"ROOT",0,0,BenchConfig.facLocGridSize,BenchConfig.facLocGridSize,threshold,0,1,-1])
+        that.quadRef.postMessage(["config",true,"ROOT",0,0,BenchConfig.facLocGridSize,BenchConfig.facLocGridSize,threshold,0,1,-1])
         that.quadRef.postMessage(["configDone",false])
         that.prodRef    = that.spawnWorker(require('./FacilityLocationProducer.js'))
         that.prodRef.onmessage = sysHandle

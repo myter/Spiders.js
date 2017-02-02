@@ -16,30 +16,31 @@ class Isolate {
     }
 }
 exports.Isolate = Isolate;
-function updateChannels(app, newActor) {
-    var actors = app.spawnedActors;
-    for (var i in actors) {
-        var workerRef1 = actors[i];
-        var worker1Id = workerRef1[0];
-        var worker1 = workerRef1[1];
-        for (var j in actors) {
-            if (i != j) {
-                var workerRef2 = actors[j];
-                var worker2Id = workerRef2[0];
-                var worker2 = workerRef2[1];
-                var channel = new MessageChannel();
-                worker1.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker2Id)), [channel.port1]);
-                worker2.postMessage(JSON.stringify(new messages_1.OpenPortMessage(app.mainRef, worker1Id)), [channel.port2]);
-            }
-        }
+class ArrayIsolate {
+    constructor(array) {
+        this[serialisation_1.ArrayIsolateContainer.checkArrayIsolateFuncKey] = true;
+        this.array = array;
     }
-    newActor.postMessage(JSON.stringify(new messages_1.PortsOpenedMessage(app.mainRef)));
+}
+exports.ArrayIsolate = ArrayIsolate;
+function updateExistingChannels(mainRef, existingActors, newActorId) {
+    var mappings = [[], []];
+    existingActors.forEach((actorPair) => {
+        var workerId = actorPair[0];
+        var worker = actorPair[1];
+        var channel = new MessageChannel();
+        worker.postMessage(JSON.stringify(new messages_1.OpenPortMessage(mainRef, newActorId)), [channel.port1]);
+        mappings[0].push(workerId);
+        mappings[1].push(channel.port2);
+    });
+    return mappings;
 }
 class Actor {
 }
 class ClientActor extends Actor {
     spawn(app) {
         var actorId = utils.generateId();
+        var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
         var webWorker = work(require('./actorProto'));
         webWorker.addEventListener('message', (event) => {
@@ -50,12 +51,12 @@ class ClientActor extends Actor {
         var actorMethods = decon[1];
         var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods)), [mainChannel.port1]);
+        var newActorChannels = [mainChannel.port1].concat(channelMappings[1]);
+        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods, channelMappings[0])), newActorChannels);
         var channelManager = app.mainCommMedium;
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         app.spawnedActors.push([actorId, webWorker]);
-        updateChannels(app, webWorker);
         return ref.proxyify();
     }
 }
@@ -121,7 +122,6 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
-        this.channelManager.portsInit();
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);

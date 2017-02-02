@@ -1,5 +1,5 @@
 const benchUtils_1 = require("../benchUtils");
-const SieveOfEratosthenes_1 = require("./Spiders/SieveOfEratosthenes");
+const NQueensFirstNSolutions_1 = require("./Spiders/NQueensFirstNSolutions");
 /**
  * Created by flo on 24/01/2017.
  */
@@ -48,7 +48,17 @@ var runner = new benchUtils_1.SpiderBenchmarkRunner();
 //runner.schedule(SpiderLogisticMapSeriesBench)
 //runner.schedule(SpiderRadixSortBench)
 //runner.schedule(SpiderFilterBankBench)
-runner.schedule(SieveOfEratosthenes_1.SpiderSieveOfEratosthenesBench);
+//runner.schedule(SpiderSieveOfEratosthenesBench)
+//runner.schedule(SpiderUnbalancedCobwebbedTreeBench)
+//runner.schedule(SpiderOnlineFacilityLocationBench)
+//runner.schedule(SpiderTrapezoidalApproximationBench)
+//runner.schedule(SpiderPrecisePiComputationBench)
+//runner.schedule(SpiderRecursiveMatrixMultiplicationBench)
+//runner.schedule(SpiderQuickSortBench)
+//runner.schedule(SpiderAllPairShortestPathBench)
+//runner.schedule(SpiderSuccessiveOverRelaxationBench)
+//runner.schedule(SpiderAStarSearchBench)
+runner.schedule(NQueensFirstNSolutions_1.SpiderNQueensFirstNSolutionsBench);
 console.log("Starting Benchmark");
 runner.nextBenchmark();
 //# sourceMappingURL=ClientBenchmarks.js.map

@@ -2,7 +2,7 @@ import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
-    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_, _PORTS_OPENED_
+    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_
 } from "./messages";
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
@@ -21,7 +21,7 @@ export class MessageHandler{
     private commMedium      : CommMedium
     private promisePool     : PromisePool
     private objectPool      : ObjectPool
-    private thisRef         : FarReference
+    thisRef         : FarReference
 
     constructor(thisRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
         this.commMedium     = commMedium
@@ -53,26 +53,28 @@ export class MessageHandler{
     }
 
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
-    private handleInstall(msg : InstallBehaviourMessage,mainPort : MessagePort){
+    private handleInstall(msg : InstallBehaviourMessage,ports : Array<MessagePort>){
         var thisId                  = msg.actorId
         var mainId                  = msg.mainId
         var thisRef                 = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,null,this.commMedium,this.promisePool,this.objectPool)
         var behaviourObject         = reconstructObject({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool)
+        var otherActorIds           = msg.otherActorIds
         this.objectPool.installBehaviourObject(behaviourObject)
         this.thisRef                = thisRef
         var parentRef               = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.thisRef,this.commMedium,this.promisePool,this.objectPool)
         var channelManag            = this.commMedium as ChannelManager
+        var mainPort                = ports[0]
         channelManag.newConnection(mainId,mainPort)
+        otherActorIds.forEach((id,index)=>{
+            //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
+            channelManag.newConnection(id,ports[index + 1])
+        })
         utils.installSTDLib(thisRef,parentRef,behaviourObject,this,channelManag,this.promisePool)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
         var channelManager = (this.commMedium as ChannelManager)
         channelManager.newConnection(msg.actorId,port)
-    }
-
-    private handlePortsOpened(){
-        (this.commMedium as ChannelManager).portsInit()
     }
 
     private handleFieldAccess(msg : FieldAccessMessage){
@@ -100,7 +102,8 @@ export class MessageHandler{
         })
         var retVal
         try{
-            retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
+            //retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
+            retVal = targetObject[methodName](...deserialisedArgs)
             var serialised : ValueContainer         = serialise(retVal,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
             var message    : Message                = new ResolvePromiseMessage(this.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){
@@ -171,13 +174,10 @@ export class MessageHandler{
     dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
         switch(msg.typeTag){
             case _INSTALL_BEHAVIOUR_:
-                this.handleInstall(msg as InstallBehaviourMessage,ports[0])
+                this.handleInstall(msg as InstallBehaviourMessage,ports)
                 break
             case _OPEN_PORT_:
                 this.handleOpenPort(msg as OpenPortMessage,ports[0])
-                break
-            case _PORTS_OPENED_:
-                this.handlePortsOpened()
                 break
             case _FIELD_ACCESS_:
                 this.handleFieldAccess(msg as FieldAccessMessage)

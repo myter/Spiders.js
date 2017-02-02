@@ -4,6 +4,7 @@ import {CommMedium} from "./commMedium";
 import {PromisePool} from "./PromisePool";
 import {Message, RouteMessage} from "./messages";
 import {MessageHandler} from "./messageHandler";
+import {Isolate, ArrayIsolate} from "./spiders";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -30,6 +31,8 @@ export function installSTDLib(thisRef : FarReference,parentRef : FarReference,be
     behaviourObject["remote"] = (address : string,port : number) : Promise<any> =>  {
         return commMedium.connectRemote(thisRef,address,port,messageHandler,promisePool)
     }
+    behaviourObject["Isolate"] = Isolate
+    behaviourObject["ArrayIsolate"] = ArrayIsolate
     if(Reflect.has(behaviourObject,"init")){
         behaviourObject["init"]()
     }

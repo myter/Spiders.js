@@ -69,8 +69,8 @@ module.exports = function (self) {
                 var i = 0;
                 while (i < size) {
                     var b = [];
-                    for (var i = 0; i < newDepth; i++) {
-                        b[i] = 0;
+                    for (var j = 0; j < newDepth; j++) {
+                        b[j] = 0;
                     }
                     arraycopy(data, 0, b, 0, depth);
                     b[depth] = i;

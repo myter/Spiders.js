@@ -100,6 +100,7 @@ ValueContainer.arrayType = 4;
 ValueContainer.isolateType = 5;
 ValueContainer.isolateDefType = 6;
 ValueContainer.clientFarRefType = 7;
+ValueContainer.arrayIsolateType = 8;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -170,6 +171,14 @@ class IsolateDefinitionContainer extends ValueContainer {
     }
 }
 exports.IsolateDefinitionContainer = IsolateDefinitionContainer;
+class ArrayIsolateContainer extends ValueContainer {
+    constructor(array) {
+        super(ValueContainer.arrayIsolateType);
+        this.array = array;
+    }
+}
+ArrayIsolateContainer.checkArrayIsolateFuncKey = "_INSTANCEOF_ARRAY_ISOLATE_";
+exports.ArrayIsolateContainer = ArrayIsolateContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -207,12 +216,6 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         else if (value instanceof Error) {
             return new ErrorContainer(value);
         }
-        else if (value instanceof Array) {
-            var values = value.map((val) => {
-                return serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
-            });
-            return new ArrayContainer(values);
-        }
         else if (value[farRef_1.FarReference.ServerProxyTypeKey]) {
             var farRef = value[farRef_1.FarReference.farRefAccessorKey];
             return new ServerFarRefContainer(farRef.objectId, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
@@ -226,6 +229,15 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             else {
                 return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
             }
+        }
+        else if (value[ArrayIsolateContainer.checkArrayIsolateFuncKey]) {
+            return new ArrayIsolateContainer(value.array);
+        }
+        else if (value instanceof Array) {
+            var values = value.map((val) => {
+                return serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
+            });
+            return new ArrayContainer(values);
         }
         else if (value[IsolateContainer.checkIsolateFuncKey]) {
             var vars = getObjectVars(value, thisRef, receiverId, commMedium, promisePool, objectPool);
@@ -300,6 +312,9 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         classObj.prototype[IsolateContainer.checkIsolateFuncKey] = true;
         return classObj;
     }
+    function deSerialiseArrayIsolate(arrayIsolateContainer) {
+        return arrayIsolateContainer.array;
+    }
     switch (value.type) {
         case ValueContainer.nativeType:
             return value.value;
@@ -317,8 +332,10 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
             return deSerialiseIsolate(value);
         case ValueContainer.isolateDefType:
             return deSerialiseIsolateDefinition(value);
+        case ValueContainer.arrayIsolateType:
+            return deSerialiseArrayIsolate(value);
         default:
-            throw "Unknown value container type :  " + value;
+            throw "Unknown value container type :  " + value.type;
     }
 }
 exports.deserialise = deserialise;

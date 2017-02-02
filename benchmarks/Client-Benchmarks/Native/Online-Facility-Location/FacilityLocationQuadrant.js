@@ -59,6 +59,7 @@ module.exports = function (self) {
             }
             else {
                 parent = par;
+                parent.onmessage = mHandle;
             }
             positionToParent = ptp;
             boundary = makeBoundary(bx1, by1, bx2, by2);
@@ -88,6 +89,8 @@ module.exports = function (self) {
             }
         }
         function newInitCustomer(customer) {
+            var point = JSON.parse(customer);
+            point = makePoint(point.x, point.y);
             if (initCustomers == null) {
                 var that = this;
                 setTimeout(function () {
@@ -95,7 +98,7 @@ module.exports = function (self) {
                 }, 200);
             }
             else {
-                initCustomers.push(customer);
+                initCustomers.push(point);
             }
         }
         function configDone(expectReply, sender) {
@@ -103,21 +106,20 @@ module.exports = function (self) {
             if (initCustomers == null) {
                 var that = this;
                 setTimeout(function () {
-                    that.configDone();
+                    that.configDone(expectReply, sender);
                 }, 200);
             }
             else {
                 self.postMessage(["actorInit"]);
-                for (var i in initLocalFacilities) {
-                    localFacilities.push(initLocalFacilities[i]);
-                }
+                initLocalFacilities.forEach((localFac) => {
+                    localFacilities.push(localFac);
+                });
                 localFacilities.push(facility);
-                for (var i in initCustomers) {
-                    var loopPoint = initCustomers[i];
+                initCustomers.forEach((loopPoint) => {
                     if (boundary.contains(loopPoint)) {
                         addCustomer(loopPoint);
                     }
-                }
+                });
             }
             if (expectReply) {
                 sender.postMessage(["childSpawned"]);
@@ -129,15 +131,13 @@ module.exports = function (self) {
             totalCost += minCost;
         }
         function findCost(point) {
-            //No max val in JS
-            var result = 100000000000;
-            for (var i in localFacilities) {
-                var loopPoint = localFacilities[i];
+            var result = Infinity;
+            localFacilities.forEach((loopPoint) => {
                 var distance = loopPoint.getDistance(point);
                 if (distance < result) {
                     result = distance;
                 }
-            }
+            });
             return result;
         }
         function childSpawned() {
@@ -148,6 +148,7 @@ module.exports = function (self) {
         }
         function customerMsg(sender, pointString) {
             var point = JSON.parse(pointString);
+            point = makePoint(point.x, point.y);
             if (children == null) {
                 addCustomer(point);
                 if (totalCost > threshold) {
@@ -182,6 +183,7 @@ module.exports = function (self) {
         }
         function facilityMsg(posToParent, depth, pointString, bool) {
             var point = JSON.parse(pointString);
+            point = makePoint(point.x, point.y);
             knownFacilities += 1;
             localFacilities.push(point);
             if (bool) {
@@ -224,7 +226,7 @@ module.exports = function (self) {
                 child.postMessage(["copyInitFacility", localFacilities[i].x, localFacilities[i].y]);
             }
             for (var i in supportCustomers) {
-                child.postMessage(["newInitCustomer", supportCustomers[i]]);
+                child.postMessage(["newInitCustomer", JSON.stringify(supportCustomers[i])]);
             }
             children[index] = child;
             var bound = null;
@@ -305,7 +307,12 @@ module.exports = function (self) {
         }
         switch (event.data[0]) {
             case "config":
-                config(event.data[1], event.ports[0], event.data[2], event.data[3], event.data[4], event.data[5], event.data[6], event.data[7], event.data[8], event.data[9], event.data[10]);
+                if (event.data[1]) {
+                    config(event.data[1], null, event.data[2], event.data[3], event.data[4], event.data[5], event.data[6], event.data[7], event.data[8], event.data[9], event.data[10]);
+                }
+                else {
+                    config(event.data[1], event.ports[0], event.data[2], event.data[3], event.data[4], event.data[5], event.data[6], event.data[7], event.data[8], event.data[9], event.data[10]);
+                }
                 break;
             case "copyInitFacility":
                 copyInitFacility(event.data[1], event.data[2]);

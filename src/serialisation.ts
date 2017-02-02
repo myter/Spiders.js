@@ -104,6 +104,7 @@ export abstract class ValueContainer{
     static isolateType          : number = 5
     static isolateDefType       : number = 6
     static clientFarRefType     : number = 7
+    static arrayIsolateType     : number = 8
     type                        : number
 
     constructor(type : number){
@@ -202,6 +203,15 @@ export class IsolateDefinitionContainer extends ValueContainer{
     }
 }
 
+export class ArrayIsolateContainer extends ValueContainer{
+    array                           : Array<any>
+    static checkArrayIsolateFuncKey : string = "_INSTANCEOF_ARRAY_ISOLATE_"
+    constructor(array : Array<any>){
+        super(ValueContainer.arrayIsolateType)
+        this.array = array
+    }
+}
+
 function isClass(func : Function) : boolean{
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -243,12 +253,6 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
         else if(value instanceof Error){
             return new ErrorContainer(value)
         }
-        else if(value instanceof Array){
-            var values : Array<ValueContainer> = value.map((val) => {
-                return serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
-            })
-            return new ArrayContainer(values)
-        }
         else if(value[FarReference.ServerProxyTypeKey]){
             var farRef : ServerFarReference = value[FarReference.farRefAccessorKey]
             return new ServerFarRefContainer(farRef.objectId,farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
@@ -262,6 +266,15 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             else{
                 return new ClientFarRefContainer(farRef.objectId,farRef.ownerId,farRef.mainId,farRef.contactId,farRef.contactAddress,farRef.contactPort)
             }
+        }
+        else if(value[ArrayIsolateContainer.checkArrayIsolateFuncKey]){
+            return new ArrayIsolateContainer(value.array)
+        }
+        else if(value instanceof Array){
+            var values : Array<ValueContainer> = value.map((val) => {
+                return serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
+            })
+            return new ArrayContainer(values)
         }
         else if(value[IsolateContainer.checkIsolateFuncKey]){
             var vars    = getObjectVars(value,thisRef,receiverId,commMedium,promisePool,objectPool)
@@ -344,6 +357,10 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         return classObj
     }
 
+    function deSerialiseArrayIsolate(arrayIsolateContainer : ArrayIsolateContainer){
+        return arrayIsolateContainer.array
+    }
+
     switch(value.type){
         case ValueContainer.nativeType :
             return (value as NativeContainer).value
@@ -361,7 +378,9 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             return deSerialiseIsolate(value as IsolateContainer)
         case ValueContainer.isolateDefType:
             return deSerialiseIsolateDefinition(value as IsolateDefinitionContainer)
+        case ValueContainer.arrayIsolateType:
+            return deSerialiseArrayIsolate(value as ArrayIsolateContainer)
         default :
-            throw "Unknown value container type :  " + value
+            throw "Unknown value container type :  " + value.type
     }
 }
