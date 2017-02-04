@@ -26,8 +26,10 @@ export function generateId() : string {
     })
 }
 
-export function installSTDLib(thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,messageHandler : MessageHandler,commMedium : CommMedium,promisePool : PromisePool){
-    behaviourObject["parent"] = parentRef.proxyify()
+export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,messageHandler : MessageHandler,commMedium : CommMedium,promisePool : PromisePool){
+    if(!appActor){
+        behaviourObject["parent"] = parentRef.proxyify()
+    }
     behaviourObject["remote"] = (address : string,port : number) : Promise<any> =>  {
         return commMedium.connectRemote(thisRef,address,port,messageHandler,promisePool)
     }

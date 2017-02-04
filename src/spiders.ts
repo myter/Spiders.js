@@ -41,9 +41,10 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 }
 
 abstract class Actor{
-    parent
-    Isolate
-    ArrayIsolate
+    parent          : FarRef
+    Isolate         : IsolateClass
+    ArrayIsolate    : ArrayIsolateClass
+    remote          : (string,number)=> Promise<FarRef>
 }
 
 abstract class ClientActor extends Actor{
@@ -128,6 +129,7 @@ class ServerApplication extends Application{
         this.mainRef            = new ServerFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainIp,this.mainPort,null,this.mainCommMedium as ServerSocketManager,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool)
         this.socketManager.init(this.mainMessageHandler)
+        utils.installSTDLib(true,this.mainRef,null,this,this.mainMessageHandler,this.mainCommMedium,this.mainPromisePool)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = 8080){
@@ -147,6 +149,7 @@ class ClientApplication extends Application{
     channelManager  : ChannelManager
     spawnedActors   : Array<any>
 
+
     constructor(){
         super()
         this.mainCommMedium     = new ChannelManager()
@@ -155,6 +158,7 @@ class ClientApplication extends Application{
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool)
         this.channelManager.init(this.mainMessageHandler)
+        utils.installSTDLib(true,this.mainRef,null,this,this.mainMessageHandler,this.mainCommMedium,this.mainPromisePool)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){
@@ -174,8 +178,14 @@ class ClientApplication extends Application{
 interface AppType {
     spawnActor
     kill
+    //Provided by standard lib
+    Isolate             : IsolateClass
+    ArrayIsolate        : ArrayIsolateClass
+    remote              : (string,number)=> Promise<FarRef>
 }
-export type ApplicationClass    = {new(...args : any[]): AppType}
+export type ApplicationClass    = {
+    new(...args : any[]): AppType
+}
 export type ActorClass          = {new(...args : any[]): Actor}
 export type IsolateClass        = {new(...args : any[]): Isolate}
 export type ArrayIsolateClass   = {new(...args : any[]): ArrayIsolate}

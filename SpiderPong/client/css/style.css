@@ -1,0 +1,31 @@
+body 
+{
+	padding: 0; 
+	margin: 0; 
+	overflow: hidden;
+	background-color: #C0C0C0;
+    background-size: 100% 100%;
+    /*background-image: url("../img/tennis_background.png"); */
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 5px;
+    text-align: left;
+}
+
+table#roomList {
+    width: 100%;    
+    background-color: #C0C0C0;
+}
+
+button {
+    background-color: black;
+    color: #C0C0C0;
+    /* border: 2px solid black; */ /* Green */
+    border-radius: 12px;
+}

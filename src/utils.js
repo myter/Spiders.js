@@ -21,8 +21,10 @@ function generateId() {
     });
 }
 exports.generateId = generateId;
-function installSTDLib(thisRef, parentRef, behaviourObject, messageHandler, commMedium, promisePool) {
-    behaviourObject["parent"] = parentRef.proxyify();
+function installSTDLib(appActor, thisRef, parentRef, behaviourObject, messageHandler, commMedium, promisePool) {
+    if (!appActor) {
+        behaviourObject["parent"] = parentRef.proxyify();
+    }
     behaviourObject["remote"] = (address, port) => {
         return commMedium.connectRemote(thisRef, address, port, messageHandler, promisePool);
     };
