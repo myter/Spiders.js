@@ -7,7 +7,7 @@ import {
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {ValueContainer, serialise, deserialise, reconstructObject} from "./serialisation";
+import {ValueContainer, serialise, deserialise, reconstructObject, ClientFarRefContainer} from "./serialisation";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {ChannelManager} from "./ChannelManager";
@@ -166,6 +166,20 @@ export class MessageHandler{
     }
 
     private handleRoute(msg : RouteMessage){
+        //TODO temp fix , works but should be refactored
+        if(msg.message.typeTag == _METHOD_INVOC_){
+            var args = (msg.message as MethodInvocationMessage).args
+            args.forEach((valContainer : ValueContainer)=>{
+                if(valContainer.type == ValueContainer.clientFarRefType){
+                    var container = valContainer as ClientFarRefContainer
+                    if(container.contactId == null){
+                        container.contactId = this.thisRef.ownerId
+                        container.contactAddress = (this.thisRef as ServerFarReference).ownerAddress
+                        container.contactPort = (this.thisRef as ServerFarReference).ownerPort
+                    }
+                }
+            })
+        }
         this.commMedium.sendMessage(msg.targetId,msg.message)
     }
 

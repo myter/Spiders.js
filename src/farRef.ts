@@ -1,7 +1,7 @@
 import {ServerSocketManager} from "./sockets";
 import {PromisePool, PromiseAllocation} from "./PromisePool";
 import {FieldAccessMessage, MethodInvocationMessage, Message, RouteMessage} from "./messages";
-import {serialise} from "./serialisation";
+import {serialise, ClientFarRefContainer} from "./serialisation";
 import {ObjectPool} from "./objectPool";
 import {CommMedium} from "./commMedium";
 /**
@@ -104,9 +104,10 @@ export class ClientFarReference extends FarReference {
             this.commMedium.openConnection(this.contactId,this.contactAddress,this.contactPort)
         }
         //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
-        msg.contactId = this.contactId
-        msg.contactAddress = this.contactAddress
-        msg.contactPort = this.contactPort
+            msg.contactId = this.contactId
+            msg.contactAddress = this.contactAddress
+            msg.contactPort = this.contactPort
+
         this.commMedium.sendMessage(this.contactId,new RouteMessage(this,this.ownerId,msg))
     }
 

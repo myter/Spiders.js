@@ -39,7 +39,7 @@ class SpiderPongClient extends spiders.Application{
         document.getElementById("newRoomButton").onclick = () => {
             var roomName = (document.getElementById('roomName') as HTMLTextAreaElement).value
             this.currentGame = new graph.game(roomName)
-            this.serverRef.createNewGame(roomName,this)
+            this.serverRef.createNewGame(roomName,this,this.nickName)
             this.currentGame.start(true)
         }
     }
@@ -47,7 +47,7 @@ class SpiderPongClient extends spiders.Application{
     private joinGame(roomName : string,gameCreator : FarRef){
         this.currentGame        = new graph.game(roomName)
         this.currentGame.setOpponentReference(gameCreator)
-        this.serverRef.playerJoined(roomName,this)
+        this.serverRef.playerJoined(roomName,this,this.nickName)
         gameCreator.playerJoins(this,this.nickName)
         gameCreator.getPortal().then((portal)=>{
             this.currentGame.receivePortal(portal)
@@ -71,21 +71,12 @@ class SpiderPongClient extends spiders.Application{
     }
 
     playerJoins(player : FarRef,nickName : string){
-        console.log("Player joined")
-        player.getName().then((nam)=>{
-            console.log("Name : " + nam)
-        })
         this.currentGame.setOpponentReference(player)
         this.currentGame.playerJoined(nickName)
     }
 
     updateRoomInfo(roomName){
         (document.getElementById(roomName) as any).cells[1].innerHTML = "2/2"
-    }
-
-    //TODO remove, used for debugging
-    getName(){
-        return this.nickName
     }
 
     getPortal(){

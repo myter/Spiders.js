@@ -3,10 +3,19 @@ import {SpiderLib, FarRef} from "../src/spiders";
  * Created by flo on 03/02/2017.
  */
 var spiders : SpiderLib = require("../src/spiders")
+
+class Player{
+    ref     : FarRef
+    name    : string
+    constructor(ref,name){
+        this.ref    = ref
+        this.name   = name
+    }
+}
 class SpiderPongServer extends spiders.Application{
-    games       : Map<string,FarRef>
+    games       : Map<string,Player>
     occupation  : Map<string,number>
-    clients     : Map<string,FarRef>
+    clients     : Map<string,Player>
 
     constructor(){
         super()
@@ -21,9 +30,9 @@ class SpiderPongServer extends spiders.Application{
 
     newClient(nickName : string,ref : FarRef){
         console.log("Client connected: " + nickName)
-        this.clients.set(nickName,ref)
-        this.games.forEach((creator,roomName)=>{
-            ref.newGameCreated(roomName,creator)
+        this.clients.set(nickName,new Player(ref,nickName))
+        this.games.forEach((creator : Player,roomName : string)=>{
+            ref.newGameCreated(roomName,creator.ref)
             if(this.occupation.get(roomName) > 1){
                 ref.updateRoomInfo(roomName)
             }
@@ -31,23 +40,22 @@ class SpiderPongServer extends spiders.Application{
 
     }
 
-    createNewGame(roomName : string,creator : FarRef){
-        console.log("New room created : " + roomName)
-        this.games.set(roomName,creator)
+    createNewGame(roomName : string,creatorRef : FarRef,creatorName){
+        this.games.set(roomName,new Player(creatorRef,creatorName))
         this.occupation.set(roomName,1)
-        this.clients.forEach((client : FarRef)=>{
-            if(client !== creator){
-                client.newGameCreated(roomName,creator)
+        this.clients.forEach((client : Player)=>{
+            if(client.name != creatorName){
+                client.ref.newGameCreated(roomName,creatorRef)
             }
         })
     }
 
-    playerJoined(roomName : string,player : FarRef){
-        var otherPlayer : FarRef = this.games.get(roomName)
+    playerJoined(roomName : string,playerRef : FarRef,playerName : string){
+        var otherPlayer : Player = this.games.get(roomName)
         this.occupation.set(roomName,this.occupation.get(roomName)+1)
-        this.clients.forEach((client : FarRef)=>{
-            if(client !== player && client !== otherPlayer){
-                client.updateRoomInfo(roomName)
+        this.clients.forEach((client : Player)=>{
+            if(client.name != playerName && client.name != otherPlayer.name){
+                client.ref.updateRoomInfo(roomName)
             }
         })
     }

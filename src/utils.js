@@ -31,7 +31,7 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, messageHan
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
     if (Reflect.has(behaviourObject, "init")) {
-        behaviourObject["init"]();
+        behaviourObject["init"].apply(behaviourObject, []);
     }
 }
 exports.installSTDLib = installSTDLib;

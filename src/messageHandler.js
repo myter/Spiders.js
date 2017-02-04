@@ -138,6 +138,20 @@ class MessageHandler {
         this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
     }
     handleRoute(msg) {
+        //TODO temp fix , works but should be refactored
+        if (msg.message.typeTag == messages_1._METHOD_INVOC_) {
+            var args = msg.message.args;
+            args.forEach((valContainer) => {
+                if (valContainer.type == serialisation_1.ValueContainer.clientFarRefType) {
+                    var container = valContainer;
+                    if (container.contactId == null) {
+                        container.contactId = this.thisRef.ownerId;
+                        container.contactAddress = this.thisRef.ownerAddress;
+                        container.contactPort = this.thisRef.ownerPort;
+                    }
+                }
+            });
+        }
         this.commMedium.sendMessage(msg.targetId, msg.message);
     }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)

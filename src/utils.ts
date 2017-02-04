@@ -36,6 +36,6 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
     behaviourObject["Isolate"] = Isolate
     behaviourObject["ArrayIsolate"] = ArrayIsolate
     if(Reflect.has(behaviourObject,"init")){
-        behaviourObject["init"]()
+        behaviourObject["init"].apply(behaviourObject,[])
     }
 }
