@@ -4,7 +4,7 @@ import {ServerSocketManager} from "./sockets";
 import {ObjectPool} from "./objectPool";
 import {FarReference, ServerFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
-import {reconstructObject} from "./serialisation";
+import {reconstructObject, reconstructBehaviour} from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 /**
  * Created by flo on 05/12/2016.
@@ -42,7 +42,7 @@ else{
     promisePool             = new PromisePool()
     objectPool              = new ObjectPool()
     var thisRef             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,thisId,address,port,null,null,null,null)
-    var behaviourObject     = reconstructObject({},JSON.parse(process.argv[7]),JSON.parse(process.argv[8]),thisRef,promisePool,socketManager,objectPool)
+    var behaviourObject     = reconstructBehaviour({},JSON.parse(process.argv[7]),JSON.parse(process.argv[8]),thisRef,promisePool,socketManager,objectPool)
     objectPool.installBehaviourObject(behaviourObject)
     messageHandler          = new MessageHandler(thisRef,socketManager,promisePool,objectPool)
     socketManager.init(messageHandler)

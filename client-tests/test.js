@@ -540,6 +540,28 @@ performArrayIsolateTest = () =>{
 }
 scheduled.push(performArrayIsolateTest)
 
+class SuperInitActor extends spider.Actor{
+    constructor(){
+        super()
+        this.val = 10
+    }
+    init(){
+        this.val += 5
+    }
+}
+class BaseInitActor extends SuperInitActor{
+    init(){
+        this.val = this.val * 2
+    }
+}
+performInitChaining = () =>{
+    var a = app.spawnActor(BaseInitActor)
+    return a.val.then((v)=>{
+        log("Init chaining : " + (v == 30))
+    })
+}
+scheduled.push(performInitChaining)
+
 function performAll(nextTest){
     nextTest().then((dc) => {
         if(scheduled.length > 0) {

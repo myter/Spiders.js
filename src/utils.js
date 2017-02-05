@@ -21,6 +21,19 @@ function generateId() {
     });
 }
 exports.generateId = generateId;
+function getInitChain(behaviourObject, result) {
+    var properties = Reflect.ownKeys(behaviourObject);
+    //Have reached base level object, end of prototype chain (ugly but works)
+    if (properties.indexOf("init") != -1) {
+        result.unshift(Reflect.get(behaviourObject, "init"));
+    }
+    if (properties.indexOf("valueOf") != -1) {
+        return result;
+    }
+    else {
+        return getInitChain(behaviourObject.__proto__, result);
+    }
+}
 function installSTDLib(appActor, thisRef, parentRef, behaviourObject, messageHandler, commMedium, promisePool) {
     if (!appActor) {
         behaviourObject["parent"] = parentRef.proxyify();
@@ -30,9 +43,15 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, messageHan
     };
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
-    if (Reflect.has(behaviourObject, "init")) {
-        behaviourObject["init"].apply(behaviourObject, []);
+    if (!appActor) {
+        var initChain = getInitChain(behaviourObject, []);
+        initChain.forEach((initFunc) => {
+            initFunc.apply(behaviourObject, []);
+        });
     }
+    /*if(Reflect.has(behaviourObject,"init") && !appActor){
+        behaviourObject["init"].apply(behaviourObject,[])
+    }*/
 }
 exports.installSTDLib = installSTDLib;
 //# sourceMappingURL=utils.js.map

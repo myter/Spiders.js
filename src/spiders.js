@@ -46,7 +46,7 @@ class ClientActor extends Actor {
         webWorker.addEventListener('message', (event) => {
             app.mainMessageHandler.dispatch(event);
         });
-        var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool);
+        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
         var mainChannel = new MessageChannel();
@@ -65,7 +65,7 @@ class ServerActor extends Actor {
         var socketManager = app.mainCommMedium;
         var fork = require('child_process').fork;
         var actorId = utils.generateId();
-        var decon = serialisation_1.deconstructBehaviour(this, [], [], app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool);
+        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
         //Uncomment to debug (huray for webstorms)

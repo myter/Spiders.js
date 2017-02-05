@@ -56,7 +56,7 @@ abstract class ClientActor extends Actor{
         webWorker.addEventListener('message',(event) => {
             app.mainMessageHandler.dispatch(event)
         })
-        var decon                                       = deconstructBehaviour(this,[],[],app.mainRef,actorId,app.channelManager,app.mainPromisePool,app.mainObjectPool)
+        var decon                                       = deconstructBehaviour(this,0,[],[],app.mainRef,actorId,app.channelManager,app.mainPromisePool,app.mainObjectPool)
         var actorVariables                              = decon[0]
         var actorMethods                                = decon[1]
         var mainChannel                                 = new MessageChannel()
@@ -76,7 +76,7 @@ abstract class ServerActor extends Actor{
         var socketManager               = app.mainCommMedium as ServerSocketManager
         var fork		                = require('child_process').fork
         var actorId: string             = utils.generateId()
-        var decon                       = deconstructBehaviour(this,[],[],app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool)
+        var decon                       = deconstructBehaviour(this,0,[],[],app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool)
         var actorVariables              = decon[0]
         var actorMethods                = decon[1]
         //Uncomment to debug (huray for webstorms)

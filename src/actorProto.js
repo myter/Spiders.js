@@ -39,7 +39,7 @@ else {
     promisePool = new PromisePool_1.PromisePool();
     objectPool = new objectPool_1.ObjectPool();
     var thisRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, address, port, null, null, null, null);
-    var behaviourObject = serialisation_1.reconstructObject({}, JSON.parse(process.argv[7]), JSON.parse(process.argv[8]), thisRef, promisePool, socketManager, objectPool);
+    var behaviourObject = serialisation_1.reconstructBehaviour({}, JSON.parse(process.argv[7]), JSON.parse(process.argv[8]), thisRef, promisePool, socketManager, objectPool);
     objectPool.installBehaviourObject(behaviourObject);
     messageHandler = new messageHandler_1.MessageHandler(thisRef, socketManager, promisePool, objectPool);
     socketManager.init(messageHandler);

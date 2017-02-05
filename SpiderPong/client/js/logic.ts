@@ -28,9 +28,6 @@ class SpiderPongClient extends spiders.Application{
     constructor(nickName : string){
         super()
         this.nickName = nickName
-    }
-
-    init(){
         this.remote("127.0.0.1",8000).then((serverRef : FarRef)=>{
             console.log("Server ref acquired")
             this.serverRef = serverRef

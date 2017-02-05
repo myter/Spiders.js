@@ -157,6 +157,37 @@ describe("Behaviour serialisation",() => {
         })
     })
 
+    it("Initialisation chaining",(done)=>{
+        var app = new spider.Application()
+        class SuperActor extends spider.Actor{
+            constructor(){
+                super()
+                this.val = 10
+            }
+            init(){
+                this.val += 5
+            }
+        }
+
+        class BaseActor extends SuperActor{
+            init(){
+                this.val = this.val * 2
+            }
+        }
+        var act = app.spawnActor(BaseActor)
+        act.val.then((v)=>{
+            try{
+                expect(v).to.equal(30)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
     it("Actor scope",(done) => {
         class testApp extends spider.Application{
 

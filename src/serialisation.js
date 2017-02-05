@@ -36,16 +36,20 @@ function getObjectMethods(object) {
     return methods;
 }
 exports.getObjectMethods = getObjectMethods;
-function deconstructBehaviour(object, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool) {
+function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool) {
     var properties = Reflect.ownKeys(object);
+    var localAccumVars = [];
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
         if (typeof val != 'function' || isIsolateClass(val)) {
             var serialisedval = serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
-            accumVars.push([key, serialisedval]);
+            localAccumVars.push([key, serialisedval]);
         }
     }
+    localAccumVars.unshift(currentLevel);
+    accumVars.push(localAccumVars);
+    var localAccumMethods = [];
     var proto = object.__proto__;
     properties = Reflect.ownKeys(proto);
     properties.shift();
@@ -55,16 +59,62 @@ function deconstructBehaviour(object, accumVars, accumMethods, thisRef, receiver
             var key = properties[i];
             var method = Reflect.get(proto, key);
             if (typeof method == 'function') {
-                accumMethods.push([key, method.toString()]);
+                localAccumMethods.push([key, method.toString()]);
             }
         }
-        return deconstructBehaviour(proto, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool);
+        localAccumMethods.unshift(currentLevel + 1);
+        accumMethods.push(localAccumMethods);
+        return deconstructBehaviour(proto, currentLevel + 1, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool);
     }
     else {
         return [accumVars, accumMethods];
     }
 }
 exports.deconstructBehaviour = deconstructBehaviour;
+function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool) {
+    var amountOfProtos = methods.length;
+    for (var i = 0; i < amountOfProtos; i++) {
+        var copy = baseObject.__proto__;
+        var newProto = {};
+        newProto.__proto__ = copy;
+        baseObject.__proto__ = newProto;
+    }
+    variables.forEach((levelVariables) => {
+        var installIn = getProtoForLevel(levelVariables[0], baseObject);
+        levelVariables.shift();
+        levelVariables.forEach((varEntry) => {
+            var key = varEntry[0];
+            var rawVal = varEntry[1];
+            var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool);
+            installIn[key] = val;
+        });
+    });
+    methods.forEach((levelMethods) => {
+        var installIn = getProtoForLevel(levelMethods[0], baseObject);
+        levelMethods.shift();
+        levelMethods.forEach((methodEntry) => {
+            var key = methodEntry[0];
+            var functionSource = methodEntry[1];
+            //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
+            if (functionSource.startsWith("function")) {
+                var method = eval("with(baseObject){(" + functionSource + ")}");
+            }
+            else {
+                var method = eval("with(baseObject){(function " + functionSource + ")}");
+            }
+            installIn[key] = method;
+        });
+    });
+    return baseObject;
+}
+exports.reconstructBehaviour = reconstructBehaviour;
+function getProtoForLevel(level, object) {
+    var ret = object;
+    for (var i = 0; i < level; i++) {
+        ret = ret.__proto__;
+    }
+    return ret;
+}
 function reconstructObject(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool) {
     variables.forEach((varEntry) => {
         var key = varEntry[0];
@@ -82,7 +132,7 @@ function reconstructObject(baseObject, variables, methods, thisRef, promisePool,
         else {
             var method = eval("with(baseObject){(function " + functionSource + ")}");
         }
-        Object.getPrototypeOf(baseObject)[key] = method;
+        (baseObject.__proto__)[key] = method;
     });
     return baseObject;
 }

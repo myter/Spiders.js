@@ -22,9 +22,6 @@ class SpiderPongServer extends spiders.Application{
         this.games      = new Map()
         this.clients    = new Map()
         this.occupation = new Map()
-    }
-
-    init(){
         console.log("Spider Pong Server Started")
     }
 

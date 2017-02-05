@@ -7,7 +7,10 @@ import {
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {ValueContainer, serialise, deserialise, reconstructObject, ClientFarRefContainer} from "./serialisation";
+import {
+    ValueContainer, serialise, deserialise, reconstructObject, ClientFarRefContainer,
+    reconstructBehaviour
+} from "./serialisation";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {ChannelManager} from "./ChannelManager";
@@ -57,7 +60,7 @@ export class MessageHandler{
         var thisId                  = msg.actorId
         var mainId                  = msg.mainId
         var thisRef                 = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,null,this.commMedium,this.promisePool,this.objectPool)
-        var behaviourObject         = reconstructObject({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool)
+        var behaviourObject         = reconstructBehaviour({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool)
         var otherActorIds           = msg.otherActorIds
         this.objectPool.installBehaviourObject(behaviourObject)
         this.thisRef                = thisRef

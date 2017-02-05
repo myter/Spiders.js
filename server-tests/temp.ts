@@ -4,16 +4,25 @@ import {SpiderLib, FarRef} from "../src/spiders";
  */
 var spider : SpiderLib = require('../src/spiders')
 var app = new spider.Application()
-class Actor1 extends spider.Actor{
+class SuperActor extends spider.Actor{
+    init(){
+        console.log("Super Init")
+    }
+}
+class BaseActor extends spider.Actor{
+    val
+    constructor(){
+        super()
+        this.val = 10
+    }
+    init(){
+        console.log("Base init")
+        console.log("Val = " + this.val)
+    }
     getArray(arr){
+        console.log("Val inside array: " + this.val)
         console.log(arr.length)
     }
 }
-class Actor2 extends spider.Actor{
-    sendArray(ref){
-        ref.getArray(new this.ArrayIsolate([1,2,3,4]))
-    }
-}
-var a1 = app.spawnActor(Actor1)
-var a2 = app.spawnActor(Actor2,[],8082)
-a2.sendArray(a1)
+var a = app.spawnActor(BaseActor)
+a.getArray([1,2,3])

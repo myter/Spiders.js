@@ -8,6 +8,7 @@
             <path value="file://$PROJECT_DIR$/src" />
             <path value="file://$PROJECT_DIR$/benchmarks" />
             <path value="file://$PROJECT_DIR$/SpiderPong" />
+            <path value="file://$PROJECT_DIR$/NativePong" />
           </resourceRoots>
         </entryData>
       </entry>

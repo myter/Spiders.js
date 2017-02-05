@@ -43,45 +43,96 @@ export function getObjectMethods(object : Object) : Array<any>{
     return methods
 }
 
-export function deconstructBehaviour(object : any,accumVars : Array<any>,accumMethods : Array<any>,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
-    var properties  = Reflect.ownKeys(object)
+export function deconstructBehaviour(object : any,currentLevel : number,accumVars : Array<any>,accumMethods : Array<any>,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+    var properties          = Reflect.ownKeys(object)
+    var localAccumVars      = []
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
         if(typeof val != 'function' || isIsolateClass(val)){
             var serialisedval   = serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
-            accumVars.push([key,serialisedval])
+            localAccumVars.push([key,serialisedval])
         }
     }
-    var proto = object.__proto__
-    properties = Reflect.ownKeys(proto)
+    localAccumVars.unshift(currentLevel)
+    accumVars.push(localAccumVars)
+    var localAccumMethods   = []
+    var proto               = object.__proto__
+    properties              = Reflect.ownKeys(proto)
     properties.shift()
-    var lastProto = properties.indexOf("spawn") != -1
+    var lastProto           = properties.indexOf("spawn") != -1
     if(!lastProto){
         for(var i in properties){
             var key     = properties[i]
             var method  = Reflect.get(proto,key)
             if(typeof method == 'function'){
-                accumMethods.push([key,method.toString()])
+                localAccumMethods.push([key,method.toString()])
             }
         }
-        return deconstructBehaviour(proto,accumVars,accumMethods,thisRef,receiverId,commMedium,promisePool,objectPool)
+        localAccumMethods.unshift(currentLevel + 1)
+        accumMethods.push(localAccumMethods)
+        return deconstructBehaviour(proto,currentLevel + 1,accumVars,accumMethods,thisRef,receiverId,commMedium,promisePool,objectPool)
     }
     else{
         return [accumVars,accumMethods]
     }
 }
 
-export function reconstructObject(baseObject : Object,variables : Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
+export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
+    var amountOfProtos = methods.length
+    for(var i = 0;i < amountOfProtos;i++){
+        var copy                = baseObject.__proto__
+        var newProto : any      = {}
+        newProto.__proto__      = copy
+        baseObject.__proto__    = newProto
+    }
+    variables.forEach((levelVariables) => {
+        var installIn   = getProtoForLevel(levelVariables[0],baseObject)
+        levelVariables.shift()
+        levelVariables.forEach((varEntry)=>{
+            var key             = varEntry[0]
+            var rawVal          = varEntry[1]
+            var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
+            installIn[key]      = val
+        })
+    })
+    methods.forEach((levelMethods) => {
+        var installIn = getProtoForLevel(levelMethods[0],baseObject)
+        levelMethods.shift()
+        levelMethods.forEach((methodEntry)=>{
+            var key               = methodEntry[0]
+            var functionSource    = methodEntry[1]
+            //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
+            if(functionSource.startsWith("function")){
+                var method =  eval("with(baseObject){(" + functionSource + ")}")
+            }
+            else{
+                var method =  eval("with(baseObject){(function " + functionSource + ")}")
+            }
+            installIn[key]        = method
+        })
+    })
+    return baseObject
+}
+
+function getProtoForLevel(level,object){
+    var ret = object
+    for(var i = 0;i < level;i++){
+        ret = ret.__proto__
+    }
+    return ret
+}
+
+export function reconstructObject(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
     variables.forEach((varEntry) => {
-        var key     = varEntry[0]
-        var rawVal  = varEntry[1]
-        var val     = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
-        baseObject[key]     = val
+        var key             = varEntry[0]
+        var rawVal          = varEntry[1]
+        var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
+        baseObject[key]      = val
     })
     methods.forEach((methodEntry) => {
-        var key                                     = methodEntry[0]
-        var functionSource                          = methodEntry[1]
+        var key               = methodEntry[0]
+        var functionSource    = methodEntry[1]
         //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
         if(functionSource.startsWith("function")){
             var method =  eval("with(baseObject){(" + functionSource + ")}")
@@ -89,8 +140,7 @@ export function reconstructObject(baseObject : Object,variables : Array<any>, me
         else{
             var method =  eval("with(baseObject){(function " + functionSource + ")}")
         }
-
-        Object.getPrototypeOf(baseObject)[key]              = method
+        (baseObject.__proto__)[key]        = method
     })
     return baseObject
 }

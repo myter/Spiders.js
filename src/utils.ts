@@ -26,16 +26,37 @@ export function generateId() : string {
     })
 }
 
+function getInitChain(behaviourObject : any,result : Array<Function>){
+    var properties = Reflect.ownKeys(behaviourObject)
+    //Have reached base level object, end of prototype chain (ugly but works)
+    if(properties.indexOf("init") != -1){
+        result.unshift(Reflect.get(behaviourObject,"init"))
+    }
+    if(properties.indexOf("valueOf") !=-1){
+        return result
+    }
+    else{
+        return getInitChain(behaviourObject.__proto__,result)
+    }
+}
+
+
 export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,messageHandler : MessageHandler,commMedium : CommMedium,promisePool : PromisePool){
     if(!appActor){
-        behaviourObject["parent"] = parentRef.proxyify()
+        behaviourObject["parent"]   = parentRef.proxyify()
     }
-    behaviourObject["remote"] = (address : string,port : number) : Promise<any> =>  {
+    behaviourObject["remote"]       = (address : string,port : number) : Promise<any> =>  {
         return commMedium.connectRemote(thisRef,address,port,messageHandler,promisePool)
     }
-    behaviourObject["Isolate"] = Isolate
+    behaviourObject["Isolate"]      = Isolate
     behaviourObject["ArrayIsolate"] = ArrayIsolate
-    if(Reflect.has(behaviourObject,"init")){
-        behaviourObject["init"].apply(behaviourObject,[])
+    if(!appActor){
+        var initChain                   = getInitChain(behaviourObject,[])
+        initChain.forEach((initFunc)=>{
+            initFunc.apply(behaviourObject,[])
+        })
     }
+    /*if(Reflect.has(behaviourObject,"init") && !appActor){
+        behaviourObject["init"].apply(behaviourObject,[])
+    }*/
 }
