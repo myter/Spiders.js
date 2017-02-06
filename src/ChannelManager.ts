@@ -7,12 +7,11 @@ import {SocketHandler} from "./sockets";
  */
 var utils = require("./utils")
 export class ChannelManager extends CommMedium{
-    private messageHandler  : MessageHandler
     private connections     : Map<string,MessagePort>
     private socketHandler   : SocketHandler
 
     init(messageHandler : MessageHandler){
-        this.messageHandler = messageHandler
+        super.init(messageHandler)
         this.connections    = new Map()
         this.socketHandler  = new SocketHandler(this)
     }

@@ -7,6 +7,7 @@ import {CommMedium} from "./commMedium";
 import getPrototypeOf = Reflect.getPrototypeOf;
 import {Isolate} from "./spiders";
 import {cpus} from "os";
+import {MessageHandler} from "./messageHandler";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -425,8 +426,15 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
 
     function deSerialiseServerFarRef(farRefContainer : ServerFarRefContainer){
         var farRef = new ServerFarReference(farRefContainer.objectId,farRefContainer.ownerId,farRefContainer.ownerAddress,farRefContainer.ownerPort,thisRef,commMedium,promisePool,objectPool)
-        if(!(commMedium.hasConnection(farRef.ownerId))){
-            commMedium.openConnection(farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
+        if(thisRef instanceof ServerFarReference){
+            if(!(commMedium.hasConnection(farRef.ownerId))){
+                commMedium.openConnection(farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
+            }
+        }
+        else{
+            if(!(commMedium.hasConnection(farRef.ownerId))){
+                commMedium.connectRemote(farRef,farRef.ownerAddress,farRef.ownerPort,promisePool)
+            }
         }
         return farRef.proxyify()
     }

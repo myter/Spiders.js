@@ -60,6 +60,7 @@ class ServerSocketManager extends commMedium_1.CommMedium {
         this.connectedClients = new Map();
     }
     init(messageHandler) {
+        super.init(messageHandler);
         this.socketHandler.messageHandler = messageHandler;
         this.socket.on('connection', (client) => {
             client.on('message', (data) => {

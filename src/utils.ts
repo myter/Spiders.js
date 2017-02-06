@@ -41,12 +41,12 @@ function getInitChain(behaviourObject : any,result : Array<Function>){
 }
 
 
-export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,messageHandler : MessageHandler,commMedium : CommMedium,promisePool : PromisePool){
+export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool){
     if(!appActor){
         behaviourObject["parent"]   = parentRef.proxyify()
     }
     behaviourObject["remote"]       = (address : string,port : number) : Promise<any> =>  {
-        return commMedium.connectRemote(thisRef,address,port,messageHandler,promisePool)
+        return commMedium.connectRemote(thisRef,address,port,promisePool)
     }
     behaviourObject["Isolate"]      = Isolate
     behaviourObject["ArrayIsolate"] = ArrayIsolate

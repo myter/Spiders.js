@@ -5,34 +5,16 @@ import {SpiderLib, FarRef} from "../src/spiders";
 var spiders : SpiderLib = require("../src/spiders")
 var app = new spiders.Application()
 class SuperActor extends spiders.Actor{
-    static STATFIELD = 5
-    static statM(){
-        return 6
-    }
-    regular(){
-        console.log("Regular method called")
-    }
-    testField(){
-        return SuperActor.STATFIELD
-    }
-    testMethod(){
-        return SuperActor.statM()
+    test(){
+        return 5
     }
 }
-class BaseActor extends SuperActor{
-    static BASESTATFIELD = 55
-    testBaseField(){
-        console.log("Base field invoked")
-        return BaseActor.BASESTATFIELD = 5
-    }
-    testSuperField(){
-        return SuperActor.STATFIELD
+class Base extends SuperActor{
+    test(){
+        return (super.test())
     }
 }
-var act = app.spawnActor(BaseActor)
-act.testBaseField().then((v)=>{
-    console.log("Static base field in promise : " + v)
-})
-act.testSuperField().then((v)=>{
-    console.log("Static super field in promise :" + v)
+var a = app.spawnActor(Base)
+a.test().then((v)=>{
+    console.log("Got : " + v)
 })

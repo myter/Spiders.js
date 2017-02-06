@@ -7,7 +7,10 @@ import {Socket} from "net";
  * Created by flo on 17/01/2017.
  */
 export abstract class CommMedium{
-    abstract init(messageHandler : MessageHandler)
+    messageHandler
+    init(messageHandler : MessageHandler){
+        this.messageHandler = messageHandler
+    }
     abstract sendMessage(actorId : string,message : Message)
     abstract openConnection(actorId : string,actorAddress : string,actorPort : number)
     abstract hasConnection(actorId : string)
@@ -24,7 +27,7 @@ export abstract class CommMedium{
         this.pendingConnectionId    = 0
     }
 
-    connectRemote(sender : FarReference,address : string,port : number,messageHandler : MessageHandler,promisePool : PromisePool) : Promise<any>{
+    connectRemote(sender : FarReference,address : string,port : number,promisePool : PromisePool) : Promise<any>{
         var promiseAllocation       = promisePool.newPromise()
         var connection              = require('socket.io-client')('http://'+address+":"+port)
         var connectionId            = this.pendingConnectionId
@@ -35,10 +38,10 @@ export abstract class CommMedium{
         })
         connection.on('message',(data) => {
             if(sender instanceof ServerFarReference){
-                messageHandler.dispatch(data)
+                this.messageHandler.dispatch(data)
             }
             else{
-                messageHandler.dispatch(JSON.parse(data))
+                this.messageHandler.dispatch(JSON.parse(data))
             }
         })
         return promiseAllocation.promise

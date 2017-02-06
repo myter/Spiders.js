@@ -73,7 +73,7 @@ export class MessageHandler{
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id,ports[index + 1])
         })
-        utils.installSTDLib(false,thisRef,parentRef,behaviourObject,this,channelManag,this.promisePool)
+        utils.installSTDLib(false,thisRef,parentRef,behaviourObject,this.promisePool)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){

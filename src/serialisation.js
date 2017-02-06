@@ -384,8 +384,15 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
     }
     function deSerialiseServerFarRef(farRefContainer) {
         var farRef = new farRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, thisRef, commMedium, promisePool, objectPool);
-        if (!(commMedium.hasConnection(farRef.ownerId))) {
-            commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
+        if (thisRef instanceof farRef_1.ServerFarReference) {
+            if (!(commMedium.hasConnection(farRef.ownerId))) {
+                commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
+            }
+        }
+        else {
+            if (!(commMedium.hasConnection(farRef.ownerId))) {
+                commMedium.connectRemote(farRef, farRef.ownerAddress, farRef.ownerPort, promisePool);
+            }
         }
         return farRef.proxyify();
     }

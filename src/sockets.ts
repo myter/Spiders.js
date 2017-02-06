@@ -82,6 +82,7 @@ export class ServerSocketManager extends CommMedium{
     }
 
     init(messageHandler : MessageHandler){
+        super.init(messageHandler)
         this.socketHandler.messageHandler = messageHandler
         this.socket.on('connection',(client) => {
             client.on('message',(data) => {

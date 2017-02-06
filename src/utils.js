@@ -34,12 +34,12 @@ function getInitChain(behaviourObject, result) {
         return getInitChain(behaviourObject.__proto__, result);
     }
 }
-function installSTDLib(appActor, thisRef, parentRef, behaviourObject, messageHandler, commMedium, promisePool) {
+function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool) {
     if (!appActor) {
         behaviourObject["parent"] = parentRef.proxyify();
     }
     behaviourObject["remote"] = (address, port) => {
-        return commMedium.connectRemote(thisRef, address, port, messageHandler, promisePool);
+        return commMedium.connectRemote(thisRef, address, port, promisePool);
     };
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
