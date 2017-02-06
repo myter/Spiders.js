@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com 'unsafe-eval'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <title>WePong</title>
+    </head>
+    <body>
+        <canvas id="canvas" width="0px" height="0px" style="display: none;"></canvas>
+        <label id = "nickLabel">Nickname :</label>
+        <input type="text" id="nickname" value="Nick"></input><br>
+        <button id="startButton" onclick="start()">Start</button>
+
+        <input type="text" id="roomName" value="Room Name"></input>
+        <button id="newRoomButton">New Room</button>
+        <table id="roomList">
+          <tr>
+            <th>Name</th>    
+            <th>No. Players</th>
+          </tr>
+        </table>
+
+        <script type="text/javascript" src="bundle.js"></script>
+    </body>
+</html>
