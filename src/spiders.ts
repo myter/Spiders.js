@@ -160,7 +160,7 @@ class ClientApplication extends Application{
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool)
         this.channelManager.init(this.mainMessageHandler)
-        utils.installSTDLib(true,this.mainRef,null,this,this.mainMessageHandler,this.mainCommMedium,this.mainPromisePool)
+        utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){

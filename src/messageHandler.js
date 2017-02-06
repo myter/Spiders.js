@@ -51,7 +51,7 @@ class MessageHandler {
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id, ports[index + 1]);
         });
-        utils.installSTDLib(false, thisRef, parentRef, behaviourObject, this.promisePool);
+        utils.installSTDLib(false, thisRef, parentRef, behaviourObject, this.commMedium, this.promisePool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;

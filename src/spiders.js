@@ -125,7 +125,7 @@ class ClientApplication extends Application {
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
         this.channelManager.init(this.mainMessageHandler);
-        utils.installSTDLib(true, this.mainRef, null, this, this.mainMessageHandler, this.mainCommMedium, this.mainPromisePool);
+        utils.installSTDLib(true, this.mainRef, null, this, this.mainCommMedium, this.mainPromisePool);
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);
