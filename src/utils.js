@@ -49,9 +49,6 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, messageHan
             initFunc.apply(behaviourObject, []);
         });
     }
-    /*if(Reflect.has(behaviourObject,"init") && !appActor){
-        behaviourObject["init"].apply(behaviourObject,[])
-    }*/
 }
 exports.installSTDLib = installSTDLib;
 //# sourceMappingURL=utils.js.map

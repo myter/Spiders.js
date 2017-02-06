@@ -38,7 +38,7 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
 class Actor {
 }
 class ClientActor extends Actor {
-    spawn(app) {
+    spawn(app, thisClass) {
         var actorId = utils.generateId();
         var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
@@ -49,10 +49,11 @@ class ClientActor extends Actor {
         var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
+        var staticProperties = serialisation_1.deconstructStatic(thisClass, app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool, []);
         var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels = [mainChannel.port1].concat(channelMappings[1]);
-        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods, channelMappings[0])), newActorChannels);
+        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods, staticProperties, channelMappings[0])), newActorChannels);
         var channelManager = app.mainCommMedium;
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
@@ -61,16 +62,17 @@ class ClientActor extends Actor {
     }
 }
 class ServerActor extends Actor {
-    spawn(app, port) {
+    spawn(app, port, thisClass) {
         var socketManager = app.mainCommMedium;
         var fork = require('child_process').fork;
         var actorId = utils.generateId();
         var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
         var actorMethods = decon[1];
+        var staticProperties = serialisation_1.deconstructStatic(thisClass, app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool, []);
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var actor = fork(__dirname + '/actorProto.js', [app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods)]);
+        var actor = fork(__dirname + '/actorProto.js', [app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties)]);
         app.spawnedActors.push(actor);
         var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
@@ -105,7 +107,7 @@ class ServerApplication extends Application {
     }
     spawnActor(actorClass, constructorArgs = [], port = 8080) {
         var actorObject = new actorClass(...constructorArgs);
-        return actorObject.spawn(this, port);
+        return actorObject.spawn(this, port, actorClass);
     }
     kill() {
         this.socketManager.closeAll();
@@ -127,7 +129,7 @@ class ClientApplication extends Application {
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);
-        return actorObject.spawn(this);
+        return actorObject.spawn(this, actorClass);
     }
     kill() {
         this.spawnedActors.forEach((workerPair) => {

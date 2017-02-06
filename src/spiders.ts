@@ -3,7 +3,7 @@ import {MessageHandler} from "./messageHandler";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {deconstructBehaviour, IsolateContainer, ArrayIsolateContainer} from "./serialisation";
+import {deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic} from "./serialisation";
 import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
@@ -48,7 +48,7 @@ abstract class Actor{
 }
 
 abstract class ClientActor extends Actor{
-    spawn(app : ClientApplication){
+    spawn(app : ClientApplication,thisClass){
         var actorId                                     = utils.generateId()
         var channelMappings                             = updateExistingChannels(app.mainRef,app.spawnedActors,actorId)
         var work                                        = require('webworkify')
@@ -59,10 +59,11 @@ abstract class ClientActor extends Actor{
         var decon                                       = deconstructBehaviour(this,0,[],[],app.mainRef,actorId,app.channelManager,app.mainPromisePool,app.mainObjectPool)
         var actorVariables                              = decon[0]
         var actorMethods                                = decon[1]
+        var staticProperties                            = deconstructStatic(thisClass,app.mainRef,actorId,app.channelManager,app.mainPromisePool,app.mainObjectPool,[])
         var mainChannel                                 = new MessageChannel()
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels                            = [mainChannel.port1].concat(channelMappings[1])
-        webWorker.postMessage(JSON.stringify(new InstallBehaviourMessage(app.mainRef,app.mainId,actorId,actorVariables,actorMethods,channelMappings[0])),newActorChannels)
+        webWorker.postMessage(JSON.stringify(new InstallBehaviourMessage(app.mainRef,app.mainId,actorId,actorVariables,actorMethods,staticProperties,channelMappings[0])),newActorChannels)
         var channelManager                              = (app.mainCommMedium as ChannelManager)
         channelManager.newConnection(actorId,mainChannel.port2)
         var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainId,app.mainRef,app.channelManager,app.mainPromisePool,app.mainObjectPool)
@@ -72,16 +73,17 @@ abstract class ClientActor extends Actor{
 }
 
 abstract class ServerActor extends Actor{
-    spawn(app : ServerApplication,port : number){
+    spawn(app : ServerApplication,port : number,thisClass){
         var socketManager               = app.mainCommMedium as ServerSocketManager
         var fork		                = require('child_process').fork
         var actorId: string             = utils.generateId()
         var decon                       = deconstructBehaviour(this,0,[],[],app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool)
         var actorVariables              = decon[0]
         var actorMethods                = decon[1]
+        var staticProperties            = deconstructStatic(thisClass,app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool,[])
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)])
+        var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties)])
         app.spawnedActors.push(actor)
         var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainIp,port,app.mainRef,app.mainCommMedium,app.mainPromisePool,app.mainObjectPool)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
@@ -134,7 +136,7 @@ class ServerApplication extends Application{
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = 8080){
         var actorObject = new actorClass(...constructorArgs)
-        return actorObject.spawn(this,port)
+        return actorObject.spawn(this,port,actorClass)
     }
 
     kill(){
@@ -163,7 +165,7 @@ class ClientApplication extends Application{
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){
         var actorObject = new actorClass(...constructorArgs)
-        return actorObject.spawn(this)
+        return actorObject.spawn(this,actorClass)
     }
 
     kill(){

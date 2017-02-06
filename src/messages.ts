@@ -42,18 +42,20 @@ export class Message{
 
 export const _INSTALL_BEHAVIOUR_ : MessageTypeTag = 0
 export class InstallBehaviourMessage extends Message{
-    mainId          : string
-    actorId         : string
-    vars            : Array<any>
-    methods         : Array<any>
-    otherActorIds   : Array<string>
-    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>,otherActorIds : Array<string>){
+    mainId              : string
+    actorId             : string
+    vars                : Array<any>
+    methods             : Array<any>
+    staticProperties    : Array<any>
+    otherActorIds       : Array<string>
+    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>,staticProperties : Array<any>,otherActorIds : Array<string>){
         super(_INSTALL_BEHAVIOUR_,senderRef)
-        this.mainId         = mainId
-        this.actorId        = actorId
-        this.vars           = vars
-        this.methods        = methods
-        this.otherActorIds  = otherActorIds
+        this.mainId             = mainId
+        this.actorId            = actorId
+        this.vars               = vars
+        this.methods            = methods
+        this.staticProperties   = staticProperties
+        this.otherActorIds      = otherActorIds
     }
 }
 

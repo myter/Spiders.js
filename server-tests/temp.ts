@@ -2,27 +2,37 @@ import {SpiderLib, FarRef} from "../src/spiders";
 /**
  * Created by flo on 25/01/2017.
  */
-var spider : SpiderLib = require('../src/spiders')
-var app = new spider.Application()
-class SuperActor extends spider.Actor{
-    init(){
-        console.log("Super Init")
+var spiders : SpiderLib = require("../src/spiders")
+var app = new spiders.Application()
+class SuperActor extends spiders.Actor{
+    static STATFIELD = 5
+    static statM(){
+        return 6
+    }
+    regular(){
+        console.log("Regular method called")
+    }
+    testField(){
+        return SuperActor.STATFIELD
+    }
+    testMethod(){
+        return SuperActor.statM()
     }
 }
-class BaseActor extends spider.Actor{
-    val
-    constructor(){
-        super()
-        this.val = 10
+class BaseActor extends SuperActor{
+    static BASESTATFIELD = 55
+    testBaseField(){
+        console.log("Base field invoked")
+        return BaseActor.BASESTATFIELD = 5
     }
-    init(){
-        console.log("Base init")
-        console.log("Val = " + this.val)
-    }
-    getArray(arr){
-        console.log("Val inside array: " + this.val)
-        console.log(arr.length)
+    testSuperField(){
+        return SuperActor.STATFIELD
     }
 }
-var a = app.spawnActor(BaseActor)
-a.getArray([1,2,3])
+var act = app.spawnActor(BaseActor)
+act.testBaseField().then((v)=>{
+    console.log("Static base field in promise : " + v)
+})
+act.testSuperField().then((v)=>{
+    console.log("Static super field in promise :" + v)
+})

@@ -1,27 +1,38 @@
 /**
  * Created by flo on 25/01/2017.
  */
-var spider = require('../src/spiders');
-var app = new spider.Application();
-class SuperActor extends spider.Actor {
-    init() {
-        console.log("Super Init");
+var spiders = require("../src/spiders");
+var app = new spiders.Application();
+class SuperActor extends spiders.Actor {
+    static statM() {
+        return 6;
+    }
+    regular() {
+        console.log("Regular method called");
+    }
+    testField() {
+        return SuperActor.STATFIELD;
+    }
+    testMethod() {
+        return SuperActor.statM();
     }
 }
-class BaseActor extends spider.Actor {
-    constructor() {
-        super();
-        this.val = 10;
+SuperActor.STATFIELD = 5;
+class BaseActor extends SuperActor {
+    testBaseField() {
+        console.log("Base field invoked");
+        return BaseActor.BASESTATFIELD = 5;
     }
-    init() {
-        console.log("Base init");
-        console.log("Val = " + this.val);
-    }
-    getArray(arr) {
-        console.log("Val inside array: " + this.val);
-        console.log(arr.length);
+    testSuperField() {
+        return SuperActor.STATFIELD;
     }
 }
-var a = app.spawnActor(BaseActor);
-a.getArray([1, 2, 3]);
+BaseActor.BASESTATFIELD = 55;
+var act = app.spawnActor(BaseActor);
+act.testBaseField().then((v) => {
+    console.log("Static base field in promise : " + v);
+});
+act.testSuperField().then((v) => {
+    console.log("Static super field in promise :" + v);
+});
 //# sourceMappingURL=temp.js.map

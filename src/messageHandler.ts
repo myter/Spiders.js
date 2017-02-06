@@ -9,7 +9,7 @@ import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
 import {
     ValueContainer, serialise, deserialise, reconstructObject, ClientFarRefContainer,
-    reconstructBehaviour
+    reconstructBehaviour, reconstructStatic
 } from "./serialisation";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
@@ -61,6 +61,7 @@ export class MessageHandler{
         var mainId                  = msg.mainId
         var thisRef                 = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,null,this.commMedium,this.promisePool,this.objectPool)
         var behaviourObject         = reconstructBehaviour({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool)
+        reconstructStatic(behaviourObject,msg.staticProperties,thisRef,this.promisePool,this.commMedium,this.objectPool)
         var otherActorIds           = msg.otherActorIds
         this.objectPool.installBehaviourObject(behaviourObject)
         this.thisRef                = thisRef

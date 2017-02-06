@@ -56,7 +56,4 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
             initFunc.apply(behaviourObject,[])
         })
     }
-    /*if(Reflect.has(behaviourObject,"init") && !appActor){
-        behaviourObject["init"].apply(behaviourObject,[])
-    }*/
 }

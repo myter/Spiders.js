@@ -36,6 +36,65 @@ function getObjectMethods(object) {
     return methods;
 }
 exports.getObjectMethods = getObjectMethods;
+function deconstructStatic(actorClass, thisRef, receiverId, commMedium, promisePool, objectPool, results) {
+    //Reached the end of the class chain (i.e. current class is function(){})
+    if (actorClass.name == "") {
+        return results;
+    }
+    else {
+        var thisName = actorClass.name;
+        var thisVars = [];
+        var thisMethods = [];
+        var keys = Reflect.ownKeys(actorClass);
+        keys.forEach((key) => {
+            //Avoid sending the prototype and other function specific properties (given that classes are just functions)
+            if (!(key == "prototype" || key == "name" || key == "length")) {
+                var property = Reflect.get(actorClass, key);
+                if (property instanceof Function) {
+                    thisMethods.push([key, property.toString()]);
+                }
+                else {
+                    thisVars.push([key, serialise(property, thisRef, receiverId, commMedium, promisePool, objectPool)]);
+                }
+            }
+        });
+        results.push([thisName, thisVars, thisMethods]);
+        return deconstructStatic(actorClass.__proto__, thisRef, receiverId, commMedium, promisePool, objectPool, results);
+    }
+}
+exports.deconstructStatic = deconstructStatic;
+function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePool, commMedium, objectPool) {
+    staticProperties.forEach((propertyArray) => {
+        var className = propertyArray[0];
+        var stub = {};
+        var vars = propertyArray[1];
+        var methods = propertyArray[2];
+        vars.forEach((varPair) => {
+            var key = varPair[0];
+            var val = deserialise(thisRef, varPair[1], promisePool, commMedium, objectPool);
+            stub[key] = val;
+        });
+        methods.forEach((methodPair) => {
+            var key = methodPair[0];
+            var functionSource = methodPair[1];
+            var method;
+            if (functionSource.startsWith("function")) {
+                method = eval("with(behaviourObject){(" + functionSource + ")}");
+            }
+            else {
+                method = eval("with(behaviourObject){(function " + functionSource + ")}");
+            }
+            stub[key] = method;
+        });
+        var stubProxy = new Proxy(stub, {
+            set: function (obj, prop, value) {
+                throw new Error("Cannot mutate static property in actors");
+            }
+        });
+        behaviourObject[className] = stubProxy;
+    });
+}
+exports.reconstructStatic = reconstructStatic;
 function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool) {
     var properties = Reflect.ownKeys(object);
     var localAccumVars = [];

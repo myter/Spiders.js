@@ -18,5 +18,7 @@
     <orderEntry type="library" name="socket.io-DefinitelyTyped" level="project" />
     <orderEntry type="library" name="socket.io-client-DefinitelyTyped" level="project" />
     <orderEntry type="library" name="benchmark-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="chai-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="mocha-DefinitelyTyped" level="application" />
   </component>
 </module>
