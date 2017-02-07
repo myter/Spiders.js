@@ -118,7 +118,19 @@ export class BenchConfig {
     static nQueensPriorities    = 10
 }
 var Benchmark = require('benchmark');
-(window as any).Benchmark = Benchmark;
+var isNode = false;
+if (typeof process === 'object') {
+    if (typeof process.versions === 'object') {
+        if (typeof process.versions.node !== 'undefined') {
+            isNode = true;
+        }
+    }
+}
+
+if(!isNode){
+    (window as any).Benchmark = Benchmark;
+
+}
 import Options = BenchmarkType.Options;
 import {fork} from "child_process";
 import {ChildProcess} from "child_process";
@@ -169,6 +181,60 @@ export class SpiderBenchmarkRunner{
     }
 }
 
+abstract class BufferSocket{
+    socket          : Socket
+    connected       : boolean
+    bufferedMsgs    : Array<Array<any>>
+
+    constructor(socket,messageHandler){
+        this.socket         = socket
+        this.connected      = false
+        this.bufferedMsgs   = []
+    }
+
+    flushMessages(){
+        this.bufferedMsgs.forEach((data : Array<any>)=>{
+            this.emit(data)
+        })
+    }
+
+    emit(data : Array<any>){
+        if(this.connected){
+            this.socket.emit('message',data)
+        }
+        else{
+            this.bufferedMsgs.push(data)
+        }
+    }
+
+    close(){
+        (this.socket as any).close()
+    }
+}
+
+export class ClientBufferSocket extends BufferSocket{
+
+    constructor(port : number,messageHandler){
+        super(require('socket.io-client')('http://127.0.0.1:'+ port),messageHandler)
+        var that            = this
+        this.socket.on('message',messageHandler)
+        this.socket.on('connect',()=>{
+            that.connected = true
+            that.flushMessages()
+        })
+    }
+}
+
+export class ServerBufferSocket extends BufferSocket{
+    constructor(port : number,messageHandler){
+        var socket = require('socket.io')(port)
+        super(socket,messageHandler)
+        socket.on('connect',(client)=>{
+            client.on('message',messageHandler)
+        })
+    }
+}
+
 export abstract class SpiderBenchmark{
     stopPromise
     name            : string
@@ -178,22 +244,23 @@ export abstract class SpiderBenchmark{
     spawnWorker
     spawnNode
     spawnedNodes    : Array<any>
-    mainSocket      : Socket
-    portCounter     : number
+    allSockets      : Array<BufferSocket>
+    static _MAIN_PORT_ : number = 8000
 
     constructor(name : string,cycleMessage : string,completeMessage : string,scheduleMessage : string){
-        this.portCounter        = 8000
         this.name               = name
         this.cycleMessage       = cycleMessage
         this.completeMessage    = completeMessage
         this.scheduleMessage    = scheduleMessage
         this.spawnWorker        = require('webworkify')
         this.spawnedNodes       = []
-        this.spawnNode          = (filePath)=>{
-            var instance = fork(__dirname + filePath)
+        this.allSockets         = []
+        this.spawnNode          = (filePath,messageHandler,port)=>{
+            var instance    = fork(__dirname + "/Server-Benchmarks/" + filePath)
             this.spawnedNodes.push(instance)
-            var childSocket = require('socket.io-client')('http://127.0.0.1:'+ portCounter++)
-            return instance
+            var childSocket = new ClientBufferSocket(port,messageHandler)
+            this.allSockets.push(childSocket)
+            return childSocket
         }
     }
 
@@ -211,19 +278,10 @@ export abstract class SpiderBenchmark{
         this.spawnedNodes.forEach((nodeInstance : ChildProcess)=>{
             nodeInstance.kill()
         })
-        var main = this.mainSocket as any
-        main.close()
-    }
-
-    setupMainSocket(messageHandler){
-        var io              = require('socket.io')
-        this.mainSocket     = io(this.portCounter++)
-        this.mainSocket.on('connection',(client)=>{
-            client.on('message',messageHandler)
+        this.allSockets.forEach((socket : BufferSocket)=>{
+            socket.close()
         })
     }
-
-    setupChildSocket
 
     abstract runBenchmark()
     abstract cleanUp()
