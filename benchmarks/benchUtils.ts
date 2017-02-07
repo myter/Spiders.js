@@ -120,6 +120,9 @@ export class BenchConfig {
 var Benchmark = require('benchmark');
 (window as any).Benchmark = Benchmark;
 import Options = BenchmarkType.Options;
+import {fork} from "child_process";
+import {ChildProcess} from "child_process";
+import {Socket} from "net";
 
 export class SpiderBenchmarkRunner{
     scheduled       : Array<BenchmarkType>
@@ -173,13 +176,25 @@ export abstract class SpiderBenchmark{
     completeMessage : string
     scheduleMessage : string
     spawnWorker
+    spawnNode
+    spawnedNodes    : Array<any>
+    mainSocket      : Socket
+    portCounter     : number
 
     constructor(name : string,cycleMessage : string,completeMessage : string,scheduleMessage : string){
+        this.portCounter        = 8000
         this.name               = name
         this.cycleMessage       = cycleMessage
         this.completeMessage    = completeMessage
         this.scheduleMessage    = scheduleMessage
         this.spawnWorker        = require('webworkify')
+        this.spawnedNodes       = []
+        this.spawnNode          = (filePath)=>{
+            var instance = fork(__dirname + filePath)
+            this.spawnedNodes.push(instance)
+            var childSocket = require('socket.io-client')('http://127.0.0.1:'+ portCounter++)
+            return instance
+        }
     }
 
     setBenchDone(benchDone : Function){
@@ -191,6 +206,24 @@ export abstract class SpiderBenchmark{
             worker.terminate()
         })
     }
+
+    cleanNodes(){
+        this.spawnedNodes.forEach((nodeInstance : ChildProcess)=>{
+            nodeInstance.kill()
+        })
+        var main = this.mainSocket as any
+        main.close()
+    }
+
+    setupMainSocket(messageHandler){
+        var io              = require('socket.io')
+        this.mainSocket     = io(this.portCounter++)
+        this.mainSocket.on('connection',(client)=>{
+            client.on('message',messageHandler)
+        })
+    }
+
+    setupChildSocket
 
     abstract runBenchmark()
     abstract cleanUp()

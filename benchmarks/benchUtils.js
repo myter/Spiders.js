@@ -118,6 +118,7 @@ BenchConfig.nQueensPriorities = 10;
 exports.BenchConfig = BenchConfig;
 var Benchmark = require('benchmark');
 window.Benchmark = Benchmark;
+const child_process_1 = require("child_process");
 class SpiderBenchmarkRunner {
     constructor() {
         this.scheduled = [];
@@ -159,11 +160,19 @@ class SpiderBenchmarkRunner {
 exports.SpiderBenchmarkRunner = SpiderBenchmarkRunner;
 class SpiderBenchmark {
     constructor(name, cycleMessage, completeMessage, scheduleMessage) {
+        this.portCounter = 8000;
         this.name = name;
         this.cycleMessage = cycleMessage;
         this.completeMessage = completeMessage;
         this.scheduleMessage = scheduleMessage;
         this.spawnWorker = require('webworkify');
+        this.spawnedNodes = [];
+        this.spawnNode = (filePath) => {
+            var instance = child_process_1.fork(__dirname + filePath);
+            this.spawnedNodes.push(instance);
+            var childSocket = require('socket.io-client')('http://127.0.0.1:' + portCounter++);
+            return instance;
+        };
     }
     setBenchDone(benchDone) {
         this.stopPromise = benchDone;
@@ -171,6 +180,20 @@ class SpiderBenchmark {
     cleanWorkers(workerRefs) {
         workerRefs.forEach((worker) => {
             worker.terminate();
+        });
+    }
+    cleanNodes() {
+        this.spawnedNodes.forEach((nodeInstance) => {
+            nodeInstance.kill();
+        });
+        var main = this.mainSocket;
+        main.close();
+    }
+    setupMainSocket(messageHandler) {
+        var io = require('socket.io');
+        this.mainSocket = io(this.portCounter++);
+        this.mainSocket.on('connection', (client) => {
+            client.on('message', messageHandler);
         });
     }
 }
