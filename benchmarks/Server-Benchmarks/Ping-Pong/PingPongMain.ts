@@ -1,11 +1,13 @@
-import {SpiderBenchmark, BenchConfig} from "../../benchUtils";
+import {SpiderBenchmark, BenchConfig, ServerBufferSocket, ClientBufferSocket} from "../../benchUtils";
+import {Socket} from "net";
 /**
  * Created by flo on 07/02/2017.
  */
-var io = require('socket.io')
 export class NodePingPongBench extends SpiderBenchmark{
-    pingWorker
-    pongWorker
+    mainSocket : ServerBufferSocket
+    pingSocket : ClientBufferSocket
+    static _PING_PORT_ = 8001
+    static _PONG_PORT_ = 8002
 
     constructor(){
         super("Native Ping Pong","Native Ping Pong cycle completed","Native Ping Pong completed","Native Ping Pong Scheduled")
@@ -15,10 +17,10 @@ export class NodePingPongBench extends SpiderBenchmark{
         var pingInitialised = false
         var pongInitialised = false
         var that = this
-        function messageHandler(event) {
+        function messageHandler(data) {
             function checkConfig() {
                 if (pingInitialised && pongInitialised) {
-                    that.pingWorker.postMessage(["start"])
+                    that.pingSocket.emit(["start"])
                 }
             }
 
@@ -35,8 +37,7 @@ export class NodePingPongBench extends SpiderBenchmark{
             function pingsExhausted() {
                 that.stopPromise.resolve()
             }
-
-            switch (event.data[0]) {
+            switch (data[0]) {
                 case "checkConfig" :
                     checkConfig()
                     break;
@@ -51,18 +52,15 @@ export class NodePingPongBench extends SpiderBenchmark{
                     break;
             }
         }
-        this.setupMainSocket(messageHandler)
-        this.spawnNode('./PingActor')
-        this.pingWorker      = this.spawnWorker(require('./PingActor'))
-        this.pingWorker.addEventListener('message',messageHandler)
-        this.pongWorker      = this.spawnWorker(require('./PongActor'))
-        this.pongWorker.addEventListener('message',messageHandler)
-        var chan            = new MessageChannel()
-        this.pingWorker.postMessage(["config",BenchConfig.pingAmount],[chan.port1])
-        this.pongWorker.postMessage(["config"],[chan.port2])
+        this.mainSocket             = new ServerBufferSocket(SpiderBenchmark._MAIN_PORT_,messageHandler)
+        this.pingSocket             = this.spawnNode('Ping-Pong/PingActor',messageHandler,NodePingPongBench._PING_PORT_)
+        var pongSocket              = this.spawnNode('Ping-Pong/PongActor',messageHandler,NodePingPongBench._PONG_PORT_)
+        this.pingSocket.emit(["config",BenchConfig.pingAmount])
+        pongSocket.emit(["config"])
     }
 
     cleanUp(){
         this.cleanNodes()
+        this.mainSocket.close()
     }
 }
