@@ -391,7 +391,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
         }
         else {
             if (!(commMedium.hasConnection(farRef.ownerId))) {
-                commMedium.connectRemote(thisRef, farRef.ownerAddress, farRef.ownerPort, promisePool);
+                commMedium.connectTransientRemote(thisRef, farRef, promisePool);
             }
         }
         return farRef.proxyify();

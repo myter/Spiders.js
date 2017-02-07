@@ -9,23 +9,29 @@ class SocketHandler {
         this.disconnectedActors = [];
         this.pendingMessages = new Map();
     }
+    addDisconnected(actorId) {
+        this.disconnectedActors.push(actorId);
+        this.pendingMessages.set(actorId, []);
+    }
+    removeFromDisconnected(actorId, connection) {
+        this.owner.connectedActors.set(actorId, connection);
+        this.disconnectedActors = this.disconnectedActors.filter((id) => {
+            id != actorId;
+        });
+        if (this.pendingMessages.has(actorId)) {
+            var messages = this.pendingMessages.get(actorId);
+            messages.forEach((msg) => {
+                this.sendMessage(actorId, msg);
+            });
+        }
+    }
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId, actorAddress, actorPort) {
         var that = this;
         var connection = require('socket.io-client')('http://' + actorAddress + ":" + actorPort);
-        that.disconnectedActors.push(actorId);
-        that.pendingMessages.set(actorId, []);
+        this.addDisconnected(actorId);
         connection.on('connect', () => {
-            that.owner.connectedActors.set(actorId, connection);
-            that.disconnectedActors = that.disconnectedActors.filter((id) => {
-                id != actorId;
-            });
-            if (that.pendingMessages.has(actorId)) {
-                var messages = that.pendingMessages.get(actorId);
-                messages.forEach((msg) => {
-                    that.sendMessage(actorId, msg);
-                });
-            }
+            that.removeFromDisconnected(actorId, connection);
         });
         connection.on('message', function (data) {
             that.messageHandler.dispatch(data);
@@ -56,7 +62,6 @@ class ServerSocketManager extends commMedium_1.CommMedium {
         this.socketIp = ip;
         this.socketPort = socketPort;
         this.socket = io(socketPort);
-        this.socketHandler = new SocketHandler(this);
         this.connectedClients = new Map();
     }
     init(messageHandler) {

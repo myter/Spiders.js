@@ -433,7 +433,7 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         }
         else{
             if(!(commMedium.hasConnection(farRef.ownerId))){
-                commMedium.connectRemote(thisRef,farRef.ownerAddress,farRef.ownerPort,promisePool)
+                commMedium.connectTransientRemote(thisRef,farRef,promisePool)
             }
         }
         return farRef.proxyify()

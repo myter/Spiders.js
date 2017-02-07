@@ -8,12 +8,10 @@ import {SocketHandler} from "./sockets";
 var utils = require("./utils")
 export class ChannelManager extends CommMedium{
     private connections     : Map<string,MessagePort>
-    private socketHandler   : SocketHandler
 
     init(messageHandler : MessageHandler){
         super.init(messageHandler)
         this.connections    = new Map()
-        this.socketHandler  = new SocketHandler(this)
     }
 
     newConnection(actorId : string,channelPort : MessagePort){
@@ -52,7 +50,7 @@ export class ChannelManager extends CommMedium{
                 },10)
             }
             else{
-                throw new Error("Unable to send message to unknown actor (channel manager)")
+                throw new Error("Unable to send message to unknown actor (channel manager): " + actorId + " in : " + this.messageHandler.thisRef.ownerId)
             }
         }
     }

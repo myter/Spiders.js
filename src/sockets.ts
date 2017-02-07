@@ -22,24 +22,32 @@ export class SocketHandler{
         this.pendingMessages        = new Map()
     }
 
+    addDisconnected(actorId : string){
+        this.disconnectedActors.push(actorId)
+        this.pendingMessages.set(actorId,[])
+    }
+
+    removeFromDisconnected(actorId : string,connection : Socket){
+        this.owner.connectedActors.set(actorId,connection)
+        this.disconnectedActors = this.disconnectedActors.filter((id : string)=>{
+            id != actorId
+        })
+        if(this.pendingMessages.has(actorId)){
+            var messages = this.pendingMessages.get(actorId)
+            messages.forEach((msg : Message) => {
+                this.sendMessage(actorId,msg)
+            })
+        }
+    }
+
 
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId : string,actorAddress : string,actorPort : number){
         var that = this
         var connection = require('socket.io-client')('http://'+actorAddress+":"+actorPort)
-        that.disconnectedActors.push(actorId)
-        that.pendingMessages.set(actorId,[])
+        this.addDisconnected(actorId)
         connection.on('connect',() => {
-            that.owner.connectedActors.set(actorId,connection)
-            that.disconnectedActors = that.disconnectedActors.filter((id : string)=>{
-                id != actorId
-            })
-            if(that.pendingMessages.has(actorId)){
-                var messages = that.pendingMessages.get(actorId)
-                messages.forEach((msg : Message) => {
-                    that.sendMessage(actorId,msg)
-                })
-            }
+            that.removeFromDisconnected(actorId,connection)
         })
         connection.on('message',function(data){
             that.messageHandler.dispatch(data)
@@ -69,7 +77,6 @@ export class ServerSocketManager extends CommMedium{
     private socketIp            : string
     private socketPort          : number
     private socket              : any
-    private socketHandler       : SocketHandler
     private connectedClients    : Map<string,Socket>
 
     constructor(ip : string,socketPort : number){
@@ -77,7 +84,6 @@ export class ServerSocketManager extends CommMedium{
         this.socketIp               = ip
         this.socketPort             = socketPort
         this.socket                 = io(socketPort)
-        this.socketHandler          = new SocketHandler(this)
         this.connectedClients       = new Map()
     }
 

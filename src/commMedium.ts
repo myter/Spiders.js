@@ -3,14 +3,11 @@ import {Message, ConnectRemoteMessage} from "./messages";
 import {FarReference, ServerFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
 import {Socket} from "net";
+import {SocketHandler} from "./sockets";
 /**
  * Created by flo on 17/01/2017.
  */
 export abstract class CommMedium{
-    messageHandler
-    init(messageHandler : MessageHandler){
-        this.messageHandler = messageHandler
-    }
     abstract sendMessage(actorId : string,message : Message)
     abstract openConnection(actorId : string,actorAddress : string,actorPort : number)
     abstract hasConnection(actorId : string)
@@ -20,11 +17,26 @@ export abstract class CommMedium{
     pendingActors       : Map<number,Socket>
     connectedActors     : Map<string,Socket>
     pendingConnectionId : number
+    messageHandler      : MessageHandler
+    socketHandler       : SocketHandler
 
     constructor(){
         this.pendingActors          = new Map()
         this.connectedActors        = new Map()
         this.pendingConnectionId    = 0
+        this.socketHandler          = new SocketHandler(this)
+    }
+
+    init(messageHandler : MessageHandler){
+        this.messageHandler = messageHandler
+    }
+
+
+    //Called whenever a server far reference is passed around between actors.
+    //Given that at this point the id of the server is known (in contrast to when "remote" is called, we can simply open up a port to the server and mark the socket as "disconnected" using the actor id
+    connectTransientRemote(sender : FarReference,toServerRef : ServerFarReference,promisePool : PromisePool){
+        this.connectRemote(sender,toServerRef.ownerAddress,toServerRef.ownerPort,promisePool)
+        this.socketHandler.addDisconnected(toServerRef.ownerId)
     }
 
     connectRemote(sender : FarReference,address : string,port : number,promisePool : PromisePool) : Promise<any>{
@@ -49,6 +61,7 @@ export abstract class CommMedium{
 
     resolvePendingConnection(actorId : string,connectionId : number){
         var connection                  = this.pendingActors.get(connectionId)
+        this.socketHandler.removeFromDisconnected(actorId,connection)
         this.connectedActors.set(actorId,connection)
     }
 }
