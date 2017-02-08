@@ -10,7 +10,7 @@ export class NodePingPongBench extends SpiderBenchmark{
     static _PONG_PORT_ = 8002
 
     constructor(){
-        super("Native Ping Pong","Native Ping Pong cycle completed","Native Ping Pong completed","Native Ping Pong Scheduled")
+        super("Node Ping Pong","Node Ping Pong cycle completed","Node Ping Pong completed","Node Ping Pong Scheduled")
     }
 
     runBenchmark(){

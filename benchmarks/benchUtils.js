@@ -222,13 +222,13 @@ class SpiderBenchmark {
         this.spawnWorker = require('webworkify');
         this.spawnedNodes = [];
         this.allSockets = [];
-        this.spawnNode = (filePath, messageHandler, port) => {
-            var instance = child_process_1.fork(__dirname + "/Server-Benchmarks/" + filePath);
-            this.spawnedNodes.push(instance);
-            var childSocket = new ClientBufferSocket(port, messageHandler);
-            this.allSockets.push(childSocket);
-            return childSocket;
-        };
+    }
+    spawnNode(filePath, messageHandler, port) {
+        var instance = child_process_1.fork(__dirname + "/Server-Benchmarks/" + filePath, [port]);
+        this.spawnedNodes.push(instance);
+        var childSocket = new ClientBufferSocket(port, messageHandler);
+        this.allSockets.push(childSocket);
+        return childSocket;
     }
     setBenchDone(benchDone) {
         this.stopPromise = benchDone;
