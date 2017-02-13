@@ -1,5 +1,5 @@
 const benchUtils_1 = require("../benchUtils");
-const NQueensFirstNSolutions_1 = require("./Spiders/NQueensFirstNSolutions");
+const SuccessiveOverRelaxationMain_1 = require("./Native/Successive-Over-Relaxation/SuccessiveOverRelaxationMain");
 /**
  * Created by flo on 24/01/2017.
  */
@@ -58,7 +58,8 @@ var runner = new benchUtils_1.SpiderBenchmarkRunner();
 //runner.schedule(SpiderAllPairShortestPathBench)
 //runner.schedule(SpiderSuccessiveOverRelaxationBench)
 //runner.schedule(SpiderAStarSearchBench)
-runner.schedule(NQueensFirstNSolutions_1.SpiderNQueensFirstNSolutionsBench);
+//runner.schedule(SpiderNQueensFirstNSolutionsBench)
+runner.schedule(SuccessiveOverRelaxationMain_1.NatSuccessiveOverRelaxationBench);
 console.log("Starting Benchmark");
 runner.nextBenchmark();
 //# sourceMappingURL=ClientBenchmarks.js.map
