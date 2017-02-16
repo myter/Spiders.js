@@ -110,9 +110,9 @@ BenchConfig.aStarWorkers = 20;
 BenchConfig.aStarThreshold = 100;
 BenchConfig.aStarGridSize = 5;
 //N queens
-BenchConfig.nQueensWorkers = 20;
-BenchConfig.nQueensSize = 12;
-BenchConfig.nQueensThreshold = 8;
+BenchConfig.nQueensWorkers = 10;
+BenchConfig.nQueensSize = 6;
+BenchConfig.nQueensThreshold = 3;
 BenchConfig.nQueensSolutions = 1500000;
 BenchConfig.nQueensPriorities = 10;
 exports.BenchConfig = BenchConfig;

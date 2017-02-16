@@ -503,56 +503,60 @@ var performInitChaining = () => {
     });
 };
 scheduled.push(performInitChaining);
-class StaticActor extends spider.Actor {
-    static _STATIC_METHOD_() {
-        return 6;
+/*class StaticActor extends spider.Actor{
+    static _STATIC_FIELD = 5
+    static _STATIC_METHOD_(){
+        return 6
     }
-    getField() {
-        return StaticActor._STATIC_FIELD;
+    getField(){
+        return StaticActor._STATIC_FIELD
     }
-    getMethod() {
-        return StaticActor._STATIC_METHOD_();
-    }
-}
-StaticActor._STATIC_FIELD = 5;
-var performStaticFieldAndMethod = () => {
-    var a = app.spawnActor(StaticActor);
-    return a.getField().then((v) => {
-        log("Static Field access : " + (v == 5));
-        return a.getMethod().then((vv) => {
-            log("Static Method access: " + (vv == 6));
-        });
-    });
-};
-scheduled.push(performStaticFieldAndMethod);
-class StaticSuperActor extends spider.Actor {
-}
-StaticSuperActor._STATIC_SUPER_FIELD = 5;
-class StaticBaseActor extends StaticSuperActor {
-    getField() {
-        return StaticSuperActor._STATIC_SUPER_FIELD;
+    getMethod(){
+        return StaticActor._STATIC_METHOD_()
     }
 }
-var performStaticInheritance = () => {
-    var a = app.spawnActor(StaticBaseActor);
-    return a.getField().then((v) => {
-        log("Static inheritance : " + (v == 5));
-    });
-};
-scheduled.push(performStaticInheritance);
-class StaticEror extends spider.Actor {
-    changeField() {
-        return StaticEror._STATIC_FIELD_ = 6;
+var performStaticFieldAndMethod = () =>{
+    var a = app.spawnActor(StaticActor)
+    return a.getField().then((v)=>{
+        log("Static Field access : " + (v == 5))
+        return a.getMethod().then((vv)=>{
+            log("Static Method access: " + (vv == 6))
+        })
+    })
+}
+scheduled.push(performStaticFieldAndMethod)
+
+class StaticSuperActor extends spider.Actor{
+    static _STATIC_SUPER_FIELD = 5
+}
+class StaticBaseActor extends StaticSuperActor{
+    getField(){
+        return StaticSuperActor._STATIC_SUPER_FIELD
     }
 }
-StaticEror._STATIC_FIELD_ = 5;
-var performStaticError = () => {
-    var a = app.spawnActor(StaticEror);
-    return a.changeField().catch((e) => {
-        log("Static mutation : " + true);
-    });
-};
-scheduled.push(performStaticError);
+
+var performStaticInheritance = () =>{
+    var a = app.spawnActor(StaticBaseActor)
+    return a.getField().then((v)=>{
+        log("Static inheritance : " + (v == 5))
+    })
+}
+scheduled.push(performStaticInheritance)
+
+class StaticEror extends spider.Actor{
+    static _STATIC_FIELD_ = 5
+    changeField(){
+        return StaticEror._STATIC_FIELD_ = 6
+    }
+}
+
+var performStaticError = () =>{
+    var a = app.spawnActor(StaticEror)
+    return a.changeField().catch((e)=>{
+        log("Static mutation : " + true)
+    })
+}
+scheduled.push(performStaticError)*/
 function performAll(nextTest) {
     nextTest().then((dc) => {
         if (scheduled.length > 0) {

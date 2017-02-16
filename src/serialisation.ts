@@ -72,6 +72,16 @@ export function deconstructStatic(actorClass,thisRef : FarReference,receiverId :
     }
 }
 
+function constructMethod(functionSource){
+    if(functionSource.startsWith("function")){
+        var method =  eval( "(" +  functionSource +")" )
+    }
+    else{
+        var method =  eval("(function " + functionSource + ")" )
+    }
+    return method
+}
+
 export function reconstructStatic(behaviourObject : Object,staticProperties : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool){
     staticProperties.forEach((propertyArray : Array<any>)=>{
         var className   = propertyArray[0]
@@ -87,13 +97,13 @@ export function reconstructStatic(behaviourObject : Object,staticProperties : Ar
             var key                 = methodPair[0]
             var functionSource      = methodPair[1]
             var method
-            if(functionSource.startsWith("function")){
+            /*if(functionSource.startsWith("function")){
                 method =  eval("with(behaviourObject){(" + functionSource + ")}")
             }
             else{
                 method =  eval("with(behaviourObject){(function " + functionSource + ")}")
-            }
-            stub[key]               = method
+            }*/
+            stub[key]               = constructMethod(functionSource)
         })
         var stubProxy   = new Proxy(stub,{
             set: function(obj,prop,value){
@@ -164,13 +174,13 @@ export function reconstructBehaviour(baseObject : any,variables :Array<any>, met
             var key               = methodEntry[0]
             var functionSource    = methodEntry[1]
             //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
-            if(functionSource.startsWith("function")){
+            /*if(functionSource.startsWith("function")){
                 var method =  eval("with(baseObject){(" + functionSource + ")}")
             }
             else{
                 var method =  eval("with(baseObject){(function " + functionSource + ")}")
-            }
-            installIn[key]        = method
+            }*/
+            installIn[key]        = constructMethod(functionSource)
         })
     })
     return baseObject
@@ -194,15 +204,15 @@ export function reconstructObject(baseObject : any,variables :Array<any>, method
     })
     methods.forEach((methodEntry) => {
         var key               = methodEntry[0]
-        var functionSource    = methodEntry[1]
+        var functionSource    = methodEntry[1];
         //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
-        if(functionSource.startsWith("function")){
+        /*if(functionSource.startsWith("function")){
             var method =  eval("with(baseObject){(" + functionSource + ")}")
         }
         else{
             var method =  eval("with(baseObject){(function " + functionSource + ")}")
-        }
-        (baseObject.__proto__)[key]        = method
+        }*/
+        (baseObject.__proto__)[key]        = constructMethod(functionSource)
     })
     return baseObject
 }

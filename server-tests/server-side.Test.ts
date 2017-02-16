@@ -262,7 +262,7 @@ describe("Behaviour serialisation",() => {
         })
     })
 
-    it("Static Fields & methods",(done)=>{
+    /*it("Static Fields & methods",(done)=>{
         var app = new spider.Application()
         class StaticActor extends spider.Actor{
             static _STATIC_FIELD_ = 5
@@ -270,10 +270,10 @@ describe("Behaviour serialisation",() => {
                 return 6
             }
             getField(){
-                return StaticActor._STATIC_FIELD_
+                return this.StaticActor._STATIC_FIELD_
             }
             getMethod(){
-                return StaticActor._STATIC_METHOD_()
+                return this.StaticActor._STATIC_METHOD_()
             }
         }
         var act = app.spawnActor(StaticActor)
@@ -337,7 +337,7 @@ describe("Behaviour serialisation",() => {
             done()
         })
 
-    })
+    })*/
 
 })
 

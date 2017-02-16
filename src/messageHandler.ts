@@ -106,8 +106,8 @@ export class MessageHandler{
         })
         var retVal
         try{
-            //retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
-            retVal = targetObject[methodName](...deserialisedArgs)
+            retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
+            //retVal = targetObject[methodName](...deserialisedArgs)
             var serialised : ValueContainer         = serialise(retVal,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
             var message    : Message                = new ResolvePromiseMessage(this.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){

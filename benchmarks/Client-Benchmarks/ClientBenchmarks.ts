@@ -119,7 +119,12 @@ runner.schedule(NatNQueensFirstNSolutionsBench)*/
 // runner.schedule(SpiderAStarSearchBench)
 // runner.schedule(SpiderNQueensFirstNSolutionsBench)
 
-runner.schedule(SpiderForkJoinCreationBench)
+//runner.schedule(SpiderForkJoinCreationBench)
 //runner.schedule(NatFJCreationBench)
+
+runner.schedule(SpiderNQueensFirstNSolutionsBench)
+runner.schedule(NatNQueensFirstNSolutionsBench)
+
+//runner.schedule(SpiderAStarSearchBench)
 console.log("Starting Benchmark")
 runner.nextBenchmark()

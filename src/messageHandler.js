@@ -81,8 +81,8 @@ class MessageHandler {
         });
         var retVal;
         try {
-            //retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
-            retVal = targetObject[methodName](...deserialisedArgs);
+            retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
+            //retVal = targetObject[methodName](...deserialisedArgs)
             var serialised = serialisation_1.serialise(retVal, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
             var message = new messages_1.ResolvePromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {

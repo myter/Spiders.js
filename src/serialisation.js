@@ -63,6 +63,15 @@ function deconstructStatic(actorClass, thisRef, receiverId, commMedium, promiseP
     }
 }
 exports.deconstructStatic = deconstructStatic;
+function constructMethod(functionSource) {
+    if (functionSource.startsWith("function")) {
+        var method = eval("(" + functionSource + ")");
+    }
+    else {
+        var method = eval("(function " + functionSource + ")");
+    }
+    return method;
+}
 function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePool, commMedium, objectPool) {
     staticProperties.forEach((propertyArray) => {
         var className = propertyArray[0];
@@ -78,13 +87,13 @@ function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePo
             var key = methodPair[0];
             var functionSource = methodPair[1];
             var method;
-            if (functionSource.startsWith("function")) {
-                method = eval("with(behaviourObject){(" + functionSource + ")}");
+            /*if(functionSource.startsWith("function")){
+                method =  eval("with(behaviourObject){(" + functionSource + ")}")
             }
-            else {
-                method = eval("with(behaviourObject){(function " + functionSource + ")}");
-            }
-            stub[key] = method;
+            else{
+                method =  eval("with(behaviourObject){(function " + functionSource + ")}")
+            }*/
+            stub[key] = constructMethod(functionSource);
         });
         var stubProxy = new Proxy(stub, {
             set: function (obj, prop, value) {
@@ -155,13 +164,13 @@ function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePo
             var key = methodEntry[0];
             var functionSource = methodEntry[1];
             //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
-            if (functionSource.startsWith("function")) {
-                var method = eval("with(baseObject){(" + functionSource + ")}");
+            /*if(functionSource.startsWith("function")){
+                var method =  eval("with(baseObject){(" + functionSource + ")}")
             }
-            else {
-                var method = eval("with(baseObject){(function " + functionSource + ")}");
-            }
-            installIn[key] = method;
+            else{
+                var method =  eval("with(baseObject){(function " + functionSource + ")}")
+            }*/
+            installIn[key] = constructMethod(functionSource);
         });
     });
     return baseObject;
@@ -185,13 +194,13 @@ function reconstructObject(baseObject, variables, methods, thisRef, promisePool,
         var key = methodEntry[0];
         var functionSource = methodEntry[1];
         //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
-        if (functionSource.startsWith("function")) {
-            var method = eval("with(baseObject){(" + functionSource + ")}");
+        /*if(functionSource.startsWith("function")){
+            var method =  eval("with(baseObject){(" + functionSource + ")}")
         }
-        else {
-            var method = eval("with(baseObject){(function " + functionSource + ")}");
-        }
-        (baseObject.__proto__)[key] = method;
+        else{
+            var method =  eval("with(baseObject){(function " + functionSource + ")}")
+        }*/
+        (baseObject.__proto__)[key] = constructMethod(functionSource);
     });
     return baseObject;
 }

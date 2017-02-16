@@ -585,7 +585,7 @@ var performInitChaining = () =>{
 }
 scheduled.push(performInitChaining)
 
-class StaticActor extends spider.Actor{
+/*class StaticActor extends spider.Actor{
     static _STATIC_FIELD = 5
     static _STATIC_METHOD_(){
         return 6
@@ -638,7 +638,7 @@ var performStaticError = () =>{
         log("Static mutation : " + true)
     })
 }
-scheduled.push(performStaticError)
+scheduled.push(performStaticError)*/
 
 function performAll(nextTest){
     nextTest().then((dc) => {

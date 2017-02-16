@@ -235,79 +235,82 @@ describe("Behaviour serialisation", () => {
             }
         });
     });
-    it("Static Fields & methods", (done) => {
-        var app = new spider.Application();
-        class StaticActor extends spider.Actor {
-            static _STATIC_METHOD_() {
-                return 6;
+    /*it("Static Fields & methods",(done)=>{
+        var app = new spider.Application()
+        class StaticActor extends spider.Actor{
+            static _STATIC_FIELD_ = 5
+            static _STATIC_METHOD_(){
+                return 6
             }
-            getField() {
-                return StaticActor._STATIC_FIELD_;
+            getField(){
+                return this.StaticActor._STATIC_FIELD_
             }
-            getMethod() {
-                return StaticActor._STATIC_METHOD_();
+            getMethod(){
+                return this.StaticActor._STATIC_METHOD_()
             }
         }
-        StaticActor._STATIC_FIELD_ = 5;
-        var act = app.spawnActor(StaticActor);
-        act.getField().then((fieldVal) => {
-            try {
-                expect(fieldVal).to.equal(StaticActor._STATIC_FIELD_);
-                act.getMethod().then((methodVal) => {
-                    try {
-                        expect(methodVal).to.equal(StaticActor._STATIC_METHOD_());
-                        app.kill();
-                        done();
+        var act = app.spawnActor(StaticActor)
+        act.getField().then((fieldVal)=>{
+            try{
+                expect(fieldVal).to.equal(StaticActor._STATIC_FIELD_)
+                act.getMethod().then((methodVal)=>{
+                    try{
+                        expect(methodVal).to.equal(StaticActor._STATIC_METHOD_())
+                        app.kill()
+                        done()
                     }
-                    catch (e) {
-                        app.kill();
-                        done(e);
+                    catch(e){
+                        app.kill()
+                        done(e)
                     }
-                });
+                })
             }
-            catch (e) {
-                app.kill();
-                done(e);
+            catch(e){
+                app.kill()
+                done(e)
             }
-        });
-    });
-    it("Static inheritance", (done) => {
-        var app = new spider.Application();
-        class SuperActor extends spider.Actor {
+        })
+    })
+
+    it("Static inheritance",(done)=>{
+        var app = new spider.Application()
+        class SuperActor extends spider.Actor{
+            static _SUPER_STATIC_ = 5
         }
-        SuperActor._SUPER_STATIC_ = 5;
-        class BaseActor extends SuperActor {
-            getField() {
-                return SuperActor._SUPER_STATIC_;
-            }
-        }
-        var act = app.spawnActor(BaseActor);
-        act.getField().then((v) => {
-            try {
-                expect(v).to.equal(SuperActor._SUPER_STATIC_);
-                app.kill();
-                done();
-            }
-            catch (e) {
-                app.kill();
-                done(e);
-            }
-        });
-    });
-    it("Static immutable", (done) => {
-        var app = new spider.Application();
-        class StaticActor extends spider.Actor {
-            changeField() {
-                return StaticActor._FIELD_ = 6;
+        class BaseActor extends SuperActor{
+            getField(){
+                return SuperActor._SUPER_STATIC_
             }
         }
-        StaticActor._FIELD_ = 5;
-        var act = app.spawnActor(StaticActor);
-        act.changeField().catch((error) => {
-            app.kill();
-            done();
-        });
-    });
+        var act = app.spawnActor(BaseActor)
+        act.getField().then((v)=>{
+            try{
+                expect(v).to.equal(SuperActor._SUPER_STATIC_)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Static immutable",(done)=>{
+        var app = new spider.Application()
+        class StaticActor extends spider.Actor{
+            static _FIELD_ = 5
+            changeField(){
+                return StaticActor._FIELD_ = 6
+            }
+        }
+        var act = app.spawnActor(StaticActor)
+        act.changeField().catch((error)=>{
+            app.kill()
+            done()
+        })
+
+    })*/
 });
 describe("Functionality", () => {
     it("Require", (done) => {

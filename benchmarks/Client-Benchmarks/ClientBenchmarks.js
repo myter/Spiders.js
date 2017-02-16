@@ -1,5 +1,6 @@
 const benchUtils_1 = require("../benchUtils");
-const ForkJoin_Creation_1 = require("./Spiders/ForkJoin-Creation");
+const NQueensFirstNSolutionsMain_1 = require("./Native/N-Queens-First-N-Solutions/NQueensFirstNSolutionsMain");
+const NQueensFirstNSolutions_1 = require("./Spiders/NQueensFirstNSolutions");
 /**
  * Created by flo on 24/01/2017.
  */
@@ -61,8 +62,11 @@ runner.schedule(NatNQueensFirstNSolutionsBench)*/
 // runner.schedule(SpiderSuccessiveOverRelaxationBench)
 // runner.schedule(SpiderAStarSearchBench)
 // runner.schedule(SpiderNQueensFirstNSolutionsBench)
-runner.schedule(ForkJoin_Creation_1.SpiderForkJoinCreationBench);
+//runner.schedule(SpiderForkJoinCreationBench)
 //runner.schedule(NatFJCreationBench)
+runner.schedule(NQueensFirstNSolutions_1.SpiderNQueensFirstNSolutionsBench);
+runner.schedule(NQueensFirstNSolutionsMain_1.NatNQueensFirstNSolutionsBench);
+//runner.schedule(SpiderAStarSearchBench)
 console.log("Starting Benchmark");
 runner.nextBenchmark();
 //# sourceMappingURL=ClientBenchmarks.js.map

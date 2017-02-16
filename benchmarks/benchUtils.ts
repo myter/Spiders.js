@@ -111,9 +111,9 @@ export class BenchConfig {
     static aStarThreshold       = 100
     static aStarGridSize        = 5
     //N queens
-    static nQueensWorkers       = 20
-    static nQueensSize          = 12
-    static nQueensThreshold     = 8
+    static nQueensWorkers       = 10
+    static nQueensSize          = 6
+    static nQueensThreshold     = 3
     static nQueensSolutions     = 1500000
     static nQueensPriorities    = 10
 }
