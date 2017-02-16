@@ -16,13 +16,13 @@ var promisePool;
 var parentRef;
 var thisId;
 if (utils.isBrowser()) {
-    //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
-    var channelManager = new ChannelManager_1.ChannelManager();
-    promisePool = new PromisePool_1.PromisePool();
-    objectPool = new objectPool_1.ObjectPool();
-    messageHandler = new messageHandler_1.MessageHandler(null, channelManager, promisePool, objectPool);
-    channelManager.init(messageHandler);
     module.exports = function (self) {
+        //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
+        var channelManager = new ChannelManager_1.ChannelManager();
+        promisePool = new PromisePool_1.PromisePool();
+        objectPool = new objectPool_1.ObjectPool();
+        messageHandler = new messageHandler_1.MessageHandler(null, channelManager, promisePool, objectPool);
+        channelManager.init(messageHandler);
         self.addEventListener('message', function (ev) {
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
             messageHandler.dispatch(JSON.parse(ev.data), ev.ports);

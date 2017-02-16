@@ -49,13 +49,14 @@ class ForkJoinApp extends spiders.Application {
         }
     }
     checkConfig() {
+        var actors = this.actors;
         if (this.actorsInitialised == benchUtils_1.BenchConfig.fjThroughputActors) {
             this.actorsDone = 0;
-            for (var i in this.actors) {
-                this.actors[i].newMessage(true);
+            for (var i in actors) {
+                actors[i].newMessage(true);
             }
-            for (var i in this.actors) {
-                var next = this.actors[i];
+            for (var i in actors) {
+                var next = actors[i];
                 for (var j = 0; j < benchUtils_1.BenchConfig.fjThroughputMessages; j++) {
                     next.newMessage(false);
                 }

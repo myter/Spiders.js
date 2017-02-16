@@ -13,9 +13,9 @@ var socketToMain = new ClientBufferSocket(SpiderBenchmark._MAIN_PORT_,mHandler)
 
 function mHandler(data){
 
-    function config(writePercentage,totalMsgs){
-        writePercentage 	= writePercentage
-        totalMsgs			= totalMsgs
+    function config(wp,t){
+        writePercentage 	= wp
+        totalMsgs			= t
         socketToMain.emit(["actorInit"])
     }
 

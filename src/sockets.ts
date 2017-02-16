@@ -13,6 +13,8 @@ var io = require('socket.io')
 export class SocketHandler{
     disconnectedActors  : Array<string>
     pendingMessages     : Map<string,Array<Message>>
+    //TODO obviously a temp fix , problem arises in SOR  with many actors
+    fuckUpMessage       : Map<string,Array<Message>>
     owner               : CommMedium
     messageHandler      : MessageHandler
 
@@ -20,6 +22,7 @@ export class SocketHandler{
         this.owner                  = owner
         this.disconnectedActors     = []
         this.pendingMessages        = new Map()
+        this.fuckUpMessage          = new Map()
     }
 
     addDisconnected(actorId : string){
@@ -48,6 +51,12 @@ export class SocketHandler{
         this.addDisconnected(actorId)
         connection.on('connect',() => {
             that.removeFromDisconnected(actorId,connection)
+            //TODO To remove once solution found
+            if(that.fuckUpMessage.has(actorId)){
+                that.fuckUpMessage.get(actorId).forEach((msg : Message)=>{
+                    that.sendMessage(actorId,msg)
+                })
+            }
         })
         connection.on('message',function(data){
             that.messageHandler.dispatch(data)
@@ -68,7 +77,15 @@ export class SocketHandler{
             sock.emit('message',msg)
         }
         else{
-            throw new Error("Unable to send message to unknown actor (socket handler)")
+            //TODO TEMP
+            if(this.fuckUpMessage.has(actorId)){
+                this.fuckUpMessage.get(actorId).push(msg)
+            }
+            else{
+                var q = [msg]
+                this.fuckUpMessage.set(actorId,q)
+            }
+            //throw new Error("Unable to send message to unknown actor (socket handler) in " + msg.fieldName + " to : " + actorId + " in : " + this.messageHandler.thisRef.ownerId)
         }
     }
 }

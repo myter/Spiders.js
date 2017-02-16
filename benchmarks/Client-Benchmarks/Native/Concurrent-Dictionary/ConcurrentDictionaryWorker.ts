@@ -7,21 +7,25 @@ module.exports = function(self){
     var writePercentage = 0
     var totalMsgs       = 0
     var currentMsgs     = 0
+    var gotMaster       = false
+    var gotDict         = false
 
     function mHandler(event){
 
-        function config(writePercentage,totalMsgs){
-            writePercentage 	= writePercentage
-            totalMsgs			= totalMsgs
+        function config(wp,t){
+            writePercentage 	= wp
+            totalMsgs			= t
             self.postMessage(["actorInit"])
         }
 
         function linkMaster(master){
+            gotMaster = true
             masterRef = master
             masterRef.onmessage = mHandler
         }
 
         function linkDict(dict){
+            gotDict = true
             dictRef = dict
             dictRef.onmessage = mHandler
         }
@@ -37,7 +41,9 @@ module.exports = function(self){
                 if(rand < writePercentage){
                     var key = getRandom()
                     var val = getRandom()
-                    dictRef.postMessage(["write",key,val])
+                    var chan = new MessageChannel()
+                    chan.port2.onmessage = mHandler
+                    dictRef.postMessage(["write",key,val],[chan.port1])
                 }
                 else{
                     var key = getRandom()

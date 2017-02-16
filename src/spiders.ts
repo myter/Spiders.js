@@ -8,10 +8,12 @@ import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
+import {installSTDLib} from "./utils";
 /**
  * Created by flo on 05/12/2016.
  */
-var utils                           = require('./utils')
+var utils         = require('./utils')
+var portastic     = require('portastic')
 
 export class Isolate{
     constructor(){
@@ -63,7 +65,8 @@ abstract class ClientActor extends Actor{
         var mainChannel                                 = new MessageChannel()
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels                            = [mainChannel.port1].concat(channelMappings[1])
-        webWorker.postMessage(JSON.stringify(new InstallBehaviourMessage(app.mainRef,app.mainId,actorId,actorVariables,actorMethods,staticProperties,channelMappings[0])),newActorChannels)
+        var installMessage                              = new InstallBehaviourMessage(app.mainRef,app.mainId,actorId,actorVariables,actorMethods,staticProperties,channelMappings[0])
+        webWorker.postMessage(JSON.stringify(installMessage),newActorChannels)
         var channelManager                              = (app.mainCommMedium as ChannelManager)
         channelManager.newConnection(actorId,mainChannel.port2)
         var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainId,app.mainRef,app.channelManager,app.mainPromisePool,app.mainObjectPool)
@@ -118,6 +121,7 @@ abstract class Application {
 class ServerApplication extends Application{
     mainIp                          : string
     mainPort                        : number
+    portCounter                     : number
     spawnedActors                   : Array<ChildProcess>
     socketManager                   : ServerSocketManager
 
@@ -125,6 +129,7 @@ class ServerApplication extends Application{
         super()
         this.mainIp             = mainIp
         this.mainPort           = mainPort
+        this.portCounter        = 8001
         this.spawnedActors      = []
         this.mainCommMedium     = new ServerSocketManager(mainIp,mainPort)
         this.socketManager      = this.mainCommMedium as ServerSocketManager
@@ -134,8 +139,11 @@ class ServerApplication extends Application{
         utils.installSTDLib(true,this.mainRef,null,this,this.mainMessageHandler,this.mainCommMedium,this.mainPromisePool)
     }
 
-    spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = 8080){
+    spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
         var actorObject = new actorClass(...constructorArgs)
+        if(port == -1){
+            port = this.portCounter++
+        }
         return actorObject.spawn(this,port,actorClass)
     }
 

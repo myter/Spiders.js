@@ -18,7 +18,7 @@ module.exports = function(self){
                 parentRef.onmessage = mHandle
             }
             dataSize 		= ds
-            maxVal 		= mv
+            maxVal 		    = mv
             threshold 		= thresh
             position 		= pos
         }

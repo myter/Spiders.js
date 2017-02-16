@@ -51,14 +51,14 @@ class Worker extends spiders.Actor{
             for (var i = 0; i < depth + 1; i++) {
                 b.push(0)
             }
-            var i = 0
-            while (i < this.size) {
+            var j = 0
+            while (j < this.size) {
                 this.arraycopy(data, 0, b,0, depth)
-                b[depth] = i
+                b[depth] = j
                 if (this.boardValid(depth + 1, b)) {
                     this.workSequential(b, depth + 1)
                 }
-                i += 1
+                j += 1
             }
         }
     }

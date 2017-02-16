@@ -11,7 +11,7 @@ class Peer extends spiders.Actor{
     s                   = null
     partStart           = null
     matrixPart          = null
-    border              = null
+    border              = []
     sorSource           = null
     gTotal              = 0.0
     returned            = 0
@@ -21,6 +21,7 @@ class Peer extends spiders.Actor{
     sorActorsSpawned    = 0
     sorActorsRec        = 0
     myBorder            = null
+    configDone          = false
 
     config(omega,jacobi,s,partStart,matrix,sorSource) {
         this.omega = omega
@@ -28,8 +29,8 @@ class Peer extends spiders.Actor{
         this.s = s
         this.partStart = partStart
         this.matrixPart = matrix
-        this.border = []
         this.sorSource = sorSource
+        this.configDone = true
     }
 
     addBorder(borderElement,pos) {
@@ -37,41 +38,49 @@ class Peer extends spiders.Actor{
     }
 
     boot() {
-        this.expectingBoot = false
-        this.myBorder = []
-        for (var i = 0; i < this.s; i++) {
-            this.sorActors[i * (this.s - this.partStart + 1)] = this.border[i]
-        }
-        var that = this
-
-        function outerLoop(i) {
-            if (i < that.s) {
-                var c = (i + that.partStart) % 2
-
-                function innerLoop(j) {
-                    if (j < (that.s - that.partStart + 1)) {
-                        var pos = i * (that.s - that.partStart + 1) + j
-                        c = 1 - c
-                        that.sorActorsSpawned += 1
-                        that.parent.spawnSorActor(pos, that.matrixPart[i][j - 1], c, that.s, that.s - that.partStart + 1, that.omega, that, true).then((ref)=>{
-                            //console.log("Added originally at position: " + pos)
-                            that.sorActors[pos] = ref
-                            that.sorActorsRec += 1
-                            if (j == 1) {
-                                that.myBorder[i] = ref
-                            }
-                        })
-                        innerLoop(j + 1)
-                    }
-                }
-
-                innerLoop(1)
-                outerLoop(i + 1)
+        if(this.configDone){
+            this.expectingBoot = false
+            this.myBorder = []
+            for (var i = 0; i < this.s; i++) {
+                this.sorActors[i * (this.s - this.partStart + 1)] = this.border[i]
             }
+            var that = this
+
+            function outerLoop(i) {
+                if (i < that.s) {
+                    var c = (i + that.partStart) % 2
+
+                    function innerLoop(j) {
+                        if (j < (that.s - that.partStart + 1)) {
+                            var pos = i * (that.s - that.partStart + 1) + j
+                            c = 1 - c
+                            that.sorActorsSpawned += 1
+                            that.parent.spawnSorActor(pos, that.matrixPart[i][j - 1], c, that.s, that.s - that.partStart + 1, that.omega, that, true).then((ref)=>{
+                                that.sorActors[pos] = ref
+                                that.sorActorsRec += 1
+                                if (j == 1) {
+                                    that.myBorder[i] = ref
+                                }
+                            })
+                            innerLoop(j + 1)
+                        }
+                    }
+
+                    innerLoop(1)
+                    outerLoop(i + 1)
+                }
+            }
+
+            outerLoop(0)
+            this.kickStart()
+        }
+        else{
+            var that = this
+            setTimeout(()=>{
+                that.boot()
+            },200)
         }
 
-        outerLoop(0)
-        this.kickStart()
     }
 
     kickStart() {
@@ -142,6 +151,7 @@ class SorActor extends spiders.Actor{
     sum                 = 0.0
     expectingStart      = true
     pendingMessages     = []
+    configDone          = false
 
     calPos(x1,y1) {
         return x1 * this.ny + y1
@@ -210,6 +220,7 @@ class SorActor extends spiders.Actor{
         this.omega_over_four = 0.25 * omega
         this.one_minus_omega = 1.0 - omega
         this.neighbors = this.calcNeighbors()
+        this.configDone = true
     }
 
     addMActor(mActor,pos) {
@@ -219,22 +230,31 @@ class SorActor extends spiders.Actor{
     }
 
     start(mi) {
-        this.expectingStart = false
-        this.sorActors = this.mActors
-        this.maxIter = mi
-        var neighbours = this.neighbors
-        if (this.color == 1) {
-            neighbours.forEach((neigh)=>{
-                this.sorActors[neigh].valueMessage(this.value)
+        if(this.configDone){
+            this.expectingStart = false
+            this.sorActors = this.mActors
+            this.maxIter = mi
+            var neighbours = this.neighbors
+            if (this.color == 1) {
+                neighbours.forEach((neigh)=>{
+                    this.sorActors[neigh].valueMessage(this.value)
+                })
+                this.iter += 1
+                this.msgRcv += 1
+            }
+            this.pendingMessages.forEach((msg)=>{
+                msg()
             })
-            this.iter += 1
-            this.msgRcv += 1
+            this.pendingMessages = []
+            this.mActors = []
         }
-        this.pendingMessages.forEach((msg)=>{
-            msg()
-        })
-        this.pendingMessages = []
-        this.mActors = []
+        else{
+            var that = this
+            setTimeout(()=>{
+                that.start(mi)
+            },200)
+        }
+
     }
 
     valueMessage(val) {
@@ -249,7 +269,6 @@ class SorActor extends spiders.Actor{
             if (this.iter < this.maxIter) {
                 this.receivedVals += 1
                 this.sum += val
-                //console.log("Received vals: " + this.receivedVals + " length: " + this.neighbors.length)
                 if (this.receivedVals == this.neighbors.length) {
                     this.value = (this.omega_over_four * this.sum ) + (this.one_minus_omega * this.value)
                     this.sum = 0.0
@@ -339,8 +358,6 @@ class Runner extends spiders.Actor{
                 partialMatrix[i][j] = randoms[i][j + this.part]
             }
         }
-        //TODO not needed anymore ?
-        //var isolMatrix = this.isolate(partialMatrix)
         var that = this
         function waitForBorder() {
             if (that.sorActorsSpawned == that.sorActorsRec) {

@@ -99,7 +99,7 @@ describe("Behaviour serialisation", () => {
         }
         var app = new spider.Application();
         var actor1 = app.spawnActor(referencedActor);
-        var actor2 = app.spawnActor(referencingActor, [actor1], 8081);
+        var actor2 = app.spawnActor(referencingActor, [actor1]);
         actor2.getValue().then((v) => {
             try {
                 expect(v).to.equal(5);

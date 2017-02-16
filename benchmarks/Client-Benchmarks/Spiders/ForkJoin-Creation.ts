@@ -7,12 +7,13 @@ var spiders : SpiderLib = require("../../../src/spiders")
 
 class ForkJoinActor extends spiders.Actor{
     init() {
-        this.parent.actorInit()
+        //this.parent.actorInit()
+        this.parent.actorDone()
     }
 
     calc(theta) {
         var sint = Math.sin(theta)
-        return sint * sint
+        sint * sint
     }
 
     newMessage() {
@@ -42,12 +43,12 @@ class ForkJoinApp extends spiders.Application{
     }
 
     checkConfig() {
-        var that = this
         if (this.actorsInitialised == BenchConfig.fjCreationActors) {
-            that.actorsDone = 0
-            for (var i in this.actors) {
-                this.actors[i].newMessage()
-            }
+            this.actorsDone = 0
+            var actors = this.actors
+            actors.forEach((actor)=>(
+                actor.newMessage()
+            ))
         }
     }
 

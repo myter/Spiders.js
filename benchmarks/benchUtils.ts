@@ -7,30 +7,30 @@ export class BenchConfig {
     //Ping pong 
     static pingAmount           = 10000
     //Count 
-    static count                = 100000
+    static count                = 50000
     //Fork join throughput 
-    static fjThroughputActors   = 20
-    static fjThroughputMessages = 1000
+    static fjThroughputActors   = 10
+    static fjThroughputMessages = 10000
     //Fork join creation 
-    static fjCreationActors     = 10
+    static fjCreationActors     = 30
     //Thread ring 
-    static threadRingActors     = 20
-    static threadRingPings      = 1000
+    static threadRingActors     = 10
+    static threadRingPings      = 10000
     //Chameneo 
-    static chameneoMeetings     = 500
-    static chameneoActors       = 10
+    static chameneoMeetings     = 1000
+    static chameneoActors       = 20
     //Big config
     static bigActors            = 10
-    static bigPings             = 3000
+    static bigPings             = 2000
     //Concurrent Dictionary 
-    static cDictActors          = 20
-    static cDictMsgs            = 500
-    static cDictWrite           = 300
+    static cDictActors          = 10
+    static cDictMsgs            = 1000
+    static cDictWrite           = 500
     //Concurrent sorted linked list
-    static cLinkedListActors    = 10
-    static cLinkedListMsgs      = 100
-    static cLinkedListWrites    = 10
-    static cLinkedListSize      = 10
+    static cLinkedListActors    = 20
+    static cLinkedListMsgs      = 500
+    static cLinkedListWrites    = 50
+    static cLinkedListSize      = 50
     //Producer Consumer
     static prodConBuffer        = 50
     static prodConProd          = 5
@@ -40,14 +40,14 @@ export class BenchConfig {
     static prodConConCost       = 25
     //Philosopher
     static philosopherActors    = 10
-    static philosopherEating    = 100
+    static philosopherEating    = 300
     //Barber
-    static barberNrHaircuts     = 20
-    static barberWaitingRoom    = 100
-    static barberProduction     = 500
-    static barberHaircut        = 500
+    static barberNrHaircuts     = 40
+    static barberWaitingRoom    = 2
+    static barberProduction     = 50000
+    static barberHaircut        = 50000
     //Cigarette Smokers
-    static cigSmokeRounds       = 500
+    static cigSmokeRounds       = 700
     static cigSmokeSmokers      = 20
     //Logistic map
     static logMapTerms          = 200
@@ -56,11 +56,11 @@ export class BenchConfig {
     static logMapIncrement      = 0.0025
     //Banking
     static bankingAccounts      = 20
-    static bankingTransactions  = 500
+    static bankingTransactions  = 5000
     static bankingInitialBalance= BenchConfig.bankingAccounts * BenchConfig.bankingTransactions
     //Radix sort
-    static radixSortDataSize    = 500
-    static radixSortMaxVal      = 1000
+    static radixSortDataSize    = 1000
+    static radixSortMaxVal      = 5000
     //Filter bank
     static filterBankColumns    = 8192 * 2
     static filterBankSimulations= 500
@@ -78,8 +78,8 @@ export class BenchConfig {
     static facLocNumPoints      = 1000
     static facLocGridSize       = 500
     static facLocF              = Math.sqrt(2) * 500
-    static facLocAlpha          = 2.0
-    static facLocCuttOff        = 3
+    static facLocAlpha          = 4.0
+    static facLocCuttOff        = 5
     //Trapezoid
     static trapezoidPieces      = 1000000
     static trapezoidWorkers     = 20
@@ -87,11 +87,11 @@ export class BenchConfig {
     static trapezoidRight       = 5
     //Pi Precision
     static piPrecisionWorkers   = 20
-    static piPrecisionPrecision = 5000
+    static piPrecisionPrecision = 100000
     //Matrix Multiplication
     static matMulWorkers        = 20
-    static matMulDataLength     = 1024
-    static matMulThreshold      = 16384
+    static matMulDataLength     = 512
+    static matMulThreshold      = 8192
     //Quicksort
     static quickDataSize        = 5000
     static quickMaxVal          = 1 << 60
@@ -107,14 +107,14 @@ export class BenchConfig {
     static sorOmega             = 1.25
     static sorN                 = 1
     //A star search 
-    static aStarWorkers         = 30
+    static aStarWorkers         = 20
     static aStarThreshold       = 100
     static aStarGridSize        = 5
     //N queens
     static nQueensWorkers       = 20
-    static nQueensSize          = 5
-    static nQueensThreshold     = 4
-    static nQueensSolutions     = 500
+    static nQueensSize          = 12
+    static nQueensThreshold     = 8
+    static nQueensSolutions     = 1500000
     static nQueensPriorities    = 10
 }
 var Benchmark = require('benchmark');
@@ -162,9 +162,15 @@ export class SpiderBenchmarkRunner{
                 console.log(spiderBench.cycleMessage)
             },
             onComplete: function(){
+                if(isNode){
+                    var fs = require('fs');
+                    fs.appendFile('results.txt', '\n' + spiderBench.completeMessage + (this as any).stats.mean + ' . ' + 'Error margin: ' + (this as any).stats.moe, function (err) {
+                    });
+                }
                 //This will actually be bound to type
                 console.log(spiderBench.completeMessage + (this as any).stats.mean)
                 console.log("Error margin: " + (this as any).stats.moe)
+                //console.log((this as any).stats.sample.toString())
                 spiderBench.cleanUp()
                 that.nextBenchmark()
             },

@@ -1,4 +1,4 @@
-import {ServerBufferSocket, ClientBufferSocket, SpiderBenchmark} from "../../benchUtils";
+import {ServerBufferSocket, ClientBufferSocket, SpiderBenchmark, BenchConfig} from "../../benchUtils";
 /**
  * Created by flo on 08/02/2017.
  */
@@ -24,6 +24,9 @@ function mHandler(data){
     function link(refPort){
         var refSocket = new ClientBufferSocket(refPort,mHandler)
         refs.set(refPort,refSocket)
+        if(refs.size == BenchConfig.cDictActors){
+            socketToMain.emit(["actorInit"])
+        }
     }
 
     switch(data[0]){
@@ -40,4 +43,4 @@ function mHandler(data){
             console.log("Unknown message: " + data[0])
     }
 }
-socketToMain.emit(["actorInit"])
+

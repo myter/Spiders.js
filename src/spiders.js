@@ -10,6 +10,7 @@ const messages_1 = require("./messages");
  * Created by flo on 05/12/2016.
  */
 var utils = require('./utils');
+var portastic = require('portastic');
 class Isolate {
     constructor() {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
@@ -53,7 +54,8 @@ class ClientActor extends Actor {
         var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels = [mainChannel.port1].concat(channelMappings[1]);
-        webWorker.postMessage(JSON.stringify(new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods, staticProperties, channelMappings[0])), newActorChannels);
+        var installMessage = new messages_1.InstallBehaviourMessage(app.mainRef, app.mainId, actorId, actorVariables, actorMethods, staticProperties, channelMappings[0]);
+        webWorker.postMessage(JSON.stringify(installMessage), newActorChannels);
         var channelManager = app.mainCommMedium;
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
@@ -97,6 +99,7 @@ class ServerApplication extends Application {
         super();
         this.mainIp = mainIp;
         this.mainPort = mainPort;
+        this.portCounter = 8001;
         this.spawnedActors = [];
         this.mainCommMedium = new sockets_1.ServerSocketManager(mainIp, mainPort);
         this.socketManager = this.mainCommMedium;
@@ -105,8 +108,11 @@ class ServerApplication extends Application {
         this.socketManager.init(this.mainMessageHandler);
         utils.installSTDLib(true, this.mainRef, null, this, this.mainMessageHandler, this.mainCommMedium, this.mainPromisePool);
     }
-    spawnActor(actorClass, constructorArgs = [], port = 8080) {
+    spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);
+        if (port == -1) {
+            port = this.portCounter++;
+        }
         return actorObject.spawn(this, port, actorClass);
     }
     kill() {

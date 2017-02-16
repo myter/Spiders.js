@@ -37,7 +37,7 @@ export class NatQuicksortBench extends SpiderBenchmark{
                 var qRef = that.spawnWorker(require('./QuicksortActor.js'))
                 that.spawned.push(qRef)
                 qRef.onmessage = sysHandle
-                qRef.postMessage(["config",true,BenchConfig.matMulWorkers,BenchConfig.matMulDataLength,BenchConfig.matMulThreshold,position],[chan.port1])
+                qRef.postMessage(["config",true,BenchConfig.quickDataSize,BenchConfig.quickMaxVal,BenchConfig.quickThreshold,position],[chan.port1])
             }
 
             switch(event.data[0]){
@@ -56,9 +56,9 @@ export class NatQuicksortBench extends SpiderBenchmark{
         }
         that.quickRef = that.spawnWorker(require('./QuicksortActor.js'))
         that.quickRef.onmessage = sysHandle
-        that.quickRef.postMessage(["config",false,BenchConfig.matMulWorkers,BenchConfig.matMulDataLength,BenchConfig.matMulThreshold,0,"INITIAL"])
-        for(var i = 0;i < BenchConfig.matMulWorkers;i++){
-            var data = Math.floor(Math.random() * (BenchConfig.matMulDataLength - 0) + 0) % BenchConfig.matMulDataLength
+        that.quickRef.postMessage(["config",false,BenchConfig.quickDataSize,BenchConfig.quickMaxVal,BenchConfig.quickThreshold,0,"INITIAL"])
+        for(var i = 0;i < BenchConfig.quickDataSize;i++){
+            var data = Math.floor(Math.random() * (BenchConfig.quickMaxVal - 0) + 0) % BenchConfig.quickMaxVal
             that.quickRef.postMessage(["newData",data])
         }
         that.quickRef.postMessage(["configDone"])

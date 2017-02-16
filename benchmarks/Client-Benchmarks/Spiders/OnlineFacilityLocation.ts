@@ -114,6 +114,18 @@ class Quadrant extends spiders.Actor{
         this.newInitFacility(facility)
     }
 
+    copyInitFacilities(facs){
+        if (this.initLocalFacilities == null) {
+            var that = this
+            setTimeout(function () {
+                that.copyInitFacilities(facs)
+            }, 200)
+        }
+        else {
+            this.initLocalFacilities.concat(facs)
+        }
+    }
+
     newInitFacility(facility) {
         if (this.initLocalFacilities == null) {
             var that = this
@@ -123,6 +135,18 @@ class Quadrant extends spiders.Actor{
         }
         else {
             this.initLocalFacilities.push(facility)
+        }
+    }
+
+    newInitCustomers(customers){
+        if (this.initCustomers == null) {
+            var that = this
+            setTimeout(function () {
+                that.newInitCustomer(customers)
+            }, 200)
+        }
+        else {
+            this.initCustomers.concat(customers)
         }
     }
 
@@ -179,8 +203,19 @@ class Quadrant extends spiders.Actor{
         return result
     }
 
-    childSpawned() {
+    childSpawned(ref,index,bound) {
         this.childrenSpawned += 1
+        this.localFacilities.forEach((localFac)=>{
+            ref.copyInitFacility(localFac.x,localFac.y)
+        })
+        this.supportCustomers.forEach((cust)=>{
+            ref.newInitCustomer(cust)
+        })
+        ref.configDone()
+        //ref.copyInitFacilities(new this.ArrayIsolate(this.localFacilities))
+        //ref.newInitCustomers(new this.ArrayIsolate(customers1))
+        this.children[index] = ref
+        this.childrenBoundaries[index] = bound
     }
 
     customerMsg(sender,point) {
@@ -198,7 +233,7 @@ class Quadrant extends spiders.Actor{
                 while (index <= 3) {
                     var loopChildBoundary = childrenBoundaries[index]
                     if (loopChildBoundary.contains(point)) {
-                        children[index].customerMsg(sender, point)
+                        children[index].customerMsg(this, point)
                         index = 4
                     }
                     else {
@@ -274,77 +309,23 @@ class Quadrant extends spiders.Actor{
         var secondBoundary = this.makeBoundary(thisFacility.x, thisFacility.y, thisBoundary.x2, thisBoundary.y2)
         var thirdBoundary = this.makeBoundary(thisBoundary.x1, thisBoundary.y1, thisFacility.x, thisFacility.y)
         var fourthBoundary = this.makeBoundary(thisFacility.x, thisBoundary.y1, thisBoundary.x2, thisFacility.y)
-        var customers1 = []
+        var customers = []
         this.supportCustomers.forEach((cust)=> {
-            customers1.push(cust)
+            customers.push(cust)
         })
         this.parent.spawnQuad(this, "TOP_LEFT", firstBoundary.x1, firstBoundary.y1, firstBoundary.x2, firstBoundary.y2, thisThreshold, thisDepth + 1, thisKnownFac, thisMaxDepth).then((ref)=> {
-            this.localFacilities.forEach((localFac)=> {
-                ref.copyInitFacility(localFac.x, localFac.y)
-            })
-            customers1.forEach((cust)=> {
-                ref.newInitCustomer(cust)
-            })
-            this.children[0] = ref
-            this.childrenBoundaries[0] = firstBoundary
-            ref.configDone().then((dc)=> {
-                this.childSpawned()
-            })
-        })
-        var customers2 = []
-        this.supportCustomers.forEach((cust)=> {
-            customers2.push(cust)
+            this.childSpawned(ref,0,firstBoundary)
         })
         this.parent.spawnQuad(this, "TOP_RIGHT", secondBoundary.x1, secondBoundary.y1, secondBoundary.x2, secondBoundary.y2, thisThreshold, thisDepth + 1, thisKnownFac, thisMaxDepth).then((ref)=> {
-            this.localFacilities.forEach((localFac)=> {
-                ref.copyInitFacility(localFac.x, localFac.y)
-            })
-            customers2.forEach((cust)=> {
-                ref.newInitCustomer(cust)
-            })
-            this.children[1] = ref
-            this.childrenBoundaries[1] = secondBoundary
-            ref.configDone().then((dc)=> {
-                this.childSpawned()
-
-            })
-        })
-        var customers3 = []
-        this.supportCustomers.forEach((cust)=> {
-            customers3.push(cust)
+            this.childSpawned(ref,1,secondBoundary)
         })
         this.parent.spawnQuad(this, "BOT_LEFT", thirdBoundary.x1, thirdBoundary.y1, thirdBoundary.x2, thirdBoundary.y2, thisThreshold, thisDepth + 1, thisKnownFac, thisMaxDepth).then((ref)=> {
-            this.localFacilities.forEach((localFac)=> {
-                ref.copyInitFacility(localFac.x, localFac.y)
-            })
-            customers3.forEach((cust)=> {
-                ref.newInitCustomer(cust)
-            })
-            this.children[2] = ref
-            this.childrenBoundaries[2] = thirdBoundary
-            ref.configDone().then((dc)=> {
-                this.childSpawned()
-            })
-        })
-        var customers4 = []
-        this.supportCustomers.forEach((cust)=> {
-            customers4.push(cust)
+            this.childSpawned(ref,2,thirdBoundary)
         })
         this.parent.spawnQuad(this, "BOT_RIGHT", fourthBoundary.x1, fourthBoundary.y1, fourthBoundary.x2, fourthBoundary.y2, thisThreshold, thisDepth + 1, thisKnownFac, thisMaxDepth).then((ref)=> {
-            this.localFacilities.forEach((localFac)=> {
-                ref.copyInitFacility(localFac.x, localFac.y)
-            })
-            customers4.forEach((cust)=> {
-                ref.newInitCustomer(cust)
-            })
-            this.children[3] = ref
-            this.childrenBoundaries[3] = fourthBoundary
-            ref.configDone().then((dc)=> {
-                this.childSpawned()
-
-            })
+            this.childSpawned(ref,3,fourthBoundary)
         })
-        this.supportCustomers = []
+        //this.supportCustomers = []
     }
 
     requestExit() {

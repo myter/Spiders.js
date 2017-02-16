@@ -8,6 +8,7 @@ class SocketHandler {
         this.owner = owner;
         this.disconnectedActors = [];
         this.pendingMessages = new Map();
+        this.fuckUpMessage = new Map();
     }
     addDisconnected(actorId) {
         this.disconnectedActors.push(actorId);
@@ -32,6 +33,12 @@ class SocketHandler {
         this.addDisconnected(actorId);
         connection.on('connect', () => {
             that.removeFromDisconnected(actorId, connection);
+            //TODO To remove once solution found
+            if (that.fuckUpMessage.has(actorId)) {
+                that.fuckUpMessage.get(actorId).forEach((msg) => {
+                    that.sendMessage(actorId, msg);
+                });
+            }
         });
         connection.on('message', function (data) {
             that.messageHandler.dispatch(data);
@@ -51,7 +58,14 @@ class SocketHandler {
             sock.emit('message', msg);
         }
         else {
-            throw new Error("Unable to send message to unknown actor (socket handler)");
+            //TODO TEMP
+            if (this.fuckUpMessage.has(actorId)) {
+                this.fuckUpMessage.get(actorId).push(msg);
+            }
+            else {
+                var q = [msg];
+                this.fuckUpMessage.set(actorId, q);
+            }
         }
     }
 }

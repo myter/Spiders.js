@@ -39,11 +39,8 @@ module.exports = function(self){
             }
             var amount 			= getRandom(1000)
             var chan = new MessageChannel()
-            var temp = accounts[destAccount]
-            accounts[destAccount].postMessage(["reLink"],[chan.port1])
-            chan.port2.onmessage = mHandler
-            accounts[destAccount] = chan.port2
-            accounts[sourceAccount].postMessage(["credit",amount],[temp])
+            accounts[destAccount].postMessage(["link"],[chan.port1])
+            accounts[sourceAccount].postMessage(["credit",amount],[chan.port2])
         }
 
         function transactionDone(){

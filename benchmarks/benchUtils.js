@@ -6,30 +6,30 @@ class BenchConfig {
 //Ping pong 
 BenchConfig.pingAmount = 10000;
 //Count 
-BenchConfig.count = 100000;
+BenchConfig.count = 50000;
 //Fork join throughput 
-BenchConfig.fjThroughputActors = 20;
-BenchConfig.fjThroughputMessages = 1000;
+BenchConfig.fjThroughputActors = 10;
+BenchConfig.fjThroughputMessages = 10000;
 //Fork join creation 
-BenchConfig.fjCreationActors = 10;
+BenchConfig.fjCreationActors = 30;
 //Thread ring 
-BenchConfig.threadRingActors = 20;
-BenchConfig.threadRingPings = 1000;
+BenchConfig.threadRingActors = 10;
+BenchConfig.threadRingPings = 10000;
 //Chameneo 
-BenchConfig.chameneoMeetings = 500;
-BenchConfig.chameneoActors = 10;
+BenchConfig.chameneoMeetings = 1000;
+BenchConfig.chameneoActors = 20;
 //Big config
 BenchConfig.bigActors = 10;
-BenchConfig.bigPings = 3000;
+BenchConfig.bigPings = 2000;
 //Concurrent Dictionary 
-BenchConfig.cDictActors = 20;
-BenchConfig.cDictMsgs = 500;
-BenchConfig.cDictWrite = 300;
+BenchConfig.cDictActors = 10;
+BenchConfig.cDictMsgs = 1000;
+BenchConfig.cDictWrite = 500;
 //Concurrent sorted linked list
-BenchConfig.cLinkedListActors = 10;
-BenchConfig.cLinkedListMsgs = 100;
-BenchConfig.cLinkedListWrites = 10;
-BenchConfig.cLinkedListSize = 10;
+BenchConfig.cLinkedListActors = 20;
+BenchConfig.cLinkedListMsgs = 500;
+BenchConfig.cLinkedListWrites = 50;
+BenchConfig.cLinkedListSize = 50;
 //Producer Consumer
 BenchConfig.prodConBuffer = 50;
 BenchConfig.prodConProd = 5;
@@ -39,14 +39,14 @@ BenchConfig.prodConProdCost = 25;
 BenchConfig.prodConConCost = 25;
 //Philosopher
 BenchConfig.philosopherActors = 10;
-BenchConfig.philosopherEating = 100;
+BenchConfig.philosopherEating = 300;
 //Barber
-BenchConfig.barberNrHaircuts = 20;
-BenchConfig.barberWaitingRoom = 100;
-BenchConfig.barberProduction = 500;
-BenchConfig.barberHaircut = 500;
+BenchConfig.barberNrHaircuts = 40;
+BenchConfig.barberWaitingRoom = 2;
+BenchConfig.barberProduction = 50000;
+BenchConfig.barberHaircut = 50000;
 //Cigarette Smokers
-BenchConfig.cigSmokeRounds = 500;
+BenchConfig.cigSmokeRounds = 700;
 BenchConfig.cigSmokeSmokers = 20;
 //Logistic map
 BenchConfig.logMapTerms = 200;
@@ -55,11 +55,11 @@ BenchConfig.logMapStartRate = 3.46;
 BenchConfig.logMapIncrement = 0.0025;
 //Banking
 BenchConfig.bankingAccounts = 20;
-BenchConfig.bankingTransactions = 500;
+BenchConfig.bankingTransactions = 5000;
 BenchConfig.bankingInitialBalance = BenchConfig.bankingAccounts * BenchConfig.bankingTransactions;
 //Radix sort
-BenchConfig.radixSortDataSize = 500;
-BenchConfig.radixSortMaxVal = 1000;
+BenchConfig.radixSortDataSize = 1000;
+BenchConfig.radixSortMaxVal = 5000;
 //Filter bank
 BenchConfig.filterBankColumns = 8192 * 2;
 BenchConfig.filterBankSimulations = 500;
@@ -77,8 +77,8 @@ BenchConfig.uctPercent = 70;
 BenchConfig.facLocNumPoints = 1000;
 BenchConfig.facLocGridSize = 500;
 BenchConfig.facLocF = Math.sqrt(2) * 500;
-BenchConfig.facLocAlpha = 2.0;
-BenchConfig.facLocCuttOff = 3;
+BenchConfig.facLocAlpha = 4.0;
+BenchConfig.facLocCuttOff = 5;
 //Trapezoid
 BenchConfig.trapezoidPieces = 1000000;
 BenchConfig.trapezoidWorkers = 20;
@@ -86,11 +86,11 @@ BenchConfig.trapezoidLeft = 1;
 BenchConfig.trapezoidRight = 5;
 //Pi Precision
 BenchConfig.piPrecisionWorkers = 20;
-BenchConfig.piPrecisionPrecision = 5000;
+BenchConfig.piPrecisionPrecision = 100000;
 //Matrix Multiplication
 BenchConfig.matMulWorkers = 20;
-BenchConfig.matMulDataLength = 1024;
-BenchConfig.matMulThreshold = 16384;
+BenchConfig.matMulDataLength = 512;
+BenchConfig.matMulThreshold = 8192;
 //Quicksort
 BenchConfig.quickDataSize = 5000;
 BenchConfig.quickMaxVal = 1 << 60;
@@ -106,14 +106,14 @@ BenchConfig.sorJacobi = 100;
 BenchConfig.sorOmega = 1.25;
 BenchConfig.sorN = 1;
 //A star search 
-BenchConfig.aStarWorkers = 30;
+BenchConfig.aStarWorkers = 20;
 BenchConfig.aStarThreshold = 100;
 BenchConfig.aStarGridSize = 5;
 //N queens
 BenchConfig.nQueensWorkers = 20;
-BenchConfig.nQueensSize = 5;
-BenchConfig.nQueensThreshold = 4;
-BenchConfig.nQueensSolutions = 500;
+BenchConfig.nQueensSize = 12;
+BenchConfig.nQueensThreshold = 8;
+BenchConfig.nQueensSolutions = 1500000;
 BenchConfig.nQueensPriorities = 10;
 exports.BenchConfig = BenchConfig;
 var Benchmark = require('benchmark');
@@ -150,9 +150,15 @@ class SpiderBenchmarkRunner {
                 console.log(spiderBench.cycleMessage);
             },
             onComplete: function () {
+                if (isNode) {
+                    var fs = require('fs');
+                    fs.appendFile('results.txt', '\n' + spiderBench.completeMessage + this.stats.mean + ' . ' + 'Error margin: ' + this.stats.moe, function (err) {
+                    });
+                }
                 //This will actually be bound to type
                 console.log(spiderBench.completeMessage + this.stats.mean);
                 console.log("Error margin: " + this.stats.moe);
+                //console.log((this as any).stats.sample.toString())
                 spiderBench.cleanUp();
                 that.nextBenchmark();
             },

@@ -41,9 +41,12 @@ class CustomerFactory extends spiders.Actor {
         }
     }
     start() {
-        this.customers.forEach((customer) => {
-            this.roomRef.customerEnter(customer);
-            this.busyWait(this.productionRate);
+        var cust = this.customers;
+        var room = this.roomRef;
+        var wait = this.busyWait;
+        cust.forEach((customer) => {
+            room.customerEnter(customer);
+            wait(this.productionRate);
         });
     }
     back(customer) {

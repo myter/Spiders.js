@@ -93,6 +93,7 @@ class MessageHandler {
             }
         }
         catch (reason) {
+            console.log("Went wrong for : " + methodName);
             var serialised = serialisation_1.serialise(reason, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
             message = new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {

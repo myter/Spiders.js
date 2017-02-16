@@ -18,16 +18,13 @@ module.exports = function(self){
             destination.postMessage(["debit",amount])
         }
 
-        function reLink(ref){
-            tellerRef = ref
-            tellerRef.onmessage = mHandle
+        function link(ref){
+            ref.onmessage = mHandle
         }
 
         function debit(amount){
             balance += amount
-            setTimeout(function(){
-                tellerRef.postMessage(["transactionDone"])
-            },100)
+            tellerRef.postMessage(["transactionDone"])
         }
 
         switch(event.data[0]){
@@ -37,8 +34,8 @@ module.exports = function(self){
             case "credit":
                 credit(event.data[1],event.ports[0])
                 break;
-            case "reLink":
-                reLink(event.ports[0])
+            case "link":
+                link(event.ports[0])
                 break;
             case "debit":
                 debit(event.data[1])

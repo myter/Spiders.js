@@ -63,7 +63,6 @@ export class NatFacilityLocationBench extends SpiderBenchmark{
             }
         }
         var threshold 	= BenchConfig.facLocAlpha * BenchConfig.facLocF
-        console.log("Threshold = " + threshold)
         that.quadRef    = that.spawnWorker(require('./FacilityLocationQuadrant.js'))
         that.quadRef.onmessage = sysHandle
         that.quadRef.postMessage(["config",true,"ROOT",0,0,BenchConfig.facLocGridSize,BenchConfig.facLocGridSize,threshold,0,1,-1])
