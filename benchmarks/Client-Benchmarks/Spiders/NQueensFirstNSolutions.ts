@@ -49,14 +49,17 @@ class Worker extends spiders.Actor{
         else {
             var b = []
             for (var i = 0; i < depth + 1; i++) {
-                b.push(0)
+                b[i] = 0
             }
             var j = 0
             while (j < this.size) {
                 this.arraycopy(data, 0, b,0, depth)
                 b[depth] = j
-                if (this.boardValid(depth + 1, b)) {
-                    this.workSequential(b, depth + 1)
+                if (this.boardValid((depth + 1), b)) {
+                    this.workSequential(b, (depth + 1))
+                }
+                else{
+
                 }
                 j += 1
             }
@@ -72,8 +75,8 @@ class Worker extends spiders.Actor{
         }
         else {
             var newPriority = priority - 1
-            var newDepth = depth + 1
-            var i = 0
+            var newDepth    = depth + 1
+            var i           = 0
             while (i < this.size) {
                 var b = []
                 for (var j = 0; j < newDepth; j++) {
@@ -84,12 +87,9 @@ class Worker extends spiders.Actor{
                 if (this.boardValid(newDepth, b)) {
                     this.masterRef.sendWork(newPriority, new this.ArrayIsolate(b), newDepth)
                 }
-                else{
-                }
                 i += 1
             }
         }
-        this.masterRef.done()
     }
 }
 
@@ -103,6 +103,7 @@ class Master extends spiders.Actor{
     numWorkSent             = 0
     numWorkCompleted        = 0
     resultCounter           = 0
+    stopped                 = false
 
     config(solutions,priorities,numWorkers) {
         this.solutions = solutions
@@ -123,24 +124,22 @@ class Master extends spiders.Actor{
     }
 
     sendWork(priority,data,depth) {
-        this.workers[this.messageCounter].work(priority, new this.ArrayIsolate(data), depth)
-        this.messageCounter = (this.messageCounter + 1) % this.numWorkers
-        this.numWorkSent += 1
+        if(!this.stopped){
+            this.workers[this.messageCounter].work(priority, new this.ArrayIsolate(data), depth)
+            this.messageCounter = (this.messageCounter + 1) % this.numWorkers
+            this.numWorkSent += 1
+        }
+
     }
 
     result() {
         this.resultCounter += 1
-        if (this.resultCounter >= this.solutions) {
+        if (this.resultCounter == this.solutions && !this.stopped) {
             this.parent.end()
+            this.stopped = true
         }
     }
 
-    done() {
-        this.numWorkCompleted += 1
-        if (this.numWorkCompleted == this.numWorkSent) {
-            this.parent.end()
-        }
-    }
 }
 
 class NQueensFirstNSolutionsApp extends spiders.Application{

@@ -43,7 +43,7 @@ function mHandle(data){
     }
 
     function workSequential(data,depth){
-        if(size >= depth){
+        if(size == depth){
             masterRef.emit(["result"])
         }
         else{
@@ -87,7 +87,6 @@ function mHandle(data){
                 i += 1
             }
         }
-        masterRef.emit(["done"])
     }
 
     switch(data[0]){

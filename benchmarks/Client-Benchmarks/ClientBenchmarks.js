@@ -1,6 +1,5 @@
 const benchUtils_1 = require("../benchUtils");
 const NQueensFirstNSolutionsMain_1 = require("./Native/N-Queens-First-N-Solutions/NQueensFirstNSolutionsMain");
-const NQueensFirstNSolutions_1 = require("./Spiders/NQueensFirstNSolutions");
 /**
  * Created by flo on 24/01/2017.
  */
@@ -64,7 +63,7 @@ runner.schedule(NatNQueensFirstNSolutionsBench)*/
 // runner.schedule(SpiderNQueensFirstNSolutionsBench)
 //runner.schedule(SpiderForkJoinCreationBench)
 //runner.schedule(NatFJCreationBench)
-runner.schedule(NQueensFirstNSolutions_1.SpiderNQueensFirstNSolutionsBench);
+//runner.schedule(SpiderNQueensFirstNSolutionsBench)
 runner.schedule(NQueensFirstNSolutionsMain_1.NatNQueensFirstNSolutionsBench);
 //runner.schedule(SpiderAStarSearchBench)
 console.log("Starting Benchmark");

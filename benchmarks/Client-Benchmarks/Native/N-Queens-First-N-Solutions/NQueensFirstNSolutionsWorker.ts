@@ -41,7 +41,7 @@ module.exports = function (self) {
         }
 
         function workSequential(data,depth){
-            if(size >= depth){
+            if(size == depth){
                 masterRef.postMessage(["result"])
             }
             else{
@@ -85,7 +85,6 @@ module.exports = function (self) {
                     i += 1
                 }
             }
-            masterRef.postMessage(["done"])
         }
 
         switch(event.data[0]){

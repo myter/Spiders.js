@@ -122,7 +122,7 @@ runner.schedule(NatNQueensFirstNSolutionsBench)*/
 //runner.schedule(SpiderForkJoinCreationBench)
 //runner.schedule(NatFJCreationBench)
 
-runner.schedule(SpiderNQueensFirstNSolutionsBench)
+//runner.schedule(SpiderNQueensFirstNSolutionsBench)
 runner.schedule(NatNQueensFirstNSolutionsBench)
 
 //runner.schedule(SpiderAStarSearchBench)

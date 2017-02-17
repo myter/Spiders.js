@@ -114,7 +114,7 @@ export class BenchConfig {
     static nQueensWorkers       = 10
     static nQueensSize          = 6
     static nQueensThreshold     = 3
-    static nQueensSolutions     = 1500000
+    static nQueensSolutions     = 1500
     static nQueensPriorities    = 10
 }
 var Benchmark = require('benchmark');

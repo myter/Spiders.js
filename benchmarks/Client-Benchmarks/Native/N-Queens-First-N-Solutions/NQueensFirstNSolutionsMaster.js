@@ -38,12 +38,6 @@ module.exports = function (self) {
                 self.postMessage(["end"]);
             }
         }
-        function done() {
-            numWorkCompleted += 1;
-            if (numWorkCompleted == numWorkSent) {
-                self.postMessage(["end"]);
-            }
-        }
         switch (event.data[0]) {
             case "config":
                 config(event.data[1], event.data[2], event.data[3]);
@@ -62,9 +56,6 @@ module.exports = function (self) {
                 break;
             case "result":
                 result();
-                break;
-            case "done":
-                done();
                 break;
             default:
                 console.log("Unknown message (Master): " + event.data[0]);

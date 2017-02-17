@@ -45,13 +45,6 @@ module.exports = function (self) {
             }
         }
 
-        function done(){
-            numWorkCompleted += 1
-            if(numWorkCompleted == numWorkSent){
-                self.postMessage(["end"])
-            }
-        }
-
 
         switch(event.data[0]){
             case "config":
@@ -71,9 +64,6 @@ module.exports = function (self) {
                 break;
             case "result":
                 result()
-                break;
-            case "done":
-                done()
                 break;
             default :
                 console.log("Unknown message (Master): " + event.data[0])
