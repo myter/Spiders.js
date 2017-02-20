@@ -21,7 +21,7 @@ export class BenchConfig {
     static chameneoActors       = 20
     //Big config
     static bigActors            = 10
-    static bigPings             = 2000
+    static bigPings             = 1500
     //Concurrent Dictionary 
     static cDictActors          = 10
     static cDictMsgs            = 1000
@@ -42,13 +42,13 @@ export class BenchConfig {
     static philosopherActors    = 10
     static philosopherEating    = 300
     //Barber
-    static barberNrHaircuts     = 40
-    static barberWaitingRoom    = 2
-    static barberProduction     = 50000
+    static barberNrHaircuts     = 20
+    static barberWaitingRoom    = 10
+    static barberProduction     = 5000000
     static barberHaircut        = 50000
     //Cigarette Smokers
-    static cigSmokeRounds       = 700
-    static cigSmokeSmokers      = 20
+    static cigSmokeRounds       = 5000
+    static cigSmokeSmokers      = 10
     //Logistic map
     static logMapTerms          = 200
     static logMapSeries         = 9
@@ -81,13 +81,13 @@ export class BenchConfig {
     static facLocAlpha          = 4.0
     static facLocCuttOff        = 5
     //Trapezoid
-    static trapezoidPieces      = 1000000
-    static trapezoidWorkers     = 20
+    static trapezoidPieces      = 50000000
+    static trapezoidWorkers     = 10
     static trapezoidLeft        = 1
     static trapezoidRight       = 5
     //Pi Precision
-    static piPrecisionWorkers   = 20
-    static piPrecisionPrecision = 100000
+    static piPrecisionWorkers   = 1
+    static piPrecisionPrecision = 500
     //Matrix Multiplication
     static matMulWorkers        = 20
     static matMulDataLength     = 512
@@ -116,6 +116,22 @@ export class BenchConfig {
     static nQueensThreshold     = 3
     static nQueensSolutions     = 1500
     static nQueensPriorities    = 10
+
+    //Filter (used for speedup), not part of savina benchmark suite
+    static filterImageSize      = 5000
+    static filterImageWorkers   = 0
+    static makeFilterImage(){
+        var res = []
+        for(var i = 0;i < BenchConfig.filterImageSize;i++){
+            res[i] = Math.floor(Math.random() * 255) + 0
+        }
+        return {
+            data : res,
+            width: Math.ceil((BenchConfig.filterImageSize / 4) / 2),
+            height : Math.ceil((BenchConfig.filterImageSize / 4) / 2)
+        }
+    }
+    static filterBaseKernal     = [[0 , -1 ,  0], [-1,  2 , -1], [0 , -1 ,  0]]
 }
 var Benchmark = require('benchmark');
 var isNode = false;
@@ -138,14 +154,16 @@ import {Socket} from "net";
 
 export class SpiderBenchmarkRunner{
     scheduled       : Array<BenchmarkType>
+    adapt           : Array<Function>
     currentBench    : number
 
 
     constructor(){
         this.scheduled = []
+        this.adapt  = []
     }
 
-    schedule(benchmarkClass){
+    schedule(benchmarkClass,adapt = () => {}){
         var that = this
         var spiderBench = new benchmarkClass()
         var bench = new Benchmark(spiderBench.name,{
@@ -176,12 +194,14 @@ export class SpiderBenchmarkRunner{
             },
         })
         this.scheduled.push(bench)
+        this.adapt.push(adapt)
         console.log(spiderBench.scheduleMessage)
     }
 
     nextBenchmark(){
         this.currentBench += 1
         if(this.scheduled.length != 0){
+            this.adapt.pop()()
             this.scheduled.pop().run()
         }
     }

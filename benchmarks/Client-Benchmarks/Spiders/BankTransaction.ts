@@ -15,14 +15,12 @@ class Account extends spiders.Actor{
 
     credit(teller,amount,destination) {
         this.balance -= amount
-        destination.debit(amount).then((v) => {
-            teller.transactionDone()
-        })
+        destination.debit(amount,teller)
     }
 
-    debit(amount) {
+    debit(amount,teller) {
         this.balance += amount
-        return 'ok'
+        teller.transactionDone()
     }
 }
 

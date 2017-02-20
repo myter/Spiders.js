@@ -65,7 +65,7 @@ class Master extends spiders.Actor{
 
     workerDone() {
         this.workersDone += 1
-        if (this.workersDone == this.totalWorkers) {
+        if (this.workersDone >= this.totalWorkers) {
             this.parent.end()
         }
     }

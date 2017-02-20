@@ -71,6 +71,7 @@ class Quadrant extends spiders.Actor{
     childrenBoundaries      = null
     childrenSpawned         = 0
     totalCost               = 0.0
+    configed                = false
     Point
     Boundary
 
@@ -107,6 +108,7 @@ class Quadrant extends spiders.Actor{
         this.facility = this.boundary.midPoint()
         this.knownFacilities = this.initKnownFacilities
         this.maxDepthOpenFac = this.initMaxDepthOpenFac
+        this.configed = true
     }
 
     copyInitFacility(xVal,yVal) {
@@ -135,18 +137,6 @@ class Quadrant extends spiders.Actor{
         }
         else {
             this.initLocalFacilities.push(facility)
-        }
-    }
-
-    newInitCustomers(customers){
-        if (this.initCustomers == null) {
-            var that = this
-            setTimeout(function () {
-                that.newInitCustomer(customers)
-            }, 200)
-        }
-        else {
-            this.initCustomers.concat(customers)
         }
     }
 
@@ -402,11 +392,22 @@ class Producer extends spiders.Actor{
 
     nextCustomerMsg() {
         if (this.itemsProduced < this.numPoints) {
-            this.produceConsumer()
+            try{
+                this.produceConsumer()
+            }
+            catch(e){
+                console.log("Failed because "  + e)
+            }
+
         }
         else {
-            this.quadRef.requestExit()
-            this.parent.actorExit()
+            try{
+                this.quadRef.requestExit()
+                this.parent.actorExit()
+            }
+            catch(e){
+                console.log("Failed becasue: " + e)
+            }
         }
     }
 }
@@ -452,9 +453,17 @@ class OnlineFacilityLocationApp extends spiders.Application{
 
     spawnQuad(parent,positionToParent,bx1,by1,bx2,by2,threshold,depth,initKnownFacilities,initMaxDepthOpenFac) {
         var ref = this.spawnActor(Quadrant)
-        ref.config(false, parent, positionToParent, bx1, by1, bx2, by2, threshold, depth, initKnownFacilities, initMaxDepthOpenFac)
+        var res
+        var rej
+        var prom = new Promise((resolve,reject)=>{
+            res = resolve
+            rej = reject
+        })
+        ref.config(false, parent, positionToParent, bx1, by1, bx2, by2, threshold, depth, initKnownFacilities, initMaxDepthOpenFac).then((_)=>{
+            res(ref)
+        })
         this.totalSpawned += 1
-        return ref
+        return prom
     }
 }
 

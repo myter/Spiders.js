@@ -18,6 +18,7 @@ class Node extends spiders.Actor{
     hasChildren         = false
     urgentChild         = null
     inTermination       = false
+    configed            = false
 
     config(nodeParent,root,height,id,comp,urgent,binomial) {
         this.nodeParent = nodeParent
@@ -27,6 +28,7 @@ class Node extends spiders.Actor{
         this.comp = comp
         this.urgent = urgent
         this.binomial = binomial
+        this.configed = true
     }
 
     loop(busywait,dummy) {
@@ -38,8 +40,17 @@ class Node extends spiders.Actor{
     }
 
     tryGenerate() {
-        this.loop(100, 40000)
-        this.root.shouldGenerateChildren(this, this.height)
+        if(this.configed){
+            this.loop(100, 40000)
+            this.root.shouldGenerateChildren(this, this.height)
+        }
+        else{
+            var that = this
+            setTimeout(()=>{
+                that.tryGenerate()
+            },500)
+        }
+
     }
 
     generateChildren(currentId,compSize) {
@@ -184,7 +195,6 @@ class Root extends spiders.Actor{
             if (!this.traversed) {
                 this.traversed = true
                 this.traverse()
-
             }
             this.terminate()
         }

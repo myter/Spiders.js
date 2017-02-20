@@ -1,4 +1,4 @@
-import {SpiderBenchmarkRunner} from "../benchUtils";
+import {SpiderBenchmarkRunner, BenchConfig} from "../benchUtils";
 import {NatPingPongBench} from "./Native/Ping-Pong/PingPongMain";
 import {NatCountBench} from "./Native/Counting/CountMain";
 import {NatFJThroughputBench} from "./Native/Fork-Join-Throughput/FJThroughputMain";
@@ -55,76 +55,101 @@ import {SpiderAStarSearchBench} from "./Spiders/AStarSearch";
 import {SpiderNQueensFirstNSolutionsBench} from "./Spiders/NQueensFirstNSolutions";
 import {SpiderConcurrentSortedLinkedListBench} from "./Spiders/ConcurrentSortedLinkedList";
 import {SpiderBankTransactionBench} from "./Spiders/BankTransaction";
+import {SequentialFilterBench} from "../Speedup/SequentialFilter";
+import {SpiderParallelFilterBench} from "../Speedup/ParallelFilter";
+import {WWParallelFilterBench} from "../Speedup/WWParallelFilterMain";
 /**
  * Created by flo on 24/01/2017.
  */
 
-//Chrome seems to dislike the allocation and deallocation of web workers.Run benchmarks seperately to get most stable results
+//Chrome seems to dislike the allocation and deallocation of web workers. Run benchmark pair-wise to avoid 404 errors due to chrome not being able to allocate webworker
 
 var runner = new SpiderBenchmarkRunner()
-//runner.schedule(NatPingPongBench)
-//runner.schedule(NatCountBench)
-//runner.schedule(NatFJThroughputBench)
-//runner.schedule(NatFJCreationBench) //TODO weird scheduling stuff ?
-// runner.schedule(NatThreadRing)
-// runner.schedule(NatChameneoBench)
-// runner.schedule(NatBigBench)
-// runner.schedule(NatConcurrentDictionaryBench)
-// runner.schedule(NatConcurrentLinkedListBench)
-// runner.schedule(NatProducerConsumerBench)
-// runner.schedule(NatDiningPhilosopherBench)
-// runner.schedule(NatSleepingBarberBench)
-// runner.schedule(NatCigaretteSmokersBench)
-// runner.schedule(NatLogisticMapSeriesBench)
-//runner.schedule(NatBankTransactionBench) TODO problem here (not starting)
+
+
+/*runner.schedule(NatPingPongBench)
+runner.schedule(SpiderPinPongBench)*/
+
+/*runner.schedule(NatCountBench)
+runner.schedule(SpiderCountingActorBench)*/
+
+/*runner.schedule(NatFJThroughputBench)
+runner.schedule(SpiderForkJoinThroughputBench)
+
+runner.schedule(NatFJCreationBench)
+runner.schedule(SpiderForkJoinCreationBench)*/
+
+/*runner.schedule(NatThreadRing)
+runner.schedule(SpiderThreadRingBench)
+
+runner.schedule(NatChameneoBench)
+runner.schedule(SpiderChameneoBench)
+
+runner.schedule(NatBigBench)
+runner.schedule(SpiderBigBench)*/
+
+/*runner.schedule(NatConcurrentDictionaryBench)
+runner.schedule(SpiderConcurrentDictionaryBench)
+
+runner.schedule(NatConcurrentLinkedListBench)
+runner.schedule(SpiderConcurrentSortedLinkedListBench)*/
+
+/*runner.schedule(NatProducerConsumerBench)
+runner.schedule(SpiderProducerConsumerBench)
+
+runner.schedule(NatDiningPhilosopherBench)
+runner.schedule(SpiderDiningPhilosophersBench)
+
+runner.schedule(NatSleepingBarberBench)
+runner.schedule(SpiderSleepingBarberBench)*/
+
+/*runner.schedule(NatCigaretteSmokersBench)
+runner.schedule(SpiderCigaretteSmokersBench)
+
+runner.schedule(NatLogisticMapSeriesBench)
+runner.schedule(SpiderLogisticMapSeriesBench)
+
+runner.schedule(NatBankTransactionBench)
+runner.schedule(SpiderBankTransactionBench)*/
+
 /*runner.schedule(NatRadixSortBench)
+runner.schedule(SpiderRadixSortBench)
+
 runner.schedule(NatFilterBankBench)
+runner.schedule(SpiderFilterBankBench)
+
 runner.schedule(NatSieveOfEratosthenesBench)
+runner.schedule(SpiderSieveOfEratosthenesBench)
+
 runner.schedule(NatUnbalancedCobwebbedTreeBench)
-runner.schedule(NatFacilityLocationBench)
-runner.schedule(NatTrapezoidalApproximationBench)
-runner.schedule(NatPrecisePiComputationBench)
-runner.schedule(NatRecursiveMatrixMultiplicationBench)
-runner.schedule(NatQuicksortBench)
-runner.schedule(NatAllPairShortestPathBench)
+runner.schedule(SpiderUnbalancedCobwebbedTreeBench)*/
+
+/*runner.schedule(NatFacilityLocationBench)
+runner.schedule(SpiderOnlineFacilityLocationBench)*/
+
+/*runner.schedule(NatTrapezoidalApproximationBench)
+runner.schedule(SpiderTrapezoidalApproximationBench)*/
+
+/*runner.schedule(NatPrecisePiComputationBench)
+runner.schedule(SpiderPrecisePiComputationBench)*/
+
+/*runner.schedule(NatRecursiveMatrixMultiplicationBench)
+runner.schedule(SpiderRecursiveMatrixMultiplicationBench)*/
+
+/*runner.schedule(NatQuicksortBench)
+runner.schedule(SpiderQuickSortBench)*/
+
+/*runner.schedule(NatAllPairShortestPathBench)
+runner.schedule(SpiderAllPairShortestPathBench)
+
 runner.schedule(NatSuccessiveOverRelaxationBench)
-runner.schedule(NatAStarSearchBench)
-runner.schedule(NatNQueensFirstNSolutionsBench)*/
-// runner.schedule(SpiderPinPongBench)
-// runner.schedule(SpiderCountingActorBench)
-// runner.schedule(SpiderForkJoinThroughputBench)
-// runner.schedule(SpiderForkJoinCreationBench)
-// runner.schedule(SpiderThreadRingBench)
-// runner.schedule(SpiderChameneoBench)
-// runner.schedule(SpiderBigBench)
-// runner.schedule(SpiderConcurrentDictionaryBench)
-// runner.schedule(SpiderConcurrentSortedLinkedListBench)
-// runner.schedule(SpiderProducerConsumerBench)
-// runner.schedule(SpiderDiningPhilosophersBench)
-// runner.schedule(SpiderSleepingBarberBench)
-// runner.schedule(SpiderCigaretteSmokersBench)
-// runner.schedule(SpiderLogisticMapSeriesBench)
-// runner.schedule(SpiderBankTransactionBench)
-// runner.schedule(SpiderRadixSortBench)
-// runner.schedule(SpiderFilterBankBench)
-// runner.schedule(SpiderSieveOfEratosthenesBench)
-// runner.schedule(SpiderUnbalancedCobwebbedTreeBench)
-// runner.schedule(SpiderOnlineFacilityLocationBench)
-// runner.schedule(SpiderTrapezoidalApproximationBench)
-// runner.schedule(SpiderPrecisePiComputationBench)
-// runner.schedule(SpiderRecursiveMatrixMultiplicationBench)
-// runner.schedule(SpiderQuickSortBench)
-// runner.schedule(SpiderAllPairShortestPathBench)
-// runner.schedule(SpiderSuccessiveOverRelaxationBench)
-// runner.schedule(SpiderAStarSearchBench)
-// runner.schedule(SpiderNQueensFirstNSolutionsBench)
+runner.schedule(SpiderSuccessiveOverRelaxationBench)*/
 
-//runner.schedule(SpiderForkJoinCreationBench)
-//runner.schedule(NatFJCreationBench)
+/*runner.schedule(NatAStarSearchBench)
+runner.schedule(SpiderAStarSearchBench)
 
-//runner.schedule(SpiderNQueensFirstNSolutionsBench)
 runner.schedule(NatNQueensFirstNSolutionsBench)
+runner.schedule(SpiderNQueensFirstNSolutionsBench)*/
 
-//runner.schedule(SpiderAStarSearchBench)
 console.log("Starting Benchmark")
 runner.nextBenchmark()

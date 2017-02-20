@@ -32,7 +32,7 @@ module.exports = function (self) {
         }
         function start() {
             var t = 0;
-            while (t < Math.min(precision, 10 * numWorkers)) {
+            while (t < precision) {
                 generateWork(t % numWorkers);
                 t += 1;
             }
@@ -44,13 +44,6 @@ module.exports = function (self) {
         }
         function gotResult(result, id) {
             numTermsReceived += 1;
-            result += result;
-            if (result < tolerance) {
-                stopRequests = true;
-            }
-            if (!stopRequests) {
-                generateWork(id);
-            }
             if (numTermsReceived == numTermsRequested) {
                 requestWorkersToExit();
             }

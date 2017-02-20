@@ -5,8 +5,7 @@ const benchUtils_1 = require("../../benchUtils");
 var spiders = require("../../../src/spiders");
 class ForkJoinActor extends spiders.Actor {
     init() {
-        //this.parent.actorInit()
-        this.parent.actorDone();
+        this.parent.actorInit();
     }
     calc(theta) {
         var sint = Math.sin(theta);

@@ -118,7 +118,10 @@ export class MessageHandler{
             }
         }
         catch(reason){
-            console.log("Went wrong for : " + methodName)
+            console.log("Went wrong for : " + methodName  + " target object : " + targetObject)
+            for(var i in targetObject){
+                console.log(i)
+            }
             var serialised : ValueContainer         = serialise(reason,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
             message                             = new RejectPromiseMessage(this.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){

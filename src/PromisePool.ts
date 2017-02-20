@@ -38,7 +38,9 @@ export class PromisePool{
     }
 
     private applyForPromise(promiseId : number,arg : any,funcIndex : number){
-        this.promises.get(promiseId)[funcIndex](arg)
+        if(this.promises.has(promiseId)){
+            this.promises.get(promiseId)[funcIndex](arg)
+        }
     }
 
     resolvePromise(promiseId : number,value : any){

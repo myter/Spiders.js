@@ -178,6 +178,6 @@ export class SpiderRecursiveMatrixMultiplicationBench extends SpiderBenchmark{
     }
 
     cleanUp(){
-        this.recursiveMatrixMultiplicationApp.setup()
+        this.recursiveMatrixMultiplicationApp.kill()
     }
 }

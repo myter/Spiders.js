@@ -2,6 +2,17 @@
  * Created by flo on 24/01/2017.
  */
 class BenchConfig {
+    static makeFilterImage() {
+        var res = [];
+        for (var i = 0; i < BenchConfig.filterImageSize; i++) {
+            res[i] = Math.floor(Math.random() * 255) + 0;
+        }
+        return {
+            data: res,
+            width: Math.ceil((BenchConfig.filterImageSize / 4) / 2),
+            height: Math.ceil((BenchConfig.filterImageSize / 4) / 2)
+        };
+    }
 }
 //Ping pong 
 BenchConfig.pingAmount = 10000;
@@ -20,7 +31,7 @@ BenchConfig.chameneoMeetings = 1000;
 BenchConfig.chameneoActors = 20;
 //Big config
 BenchConfig.bigActors = 10;
-BenchConfig.bigPings = 2000;
+BenchConfig.bigPings = 1500;
 //Concurrent Dictionary 
 BenchConfig.cDictActors = 10;
 BenchConfig.cDictMsgs = 1000;
@@ -41,13 +52,13 @@ BenchConfig.prodConConCost = 25;
 BenchConfig.philosopherActors = 10;
 BenchConfig.philosopherEating = 300;
 //Barber
-BenchConfig.barberNrHaircuts = 40;
-BenchConfig.barberWaitingRoom = 2;
-BenchConfig.barberProduction = 50000;
+BenchConfig.barberNrHaircuts = 20;
+BenchConfig.barberWaitingRoom = 10;
+BenchConfig.barberProduction = 5000000;
 BenchConfig.barberHaircut = 50000;
 //Cigarette Smokers
-BenchConfig.cigSmokeRounds = 700;
-BenchConfig.cigSmokeSmokers = 20;
+BenchConfig.cigSmokeRounds = 5000;
+BenchConfig.cigSmokeSmokers = 10;
 //Logistic map
 BenchConfig.logMapTerms = 200;
 BenchConfig.logMapSeries = 9;
@@ -80,13 +91,13 @@ BenchConfig.facLocF = Math.sqrt(2) * 500;
 BenchConfig.facLocAlpha = 4.0;
 BenchConfig.facLocCuttOff = 5;
 //Trapezoid
-BenchConfig.trapezoidPieces = 1000000;
-BenchConfig.trapezoidWorkers = 20;
+BenchConfig.trapezoidPieces = 50000000;
+BenchConfig.trapezoidWorkers = 10;
 BenchConfig.trapezoidLeft = 1;
 BenchConfig.trapezoidRight = 5;
 //Pi Precision
-BenchConfig.piPrecisionWorkers = 20;
-BenchConfig.piPrecisionPrecision = 100000;
+BenchConfig.piPrecisionWorkers = 1;
+BenchConfig.piPrecisionPrecision = 500;
 //Matrix Multiplication
 BenchConfig.matMulWorkers = 20;
 BenchConfig.matMulDataLength = 512;
@@ -115,6 +126,10 @@ BenchConfig.nQueensSize = 6;
 BenchConfig.nQueensThreshold = 3;
 BenchConfig.nQueensSolutions = 1500;
 BenchConfig.nQueensPriorities = 10;
+//Filter (used for speedup), not part of savina benchmark suite
+BenchConfig.filterImageSize = 5000;
+BenchConfig.filterImageWorkers = 0;
+BenchConfig.filterBaseKernal = [[0, -1, 0], [-1, 2, -1], [0, -1, 0]];
 exports.BenchConfig = BenchConfig;
 var Benchmark = require('benchmark');
 var isNode = false;
@@ -132,8 +147,9 @@ const child_process_1 = require("child_process");
 class SpiderBenchmarkRunner {
     constructor() {
         this.scheduled = [];
+        this.adapt = [];
     }
-    schedule(benchmarkClass) {
+    schedule(benchmarkClass, adapt = () => { }) {
         var that = this;
         var spiderBench = new benchmarkClass();
         var bench = new Benchmark(spiderBench.name, {
@@ -164,11 +180,13 @@ class SpiderBenchmarkRunner {
             },
         });
         this.scheduled.push(bench);
+        this.adapt.push(adapt);
         console.log(spiderBench.scheduleMessage);
     }
     nextBenchmark() {
         this.currentBench += 1;
         if (this.scheduled.length != 0) {
+            this.adapt.pop()();
             this.scheduled.pop().run();
         }
     }

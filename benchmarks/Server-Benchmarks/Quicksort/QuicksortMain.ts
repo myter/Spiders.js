@@ -37,7 +37,7 @@ export class NodeQuicksortBench extends SpiderBenchmark{
             function spawnNew(position,parentPort){
                 var qRef = that.spawnNode("Quicksort/QuicksortActor",sysHandle,that.lastPort)
                 that.spawned.set(that.lastPort,qRef)
-                qRef.emit(["config",true,BenchConfig.matMulWorkers,BenchConfig.matMulDataLength,BenchConfig.matMulThreshold,position,parentPort])
+                qRef.emit(["config",true,BenchConfig.quickDataSize,BenchConfig.quickMaxVal,BenchConfig.quickThreshold,position,parentPort])
                 var parentRef = that.spawned.get(parentPort)
                 parentRef.emit(["childSpawned",position,that.lastPort])
                 that.lastPort++
@@ -59,9 +59,9 @@ export class NodeQuicksortBench extends SpiderBenchmark{
         }
         that.mainSocket = new ServerBufferSocket(SpiderBenchmark._MAIN_PORT_,sysHandle)
         that.quickRef = that.spawnNode("Quicksort/QuicksortActor",sysHandle,NodeQuicksortBench._QUICK_PORT_)
-        that.quickRef.emit(["config",false,BenchConfig.matMulWorkers,BenchConfig.matMulDataLength,BenchConfig.matMulThreshold,0,"INITIAL"])
-        for(var i = 0;i < BenchConfig.matMulWorkers;i++){
-            var data = Math.floor(Math.random() * (BenchConfig.matMulDataLength - 0) + 0) % BenchConfig.matMulDataLength
+        that.quickRef.emit(["config",false,BenchConfig.quickDataSize,BenchConfig.quickMaxVal,BenchConfig.quickThreshold,0,"INITIAL"])
+        for(var i = 0;i < BenchConfig.quickDataSize;i++){
+            var data = Math.floor(Math.random() * (BenchConfig.quickMaxVal - 0) + 0) % BenchConfig.quickMaxVal
             that.quickRef.emit(["newData",data])
         }
         that.quickRef.emit(["configDone"])

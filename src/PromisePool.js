@@ -34,7 +34,9 @@ class PromisePool {
         return new PromiseAllocation(prom, promId);
     }
     applyForPromise(promiseId, arg, funcIndex) {
-        this.promises.get(promiseId)[funcIndex](arg);
+        if (this.promises.has(promiseId)) {
+            this.promises.get(promiseId)[funcIndex](arg);
+        }
     }
     resolvePromise(promiseId, value) {
         this.applyForPromise(promiseId, value, 0);

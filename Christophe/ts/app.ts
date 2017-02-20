@@ -50,7 +50,7 @@ class CounterActor extends spiders.Actor {
 var img = new Image();
 img.src = "pics/lena_color.gif"
 var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+var ctx = (canvas as any).getContext('2d');
 
 var kernel = [
     [0 , -1 ,  0],
@@ -73,14 +73,14 @@ function filter(kernel, pixels) {
     var rgb_pos   = [0,1,2];
     var hue_pos   = 3;
 
-    for(w=0; w < width-kernel_w; w+=1) {
-        for(h=0; h < height-kernel_h; h+=1) {
+    for(var w=0; w < width-kernel_w; w+=1) {
+        for(var h=0; h < height-kernel_h; h+=1) {
             var index_d  = index_destination(width,w,h);
             new_pixels[index_d+hue_pos] = 255;
-            for(i=0; i<kernel_w;i+=1) {
-                for(j=0; j<kernel_h;j+=1) {
+            for(var i=0; i<kernel_w;i+=1) {
+                for(var j=0; j<kernel_h;j+=1) {
                     var index_o  = index_d + (i*4) + (j*width*4);
-                    for (x of rgb_pos)
+                    for (var x of rgb_pos)
                         new_pixels[index_d + x] += kernel[j][i] * pixels.data[index_o + x];
                 }
             }
@@ -93,8 +93,8 @@ function filter(kernel, pixels) {
 var pixels;
 
 function randomKernel() {
-    for(i in kernel) {
-        for (j in kernel[0]) {
+    for(var i in kernel) {
+        for (var j in kernel[0]) {
             kernel[i][j] = Math.random();
         }
     }
