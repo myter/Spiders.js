@@ -2,7 +2,7 @@
  * Created by flo on 03/02/2017.
  */
 
-function game(roomName){
+function game(roomName,clientObject){
     // RequestAnimFrame: a browser API for getting smooth animations
     window.requestAnimFrame = (function() {
         return  window.requestAnimationFrame 	   ||
@@ -716,19 +716,22 @@ function game(roomName){
         // Remove ball from array of balls in current field
         var i = balls.indexOf(ball);
         balls.splice(i, 1);
-        opponent.reference.receiveBall(ball.x, ball.y, ball.vx, ball.vy)
+        clientObject.sendBall(ball.x, ball.y, ball.vx, ball.vy,opponent.reference)
+        //opponent.reference.receiveBall(ball.x, ball.y, ball.vx, ball.vy)
         delete ball;
     }
 
     function exportScore() {
         if(opponent.isPresent) {
-            opponent.reference.scoreChange(score.val)
+            clientObject.sendScoreChange(score.val,opponent.reference)
+            //opponent.reference.scoreChange(score.val)
         }
     }
 
     function sendPowerup(type) {
         if(opponent.isPresent) {
-            opponent.reference.receivePowerup(type)
+            clientObject.sendPowerup(type,opponent.reference)
+            //opponent.reference.receivePowerup(type)
         }
     }
 

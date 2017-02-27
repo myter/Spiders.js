@@ -1,66 +1,153 @@
 import {SpiderBenchmarkRunner, BenchConfig} from "../benchUtils";
-import {SequentialFilterBench} from "./SequentialFilter";
-import {ChildProcessFilterBench} from "./ChildProcessFilterMain";
-import {SpiderParallelFilterBench} from "./ParallelFilter";
+import {NodePrecisePiComputationBench} from "../Server-Benchmarks/Precise-Pi-Computation/PrecisePiComputationMain";
+import {SpiderPrecisePiComputationBench} from "../Client-Benchmarks/Spiders/PrecisePiComputation";
+import {SequentialCarloBench} from "./sequentialCarlo";
+import {SpiderCarloBench} from "./SpiderCarlo";
+import {ChildProcessMonteCarloBench} from "./ChildProcessCarloMain";
 /**
  * Created by flo on 17/02/2017.
  */
 var runner = new SpiderBenchmarkRunner()
-runner.schedule(SpiderParallelFilterBench,()=>{
-    console.log("Setting workers to 12")
-    BenchConfig.filterImageWorkers   = 12
-})
-runner.schedule(SpiderParallelFilterBench,()=>{
-    console.log("Setting workers to 10")
-    BenchConfig.filterImageWorkers   = 10
-})
-runner.schedule(SpiderParallelFilterBench,()=>{
-    console.log("Setting workers to 8")
-    BenchConfig.filterImageWorkers   = 8
-})
-runner.schedule(SpiderParallelFilterBench,()=>{
-    console.log("Setting workers to 6")
-    BenchConfig.filterImageWorkers   = 6
-})
-runner.schedule(SpiderParallelFilterBench,()=>{
-    console.log("Setting workers to 4")
-    BenchConfig.filterImageWorkers   = 4
-})
-runner.schedule(SpiderParallelFilterBench,()=>{
-    console.log("Setting workers to 2")
-    BenchConfig.filterImageWorkers   = 2
-})
 
 
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 12")
+//     BenchConfig.sequentialMonteCarloRuns = 12
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 12")
+//     BenchConfig.monteCarloWorkers = 12
+// })
+//
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 10")
+//     BenchConfig.sequentialMonteCarloRuns = 10
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 10")
+//     BenchConfig.monteCarloWorkers = 10
+// })
+//
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 8")
+//     BenchConfig.sequentialMonteCarloRuns = 8
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 8")
+//     BenchConfig.monteCarloWorkers = 8
+// })
+//
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 6")
+//     BenchConfig.sequentialMonteCarloRuns = 6
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 6")
+//     BenchConfig.monteCarloWorkers = 6
+// })
+//
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 4")
+//     BenchConfig.sequentialMonteCarloRuns = 4
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 4")
+//     BenchConfig.monteCarloWorkers = 4
+// })
+//
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 2")
+//     BenchConfig.sequentialMonteCarloRuns = 2
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 2")
+//     BenchConfig.monteCarloWorkers = 2
+// })
+//
+//
+//
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 12")
+//     BenchConfig.monteCarloWorkers = 12
+// })
+//
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 10")
+//     BenchConfig.monteCarloWorkers = 10
+// })
+//
+//
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 8")
+//     BenchConfig.monteCarloWorkers = 8
+// })
+//
+//
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 6")
+//     BenchConfig.monteCarloWorkers = 6
+// })
+//
+//
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 4")
+//     BenchConfig.monteCarloWorkers = 4
+// })
+//
+//
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 2")
+//     BenchConfig.monteCarloWorkers = 2
+// })
 
-runner.schedule(ChildProcessFilterBench,()=>{
-    console.log("Setting workers to 12")
-    BenchConfig.filterImageWorkers   = 12
-})
-runner.schedule(ChildProcessFilterBench,()=>{
-    console.log("Setting workers to 10")
-    BenchConfig.filterImageWorkers   = 10
-})
-runner.schedule(ChildProcessFilterBench,()=>{
-    console.log("Setting workers to 8")
-    BenchConfig.filterImageWorkers   = 8
-})
-runner.schedule(ChildProcessFilterBench,()=>{
-    console.log("Setting workers to 6")
-    BenchConfig.filterImageWorkers   = 6
-})
-runner.schedule(ChildProcessFilterBench,()=>{
-    console.log("Setting workers to 4")
-    BenchConfig.filterImageWorkers   = 4
-})
-runner.schedule(ChildProcessFilterBench,()=>{
-     console.log("Setting workers to 2")
-     BenchConfig.filterImageWorkers   = 2
- })
 
-runner.schedule(SequentialFilterBench)
-
-
-
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 14")
+//     BenchConfig.sequentialMonteCarloRuns = 14
+// })
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 16")
+//     BenchConfig.sequentialMonteCarloRuns = 16
+// })
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 18")
+//     BenchConfig.sequentialMonteCarloRuns = 18
+// })
+// runner.schedule(SequentialCarloBench,()=>{
+//     console.log("Sequential runs = 20")
+//     BenchConfig.sequentialMonteCarloRuns = 20
+// })
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 14")
+//     BenchConfig.monteCarloWorkers = 14
+// })
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 16")
+//     BenchConfig.monteCarloWorkers = 16
+// })
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 18")
+//     BenchConfig.monteCarloWorkers = 18
+// })
+// runner.schedule(ChildProcessMonteCarloBench,()=>{
+//     console.log("Web workers = 20")
+//     BenchConfig.monteCarloWorkers = 20
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 14")
+//     BenchConfig.monteCarloWorkers = 14
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 16")
+//     BenchConfig.monteCarloWorkers = 16
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 18")
+//     BenchConfig.monteCarloWorkers = 18
+// })
+// runner.schedule(SpiderCarloBench,()=>{
+//     console.log("Spider workers = 20")
+//     BenchConfig.monteCarloWorkers = 20
+// })
 console.log("Starting Server Speedup Benchmarks")
 runner.nextBenchmark()

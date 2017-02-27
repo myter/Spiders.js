@@ -29,20 +29,19 @@ class SpiderPongClient extends spiders.Application{
         super()
         this.nickName = nickName
         this.remote("127.0.0.1",8000).then((serverRef : FarRef)=>{
-            console.log("Server ref acquired")
             this.serverRef = serverRef
             serverRef.newClient(this.nickName,this)
         })
         document.getElementById("newRoomButton").onclick = () => {
             var roomName = (document.getElementById('roomName') as HTMLTextAreaElement).value
-            this.currentGame = new graph.game(roomName)
+            this.currentGame = new graph.game(roomName,this)
             this.serverRef.createNewGame(roomName,this,this.nickName)
             this.currentGame.start(true)
         }
     }
 
     private joinGame(roomName : string,gameCreator : FarRef){
-        this.currentGame        = new graph.game(roomName)
+        this.currentGame        = new graph.game(roomName,this)
         this.currentGame.setOpponentReference(gameCreator)
         this.serverRef.playerJoined(roomName,this,this.nickName)
         gameCreator.playerJoins(this,this.nickName)
@@ -91,6 +90,21 @@ class SpiderPongClient extends spiders.Application{
 
     receivePowerup(type : string){
         this.currentGame.receivePowerup(type)
+    }
+
+    //Invoked by UI
+    sendBall(x,y,vx,vy,ref){
+        ref.receiveBall(x,y,vx,vy)
+    }
+
+    //Invoked by UI
+    sendScoreChange(score,ref){
+        ref.scoreChange(score)
+    }
+
+    //Invoked by UI
+    sendPowerup(type,ref){
+        ref.receivePowerup(type)
     }
 }
 

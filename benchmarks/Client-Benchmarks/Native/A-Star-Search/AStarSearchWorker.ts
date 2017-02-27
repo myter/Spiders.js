@@ -42,7 +42,9 @@ module.exports = function (self) {
         function setParent(node,newParent){
             var success = getParentInPath(node) == null
             if(success){
-                setParentInPath(node,newParent)
+                if(node.includes(newParent)){
+                    setParentInPath(node,newParent)
+                }
                 setDistanceFromRoot(node,getDistanceFromRoot(node) + distanceFrom(node,newParent))
             }
             return success

@@ -30,17 +30,25 @@ class Worker extends spiders.Actor{
         }
     }
 
-    pi(precision) {
+    calcTerm(term) {
         // the Bailey-Borwein-Plouffe formula
         // http://stackoverflow.com/questions/4484489/using-basic-arithmetics-for-calculating-pi-with-arbitary-precision
         var p16 = new this.Decimal(1);
-        var pi = new this.Decimal(0);
+        var term = new this.Decimal(0);
         var one = new this.Decimal(1);
         var two = new this.Decimal(2);
         var four = new this.Decimal(4);
-        var k8 = new this.Decimal(0);
+        var k8 = new this.Decimal(term);
+        var f = four.div(k8.plus(1))
+            .minus(two.div(k8.plus(4)))
+            .minus(one.div(k8.plus(5)))
+            .minus(one.div(k8.plus(6)));
 
-        for (var k = new this.Decimal(0); k.lte(precision); k = k.plus(one)) {
+        term = term.plus(p16.times(f));
+        p16 = p16.div(16);
+        k8 = k8.plus(8);
+
+        /*for (var k = new this.Decimal(0); k.lte(precision); k = k.plus(one)) {
             // pi += 1/p16 * (4/(8*k + 1) - 2/(8*k + 4) - 1/(8*k + 5) - 1/(8*k+6));
             // p16 *= 16;
             //
@@ -56,20 +64,22 @@ class Worker extends spiders.Actor{
             pi = pi.plus(p16.times(f));
             p16 = p16.div(16);
             k8 = k8.plus(8);
-        }
+        }*/
 
-        return pi;
+        return term;
     }
 
     calculateBbpTerm(precision,term){
         //At this point getting the actual term does not matter
         //Naive implementation of benchmark which simply calculated pi for the given precies for each term
-        var piNum = this.pi(precision)
+        var term = this.calcTerm(term)
+        console.log("Calculating")
+        return this.calcTerm(term)
     }
 
     work(precision,term) {
         var result = this.calculateBbpTerm(precision, term)
-        this.masterRef.gotResult(result, this.id)
+        this.masterRef.gotResult(0, this.id)
     }
 
     stop() {
@@ -83,8 +93,8 @@ class Master extends spiders.Actor{
     workers                 = []
     result                  = 0
     tolerance               = null
+    currentTerm             = 0
     numWorkersTerminated    = 0
-    numTermsRequested       = 0
     numTermsReceived        = 0
     stopRequests            = false
 
@@ -107,11 +117,14 @@ class Master extends spiders.Actor{
     }
 
     generateWork(id) {
-        this.workers[id].work(this.precision, this.numTermsRequested)
-        this.numTermsRequested += 1
+        this.workers[id].work(this.precision, this.currentTerm)
+        this.currentTerm += 1
     }
 
     start() {
+        /*this.workers.forEach((_,id)=>{
+            this.generateWork(id)
+        })*/
         var t = 0
         while (t < this.precision) {
             this.generateWork(t % this.numWorkers)
@@ -127,9 +140,13 @@ class Master extends spiders.Actor{
 
     gotResult(result,id) {
         this.numTermsReceived += 1
-        if (this.numTermsReceived == this.numTermsRequested) {
+        if (this.numTermsReceived == this.precision) {
             this.requestWorkersToExit()
         }
+        /*else{
+            //This worker is now idle, send back work
+            this.generateWork(id)
+        }*/
     }
 
     workerStopped() {

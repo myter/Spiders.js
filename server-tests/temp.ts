@@ -2,7 +2,7 @@ import {SpiderLib, FarRef} from "../src/spiders";
 /**
  * Created by flo on 25/01/2017.
  */
-var spiders : SpiderLib = require("../src/spiders")
+/*var spiders : SpiderLib = require("../src/spiders")
 var app = new spiders.Application()
 class SuperActor extends spiders.Actor{
     test(){
@@ -17,4 +17,15 @@ class Base extends SuperActor{
 var a = app.spawnActor(Base)
 a.test().then((v)=>{
     console.log("Got : " + v)
+})*/
+
+var fork		                = require('child_process').fork
+var c1                          = fork(__dirname + '/tempChild.js')
+c1.on('message' ,(data) =>{
+    console.log("C1 said : " + data)
 })
+var c2                          = fork(__dirname + '/tempChild.js')
+c2.on('message',(data)=>{
+    console.log("C2 said : " + data)
+})
+c1.send('message',c2)

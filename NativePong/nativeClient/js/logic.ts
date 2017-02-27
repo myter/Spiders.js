@@ -98,14 +98,17 @@ class NativePongClient{
         this.currentGame.receiveBall({ x: x, y: y, vx: vx, vy: vy })
     }
 
+    //Invoked by the UI
     sendBallTo(opponent : string,x,y,vx,vy){
         this.serverRef.emit('message',["forwardReceiveBall",opponent,x,y,vx,vy])
     }
 
+    //Invoked by the UI
     sendScoreChangeTo(opponent : string,score){
         this.serverRef.emit('message',["forwardScoreChange",opponent,score])
     }
 
+    //Invoked by the UI
     sendPowerupTo(opponent : string,type){
         this.serverRef.emit('message',["forwardReceivePowerup",opponent,type])
     }

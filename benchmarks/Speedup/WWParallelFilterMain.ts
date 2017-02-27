@@ -36,7 +36,7 @@ export class WWParallelFilterBench extends SpiderBenchmark{
         var totalHeight = imageData.height
         var totalPixels  = imageData.data
         var widthPerWorker = Math.ceil(totalWidth / BenchConfig.filterImageWorkers)
-        var heightPerWorker = Math.ceil(totalHeight / BenchConfig.filterImageWorkers)
+        //var heightPerWorker = Math.ceil(totalHeight / BenchConfig.filterImageWorkers)
         var pixelsPerWorker = Math.ceil(totalPixels.length / BenchConfig.filterImageWorkers)
        // console.log("Pixels per worker : " + pixelsPerWorker + " width " + widthPerWorker + " height " + heightPerWorker)
         for(var i = 0;i < BenchConfig.filterImageWorkers;i++){
@@ -48,7 +48,7 @@ export class WWParallelFilterBench extends SpiderBenchmark{
                 stop = totalPixels.length
             }
             var actData = (totalPixels as any).splice(0,stop)
-            act.postMessage([kernel,actData,widthPerWorker,heightPerWorker])
+            act.postMessage([kernel,actData,widthPerWorker,totalHeight])
         }
     }
 

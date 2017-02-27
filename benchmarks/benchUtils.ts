@@ -86,8 +86,8 @@ export class BenchConfig {
     static trapezoidLeft        = 1
     static trapezoidRight       = 5
     //Pi Precision
-    static piPrecisionWorkers   = 1
-    static piPrecisionPrecision = 500
+    static piPrecisionWorkers   = 10
+    static piPrecisionPrecision = 10
     //Matrix Multiplication
     static matMulWorkers        = 20
     static matMulDataLength     = 512
@@ -95,7 +95,7 @@ export class BenchConfig {
     //Quicksort
     static quickDataSize        = 5000
     static quickMaxVal          = 1 << 60
-    static quickThreshold       = 1000
+    static quickThreshold       = 3000
     //All pair shortes path
     static apspN                = 20
     static apspB                = 5
@@ -118,7 +118,7 @@ export class BenchConfig {
     static nQueensPriorities    = 10
 
     //Filter (used for speedup), not part of savina benchmark suite
-    static filterImageSize      = 5000
+    static filterImageSize      = 30000
     static filterImageWorkers   = 0
     static makeFilterImage(){
         var res = []
@@ -132,6 +132,11 @@ export class BenchConfig {
         }
     }
     static filterBaseKernal     = [[0 , -1 ,  0], [-1,  2 , -1], [0 , -1 ,  0]]
+
+    //Monte carlo (used for speedup), not part of savina benchmark suite
+    static monteCarloRuns = 0
+    static monteCarloWorkers = 0
+    static monteCarloMax = 50000000
 }
 var Benchmark = require('benchmark');
 var isNode = false;
@@ -178,6 +183,7 @@ export class SpiderBenchmarkRunner{
             },
             onCycle: function(){
                 console.log(spiderBench.cycleMessage)
+                console.log("Current mean: " + (this as any).stats.mean)
             },
             onComplete: function(){
                 if(isNode){
@@ -188,7 +194,7 @@ export class SpiderBenchmarkRunner{
                 //This will actually be bound to type
                 console.log(spiderBench.completeMessage + (this as any).stats.mean)
                 console.log("Error margin: " + (this as any).stats.moe)
-                //console.log((this as any).stats.sample.toString())
+                console.log((this as any).stats.sample.toString())
                 spiderBench.cleanUp()
                 that.nextBenchmark()
             },

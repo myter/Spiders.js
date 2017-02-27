@@ -96,8 +96,8 @@ BenchConfig.trapezoidWorkers = 10;
 BenchConfig.trapezoidLeft = 1;
 BenchConfig.trapezoidRight = 5;
 //Pi Precision
-BenchConfig.piPrecisionWorkers = 1;
-BenchConfig.piPrecisionPrecision = 500;
+BenchConfig.piPrecisionWorkers = 10;
+BenchConfig.piPrecisionPrecision = 10;
 //Matrix Multiplication
 BenchConfig.matMulWorkers = 20;
 BenchConfig.matMulDataLength = 512;
@@ -105,7 +105,7 @@ BenchConfig.matMulThreshold = 8192;
 //Quicksort
 BenchConfig.quickDataSize = 5000;
 BenchConfig.quickMaxVal = 1 << 60;
-BenchConfig.quickThreshold = 1000;
+BenchConfig.quickThreshold = 3000;
 //All pair shortes path
 BenchConfig.apspN = 20;
 BenchConfig.apspB = 5;
@@ -127,9 +127,13 @@ BenchConfig.nQueensThreshold = 3;
 BenchConfig.nQueensSolutions = 1500;
 BenchConfig.nQueensPriorities = 10;
 //Filter (used for speedup), not part of savina benchmark suite
-BenchConfig.filterImageSize = 5000;
+BenchConfig.filterImageSize = 30000;
 BenchConfig.filterImageWorkers = 0;
 BenchConfig.filterBaseKernal = [[0, -1, 0], [-1, 2, -1], [0, -1, 0]];
+//Monte carlo (used for speedup), not part of savina benchmark suite
+BenchConfig.monteCarloRuns = 0;
+BenchConfig.monteCarloWorkers = 0;
+BenchConfig.monteCarloMax = 50000000;
 exports.BenchConfig = BenchConfig;
 var Benchmark = require('benchmark');
 var isNode = false;
@@ -164,6 +168,7 @@ class SpiderBenchmarkRunner {
             },
             onCycle: function () {
                 console.log(spiderBench.cycleMessage);
+                console.log("Current mean: " + this.stats.mean);
             },
             onComplete: function () {
                 if (isNode) {
@@ -174,7 +179,7 @@ class SpiderBenchmarkRunner {
                 //This will actually be bound to type
                 console.log(spiderBench.completeMessage + this.stats.mean);
                 console.log("Error margin: " + this.stats.moe);
-                //console.log((this as any).stats.sample.toString())
+                console.log(this.stats.sample.toString());
                 spiderBench.cleanUp();
                 that.nextBenchmark();
             },

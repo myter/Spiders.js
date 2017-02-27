@@ -22,11 +22,9 @@ class SpiderPongServer extends spiders.Application{
         this.games      = new Map()
         this.clients    = new Map()
         this.occupation = new Map()
-        console.log("Spider Pong Server Started")
     }
 
     newClient(nickName : string,ref : FarRef){
-        console.log("Client connected: " + nickName)
         this.clients.set(nickName,new Player(ref,nickName))
         this.games.forEach((creator : Player,roomName : string)=>{
             ref.newGameCreated(roomName,creator.ref)

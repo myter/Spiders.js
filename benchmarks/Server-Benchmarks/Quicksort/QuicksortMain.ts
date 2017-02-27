@@ -59,10 +59,11 @@ export class NodeQuicksortBench extends SpiderBenchmark{
         }
         that.mainSocket = new ServerBufferSocket(SpiderBenchmark._MAIN_PORT_,sysHandle)
         that.quickRef = that.spawnNode("Quicksort/QuicksortActor",sysHandle,NodeQuicksortBench._QUICK_PORT_)
+        that.spawned.set(NodeQuicksortBench._QUICK_PORT_,that.quickRef)
         that.quickRef.emit(["config",false,BenchConfig.quickDataSize,BenchConfig.quickMaxVal,BenchConfig.quickThreshold,0,"INITIAL"])
         for(var i = 0;i < BenchConfig.quickDataSize;i++){
-            var data = Math.floor(Math.random() * (BenchConfig.quickMaxVal - 0) + 0) % BenchConfig.quickMaxVal
-            that.quickRef.emit(["newData",data])
+            var dat = Math.floor(Math.random() * (BenchConfig.quickMaxVal - 0) + 0) % BenchConfig.quickMaxVal
+            that.quickRef.emit(["newData",dat])
         }
         that.quickRef.emit(["configDone"])
     }

@@ -14,7 +14,7 @@ var myPort = parseInt(process.argv[2])
 new ServerBufferSocket(myPort,mHandle)
 var socketToMain = new ClientBufferSocket(SpiderBenchmark._MAIN_PORT_,mHandle)
 
-function mHandle(data){
+function mHandle(mData){
     function config(hasParent,ds,mv,thresh,pos,parentPort){
         if(hasParent){
             parentRef 	= new ClientBufferSocket(parentPort,mHandle)
@@ -166,12 +166,12 @@ function mHandle(data){
         }
     }
 
-    switch(data[0]){
+    switch(mData[0]){
         case "config":
-            config(data[1],data[2],data[3],data[4],data[5],data[6])
+            config(mData[1],mData[2],mData[3],mData[4],mData[5],mData[6])
             break;
         case "newData":
-            newData(data[1])
+            newData(mData[1])
             break;
         case "configDone":
             configDone()
@@ -180,12 +180,12 @@ function mHandle(data){
             sort()
             break;
         case "childSpawned":
-            childSpawned(data[1],data[2])
+            childSpawned(mData[1],mData[2])
             break;
         case "gotResult":
-            gotResult(data[1],data[2])
+            gotResult(mData[1],mData[2])
             break;
         default :
-            console.log("Unknown message (Actor): " + data[0])
+            console.log("Unknown message (Actor): " + mData[0])
     }
 }

@@ -103,6 +103,26 @@ class Quick extends spiders.Actor{
         return result
     }
 
+    childSpawned(ref,position){
+        var data            = this.data
+        var dataLengthHalf 	= Math.floor(data.length / 2)
+        var pivot 			= data[dataLengthHalf]
+        var leftUnsorted 	= this.filterLessThan(data,pivot)
+        var rightUnsorted 	= this.filterGreaterThan(data,pivot)
+        if(position == "LEFT"){
+            for(var i in leftUnsorted){
+                ref.newData(leftUnsorted[i])
+            }
+        }
+        else{
+            for(var i in rightUnsorted){
+                ref.newData(rightUnsorted[i])
+            }
+        }
+        ref.configDone()
+        ref.sort()
+    }
+
     sort() {
         var data = this.data
         if (!this.exited) {
@@ -114,16 +134,20 @@ class Quick extends spiders.Actor{
             else {
                 var dataLengthHalf = dataLength / 2
                 var pivot = data[dataLengthHalf]
-                var leftUnsorted = this.filterLessThan(data, pivot)
                 this.parent.spawnNew(this, "LEFT").then((ref)=>{
+                    var dataLengthHalf = dataLength / 2
+                    var pivot = data[dataLengthHalf]
+                    var leftUnsorted = this.filterLessThan(data, pivot)
                     leftUnsorted.forEach((uns)=>{
                         ref.newData(uns)
                     })
                     ref.configDone()
                     ref.sort()
                 })
-                var rightUnsorted = this.filterGreaterThan(data, pivot)
                 this.parent.spawnNew(this, "RIGHT").then((ref)=> {
+                    var dataLengthHalf = dataLength / 2
+                    var pivot = data[dataLengthHalf]
+                    var rightUnsorted = this.filterGreaterThan(data, pivot)
                     rightUnsorted.forEach((uns)=>{
                         ref.newData(uns)
                     })
@@ -194,6 +218,7 @@ class QuickSortApp extends spiders.Application{
         var qRef = this.spawnActor(Quick)
         qRef.config(true, BenchConfig.quickDataSize, BenchConfig.quickMaxVal, BenchConfig.quickThreshold, parentRef, position)
         this.totalSpawned += 1
+        //parentRef.childSpawned(qRef,position)
         return qRef
     }
 }

@@ -36,6 +36,9 @@ module.exports = function (self) {
                 generateWork(t % numWorkers);
                 t += 1;
             }
+            /*for(var i in workers){
+                generateWork(i)
+            }*/
         }
         function requestWorkersToExit() {
             for (var i in workers) {
@@ -44,9 +47,12 @@ module.exports = function (self) {
         }
         function gotResult(result, id) {
             numTermsReceived += 1;
-            if (numTermsReceived == numTermsRequested) {
+            if (numTermsReceived == precision) {
                 requestWorkersToExit();
             }
+            /*else{
+                generateWork(id)
+            }*/
         }
         function workerStopped() {
             numWorkersTerminated += 1;

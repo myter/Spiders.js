@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="libs/highlight/styles/zenburn.css">
+
+    <title>CoCode</title>
+</head>
+
+<body>
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    #codeArea {
+        display: none;
+    }
+
+    #chatArea {
+        display: none;
+    }
+
+    .codeField {
+        height: auto;
+        min-height: 200px;
+    }
+
+    #CodeCommitButton {
+        margin: 0 auto;
+        display: block;
+        width: 150px;
+    }
+</style>
+
+<div class="container" id="loginArea">
+    <div class="col-md-4 col-md-offset-4">
+        <form class="form-inline" id="loginForm">
+            <div class="form-group">
+                <label for="coderNameField">Name</label>
+                <input type="text" class="form-control" id="coderNameField" placeholder="John Doe" pattern=".{3,}">
+            </div>
+            <button type="submit" class="btn btn-primary">Go to editor</button>
+        </form>
+        <!-- <button id="loginbutton" class="btn btn-primary">test</button> -->
+
+    </div>
+</div>
+
+
+<div class="container" id="codeArea">
+    <div>
+        <pre><code class="hljs JavaScript codeField" contentEditable="true" id="codeField"></code></pre>
+    </div>
+    <div>
+        <button id="CodeCommitButton" class="btn btn-primary">Commit</button>
+    </div>
+</div>
+
+<hr>
+
+<div class="container" id="chatArea">
+    <div class="row">
+
+        <div class="col-md-6">
+            <span class="label label-primary" id="privateChatLabel">Private Chat</span>
+
+            <div class="input-group">
+                <select class="form-control" id="codersMenu"><option>Select Receiver</option></select>
+                <input type="text" class="form-control" id="privateMessageText">
+                <button id="privateSendButton" type="button" class="btn btn-default">Send</button>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <span class="label label-primary" id="chatLabel">Public Chat</span>
+            <div class="input-group">
+                <input type="text" class="form-control" id="publicMessageText">
+                <span class="input-group-btn"><button id="publicSendButton" class="btn btn-default">Send</button></span>
+            </div>
+            <textarea rows="4" cols="50" id="publicChat"></textarea>
+        </div>
+    </div>
+</div>
+
+
+<script src="bundle.js"></script>
+</body>
+</html>
+

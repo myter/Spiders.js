@@ -143,7 +143,7 @@ runner.schedule(NodeNQueensFirstNSolutionsBench)
 runner.schedule(SpiderNQueensFirstNSolutionsBench)*/
 
 runner.schedule(NodeQuicksortBench)
-runner.schedule(SpiderQuickSortBench)
+//runner.schedule(SpiderQuickSortBench)
 
 console.log("Starting server (final) benchmarks")
 runner.nextBenchmark()

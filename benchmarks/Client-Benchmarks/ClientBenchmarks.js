@@ -1,4 +1,6 @@
 const benchUtils_1 = require("../benchUtils");
+const AStarSearchMain_1 = require("./Native/A-Star-Search/AStarSearchMain");
+const AStarSearch_1 = require("./Spiders/AStarSearch");
 /**
  * Created by flo on 24/01/2017.
  */
@@ -73,6 +75,8 @@ runner.schedule(SpiderAStarSearchBench)
 
 runner.schedule(NatNQueensFirstNSolutionsBench)
 runner.schedule(SpiderNQueensFirstNSolutionsBench)*/
+runner.schedule(AStarSearchMain_1.NatAStarSearchBench);
+runner.schedule(AStarSearch_1.SpiderAStarSearchBench);
 console.log("Starting Benchmark");
 runner.nextBenchmark();
 //# sourceMappingURL=ClientBenchmarks.js.map

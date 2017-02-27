@@ -47,9 +47,9 @@ class ParallelFilterApp extends spiders.Application{
         var totalWidth = imageData.width
         var totalHeight = imageData.height
         var totalPixels  = imageData.data
-        var widthPerWorker = totalWidth / BenchConfig.filterImageWorkers
-        var heightPerWorker = totalHeight / BenchConfig.filterImageWorkers
-        var pixelsPerWorker = totalPixels.length / BenchConfig.filterImageWorkers
+        var widthPerWorker = Math.ceil(totalWidth / BenchConfig.filterImageWorkers)
+        var heightPerWorker = Math.ceil(totalHeight / BenchConfig.filterImageWorkers)
+        var pixelsPerWorker = Math.ceil(totalPixels.length / BenchConfig.filterImageWorkers)
         for(var i = 0;i < BenchConfig.filterImageWorkers;i++){
             let act = this.spawnActor(Worker)
             var stop = pixelsPerWorker
@@ -57,6 +57,7 @@ class ParallelFilterApp extends spiders.Application{
                 stop = totalPixels.length
             }
             var actData = (totalPixels as any).splice(0,stop)
+            //console.log("Sending filter to worker. Pixels : " + actData.length + " width : " + widthPerWorker + " height : " + totalHeight)
             act.filter(new this.ArrayIsolate(kernel),new this.ArrayIsolate(actData),widthPerWorker,heightPerWorker)
         }
     }

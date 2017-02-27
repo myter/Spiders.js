@@ -151,5 +151,7 @@ runner.schedule(SpiderAStarSearchBench)
 runner.schedule(NatNQueensFirstNSolutionsBench)
 runner.schedule(SpiderNQueensFirstNSolutionsBench)*/
 
+runner.schedule(NatAStarSearchBench)
+runner.schedule(SpiderAStarSearchBench)
 console.log("Starting Benchmark")
 runner.nextBenchmark()

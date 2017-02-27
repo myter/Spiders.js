@@ -1,0 +1,11 @@
+{
+  "name": "cocode",
+  "version": "0.0.1",
+  "scripts": {
+    "build-client": "browserify src/Client/cocode-client.js -o src/Client/bundle.js"
+  },
+  "dependencies": {
+    "Spiders.js": "../Spiders.js"
+  },
+  "devDependencies": {}
+}

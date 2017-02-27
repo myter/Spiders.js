@@ -18,7 +18,6 @@ class Player{
 }
 
 function newClient(nickName : string,ref : Socket){
-    console.log("Client connected: " + nickName)
     clients.set(nickName,new Player(ref,nickName))
     games.forEach((creator : Player,roomName : string)=>{
         ref.emit('message',["newGameCreated",roomName,creator.name])
@@ -114,5 +113,3 @@ socket.on('connect',(client)=>{
         }
     })
 })
-
-console.log('Server started')
