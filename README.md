@@ -10,10 +10,31 @@ Let’s face it, parallel programming is hard and dealing with the web workers o
 Spiders.js offers a comprehensible API based on communicating event loops which allow you to easily spawn actors in parallel.
 Moreover, these actors can natively communicate with any other Spiders.js actor (whether these actors reside on the same machine or not).
 # Tutorial
-## On Actors and Communicating Event Loops
 Actors allow you to deal with parallelism without the hassles of data races and shared mutable state.
 An actor is basically a thread running in complete isolation which communicates with other actors via message passing.
 Communicating event loops are a special flavour of actors which add object-oriented constructs to this parallel model.
+## Spiders.js basics
+Any Spiders.js app must create an instance of the ```application``` class.
+This instance will serve as an actor factory and as a broker between your parallel code and the "outside" world (e.g. the DOM).
+```javascript
+var spiders = require('spiders.js')
+class HelloWorldApp extends spiders.Application{
+  hello(message){
+    console.log("Hello " + message)
+  }
+}
+var app = new HelloWorldApp()
+```
+Actors are defined by extending the ```actor``` class and are spawned by providing their class to the ```spawnActor```method of your application instance.
+```javascript
+class HelloWorldActor extends spiders.Actor{
+  world(){
+    this.parent.hello("world")
+  }
+}
+var actorRef = app.spanwnActor(HelloWorldActor)
+actorRef.world()
+```
 ## Parallel Example
 ```javascript
 var spiders = require('spiders.js')
