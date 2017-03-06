@@ -5,3 +5,9 @@ Install with npm:
   ```
   npm install spiders.js
   ```
+# Parallel Example
+TODO
+# Distributed Example
+TODO
+# Spiders.ts
+TODO
