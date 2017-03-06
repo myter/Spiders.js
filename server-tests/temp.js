@@ -1,30 +1,21 @@
-/**
- * Created by flo on 25/01/2017.
- */
-/*var spiders : SpiderLib = require("../src/spiders")
-var app = new spiders.Application()
-class SuperActor extends spiders.Actor{
-    test(){
-        return 5
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var spiders = require('../src/spiders');
+var App = (function (_super) {
+    __extends(App, _super);
+    function App() {
+        _super.apply(this, arguments);
     }
-}
-class Base extends SuperActor{
-    test(){
-        return (super.test())
+    return App;
+}(spiders.Application));
+var Act = (function (_super) {
+    __extends(Act, _super);
+    function Act() {
+        _super.apply(this, arguments);
     }
-}
-var a = app.spawnActor(Base)
-a.test().then((v)=>{
-    console.log("Got : " + v)
-})*/
-var fork = require('child_process').fork;
-var c1 = fork(__dirname + '/tempChild.js');
-c1.on('message', (data) => {
-    console.log("C1 said : " + data);
-});
-var c2 = fork(__dirname + '/tempChild.js');
-c2.on('message', (data) => {
-    console.log("C2 said : " + data);
-});
-c1.send('message', c2);
-//# sourceMappingURL=temp.js.map
+    return Act;
+}(spiders.Actor));
