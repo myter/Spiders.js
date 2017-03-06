@@ -42,7 +42,7 @@ node examples/HelloWorld.js
 ```
 ## Same API, client or server
 Spiders.js provides the same API whether the application is running on a server or in a browser.
-A web worker is spawned for actors running in the browser, while server-side actors run atop child processes.
+client-side actors are implemented using web workers, while server-side actors run atop child processes.
 Moreover, Spiders.js is browserifiable !
 ## Built-in distribution
 TODO
