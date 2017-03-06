@@ -11,10 +11,12 @@ Spiders.js offers a comprehensible API based on communicating event loops which 
 Moreover, these actors can natively communicate with any other Spiders.js actor (whether these actors reside on the same machine or not).
 # Tutorial
 ## On Actors and Communicating Event Loops
-TODO
+Actors allow you to deal with parallelism without the hassles of data races and shared mutable state.
+An actor is basically a thread running in complete isolation which communicates with other actors via message passing.
+Communicating event loops are a special flavour of actors which add object-oriented constructs to this parallel model.
 ## Parallel Example
 ```javascript
-var spiders = require('../src/spiders')
+var spiders = require('spiders.js')
 class PingPongApp extends spiders.Application{
     constructor(){
         super()
