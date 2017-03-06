@@ -4,5 +4,8 @@
     "target": "es6",
     "sourceMap": true,
     "noImplicitUseStrict" : true
-  }
+  },
+  "files": [
+    "./src/spiders.ts"
+  ]
 }

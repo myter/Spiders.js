@@ -1,6 +1,8 @@
 {
-  "name": "Spiders.js",
-  "version": "0.0.1",
+  "name": "spiders.js",
+  "version": "1.0.0",
+  "main": "src/spiders.js",
+  "typings": "src/spiders",
   "scripts": {
     "build-client-tests": "browserify client-tests/test.js -o client-tests/bundle.js",
     "build-full-tests-client1": "browserify full-tests/client1.js -o full-tests/full-bundle1.js",

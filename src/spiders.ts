@@ -13,7 +13,6 @@ import {installSTDLib} from "./utils";
  * Created by flo on 05/12/2016.
  */
 var utils         = require('./utils')
-var portastic     = require('portastic')
 
 export class Isolate{
     constructor(){

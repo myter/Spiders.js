@@ -10,7 +10,6 @@ const messages_1 = require("./messages");
  * Created by flo on 05/12/2016.
  */
 var utils = require('./utils');
-var portastic = require('portastic');
 class Isolate {
     constructor() {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
