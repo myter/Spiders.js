@@ -25,7 +25,8 @@ class HelloWorldApp extends spiders.Application{
 }
 var app = new HelloWorldApp()
 ```
-Actors are defined by extending the ```actor``` class and are spawned by providing their class to the ```spawnActor```method of your application instance.
+Actors are defined by extending the ```actor``` class and are spawned by providing their class to the ```spawnActor```method of the ```Application``` instance. The method returns a reference to the actor which allows you to asynchronously invoke its methods.
+Each actor has a ```parent``` reference which points to its spawner.
 ```javascript
 class HelloWorldActor extends spiders.Actor{
   world(){
