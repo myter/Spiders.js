@@ -36,44 +36,15 @@ class HelloWorldActor extends spiders.Actor{
 var actorRef = app.spanwnActor(HelloWorldActor)
 actorRef.world()
 ```
-## Parallel Example
+Run the example with:
 ```javascript
-var spiders = require('spiders.js')
-class PingPongApp extends spiders.Application{
-    constructor(){
-        super()
-        this.pings = 0
-    }
-    pingReceived(){
-        this.pings += 1
-        if(this.pings > 10){
-            this.kill()
-        }
-    }
-}
-var app = new PingPongApp()
-class PingActor extends spiders.Actor{
-    start(pongRef){
-        pongRef.ping(this)
-    }
-
-    pong(pongRef){
-        console.log("Pong")
-        pongRef.ping(this)
-    }
-}
-class PongActor extends spiders.Actor{
-    ping(pingRef){
-        console.log("Ping")
-        this.parent.pingReceived()
-        pingRef.pong(this)
-    }
-}
-var pongRef = app.spawnActor(PongActor)
-var pingRef = app.spawnActor(PingActor)
-pingRef.start(pongRef)
+node examples/HelloWorld.js
 ```
-## Distributed Example
+## Same API, client or server
+Spiders.js provides the same API whether the application is running on a server or in a browser.
+client-side actors are implemented using web workers, while server-side actors run atop child processes.
+Moreover, Spiders.js is browserifiable !
+## Built-in distribution
 TODO
 # Typed Spiders
 TODO
