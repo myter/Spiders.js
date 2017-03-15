@@ -8,7 +8,6 @@ import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
-import {installSTDLib} from "./utils";
 /**
  * Created by flo on 05/12/2016.
  */

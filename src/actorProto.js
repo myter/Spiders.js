@@ -1,11 +1,12 @@
+"use strict";
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
-const messageHandler_1 = require("./messageHandler");
-const sockets_1 = require("./sockets");
-const objectPool_1 = require("./objectPool");
-const farRef_1 = require("./farRef");
-const PromisePool_1 = require("./PromisePool");
-const serialisation_1 = require("./serialisation");
-const ChannelManager_1 = require("./ChannelManager");
+var messageHandler_1 = require("./messageHandler");
+var sockets_1 = require("./sockets");
+var objectPool_1 = require("./objectPool");
+var farRef_1 = require("./farRef");
+var PromisePool_1 = require("./PromisePool");
+var serialisation_1 = require("./serialisation");
+var ChannelManager_1 = require("./ChannelManager");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -51,4 +52,3 @@ else {
     socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
     utils.installSTDLib(false, thisRef, parentRef, behaviourObject, socketManager, promisePool);
 }
-//# sourceMappingURL=actorProto.js.map

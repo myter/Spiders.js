@@ -1,3 +1,4 @@
+///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 import {MessageHandler} from "./messageHandler";
 import {Message, ConnectRemoteMessage} from "./messages";
 import {Socket} from "net";

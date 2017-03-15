@@ -1,4 +1,5 @@
-const spiders_1 = require("./spiders");
+"use strict";
+var spiders_1 = require("./spiders");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -38,17 +39,16 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
     if (!appActor) {
         behaviourObject["parent"] = parentRef.proxyify();
     }
-    behaviourObject["remote"] = (address, port) => {
+    behaviourObject["remote"] = function (address, port) {
         return commMedium.connectRemote(thisRef, address, port, promisePool);
     };
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
     if (!appActor) {
         var initChain = getInitChain(behaviourObject, []);
-        initChain.forEach((initFunc) => {
+        initChain.forEach(function (initFunc) {
             initFunc.apply(behaviourObject, []);
         });
     }
 }
 exports.installSTDLib = installSTDLib;
-//# sourceMappingURL=utils.js.map
