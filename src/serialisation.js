@@ -281,10 +281,11 @@ class ArrayIsolateContainer extends ValueContainer {
 ArrayIsolateContainer.checkArrayIsolateFuncKey = "_INSTANCEOF_ARRAY_ISOLATE_";
 exports.ArrayIsolateContainer = ArrayIsolateContainer;
 class RepliqContainer extends ValueContainer {
-    constructor(fields, methods, repliqId, masterOwnerId) {
+    constructor(fields, methods, atomicMethods, repliqId, masterOwnerId) {
         super(ValueContainer.repliqType);
         this.fields = fields;
         this.methods = methods;
+        this.atomicMethods = atomicMethods;
         this.repliqId = repliqId;
         this.masterOwnerId = masterOwnerId;
     }
@@ -345,12 +346,18 @@ function serialiseRepliq(repliqProxy) {
     let fieldsArr = serialiseRepliqFields(fields);
     let methods = repliqProxy[Repliq_1.Repliq.getRepliqOriginalMethods];
     let methodArr = [];
+    let atomicArr = [];
     methods.forEach((method, methodName) => {
-        methodArr.push([methodName, method.toString()]);
+        if (method[Repliq_1.Repliq.isAtomic]) {
+            atomicArr.push([methodName, method.toString()]);
+        }
+        else {
+            methodArr.push([methodName, method.toString()]);
+        }
     });
     let repliqId = repliqProxy[Repliq_1.Repliq.getRepliqID];
     let repliqOwnerId = repliqProxy[Repliq_1.Repliq.getRepliqOwnerID];
-    return new RepliqContainer(JSON.stringify(fieldsArr), JSON.stringify(methodArr), repliqId, repliqOwnerId);
+    return new RepliqContainer(JSON.stringify(fieldsArr), JSON.stringify(methodArr), JSON.stringify(atomicArr), repliqId, repliqOwnerId);
 }
 function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
     if (typeof value == 'object') {
@@ -494,7 +501,11 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         (JSON.parse(repliqContainer.methods)).forEach(([methodName, methodSource]) => {
             methods.set(methodName, constructMethod(methodSource));
         });
-        return blankRepliq.reconstruct(gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods);
+        let atomicMethods = new Map();
+        (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName, methodSource]) => {
+            atomicMethods.set(methodName, constructMethod(methodSource));
+        });
+        return blankRepliq.reconstruct(gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods);
     }
     switch (value.type) {
         case ValueContainer.nativeType:

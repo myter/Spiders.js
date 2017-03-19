@@ -152,10 +152,12 @@ if (utils.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;
     exports.Repliq = Repliq_1.Repliq;
+    exports.atomic = Repliq_1.atomic;
 }
 else {
     exports.Application = ServerApplication;
     exports.Actor = ServerActor;
     exports.Repliq = Repliq_1.Repliq;
+    exports.atomic = Repliq_1.atomic;
 }
 //# sourceMappingURL=spiders.js.map

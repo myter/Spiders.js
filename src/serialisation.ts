@@ -321,14 +321,16 @@ export class ArrayIsolateContainer extends ValueContainer{
 export class RepliqContainer extends ValueContainer{
     fields                      : string
     methods                     : string
+    atomicMethods               : string
     repliqId                    : string
     masterOwnerId               : string
     static checkRepliqFuncKey   : string = "_INSTANCEOF_REPLIQ_"
 
-    constructor(fields : string,methods : string,repliqId : string,masterOwnerId : string){
+    constructor(fields : string,methods : string,atomicMethods : string,repliqId : string,masterOwnerId : string){
         super(ValueContainer.repliqType)
         this.fields         = fields
         this.methods        = methods
+        this.atomicMethods  = atomicMethods
         this.repliqId       = repliqId
         this.masterOwnerId  = masterOwnerId
     }
@@ -404,12 +406,18 @@ function serialiseRepliq(repliqProxy) : RepliqContainer{
     let fieldsArr       = serialiseRepliqFields(fields)
     let methods         = repliqProxy[Repliq.getRepliqOriginalMethods]
     let methodArr       = []
+    let atomicArr       = []
     methods.forEach((method,methodName)=>{
-        methodArr.push([methodName,method.toString()])
+        if(method[Repliq.isAtomic]){
+            atomicArr.push([methodName,method.toString()])
+        }
+        else{
+            methodArr.push([methodName,method.toString()])
+        }
     })
     let repliqId        = repliqProxy[Repliq.getRepliqID]
     let repliqOwnerId   = repliqProxy[Repliq.getRepliqOwnerID]
-    return new RepliqContainer(JSON.stringify(fieldsArr),JSON.stringify(methodArr),repliqId,repliqOwnerId)
+    return new RepliqContainer(JSON.stringify(fieldsArr),JSON.stringify(methodArr),JSON.stringify(atomicArr),repliqId,repliqOwnerId)
 }
 
 export function serialise(value,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool) : ValueContainer{
@@ -543,8 +551,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
     }
 
     function deSerialiseRepliq(repliqContainer : RepliqContainer){
-        let blankRepliq = new Repliq()
-        let fields      = new Map();
+        let blankRepliq     = new Repliq()
+        let fields          = new Map();
         (JSON.parse(repliqContainer.fields)).forEach((repliqField : RepliqFieldContainer)=>{
             let field : any                 = {}
             let fieldProto : any            = {}
@@ -559,11 +567,15 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             fieldProto.update               = constructMethod(repliqField.updateFunc)
             fields.set(field.name,field)
         })
-        let methods     = new Map();
+        let methods         = new Map();
         (JSON.parse(repliqContainer.methods)).forEach(([methodName,methodSource])=>{
             methods.set(methodName,constructMethod(methodSource))
         })
-        return blankRepliq.reconstruct(gspInstance,repliqContainer.repliqId,repliqContainer.masterOwnerId,fields,methods)
+        let atomicMethods   = new Map();
+        (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName,methodSource])=>{
+            atomicMethods.set(methodName,constructMethod(methodSource))
+        })
+        return blankRepliq.reconstruct(gspInstance,repliqContainer.repliqId,repliqContainer.masterOwnerId,fields,methods,atomicMethods)
     }
 
     switch(value.type){

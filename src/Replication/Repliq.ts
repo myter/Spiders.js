@@ -6,6 +6,16 @@ var utils = require("../utils")
 /**
  * Created by flo on 16/03/2017.
  */
+
+export function atomic(target : any,propertyKey : string,descriptor : PropertyDescriptor){
+    let originalMethod = descriptor.value
+    originalMethod[Repliq.isAtomic] = true
+    return {
+        value : originalMethod
+    }
+}
+
+
 export class Repliq{
     static getRepliqFields              = "_GET_REPLIQ_FIELDS_"
     static getRepliqID                  = "_GET_REPLIQ_ID_"
@@ -13,12 +23,13 @@ export class Repliq{
     static getRepliqOriginalMethods     = "_GET_REPLIQ_ORIGI_METHODS_"
     static resetRepliqCommit            = "_RESET_REPLIQ_"
     static commitRepliq                 = "_COMMIT_"
+    static isAtomic                     = "_IS_ATOMIC_"
 
     private isMetaField(fieldName : string) : boolean{
         return fieldName == Repliq.getRepliqFields || fieldName == Repliq.getRepliqID || fieldName == Repliq.getRepliqOwnerID || fieldName == Repliq.getRepliqOriginalMethods || fieldName == Repliq.resetRepliqCommit || fieldName == Repliq.commitRepliq || fieldName == RepliqContainer.checkRepliqFuncKey
     }
 
-    private makeMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqField<any>>){
+    private makeAtomicMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqField<any>>){
         return {
             apply: function(target,thisArg,args){
                 let round
@@ -42,6 +53,28 @@ export class Repliq{
                     gspInstance.yield(objectId,ownerId)
                 }
                 return res
+            }
+        }
+    }
+
+    private makeMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqField<any>>){
+        return {
+            apply: function(target,thisArg,args){
+                //The "this" argument of a method is set to a proxy around the original object which intercepts assignment and calls "writeField" on the Field
+                let thisProxy = new Proxy(thisArg,{
+                    set : function(target,property,value,receiver){
+                        let gspField = fields.get(<string> property)
+                        if(!gspInstance.inReplay(objectId)){
+                            let round  = gspInstance.newRound(objectId,ownerId,methodName,args)
+                            let update = new FieldUpdate(property,gspField.read(),value)
+                            round.addUpdate(update)
+                            gspInstance.yield(objectId,ownerId)
+                        }
+                        gspField.writeField(value)
+                        return true
+                    }
+                })
+                return target.apply(thisProxy,args)
             }
         }
     }
@@ -127,7 +160,13 @@ export class Repliq{
         methodKeys.forEach((key)=>{
             var property    = Reflect.get(Object.getPrototypeOf(this),key)
             originalMethods.set(key,property)
-            var proxyMethod = new Proxy(property,this.makeMethodProxyHandler(gspInstance,repliqId,thisActorId,key.toString(),fields))
+            let proxyMethod
+            if(property[Repliq.isAtomic]){
+                proxyMethod = new Proxy(property,this.makeAtomicMethodProxyHandler(gspInstance,repliqId,thisActorId,key.toString(),fields))
+            }
+            else{
+                proxyMethod = new Proxy(property,this.makeMethodProxyHandler(gspInstance,repliqId,thisActorId,key.toString(),fields))
+            }
             Reflect.set(Object.getPrototypeOf(objectToProxy),key,proxyMethod)
         })
         let repliqProxy     = new Proxy(objectToProxy,handler)
@@ -135,7 +174,7 @@ export class Repliq{
         return repliqProxy
     }
 
-    reconstruct(gspInstance : GSP,repliqId : string,repliqOwnerId : string,fields : Map<string,RepliqField<any>>,methods  : Map<string,Function>){
+    reconstruct(gspInstance : GSP,repliqId : string,repliqOwnerId : string,fields : Map<string,RepliqField<any>>,methods  : Map<string,Function>,atomicMethods : Map<string,Function>){
         let objectToProxy   = {}
         let protoToProxy    = {}
         Object.setPrototypeOf(objectToProxy,protoToProxy)
@@ -143,8 +182,15 @@ export class Repliq{
             Reflect.set(objectToProxy,fieldName,repliqField)
         })
         methods.forEach((method,methodName)=>{
-            let proxyMethod = new Proxy(method,this.makeMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
+            let proxyMethod  = new Proxy(method,this.makeMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
             Reflect.set(protoToProxy,methodName,proxyMethod)
+        })
+        atomicMethods.forEach((method,methodName)=>{
+            method[Repliq.isAtomic] = true
+            let proxyMethod = new Proxy(method,this.makeAtomicMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
+            Reflect.set(protoToProxy,methodName,proxyMethod)
+            //Store the atomic method in regular methods (in case this repliq is serialised again
+            methods.set(methodName,method)
         })
         let handler         = this.makeProxyHandler(fields,methods,repliqId,repliqOwnerId)
         let repliqProxy     = new Proxy(objectToProxy,handler)

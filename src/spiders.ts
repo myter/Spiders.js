@@ -9,7 +9,7 @@ import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
 import {GSP} from "./Replication/GSP";
-import {Repliq} from "./Replication/Repliq";
+import {Repliq, atomic} from "./Replication/Repliq";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -212,6 +212,7 @@ export interface SpiderLib{
     Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
     Repliq          : RepliqClass
+    atomic          : Function
 }
 //Ugly, but a far reference has no static interface
 export type FarRef = any
@@ -220,11 +221,13 @@ if(utils.isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor
     exports.Repliq      = Repliq
+    exports.atomic      = atomic
 }
 else{
     exports.Application = ServerApplication
     exports.Actor       = ServerActor
     exports.Repliq      = Repliq
+    exports.atomic      = atomic
 }
 
 
