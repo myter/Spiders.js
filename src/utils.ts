@@ -5,6 +5,7 @@ import {PromisePool} from "./PromisePool";
 import {Message, RouteMessage} from "./messages";
 import {MessageHandler} from "./messageHandler";
 import {Isolate, ArrayIsolate} from "./spiders";
+import {GSP} from "./Replication/GSP";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -41,7 +42,7 @@ function getInitChain(behaviourObject : any,result : Array<Function>){
 }
 
 
-export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool){
+export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool,gspInstance : GSP){
     if(!appActor){
         behaviourObject["parent"]   = parentRef.proxyify()
     }
@@ -50,6 +51,10 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
     }
     behaviourObject["Isolate"]      = Isolate
     behaviourObject["ArrayIsolate"] = ArrayIsolate
+    behaviourObject["newRepliq"]    = ((repliqClass)=>{
+        let repliqOb = new repliqClass()
+        return repliqOb.instantiate(gspInstance,thisRef.ownerId)
+    })
     if(!appActor){
         var initChain                   = getInitChain(behaviourObject,[])
         initChain.forEach((initFunc)=>{

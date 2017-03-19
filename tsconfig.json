@@ -6,7 +6,14 @@
     "noImplicitUseStrict" : true
   },
   "files": [
-    "./src/spiders.ts",
-    "../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"
+    "./src/spiders.ts"
+  ],
+  "include": [
+    "src/**/*",
+    "server-tests/**/*",
+    "typings/**/*" // <-- don't forget this line!
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

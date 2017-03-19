@@ -8,6 +8,8 @@ import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
+import {GSP} from "./Replication/GSP";
+import {Repliq} from "./Replication/Repliq";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -45,6 +47,7 @@ abstract class Actor{
     Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
     remote          : (string,number)=> Promise<FarRef>
+    newRepliq       : (RepliqClass) => Object
 }
 
 abstract class ClientActor extends Actor{
@@ -99,6 +102,7 @@ abstract class Application {
     mainObjectPool      : ObjectPool
     mainCommMedium      : CommMedium
     mainRef             : FarReference
+    gspInstance         : GSP
     appActors           : number = 0
 
     constructor(){
@@ -132,9 +136,10 @@ class ServerApplication extends Application{
         this.mainCommMedium     = new ServerSocketManager(mainIp,mainPort)
         this.socketManager      = this.mainCommMedium as ServerSocketManager
         this.mainRef            = new ServerFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainIp,this.mainPort,null,this.mainCommMedium as ServerSocketManager,this.mainPromisePool,this.mainObjectPool)
-        this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool)
+        this.gspInstance        = new GSP(this.socketManager,this.mainId,this.mainRef)
+        this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance)
         this.socketManager.init(this.mainMessageHandler)
-        utils.installSTDLib(true,this.mainRef,null,this,this.mainMessageHandler,this.mainCommMedium,this.mainPromisePool)
+        utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool,this.gspInstance)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
@@ -164,9 +169,10 @@ class ClientApplication extends Application{
         this.spawnedActors      = []
         this.channelManager     = this.mainCommMedium as ChannelManager
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
-        this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool)
+        this.gspInstance        = new GSP(this.channelManager,this.mainId,this.mainRef)
+        this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance)
         this.channelManager.init(this.mainMessageHandler)
-        utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool)
+        utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool,this.gspInstance)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){
@@ -190,6 +196,7 @@ interface AppType {
     Isolate             : IsolateClass
     ArrayIsolate        : ArrayIsolateClass
     remote              : (string,number)=> Promise<FarRef>
+    newRepliq           : (RepliqClass) => Object
 }
 export type ApplicationClass    = {
     new(...args : any[]): AppType
@@ -197,12 +204,14 @@ export type ApplicationClass    = {
 export type ActorClass          = {new(...args : any[]): Actor}
 export type IsolateClass        = {new(...args : any[]): Isolate}
 export type ArrayIsolateClass   = {new(...args : any[]): ArrayIsolate}
+export type RepliqClass         = {new(...args : any[]): Repliq}
 
 export interface SpiderLib{
     Application     : ApplicationClass
     Actor           : ActorClass
     Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
+    Repliq          : RepliqClass
 }
 //Ugly, but a far reference has no static interface
 export type FarRef = any
@@ -210,10 +219,12 @@ export type FarRef = any
 if(utils.isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor
+    exports.Repliq      = Repliq
 }
 else{
     exports.Application = ServerApplication
     exports.Actor       = ServerActor
+    exports.Repliq      = Repliq
 }
 
 

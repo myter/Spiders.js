@@ -3,12 +3,6 @@
  */
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_chai_index.d.ts"/>
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_mocha_index.d.ts"/>
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 /**
  * Created by flo on 10/01/2017.
  */
@@ -17,20 +11,18 @@ var chai = require('chai');
 var expect = chai.expect;
 var spider = require('../src/spiders');
 var serialisation = require('../src/serialisation');
-describe("Behaviour serialisation", function () {
+describe("Behaviour serialisation", () => {
     it("Field serialisation", function (done) {
         this.timeout(3000);
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.val = 10;
             }
-            return testActor;
-        }(spider.Actor));
+        }
         var actor = app.spawnActor(testActor);
-        actor.val.then(function (v) {
+        actor.val.then((v) => {
             try {
                 expect(v).to.equal(10);
                 app.kill();
@@ -42,23 +34,18 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Method serialisation", function (done) {
+    it("Method serialisation", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.msub = function () {
+        class testActor extends spider.Actor {
+            msub() {
                 return 5;
-            };
-            testActor.prototype.m = function () {
+            }
+            m() {
                 return this.msub() + 5;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.m().then(function (v) {
+        actor.m().then((v) => {
             try {
                 expect(v).to.equal(10);
                 app.kill();
@@ -70,22 +57,20 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Construction", function (done) {
+    it("Construction", (done) => {
         var app = new spider.Application();
         var aValue = 5;
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.val = aValue;
             }
-            testActor.prototype.test = function () {
+            test() {
                 return this.val;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.test().then(function (v) {
+        actor.test().then((v) => {
             try {
                 expect(v).to.equal(aValue);
                 app.kill();
@@ -97,32 +82,25 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Actor reference passing via constructor", function (done) {
-        var referencedActor = (function (_super) {
-            __extends(referencedActor, _super);
-            function referencedActor() {
-                _super.apply(this, arguments);
-            }
-            referencedActor.prototype.getValue = function () {
+    it("Actor reference passing via constructor", (done) => {
+        class referencedActor extends spider.Actor {
+            getValue() {
                 return 5;
-            };
-            return referencedActor;
-        }(spider.Actor));
-        var referencingActor = (function (_super) {
-            __extends(referencingActor, _super);
-            function referencingActor(actorReference) {
-                _super.call(this);
+            }
+        }
+        class referencingActor extends spider.Actor {
+            constructor(actorReference) {
+                super();
                 this.ref = actorReference;
             }
-            referencingActor.prototype.getValue = function () {
-                return this.ref.getValue().then(function (v) { return v; });
-            };
-            return referencingActor;
-        }(spider.Actor));
+            getValue() {
+                return this.ref.getValue().then((v) => { return v; });
+            }
+        }
         var app = new spider.Application();
         var actor1 = app.spawnActor(referencedActor);
         var actor2 = app.spawnActor(referencingActor, [actor1]);
-        actor2.getValue().then(function (v) {
+        actor2.getValue().then((v) => {
             try {
                 expect(v).to.equal(5);
                 app.kill();
@@ -134,21 +112,19 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Initialisation", function (done) {
+    it("Initialisation", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.val = 10;
             }
-            testActor.prototype.init = function () {
+            init() {
                 this.val += 5;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.val.then(function (v) {
+        actor.val.then((v) => {
             try {
                 expect(v).to.equal(15);
                 app.kill();
@@ -160,31 +136,24 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Initialisation chaining", function (done) {
+    it("Initialisation chaining", (done) => {
         var app = new spider.Application();
-        var SuperActor = (function (_super) {
-            __extends(SuperActor, _super);
-            function SuperActor() {
-                _super.call(this);
+        class SuperActor extends spider.Actor {
+            constructor() {
+                super();
                 this.val = 10;
             }
-            SuperActor.prototype.init = function () {
+            init() {
                 this.val += 5;
-            };
-            return SuperActor;
-        }(spider.Actor));
-        var BaseActor = (function (_super) {
-            __extends(BaseActor, _super);
-            function BaseActor() {
-                _super.apply(this, arguments);
             }
-            BaseActor.prototype.init = function () {
+        }
+        class BaseActor extends SuperActor {
+            init() {
                 this.val = this.val * 2;
-            };
-            return BaseActor;
-        }(SuperActor));
+            }
+        }
         var act = app.spawnActor(BaseActor);
-        act.val.then(function (v) {
+        act.val.then((v) => {
             try {
                 expect(v).to.equal(30);
                 app.kill();
@@ -196,27 +165,17 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Actor scope", function (done) {
-        var testApp = (function (_super) {
-            __extends(testApp, _super);
-            function testApp() {
-                _super.apply(this, arguments);
-            }
-            return testApp;
-        }(spider.Application));
+    it("Actor scope", (done) => {
+        class testApp extends spider.Application {
+        }
         var app = new testApp();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.get = function () {
+        class testActor extends spider.Actor {
+            get() {
                 return this.promisePool;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.get().then(function (v) {
+        actor.get().then((v) => {
             try {
                 expect(v).to.equal(undefined);
                 app.kill();
@@ -228,30 +187,20 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Inheritance (method)", function (done) {
+    it("Inheritance (method)", (done) => {
         var app = new spider.Application();
-        var baseActor = (function (_super) {
-            __extends(baseActor, _super);
-            function baseActor() {
-                _super.apply(this, arguments);
-            }
-            baseActor.prototype.test = function () {
+        class baseActor extends spider.Actor {
+            test() {
                 return 5;
-            };
-            return baseActor;
-        }(spider.Actor));
-        var inhActor = (function (_super) {
-            __extends(inhActor, _super);
-            function inhActor() {
-                _super.apply(this, arguments);
             }
-            inhActor.prototype.testInh = function () {
+        }
+        class inhActor extends baseActor {
+            testInh() {
                 return this.test();
-            };
-            return inhActor;
-        }(baseActor));
+            }
+        }
         var actor = app.spawnActor(inhActor);
-        actor.testInh().then(function (v) {
+        actor.testInh().then((v) => {
             try {
                 expect(v).to.equal(5);
                 app.kill();
@@ -263,25 +212,18 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    it("Inheritance (fields)", function (done) {
+    it("Inheritance (fields)", (done) => {
         var app = new spider.Application();
-        var baseActor = (function (_super) {
-            __extends(baseActor, _super);
-            function baseActor() {
-                _super.call(this);
+        class baseActor extends spider.Actor {
+            constructor() {
+                super();
                 this.baseField = 5;
             }
-            return baseActor;
-        }(spider.Actor));
-        var inhActor = (function (_super) {
-            __extends(inhActor, _super);
-            function inhActor() {
-                _super.apply(this, arguments);
-            }
-            return inhActor;
-        }(baseActor));
+        }
+        class inhActor extends baseActor {
+        }
         var actor = app.spawnActor(inhActor);
-        actor.baseField.then(function (v) {
+        actor.baseField.then((v) => {
             try {
                 expect(v).to.equal(5);
                 app.kill();
@@ -370,25 +312,23 @@ describe("Behaviour serialisation", function () {
 
     })*/
 });
-describe("Functionality", function () {
-    it("Require", function (done) {
+describe("Functionality", () => {
+    it("Require", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.directory = __dirname;
             }
-            testActor.prototype.init = function () {
+            init() {
                 this.mod = require(this.directory + '/testModule');
-            };
-            testActor.prototype.invoke = function () {
+            }
+            invoke() {
                 return this.mod.testFunction();
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.invoke().then(function (v) {
+        actor.invoke().then((v) => {
             try {
                 expect(v).to.equal(5);
                 app.kill();
@@ -400,33 +340,23 @@ describe("Functionality", function () {
             }
         });
     });
-    it("Remote", function (done) {
+    it("Remote", (done) => {
         var app = new spider.Application();
-        var testActor1 = (function (_super) {
-            __extends(testActor1, _super);
-            function testActor1() {
-                _super.apply(this, arguments);
-            }
-            testActor1.prototype.getAndAccess = function () {
-                return this.remote("127.0.0.1", 8082).then(function (ref) {
+        class testActor1 extends spider.Actor {
+            getAndAccess() {
+                return this.remote("127.0.0.1", 8082).then((ref) => {
                     return ref.getVal();
                 });
-            };
-            return testActor1;
-        }(spider.Actor));
-        var testActor2 = (function (_super) {
-            __extends(testActor2, _super);
-            function testActor2() {
-                _super.apply(this, arguments);
             }
-            testActor2.prototype.getVal = function () {
+        }
+        class testActor2 extends spider.Actor {
+            getVal() {
                 return 5;
-            };
-            return testActor2;
-        }(spider.Actor));
+            }
+        }
         app.spawnActor(testActor2, [], 8082);
         var actor = app.spawnActor(testActor1);
-        actor.getAndAccess().then(function (v) {
+        actor.getAndAccess().then((v) => {
             try {
                 expect(v).to.equal(5);
                 app.kill();
@@ -439,19 +369,17 @@ describe("Functionality", function () {
         });
     });
 });
-describe("Communication", function () {
-    it("Accessing actor instance variable", function (done) {
+describe("Communication", () => {
+    it("Accessing actor instance variable", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.value = 10;
             }
-            return testActor;
-        }(spider.Actor));
+        }
         var actor = app.spawnActor(testActor);
-        actor.value.then(function (value) {
+        actor.value.then((value) => {
             try {
                 expect(value).to.equal(10);
                 app.kill();
@@ -463,20 +391,15 @@ describe("Communication", function () {
             }
         });
     });
-    it("Invoking method on far reference", function (done) {
+    it("Invoking method on far reference", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.m = function () {
+        class testActor extends spider.Actor {
+            m() {
                 return 10;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.m().then(function (retVal) {
+        actor.m().then((retVal) => {
             try {
                 expect(retVal).to.equal(10);
                 app.kill();
@@ -488,14 +411,13 @@ describe("Communication", function () {
             }
         });
     });
-    it("Actor accessing main instance variable", function (done) {
-        var testApp = (function (_super) {
-            __extends(testApp, _super);
-            function testApp() {
-                _super.call(this);
+    it("Actor accessing main instance variable", (done) => {
+        class testApp extends spider.Application {
+            constructor() {
+                super();
                 this.mainValue = 10;
             }
-            testApp.prototype.checkValue = function (val) {
+            checkValue(val) {
                 try {
                     expect(val).to.equal(this.mainValue);
                     this.kill();
@@ -505,33 +427,22 @@ describe("Communication", function () {
                     this.kill();
                     done(e);
                 }
-            };
-            return testApp;
-        }(spider.Application));
-        var app = new testApp();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
             }
-            testActor.prototype.access = function () {
-                var _this = this;
-                this.parent.mainValue.then(function (value) {
-                    _this.parent.checkValue(value);
+        }
+        var app = new testApp();
+        class testActor extends spider.Actor {
+            access() {
+                this.parent.mainValue.then((value) => {
+                    this.parent.checkValue(value);
                 });
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
         actor.access();
     });
-    it("Actor invoking main method", function (done) {
-        var testApp = (function (_super) {
-            __extends(testApp, _super);
-            function testApp() {
-                _super.apply(this, arguments);
-            }
-            testApp.prototype.m = function () {
+    it("Actor invoking main method", (done) => {
+        class testApp extends spider.Application {
+            m() {
                 try {
                     assert(true);
                     this.kill();
@@ -541,37 +452,26 @@ describe("Communication", function () {
                     this.kill();
                     done(e);
                 }
-            };
-            return testApp;
-        }(spider.Application));
-        var app = new testApp();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
             }
-            testActor.prototype.invoke = function () {
+        }
+        var app = new testApp();
+        class testActor extends spider.Actor {
+            invoke() {
                 this.parent.m();
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
         actor.invoke();
     });
-    it("Promise rejection handling (method invocation)", function (done) {
+    it("Promise rejection handling (method invocation)", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.m = function () {
+        class testActor extends spider.Actor {
+            m() {
                 throw new Error("This is an error");
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.m().catch(function (reason) {
+        actor.m().catch((reason) => {
             try {
                 expect(reason.message).to.equal("This is an error");
                 app.kill();
@@ -583,28 +483,21 @@ describe("Communication", function () {
             }
         });
     });
-    it("Promise pipelining (field access)", function (done) {
-        var testApp = (function (_super) {
-            __extends(testApp, _super);
-            function testApp() {
-                _super.call(this);
+    it("Promise pipelining (field access)", (done) => {
+        class testApp extends spider.Application {
+            constructor() {
+                super();
                 this.field = 10;
             }
-            return testApp;
-        }(spider.Application));
+        }
         var app = new testApp();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.get = function () {
+        class testActor extends spider.Actor {
+            get() {
                 return this.parent.field;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.get().then(function (val) {
+        actor.get().then((val) => {
             try {
                 expect(val).to.equal(10);
                 app.kill();
@@ -616,30 +509,20 @@ describe("Communication", function () {
             }
         });
     });
-    it("Promise pipelining (method invocation)", function (done) {
-        var testApp = (function (_super) {
-            __extends(testApp, _super);
-            function testApp() {
-                _super.apply(this, arguments);
-            }
-            testApp.prototype.get = function () {
+    it("Promise pipelining (method invocation)", (done) => {
+        class testApp extends spider.Application {
+            get() {
                 return 10;
-            };
-            return testApp;
-        }(spider.Application));
-        var app = new testApp();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
             }
-            testActor.prototype.get = function () {
+        }
+        var app = new testApp();
+        class testActor extends spider.Actor {
+            get() {
                 return this.parent.get();
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.get().then(function (val) {
+        actor.get().then((val) => {
             try {
                 expect(val).to.equal(10);
                 app.kill();
@@ -651,32 +534,28 @@ describe("Communication", function () {
             }
         });
     });
-    it("Isolate passing", function (done) {
-        var mIsolate = (function (_super) {
-            __extends(mIsolate, _super);
-            function mIsolate() {
-                _super.call(this);
+    it("Isolate passing", (done) => {
+        class mIsolate extends spider.Isolate {
+            constructor() {
+                super();
                 this.field = 6;
             }
-            mIsolate.prototype.m = function () {
+            m() {
                 return 5;
-            };
-            return mIsolate;
-        }(spider.Isolate));
+            }
+        }
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.mIsolate = mIsolate;
             }
-            testActor.prototype.getIsolate = function () {
+            getIsolate() {
                 return new this.mIsolate();
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.getIsolate().then(function (isol) {
+        actor.getIsolate().then((isol) => {
             try {
                 expect(isol.field).to.equal(6);
                 expect(isol.m()).to.equal(5);
@@ -689,31 +568,21 @@ describe("Communication", function () {
             }
         });
     });
-    it("Array Isolate passing", function (done) {
+    it("Array Isolate passing", (done) => {
         var app = new spider.Application();
-        var testActor1 = (function (_super) {
-            __extends(testActor1, _super);
-            function testActor1() {
-                _super.apply(this, arguments);
-            }
-            testActor1.prototype.getArrayLength = function (arr) {
+        class testActor1 extends spider.Actor {
+            getArrayLength(arr) {
                 return arr.length;
-            };
-            return testActor1;
-        }(spider.Actor));
-        var testActor2 = (function (_super) {
-            __extends(testActor2, _super);
-            function testActor2() {
-                _super.apply(this, arguments);
             }
-            testActor2.prototype.sendArray = function (ref) {
+        }
+        class testActor2 extends spider.Actor {
+            sendArray(ref) {
                 return ref.getArrayLength(new this.ArrayIsolate([1, 2, 3, 4, 5]));
-            };
-            return testActor2;
-        }(spider.Actor));
+            }
+        }
         var actor1 = app.spawnActor(testActor1);
         var actor2 = app.spawnActor(testActor2, [], 8082);
-        actor2.sendArray(actor1).then(function (val) {
+        actor2.sendArray(actor1).then((val) => {
             try {
                 expect(val).to.equal(5);
                 app.kill();
@@ -725,51 +594,40 @@ describe("Communication", function () {
             }
         });
     });
-    it("Nested isolate passing", function (done) {
-        var testApp = (function (_super) {
-            __extends(testApp, _super);
-            function testApp() {
-                _super.apply(this, arguments);
-            }
-            return testApp;
-        }(spider.Application));
-        var innerIsolate = (function (_super) {
-            __extends(innerIsolate, _super);
-            function innerIsolate() {
-                _super.call(this);
+    it("Nested isolate passing", (done) => {
+        class testApp extends spider.Application {
+        }
+        class innerIsolate extends spider.Isolate {
+            constructor() {
+                super();
                 this.innerField = 5;
             }
-            return innerIsolate;
-        }(spider.Isolate));
-        var outerIsolate = (function (_super) {
-            __extends(outerIsolate, _super);
-            function outerIsolate() {
-                _super.call(this);
+        }
+        class outerIsolate extends spider.Isolate {
+            constructor() {
+                super();
                 this.outerField = 6;
                 this.innerIsol = new innerIsolate();
             }
-            outerIsolate.prototype.getOuterField = function () {
+            getOuterField() {
                 return this.outerField;
-            };
-            outerIsolate.prototype.getInnerIsolate = function () {
+            }
+            getInnerIsolate() {
                 return this.innerIsol;
-            };
-            return outerIsolate;
-        }(spider.Isolate));
+            }
+        }
         var app = new testApp();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.mIsolate = new outerIsolate();
             }
-            testActor.prototype.getIsolate = function () {
+            getIsolate() {
                 return this.mIsolate;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.getIsolate().then(function (isol) {
+        actor.getIsolate().then((isol) => {
             try {
                 expect(isol.getOuterField()).to.equal(6);
                 expect(isol.getInnerIsolate().innerField).to.equal(5);
@@ -783,21 +641,16 @@ describe("Communication", function () {
         });
     });
 });
-describe("General Serialisation", function () {
-    it("Correct serialisation of numeric values", function (done) {
+describe("General Serialisation", () => {
+    it("Correct serialisation of numeric values", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.compute = function (num) {
+        class testActor extends spider.Actor {
+            compute(num) {
                 return num + 5;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.compute(5).then(function (val) {
+        actor.compute(5).then((val) => {
             try {
                 expect(val).to.equal(10);
                 app.kill();
@@ -809,20 +662,15 @@ describe("General Serialisation", function () {
             }
         });
     });
-    it("Correct serialisation of string values", function (done) {
+    it("Correct serialisation of string values", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.append = function (str) {
+        class testActor extends spider.Actor {
+            append(str) {
                 return str + 5;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.append("5").then(function (val) {
+        actor.append("5").then((val) => {
             try {
                 expect(val).to.equal("55");
                 app.kill();
@@ -834,25 +682,20 @@ describe("General Serialisation", function () {
             }
         });
     });
-    it("Correct serialisation of boolean values", function (done) {
+    it("Correct serialisation of boolean values", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.test = function (bool) {
+        class testActor extends spider.Actor {
+            test(bool) {
                 if (bool) {
                     return "ok";
                 }
                 else {
                     return "nok";
                 }
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.test(false).then(function (val) {
+        actor.test(false).then((val) => {
             try {
                 expect(val).to.equal("nok");
                 app.kill();
@@ -864,24 +707,19 @@ describe("General Serialisation", function () {
             }
         });
     });
-    it("User-level promise serialisation", function (done) {
+    it("User-level promise serialisation", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.async = function () {
-                return new Promise(function (resolve, reject) {
-                    setTimeout(function () {
+        class testActor extends spider.Actor {
+            async() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
                         resolve(5);
                     }, 200);
                 });
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.async().then(function (val) {
+        actor.async().then((val) => {
             try {
                 expect(val).to.equal(5);
                 app.kill();
@@ -893,20 +731,15 @@ describe("General Serialisation", function () {
             }
         });
     });
-    it("Method argument serialisation", function (done) {
+    it("Method argument serialisation", (done) => {
         var app = new spider.Application();
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.apply(this, arguments);
-            }
-            testActor.prototype.m = function (num, str, bool) {
+        class testActor extends spider.Actor {
+            m(num, str, bool) {
                 return [num, str, bool];
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.m(1, "1", true).then(function (retArr) {
+        actor.m(1, "1", true).then((retArr) => {
             try {
                 expect(retArr[0]).to.equal(1);
                 expect(retArr[1]).to.equal("1");
@@ -920,24 +753,22 @@ describe("General Serialisation", function () {
             }
         });
     });
-    it("Lexical object serialisation during construction", function (done) {
+    it("Lexical object serialisation during construction", (done) => {
         var app = new spider.Application();
         var ob = {
             field: 5
         };
-        var testActor = (function (_super) {
-            __extends(testActor, _super);
-            function testActor() {
-                _super.call(this);
+        class testActor extends spider.Actor {
+            constructor() {
+                super();
                 this.farRef = ob;
             }
-            testActor.prototype.test = function () {
+            test() {
                 return this.farRef.field;
-            };
-            return testActor;
-        }(spider.Actor));
+            }
+        }
         var actor = app.spawnActor(testActor);
-        actor.test().then(function (v) {
+        actor.test().then((v) => {
             try {
                 expect(v).to.equal(ob.field);
                 app.kill();
@@ -949,29 +780,22 @@ describe("General Serialisation", function () {
             }
         });
     });
-    it("Far Ref serialisation", function (done) {
+    it("Far Ref serialisation", (done) => {
         var app = new spider.Application();
-        var testActor1 = (function (_super) {
-            __extends(testActor1, _super);
-            function testActor1() {
-                _super.call(this);
+        class testActor1 extends spider.Actor {
+            constructor() {
+                super();
                 this.value = 666;
             }
-            return testActor1;
-        }(spider.Actor));
-        var testActor2 = (function (_super) {
-            __extends(testActor2, _super);
-            function testActor2() {
-                _super.apply(this, arguments);
-            }
-            testActor2.prototype.obtainAndAccess = function (farRef) {
+        }
+        class testActor2 extends spider.Actor {
+            obtainAndAccess(farRef) {
                 return farRef.value;
-            };
-            return testActor2;
-        }(spider.Actor));
+            }
+        }
         var actor1 = app.spawnActor(testActor1);
         var actor2 = app.spawnActor(testActor2, [], 8081);
-        actor2.obtainAndAccess(actor1).then(function (v) {
+        actor2.obtainAndAccess(actor1).then((v) => {
             try {
                 expect(v).to.equal(666);
                 app.kill();
@@ -1012,3 +836,4 @@ describe("General Serialisation", function () {
      })
      })*/
 });
+//# sourceMappingURL=server-side.Test.js.map

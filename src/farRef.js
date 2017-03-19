@@ -1,16 +1,10 @@
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var messages_1 = require("./messages");
-var serialisation_1 = require("./serialisation");
+const messages_1 = require("./messages");
+const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
  */
-var FarReference = (function () {
-    function FarReference(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, isServer) {
+class FarReference {
+    constructor(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, isServer) {
         this.ownerId = ownerId;
         this.objectId = objectId;
         this.promisePool = promisePool;
@@ -19,17 +13,17 @@ var FarReference = (function () {
         this.commMedium = commMedium;
         this.isServer = isServer;
     }
-    FarReference.prototype.sendFieldAccess = function (fieldName) {
+    sendFieldAccess(fieldName) {
         var promiseAlloc = this.promisePool.newPromise();
         this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
         return promiseAlloc.promise;
-    };
-    FarReference.prototype.sendMethodInvocation = function (methodName, args) {
+    }
+    sendMethodInvocation(methodName, args) {
         var promiseAlloc = this.promisePool.newPromise();
         this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
         return promiseAlloc.promise;
-    };
-    FarReference.prototype.proxyify = function () {
+    }
+    proxyify() {
         var baseObject = this;
         return new Proxy({}, {
             get: function (target, property) {
@@ -48,12 +42,8 @@ var FarReference = (function () {
                     if (property.toString() != "then" && property.toString() != "catch") {
                         //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
                         var prom = baseObject.sendFieldAccess(property.toString());
-                        var ret = function () {
-                            var args = [];
-                            for (var _i = 0; _i < arguments.length; _i++) {
-                                args[_i - 0] = arguments[_i];
-                            }
-                            var serialisedArgs = args.map(function (arg) {
+                        var ret = function (...args) {
+                            var serialisedArgs = args.map((arg) => {
                                 return serialisation_1.serialise(arg, baseObject.holderRef, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
                             });
                             return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
@@ -70,27 +60,22 @@ var FarReference = (function () {
                 }
             }
         });
-    };
-    FarReference.farRefAccessorKey = "_FAR_REF_";
-    FarReference.proxyWrapperAccessorKey = "_PROXY_WRAPPER_";
-    FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
-    FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
-    return FarReference;
-}());
+    }
+}
+FarReference.farRefAccessorKey = "_FAR_REF_";
+FarReference.proxyWrapperAccessorKey = "_PROXY_WRAPPER_";
+FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
+FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
 exports.FarReference = FarReference;
-var ClientFarReference = (function (_super) {
-    __extends(ClientFarReference, _super);
-    function ClientFarReference(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool, contactId, contactAddress, contactPort) {
-        if (contactId === void 0) { contactId = null; }
-        if (contactAddress === void 0) { contactAddress = null; }
-        if (contactPort === void 0) { contactPort = null; }
-        _super.call(this, objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
+class ClientFarReference extends FarReference {
+    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool, contactId = null, contactAddress = null, contactPort = null) {
+        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
         this.mainId = mainId;
         this.contactId = contactId;
         this.contactAddress = contactAddress;
         this.contactPort = contactPort;
     }
-    ClientFarReference.prototype.sendRoute = function (toId, msg) {
+    sendRoute(toId, msg) {
         if (!this.commMedium.hasConnection(this.contactId)) {
             this.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
         }
@@ -99,8 +84,8 @@ var ClientFarReference = (function (_super) {
         msg.contactAddress = this.contactAddress;
         msg.contactPort = this.contactPort;
         this.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
-    };
-    ClientFarReference.prototype.send = function (toId, msg) {
+    }
+    send(toId, msg) {
         if (this.holderRef instanceof ServerFarReference) {
             if (this.holderRef.ownerId == this.contactId) {
                 this.commMedium.sendMessage(toId, msg);
@@ -117,29 +102,27 @@ var ClientFarReference = (function (_super) {
                 this.sendRoute(this.contactId, msg);
             }
         }
-    };
-    ClientFarReference.prototype.sendFieldAccess = function (fieldName) {
+    }
+    sendFieldAccess(fieldName) {
         var promiseAlloc = this.promisePool.newPromise();
         var message = new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId);
         this.send(this.ownerId, message);
         return promiseAlloc.promise;
-    };
-    ClientFarReference.prototype.sendMethodInvocation = function (methodName, args) {
+    }
+    sendMethodInvocation(methodName, args) {
         var promiseAlloc = this.promisePool.newPromise();
         var message = new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId);
         this.send(this.ownerId, message);
         return promiseAlloc.promise;
-    };
-    return ClientFarReference;
-}(FarReference));
+    }
+}
 exports.ClientFarReference = ClientFarReference;
-var ServerFarReference = (function (_super) {
-    __extends(ServerFarReference, _super);
-    function ServerFarReference(objectId, ownerId, ownerAddress, ownerPort, holderRef, commMedium, promisePool, objectPool) {
-        _super.call(this, objectId, ownerId, holderRef, commMedium, promisePool, objectPool, true);
+class ServerFarReference extends FarReference {
+    constructor(objectId, ownerId, ownerAddress, ownerPort, holderRef, commMedium, promisePool, objectPool) {
+        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, true);
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
     }
-    return ServerFarReference;
-}(FarReference));
+}
 exports.ServerFarReference = ServerFarReference;
+//# sourceMappingURL=farRef.js.map

@@ -1,5 +1,4 @@
-"use strict";
-var spiders_1 = require("./spiders");
+const spiders_1 = require("./spiders");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -35,20 +34,25 @@ function getInitChain(behaviourObject, result) {
         return getInitChain(behaviourObject.__proto__, result);
     }
 }
-function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool) {
+function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool, gspInstance) {
     if (!appActor) {
         behaviourObject["parent"] = parentRef.proxyify();
     }
-    behaviourObject["remote"] = function (address, port) {
+    behaviourObject["remote"] = (address, port) => {
         return commMedium.connectRemote(thisRef, address, port, promisePool);
     };
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
+    behaviourObject["newRepliq"] = ((repliqClass) => {
+        let repliqOb = new repliqClass();
+        return repliqOb.instantiate(gspInstance, thisRef.ownerId);
+    });
     if (!appActor) {
         var initChain = getInitChain(behaviourObject, []);
-        initChain.forEach(function (initFunc) {
+        initChain.forEach((initFunc) => {
             initFunc.apply(behaviourObject, []);
         });
     }
 }
 exports.installSTDLib = installSTDLib;
+//# sourceMappingURL=utils.js.map

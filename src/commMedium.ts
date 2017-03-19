@@ -21,8 +21,8 @@ export abstract class CommMedium{
     socketHandler       : SocketHandler
 
     constructor(){
-        this.pendingActors          = new Map()
-        this.connectedActors        = new Map()
+        this.pendingActors          = new Map<number,Socket>()
+        this.connectedActors        = new Map<string,Socket>()
         this.pendingConnectionId    = 0
         this.socketHandler          = new SocketHandler(this)
     }

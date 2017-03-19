@@ -1,13 +1,16 @@
+///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
+
+
 import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {ServerSocketManager} from "./sockets";
 import {ResolvePromiseMessage, RejectPromiseMessage} from "./messages";
 import {ObjectPool} from "./objectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
-import getPrototypeOf = Reflect.getPrototypeOf;
 import {Isolate} from "./spiders";
-import {cpus} from "os";
-import {MessageHandler} from "./messageHandler";
+import {Repliq} from "./Replication/Repliq";
+import {RepliqField} from "./Replication/RepliqField";
+import {GSP} from "./Replication/GSP";
+import {read} from "fs";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -82,7 +85,7 @@ function constructMethod(functionSource){
     return method
 }
 
-export function reconstructStatic(behaviourObject : Object,staticProperties : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool){
+export function reconstructStatic(behaviourObject : Object,staticProperties : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP){
     staticProperties.forEach((propertyArray : Array<any>)=>{
         var className   = propertyArray[0]
         var stub        = {}
@@ -90,19 +93,12 @@ export function reconstructStatic(behaviourObject : Object,staticProperties : Ar
         var methods     = propertyArray[2]
         vars.forEach((varPair : Array<any>)=>{
             var key     = varPair[0]
-            var val     = deserialise(thisRef,varPair[1],promisePool,commMedium,objectPool)
+            var val     = deserialise(thisRef,varPair[1],promisePool,commMedium,objectPool,gspInstance)
             stub[key]   = val
         })
         methods.forEach((methodPair : Array<any>)=>{
             var key                 = methodPair[0]
             var functionSource      = methodPair[1]
-            var method
-            /*if(functionSource.startsWith("function")){
-                method =  eval("with(behaviourObject){(" + functionSource + ")}")
-            }
-            else{
-                method =  eval("with(behaviourObject){(function " + functionSource + ")}")
-            }*/
             stub[key]               = constructMethod(functionSource)
         })
         var stubProxy   = new Proxy(stub,{
@@ -149,7 +145,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     }
 }
 
-export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
+export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP) {
     var amountOfProtos = methods.length
     for(var i = 0;i < amountOfProtos;i++){
         var copy                = baseObject.__proto__
@@ -163,7 +159,7 @@ export function reconstructBehaviour(baseObject : any,variables :Array<any>, met
         levelVariables.forEach((varEntry)=>{
             var key             = varEntry[0]
             var rawVal          = varEntry[1]
-            var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
+            var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool,gspInstance)
             installIn[key]      = val
         })
     })
@@ -173,13 +169,6 @@ export function reconstructBehaviour(baseObject : any,variables :Array<any>, met
         levelMethods.forEach((methodEntry)=>{
             var key               = methodEntry[0]
             var functionSource    = methodEntry[1]
-            //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
-            /*if(functionSource.startsWith("function")){
-                var method =  eval("with(baseObject){(" + functionSource + ")}")
-            }
-            else{
-                var method =  eval("with(baseObject){(function " + functionSource + ")}")
-            }*/
             installIn[key]        = constructMethod(functionSource)
         })
     })
@@ -195,23 +184,16 @@ function getProtoForLevel(level,object){
     return ret
 }
 
-export function reconstructObject(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) {
+export function reconstructObject(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP) {
     variables.forEach((varEntry) => {
         var key             = varEntry[0]
         var rawVal          = varEntry[1]
-        var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool)
+        var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool,gspInstance)
         baseObject[key]      = val
     })
     methods.forEach((methodEntry) => {
         var key               = methodEntry[0]
         var functionSource    = methodEntry[1];
-        //Ugly but re-serialised isolates have functions, not methods (semantically the same, not the same when stringified). This is a quick-fix
-        /*if(functionSource.startsWith("function")){
-            var method =  eval("with(baseObject){(" + functionSource + ")}")
-        }
-        else{
-            var method =  eval("with(baseObject){(function " + functionSource + ")}")
-        }*/
         (baseObject.__proto__)[key]        = constructMethod(functionSource)
     })
     return baseObject
@@ -227,6 +209,8 @@ export abstract class ValueContainer{
     static isolateDefType       : number = 6
     static clientFarRefType     : number = 7
     static arrayIsolateType     : number = 8
+    static repliqType           : number = 9
+    static repliqFieldType      : number = 10
     type                        : number
 
     constructor(type : number){
@@ -334,12 +318,55 @@ export class ArrayIsolateContainer extends ValueContainer{
     }
 }
 
+export class RepliqContainer extends ValueContainer{
+    fields                      : string
+    methods                     : string
+    repliqId                    : string
+    masterOwnerId               : string
+    static checkRepliqFuncKey   : string = "_INSTANCEOF_REPLIQ_"
+
+    constructor(fields : string,methods : string,repliqId : string,masterOwnerId : string){
+        super(ValueContainer.repliqType)
+        this.fields         = fields
+        this.methods        = methods
+        this.repliqId       = repliqId
+        this.masterOwnerId  = masterOwnerId
+    }
+}
+
+class RepliqFieldContainer extends ValueContainer{
+    name        : string
+    tentative   : any
+    commited    : any
+    readFunc    : string
+    writeFunc   : string
+    resetFunc   : string
+    commitFunc  : string
+    updateFunc  : string
+
+    constructor(name : string,tentative : any,commited : any,readFunc : string,writeFunc : string,resetFunc : string,commitFunc : string,updateFunc : string){
+        super(ValueContainer.repliqFieldType)
+        this.name       = name
+        this.tentative  = tentative
+        this.commited   = commited
+        this.readFunc   = readFunc
+        this.writeFunc  = writeFunc
+        this.resetFunc  = resetFunc
+        this.commitFunc = commitFunc
+        this.updateFunc = updateFunc
+    }
+}
+
 function isClass(func : Function) : boolean{
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
 
 function isIsolateClass(func : Function) : boolean {
     return (func.toString().search(/extends.*?Isolate/) != -1)
+}
+
+function isRepliqClass(func : Function) : boolean{
+    return (func.toString().search(/extends.*?Repliq/) != -1)
 }
 
 function serialisePromise(promise,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
@@ -364,6 +391,27 @@ function serialiseObject(object : Object,thisRef : FarReference,objectPool : Obj
     }
 }
 
+function serialiseRepliqFields(fields : Map<string,RepliqField<any>>){
+    let ret = []
+    fields.forEach((repliqField,fieldName)=>{
+        ret.push(new RepliqFieldContainer(fieldName,repliqField.tentative,repliqField.commited,repliqField.read.toString(),repliqField.writeField.toString(),repliqField.resetToCommit.toString(),repliqField.commit.toString(),repliqField.update.toString()))
+    })
+    return ret
+}
+
+function serialiseRepliq(repliqProxy) : RepliqContainer{
+    let fields          = repliqProxy[Repliq.getRepliqFields]
+    let fieldsArr       = serialiseRepliqFields(fields)
+    let methods         = repliqProxy[Repliq.getRepliqOriginalMethods]
+    let methodArr       = []
+    methods.forEach((method,methodName)=>{
+        methodArr.push([methodName,method.toString()])
+    })
+    let repliqId        = repliqProxy[Repliq.getRepliqID]
+    let repliqOwnerId   = repliqProxy[Repliq.getRepliqOwnerID]
+    return new RepliqContainer(JSON.stringify(fieldsArr),JSON.stringify(methodArr),repliqId,repliqOwnerId)
+}
+
 export function serialise(value,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool) : ValueContainer{
     if(typeof value == 'object'){
         if(value == null){
@@ -376,6 +424,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             return new ErrorContainer(value)
         }
         else if(value[FarReference.ServerProxyTypeKey]){
+            console.log("Is server far ref ? : " + value[FarReference.ServerProxyTypeKey])
             var farRef : ServerFarReference = value[FarReference.farRefAccessorKey]
             return new ServerFarRefContainer(farRef.objectId,farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
         }
@@ -403,6 +452,9 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             var methods = getObjectMethods(value)
             return new IsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
         }
+        else if(value[RepliqContainer.checkRepliqFuncKey]){
+            return serialiseRepliq(value)
+        }
         else {
             return serialiseObject(value,thisRef,objectPool)
         }
@@ -428,7 +480,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
     }
 }
 
-export function deserialise(thisRef : FarReference,value : ValueContainer,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool) : any{
+export function deserialise(thisRef : FarReference,value : ValueContainer,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP) : any{
     function deSerialisePromise(promiseContainer : PromiseContainer){
         return promisePool.newForeignPromise(promiseContainer.promiseId,promiseContainer.promiseCreatorId)
     }
@@ -470,13 +522,13 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
 
     function deSerialiseArray(arrayContainer : ArrayContainer){
         var deserialised = arrayContainer.values.map((valCont) => {
-            return deserialise(thisRef,valCont,promisePool,commMedium,objectPool)
+            return deserialise(thisRef,valCont,promisePool,commMedium,objectPool,gspInstance)
         })
         return deserialised
     }
 
     function deSerialiseIsolate(isolateContainer : IsolateContainer){
-        var isolate = reconstructObject(new Isolate(),JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool)
+        var isolate = reconstructObject(new Isolate(),JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool,gspInstance)
         return isolate
     }
 
@@ -488,6 +540,30 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
 
     function deSerialiseArrayIsolate(arrayIsolateContainer : ArrayIsolateContainer){
         return arrayIsolateContainer.array
+    }
+
+    function deSerialiseRepliq(repliqContainer : RepliqContainer){
+        let blankRepliq = new Repliq()
+        let fields      = new Map();
+        (JSON.parse(repliqContainer.fields)).forEach((repliqField : RepliqFieldContainer)=>{
+            let field : any                 = {}
+            let fieldProto : any            = {}
+            Object.setPrototypeOf(field,fieldProto)
+            field.name                      = repliqField.name
+            field.tentative                 = repliqField.tentative
+            field.commited                  = repliqField.commited
+            fieldProto.read                 = constructMethod(repliqField.readFunc)
+            fieldProto.writeField           = constructMethod(repliqField.writeFunc)
+            fieldProto.resetToCommit        = constructMethod(repliqField.resetFunc)
+            fieldProto.commit               = constructMethod(repliqField.commitFunc)
+            fieldProto.update               = constructMethod(repliqField.updateFunc)
+            fields.set(field.name,field)
+        })
+        let methods     = new Map();
+        (JSON.parse(repliqContainer.methods)).forEach(([methodName,methodSource])=>{
+            methods.set(methodName,constructMethod(methodSource))
+        })
+        return blankRepliq.reconstruct(gspInstance,repliqContainer.repliqId,repliqContainer.masterOwnerId,fields,methods)
     }
 
     switch(value.type){
@@ -509,6 +585,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             return deSerialiseIsolateDefinition(value as IsolateDefinitionContainer)
         case ValueContainer.arrayIsolateType:
             return deSerialiseArrayIsolate(value as ArrayIsolateContainer)
+        case ValueContainer.repliqType:
+            return deSerialiseRepliq(value as RepliqContainer)
         default :
             throw "Unknown value container type :  " + value.type
     }

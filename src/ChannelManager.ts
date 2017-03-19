@@ -1,7 +1,6 @@
 import {CommMedium} from "./commMedium";
 import {MessageHandler} from "./messageHandler";
-import {Message, FieldAccessMessage} from "./messages";
-import {SocketHandler} from "./sockets";
+import {Message} from "./messages";
 /**
  * Created by flo on 18/01/2017.
  */
@@ -11,7 +10,7 @@ export class ChannelManager extends CommMedium{
 
     init(messageHandler : MessageHandler){
         super.init(messageHandler)
-        this.connections    = new Map()
+        this.connections    = new Map<string,MessagePort>()
     }
 
     newConnection(actorId : string,channelPort : MessagePort){

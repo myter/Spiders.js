@@ -1,21 +1,31 @@
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var spiders = require('../src/spiders');
-var App = (function (_super) {
-    __extends(App, _super);
-    function App() {
-        _super.apply(this, arguments);
+const RepliqField_1 = require("../src/Replication/RepliqField");
+var spiders = require("../src/spiders");
+class TestRepliq extends spiders.Repliq {
+    constructor() {
+        super();
+        this.reg = new RepliqField_1.RepliqCountField("reg", 1);
     }
-    return App;
-}(spiders.Application));
-var Act = (function (_super) {
-    __extends(Act, _super);
-    function Act() {
-        _super.apply(this, arguments);
+    setReg(val) {
+        this.reg = val;
     }
-    return Act;
-}(spiders.Actor));
+}
+class TestApp extends spiders.Application {
+    createAndSend(actRef) {
+        this.testRepliq = this.newRepliq(TestRepliq);
+        actRef.getRepliq(this.testRepliq);
+    }
+}
+var app = new TestApp();
+class TestActor extends spiders.Actor {
+    getRepliq(repliq) {
+        this.myRepliq = repliq;
+        this.myRepliq.setReg("It worked !");
+    }
+}
+var act = app.spawnActor(TestActor);
+app.createAndSend(act);
+console.log("Value in app: " + app.testRepliq.reg);
+setTimeout(() => {
+    console.log("Value in app: " + app.testRepliq.reg);
+}, 4000);
+//# sourceMappingURL=temp.js.map

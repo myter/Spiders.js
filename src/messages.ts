@@ -3,6 +3,7 @@
  */
 import {ValueContainer} from "./serialisation";
 import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
+import {Round} from "./Replication/Round";
 type MessageTypeTag = number
 
 
@@ -152,6 +153,37 @@ export class RouteMessage extends Message {
         super(_ROUTE_,senderRef)
         this.message    = message
         this.targetId   = targetId
+    }
+}
+
+export const _GSP_REGISTER_ : MessageTypeTag = 9
+export class GSPRegisterMessage extends Message {
+    holderId    : string
+    replicaId   : string
+    constructor(senderRef : FarReference,holderId : string,replicaId : string){
+        super(_GSP_REGISTER_,senderRef)
+        this.holderId   = holderId
+        this.replicaId  = replicaId
+    }
+}
+
+export const _GSP_ROUND_ : MessageTypeTag = 10
+export class GSPRoundMessage extends Message {
+    round : Round
+    constructor(senderRef : FarReference,round : Round){
+        super(_GSP_ROUND_,senderRef)
+        this.round = round
+    }
+}
+
+export const _GSP_SYNC_ : MessageTypeTag = 11
+export class GSPSyncMessage extends Message{
+    requesterId : string
+    repliqId    : string
+    constructor(senderRef : FarReference,requesterId : string,repliqId : string){
+        super(_GSP_SYNC_,senderRef)
+        this.requesterId    = requesterId
+        this.repliqId       = repliqId
     }
 }
 

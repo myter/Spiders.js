@@ -1,11 +1,7 @@
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 import {MessageHandler} from "./messageHandler";
-import {Message, ConnectRemoteMessage} from "./messages";
+import {Message} from "./messages";
 import {Socket} from "net";
 import {CommMedium} from "./commMedium";
-import {FarReference, ServerFarReference} from "./farRef";
-import {PromisePool} from "./PromisePool";
-import {ObjectPool} from "./objectPool";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -22,8 +18,8 @@ export class SocketHandler{
     constructor(owner : CommMedium){
         this.owner                  = owner
         this.disconnectedActors     = []
-        this.pendingMessages        = new Map()
-        this.fuckUpMessage          = new Map()
+        this.pendingMessages        = new Map<string,Array<Message>>()
+        this.fuckUpMessage          = new Map<string,Array<Message>>()
     }
 
     addDisconnected(actorId : string){
@@ -102,7 +98,7 @@ export class ServerSocketManager extends CommMedium{
         this.socketIp               = ip
         this.socketPort             = socketPort
         this.socket                 = io(socketPort)
-        this.connectedClients       = new Map()
+        this.connectedClients       = new Map<string,Socket>()
     }
 
     init(messageHandler : MessageHandler){

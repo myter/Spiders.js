@@ -1,39 +1,33 @@
-"use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
-var sockets_1 = require("./sockets");
-var messageHandler_1 = require("./messageHandler");
-var farRef_1 = require("./farRef");
-var PromisePool_1 = require("./PromisePool");
-var objectPool_1 = require("./objectPool");
-var serialisation_1 = require("./serialisation");
-var ChannelManager_1 = require("./ChannelManager");
-var messages_1 = require("./messages");
+const sockets_1 = require("./sockets");
+const messageHandler_1 = require("./messageHandler");
+const farRef_1 = require("./farRef");
+const PromisePool_1 = require("./PromisePool");
+const objectPool_1 = require("./objectPool");
+const serialisation_1 = require("./serialisation");
+const ChannelManager_1 = require("./ChannelManager");
+const messages_1 = require("./messages");
+const GSP_1 = require("./Replication/GSP");
+const Repliq_1 = require("./Replication/Repliq");
 /**
  * Created by flo on 05/12/2016.
  */
 var utils = require('./utils');
-var Isolate = (function () {
-    function Isolate() {
+class Isolate {
+    constructor() {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
     }
-    return Isolate;
-}());
+}
 exports.Isolate = Isolate;
-var ArrayIsolate = (function () {
-    function ArrayIsolate(array) {
+class ArrayIsolate {
+    constructor(array) {
         this[serialisation_1.ArrayIsolateContainer.checkArrayIsolateFuncKey] = true;
         this.array = array;
     }
-    return ArrayIsolate;
-}());
+}
 exports.ArrayIsolate = ArrayIsolate;
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
-    existingActors.forEach(function (actorPair) {
+    existingActors.forEach((actorPair) => {
         var workerId = actorPair[0];
         var worker = actorPair[1];
         var channel = new MessageChannel();
@@ -43,22 +37,15 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
     });
     return mappings;
 }
-var Actor = (function () {
-    function Actor() {
-    }
-    return Actor;
-}());
-var ClientActor = (function (_super) {
-    __extends(ClientActor, _super);
-    function ClientActor() {
-        _super.apply(this, arguments);
-    }
-    ClientActor.prototype.spawn = function (app, thisClass) {
+class Actor {
+}
+class ClientActor extends Actor {
+    spawn(app, thisClass) {
         var actorId = utils.generateId();
         var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
         var webWorker = work(require('./actorProto'));
-        webWorker.addEventListener('message', function (event) {
+        webWorker.addEventListener('message', (event) => {
             app.mainMessageHandler.dispatch(event);
         });
         var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], app.mainRef, actorId, app.channelManager, app.mainPromisePool, app.mainObjectPool);
@@ -75,15 +62,10 @@ var ClientActor = (function (_super) {
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool);
         app.spawnedActors.push([actorId, webWorker]);
         return ref.proxyify();
-    };
-    return ClientActor;
-}(Actor));
-var ServerActor = (function (_super) {
-    __extends(ServerActor, _super);
-    function ServerActor() {
-        _super.apply(this, arguments);
     }
-    ServerActor.prototype.spawn = function (app, port, thisClass) {
+}
+class ServerActor extends Actor {
+    spawn(app, port, thisClass) {
         var socketManager = app.mainCommMedium;
         var fork = require('child_process').fork;
         var actorId = utils.generateId();
@@ -98,11 +80,10 @@ var ServerActor = (function (_super) {
         var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
         return ref.proxyify();
-    };
-    return ServerActor;
-}(Actor));
-var Application = (function () {
-    function Application() {
+    }
+}
+class Application {
+    constructor() {
         this.appActors = 0;
         if (this.appActors == 0) {
             this.mainId = utils.generateId();
@@ -113,14 +94,10 @@ var Application = (function () {
             throw new Error("Cannot create more than one application actor");
         }
     }
-    return Application;
-}());
-var ServerApplication = (function (_super) {
-    __extends(ServerApplication, _super);
-    function ServerApplication(mainIp, mainPort) {
-        if (mainIp === void 0) { mainIp = "127.0.0.1"; }
-        if (mainPort === void 0) { mainPort = 8000; }
-        _super.call(this);
+}
+class ServerApplication extends Application {
+    constructor(mainIp = "127.0.0.1", mainPort = 8000) {
+        super();
         this.mainIp = mainIp;
         this.mainPort = mainPort;
         this.portCounter = 8001;
@@ -128,58 +105,57 @@ var ServerApplication = (function (_super) {
         this.mainCommMedium = new sockets_1.ServerSocketManager(mainIp, mainPort);
         this.socketManager = this.mainCommMedium;
         this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
-        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool);
+        this.gspInstance = new GSP_1.GSP(this.socketManager, this.mainId, this.mainRef);
+        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool, this.gspInstance);
         this.socketManager.init(this.mainMessageHandler);
-        utils.installSTDLib(true, this.mainRef, null, this, this.mainMessageHandler, this.mainCommMedium, this.mainPromisePool);
+        utils.installSTDLib(true, this.mainRef, null, this, this.mainCommMedium, this.mainPromisePool, this.gspInstance);
     }
-    ServerApplication.prototype.spawnActor = function (actorClass, constructorArgs, port) {
-        if (constructorArgs === void 0) { constructorArgs = []; }
-        if (port === void 0) { port = -1; }
-        var actorObject = new (actorClass.bind.apply(actorClass, [void 0].concat(constructorArgs)))();
+    spawnActor(actorClass, constructorArgs = [], port = -1) {
+        var actorObject = new actorClass(...constructorArgs);
         if (port == -1) {
             port = this.portCounter++;
         }
         return actorObject.spawn(this, port, actorClass);
-    };
-    ServerApplication.prototype.kill = function () {
+    }
+    kill() {
         this.socketManager.closeAll();
-        this.spawnedActors.forEach(function (actor) {
+        this.spawnedActors.forEach((actor) => {
             actor.kill();
         });
-    };
-    return ServerApplication;
-}(Application));
-var ClientApplication = (function (_super) {
-    __extends(ClientApplication, _super);
-    function ClientApplication() {
-        _super.call(this);
+    }
+}
+class ClientApplication extends Application {
+    constructor() {
+        super();
         this.mainCommMedium = new ChannelManager_1.ChannelManager();
         this.spawnedActors = [];
         this.channelManager = this.mainCommMedium;
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
-        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool);
+        this.gspInstance = new GSP_1.GSP(this.channelManager, this.mainId, this.mainRef);
+        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool, this.gspInstance);
         this.channelManager.init(this.mainMessageHandler);
-        utils.installSTDLib(true, this.mainRef, null, this, this.mainCommMedium, this.mainPromisePool);
+        utils.installSTDLib(true, this.mainRef, null, this, this.mainCommMedium, this.mainPromisePool, this.gspInstance);
     }
-    ClientApplication.prototype.spawnActor = function (actorClass, constructorArgs) {
-        if (constructorArgs === void 0) { constructorArgs = []; }
-        var actorObject = new (actorClass.bind.apply(actorClass, [void 0].concat(constructorArgs)))();
+    spawnActor(actorClass, constructorArgs = []) {
+        var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, actorClass);
-    };
-    ClientApplication.prototype.kill = function () {
-        this.spawnedActors.forEach(function (workerPair) {
+    }
+    kill() {
+        this.spawnedActors.forEach((workerPair) => {
             workerPair[1].terminate();
             URL.revokeObjectURL(workerPair[1]);
         });
         this.spawnedActors = [];
-    };
-    return ClientApplication;
-}(Application));
+    }
+}
 if (utils.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;
+    exports.Repliq = Repliq_1.Repliq;
 }
 else {
     exports.Application = ServerApplication;
     exports.Actor = ServerActor;
+    exports.Repliq = Repliq_1.Repliq;
 }
+//# sourceMappingURL=spiders.js.map

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{benchmark-DefinitelyTyped, chai-DefinitelyTyped, ip-DefinitelyTyped, mocha-DefinitelyTyped, node-DefinitelyTyped, promise-DefinitelyTyped, protobufjs-DefinitelyTyped, socket.io-DefinitelyTyped, socket.io-client-DefinitelyTyped}" />
+    <file url="file://$PROJECT_DIR$/src" libraries="{es6-promise-DefinitelyTyped, es6-shim-DefinitelyTyped}" />
+    <file url="PROJECT" libraries="{es6-promise-DefinitelyTyped, es6-shim-DefinitelyTyped, harmony-proxy-DefinitelyTyped, ip-DefinitelyTyped, node-DefinitelyTyped, protobufjs-DefinitelyTyped, proxyquire-DefinitelyTyped, socket.io-DefinitelyTyped, socket.io-client-DefinitelyTyped}" />
     <includedPredefinedLibrary name="ECMAScript 6" />
   </component>
 </project>

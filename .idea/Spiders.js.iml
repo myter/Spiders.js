@@ -21,5 +21,9 @@
     <orderEntry type="library" name="chai-DefinitelyTyped" level="application" />
     <orderEntry type="library" name="mocha-DefinitelyTyped" level="application" />
     <orderEntry type="library" name="promise-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="es6-promise-DefinitelyTyped" level="project" />
+    <orderEntry type="library" name="es6-shim-DefinitelyTyped" level="project" />
+    <orderEntry type="library" name="proxyquire-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="harmony-proxy-DefinitelyTyped" level="application" />
   </component>
 </module>

@@ -2,7 +2,8 @@ import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
-    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_
+    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_, _GSP_ROUND_,
+    GSPRoundMessage, _GSP_SYNC_, GSPSyncMessage, _GSP_REGISTER_, GSPRegisterMessage
 } from "./messages";
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
@@ -15,6 +16,7 @@ import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {ChannelManager} from "./ChannelManager";
 import {Socket} from "net";
+import {GSP} from "./Replication/GSP";
 /**
  * Created by flo on 20/12/2016.
  */
@@ -24,12 +26,14 @@ export class MessageHandler{
     private commMedium      : CommMedium
     private promisePool     : PromisePool
     private objectPool      : ObjectPool
+    private gspInstance     : GSP
     thisRef         : FarReference
 
-    constructor(thisRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+    constructor(thisRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,gspInstance : GSP){
         this.commMedium     = commMedium
         this.promisePool    = promisePool
         this.objectPool     = objectPool
+        this.gspInstance    = gspInstance
         this.thisRef        = thisRef
     }
 
@@ -60,8 +64,9 @@ export class MessageHandler{
         var thisId                  = msg.actorId
         var mainId                  = msg.mainId
         var thisRef                 = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,null,this.commMedium,this.promisePool,this.objectPool)
-        var behaviourObject         = reconstructBehaviour({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool)
-        reconstructStatic(behaviourObject,msg.staticProperties,thisRef,this.promisePool,this.commMedium,this.objectPool)
+        this.gspInstance            = new GSP(this.commMedium,thisId,thisRef)
+        var behaviourObject         = reconstructBehaviour({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool,this.gspInstance)
+        reconstructStatic(behaviourObject,msg.staticProperties,thisRef,this.promisePool,this.commMedium,this.objectPool,this.gspInstance)
         var otherActorIds           = msg.otherActorIds
         this.objectPool.installBehaviourObject(behaviourObject)
         this.thisRef                = thisRef
@@ -73,7 +78,7 @@ export class MessageHandler{
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id,ports[index + 1])
         })
-        utils.installSTDLib(false,thisRef,parentRef,behaviourObject,this.commMedium,this.promisePool)
+        utils.installSTDLib(false,thisRef,parentRef,behaviourObject,this.commMedium,this.promisePool,this.gspInstance)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
@@ -102,7 +107,7 @@ export class MessageHandler{
         var methodName                          = msg.methodName
         var args                                = msg.args
         var deserialisedArgs                    = args.map((arg) => {
-            return deserialise(this.thisRef,arg,this.promisePool,this.commMedium,this.objectPool)
+            return deserialise(this.thisRef,arg,this.promisePool,this.commMedium,this.objectPool,this.gspInstance)
         })
         var retVal
         try{
@@ -135,7 +140,7 @@ export class MessageHandler{
     }
 
     private handlePromiseResolve(msg : ResolvePromiseMessage){
-        var deSerialised = deserialise(this.thisRef,msg.value,this.promisePool,this.commMedium,this.objectPool)
+        var deSerialised = deserialise(this.thisRef,msg.value,this.promisePool,this.commMedium,this.objectPool,this.gspInstance)
         if(msg.foreign){
             this.promisePool.resolveForeignPromise(msg.promiseId,msg.senderId,deSerialised)
         }
@@ -145,7 +150,7 @@ export class MessageHandler{
     }
 
     private handlePromiseReject(msg : RejectPromiseMessage){
-        var deSerialised  = deserialise(this.thisRef,msg.reason,this.promisePool,this.commMedium,this.objectPool)
+        var deSerialised  = deserialise(this.thisRef,msg.reason,this.promisePool,this.commMedium,this.objectPool,this.gspInstance)
         if(msg.foreign){
             this.promisePool.rejectForeignPromise(msg.promiseId,msg.senderId,deSerialised)
         }
@@ -191,6 +196,18 @@ export class MessageHandler{
         this.commMedium.sendMessage(msg.targetId,msg.message)
     }
 
+    private handleGSPRound(msg : GSPRoundMessage){
+        this.gspInstance.roundReceived(msg.round)
+    }
+
+    private handleGSPSync(msg : GSPSyncMessage){
+        this.gspInstance.receiveSync(msg.requesterId,msg.repliqId)
+    }
+
+    private handleGSPRegister(msg : GSPRegisterMessage){
+        this.gspInstance.registerReplicaHolder(msg.replicaId,msg.holderId)
+    }
+
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
@@ -221,6 +238,15 @@ export class MessageHandler{
                 break
             case _ROUTE_:
                 this.handleRoute(msg as RouteMessage)
+                break
+            case _GSP_ROUND_:
+                this.handleGSPRound(msg as GSPRoundMessage)
+                break
+            case _GSP_SYNC_:
+                this.handleGSPSync(msg as GSPSyncMessage)
+                break
+            case _GSP_REGISTER_:
+                this.handleGSPRegister(msg as GSPRegisterMessage)
                 break
             default:
                 throw "Unknown message in actor : " + msg.toString()
