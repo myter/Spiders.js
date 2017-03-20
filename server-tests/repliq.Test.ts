@@ -4,8 +4,6 @@
 
 import {SpiderLib} from "../src/spiders";
 import Base = Mocha.reporters.Base;
-import {RepliqField} from "../src/Replication/RepliqField";
-import {FieldUpdate} from "../src/Replication/Round";
 
 /**
  * Created by flo on 20/03/2017.
@@ -184,8 +182,8 @@ describe("Field Behaviour",() => {
     })
 
     it("Custom update",function (done){
-        class IncField extends RepliqField<number>{
-            update(updates : Array<FieldUpdate>){
+        class IncField extends spider.RepliqField{
+            update(updates ){
                 this.tentative += updates.length
             }
         }
@@ -414,6 +412,212 @@ describe("State Change Handling",()=>{
                 app.kill()
                 done(e)
             }
+        },2000)
+    })
+})
+
+describe("Annotations",()=>{
+    it("Atomic method",function (done){
+        this.timeout(10000)
+        class TestField extends spider.RepliqField{
+            update(updates){
+                this.tentative = updates.length
+            }
+        }
+        class TestRepliq extends spider.Repliq{
+            field
+            constructor(){
+                super()
+                this.field = new TestField("field",1)
+            }
+
+            @spider.atomic
+            updateField(val){
+                this.field = val
+                this.field = val + 1
+                this.field = val + 2
+            }
+        }
+        class Master extends spider.Application{
+            repliq
+            handled
+            constructor(){
+                super()
+                this.repliq = this.newRepliq(TestRepliq)
+                this.handled = false
+            }
+
+        }
+        class Slave extends spider.Actor{
+            myReplica
+            getRepliq(aReplica){
+                this.myReplica = aReplica
+            }
+
+            updateRepliq(val){
+                this.myReplica.updateField(val)
+            }
+
+            retVal(){
+                return this.myReplica.field.valueOf()
+            }
+        }
+        var app = new Master()
+        var a1  = app.spawnActor(Slave)
+        a1.getRepliq(app.repliq)
+        a1.updateRepliq(5)
+        setTimeout(()=>{
+            a1.retVal().then((v)=>{
+                try{
+                    expect(v).to.equal(3)
+                    expect(app.repliq.field.valueOf()).to.equal(3)
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
+        },2000)
+    })
+
+    it("Built-in field annotations",function (done){
+        this.timeout(10000)
+        class TestRepliq extends spider.Repliq{
+            @spider.LWR
+            lwr
+            @spider.Count
+            count
+
+            constructor(){
+                super()
+                this.lwr    = 1
+                this.count  = 1
+            }
+
+            updateLwr(val){
+                this.lwr = val
+            }
+
+            updateCount(val){
+                this.count = val
+            }
+        }
+
+        class Master extends spider.Application{
+            repliq
+            handled
+            constructor(){
+                super()
+                this.repliq = this.newRepliq(TestRepliq)
+                this.handled = false
+            }
+
+        }
+        class Slave extends spider.Actor{
+            myReplica
+            getRepliq(aReplica){
+                this.myReplica = aReplica
+            }
+
+            updateCount(val){
+                this.myReplica.updateCount(val)
+            }
+
+            updateLwr(val){
+                this.myReplica.updateLwr(val)
+            }
+
+            retVal(){
+                return [this.myReplica.count.valueOf(),this.myReplica.lwr.valueOf()]
+            }
+        }
+        var app = new Master()
+        var a1  = app.spawnActor(Slave)
+        a1.getRepliq(app.repliq)
+        a1.updateCount(5)
+        a1.updateLwr(5)
+        setTimeout(()=>{
+            a1.retVal().then((v)=>{
+                try{
+                    expect(v[0]).to.equal(2)
+                    expect(v[1]).to.equal(5)
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
+        },2000)
+    })
+
+    it("Custom field annotations",function (done){
+        this.timeout(10000)
+        class TestField extends spider.RepliqField{
+            update(updates){
+                this.tentative = updates.length
+            }
+        }
+        var Test = spider.makeAnnotation(TestField)
+        class TestRepliq extends spider.Repliq{
+            @Test
+            field
+            constructor(){
+                super()
+                this.field = 1
+            }
+
+            @spider.atomic
+            updateField(val){
+                this.field = val
+                this.field = val + 1
+                this.field = val + 2
+            }
+        }
+        class Master extends spider.Application{
+            repliq
+            handled
+            constructor(){
+                super()
+                this.repliq = this.newRepliq(TestRepliq)
+                this.handled = false
+            }
+
+        }
+        class Slave extends spider.Actor{
+            myReplica
+            getRepliq(aReplica){
+                this.myReplica = aReplica
+            }
+
+            updateRepliq(val){
+                this.myReplica.updateField(val)
+            }
+
+            retVal(){
+                return this.myReplica.field.valueOf()
+            }
+        }
+        var app = new Master()
+        var a1  = app.spawnActor(Slave)
+        a1.getRepliq(app.repliq)
+        a1.updateRepliq(5)
+        setTimeout(()=>{
+            a1.retVal().then((v)=>{
+                try{
+                    expect(v).to.equal(3)
+                    expect(app.repliq.field.valueOf()).to.equal(3)
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
         },2000)
     })
 })

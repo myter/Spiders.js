@@ -6,67 +6,60 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 const RepliqField_1 = require("../src/Replication/RepliqField");
 var spiders = require("../src/spiders");
-class TestField extends RepliqField_1.RepliqField {
-    update(updates) {
-        console.log("Updates received : " + updates.length);
-        this.triggerTentative();
-    }
-}
 class TestRepliq extends spiders.Repliq {
     constructor() {
         super();
-        this.reg = new RepliqField_1.RepliqCountField("reg", 1);
-        this.t = new TestField("t", 0);
+        this.foo = 1;
+        this.bar = 5;
     }
-    setReg(val) {
-        this.reg = val;
+    setFoo(val) {
+        this.foo = val;
     }
-    updateT() {
-        this.t = 5;
-        this.t = 6;
-        this.t = 7;
+    setBar(val) {
+        this.bar = val;
     }
 }
 __decorate([
+    RepliqField_1.Count
+], TestRepliq.prototype, "foo", void 0);
+__decorate([
+    RepliqField_1.LWR
+], TestRepliq.prototype, "bar", void 0);
+__decorate([
     spiders.atomic
-], TestRepliq.prototype, "updateT", null);
+], TestRepliq.prototype, "setFoo", null);
 class TestApp extends spiders.Application {
-    createAndSend(actRef) {
-        this.testRepliq = this.newRepliq(TestRepliq);
-        this.testRepliq.reg.onCommit((commitedValue) => {
-            console.log("On commit triggered for reg with value : " + commitedValue);
-        });
-        actRef.getRepliq(this.testRepliq);
+    constructor() {
+        super();
+        this.repliq = this.newRepliq(TestRepliq);
     }
 }
 var app = new TestApp();
 class TestActor extends spiders.Actor {
-    constructor() {
-        super();
-        this.someVal = 1;
+    getRepliq(replica) {
+        this.myReplica = replica;
     }
-    getRepliq(repliq) {
-        this.myRepliq = repliq;
-        var that = this;
-        this.myRepliq.setReg("It worked !").onceCommited(() => {
-            console.log("Set reg was commited!! : " + that.someVal);
-            that.someVal += 1;
-        });
-        this.myRepliq.t.onTentative((tent) => {
-            console.log("On tentative called for replica with val: " + tent);
-        });
+    update(val) {
+        this.myReplica.setFoo(val);
     }
-    testAtomicUpdate() {
-        this.myRepliq.updateT();
+    updateBar(val) {
+        this.myReplica.setBar(val);
     }
 }
 var act = app.spawnActor(TestActor);
-app.createAndSend(act);
-console.log("Value in app: " + app.testRepliq.reg);
+act.getRepliq(app.repliq);
+console.log("Foo Value before : " + app.repliq.foo);
 setTimeout(() => {
-    console.log("Value in app: " + app.testRepliq.reg);
+    act.update(10);
     setTimeout(() => {
-        act.testAtomicUpdate();
-    }, 1000);
-}, 4000);
+        console.log("Foo Value after: " + app.repliq.foo);
+    }, 2000);
+}, 1000);
+console.log("Bar Value before : " + app.repliq.bar);
+setTimeout(() => {
+    act.updateBar(10);
+    setTimeout(() => {
+        console.log("Bar Value after: " + app.repliq.bar);
+    }, 2000);
+}, 1000);
 //# sourceMappingURL=temp.js.map

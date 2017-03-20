@@ -61,9 +61,18 @@ export class RepliqField<T>{
         this.commitListeners    = []
     }
 }
+export var fieldMetaData = new Map()
+export function makeAnnotation(fieldClass) : any{
+    return function(target,propertyKey){
+        fieldMetaData.set(propertyKey,fieldClass)
+    }
+}
 
 export class RepliqCountField extends RepliqField<number>{
     update(updates : Array<FieldUpdate>){
         this.tentative += updates.length
     }
 }
+
+export var LWR      = makeAnnotation(RepliqField)
+export var Count    = makeAnnotation(RepliqCountField)

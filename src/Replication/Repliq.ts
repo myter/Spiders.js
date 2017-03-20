@@ -7,7 +7,7 @@ var utils = require("../utils")
 /**
  * Created by flo on 16/03/2017.
  */
-
+var RepliqFields = require("./RepliqField")
 export function atomic(target : any,propertyKey : string,descriptor : PropertyDescriptor){
     let originalMethod = descriptor.value
     originalMethod[Repliq.isAtomic] = true
@@ -179,9 +179,14 @@ export class Repliq{
         let fieldKeys       = Reflect.ownKeys(this)
         let methodKeys      = Reflect.ownKeys(Object.getPrototypeOf(this))
         let handler         = this.makeProxyHandler(fields,originalMethods,repliqId,thisActorId)
+        let meta            = RepliqFields.fieldMetaData
         //"Regular" fields are transformed into standard LWR Fields
         fieldKeys.forEach((key)=>{
             var gspField = Reflect.get(this,key)
+            if(meta.has(key)){
+                let fieldClass  = meta.get(key)
+                gspField        = new fieldClass(key,gspField)
+            }
             if(!(gspField instanceof RepliqField)){
                 gspField = new RepliqField(key.toString(),gspField)
             }

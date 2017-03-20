@@ -8,6 +8,8 @@ const ChannelManager_1 = require("./ChannelManager");
 const messages_1 = require("./messages");
 const GSP_1 = require("./Replication/GSP");
 const Repliq_1 = require("./Replication/Repliq");
+const RepliqField_1 = require("./Replication/RepliqField");
+const Round_1 = require("./Replication/Round");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -148,16 +150,19 @@ class ClientApplication extends Application {
         this.spawnedActors = [];
     }
 }
+exports.Repliq = Repliq_1.Repliq;
+exports.atomic = Repliq_1.atomic;
+exports.LWR = RepliqField_1.LWR;
+exports.Count = RepliqField_1.Count;
+exports.RepliqField = RepliqField_1.RepliqField;
+exports.makeAnnotation = RepliqField_1.makeAnnotation;
+exports.FieldUpdate = Round_1.FieldUpdate;
 if (utils.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;
-    exports.Repliq = Repliq_1.Repliq;
-    exports.atomic = Repliq_1.atomic;
 }
 else {
     exports.Application = ServerApplication;
     exports.Actor = ServerActor;
-    exports.Repliq = Repliq_1.Repliq;
-    exports.atomic = Repliq_1.atomic;
 }
 //# sourceMappingURL=spiders.js.map
