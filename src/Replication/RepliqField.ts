@@ -71,6 +71,7 @@ export function makeAnnotation(fieldClass) : any{
 export class RepliqCountField extends RepliqField<number>{
     update(updates : Array<FieldUpdate>){
         this.tentative += updates.length
+        this.triggerTentative()
     }
 }
 
