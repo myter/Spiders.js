@@ -18,20 +18,22 @@ export class FieldUpdate{
 }
 
 export class Round{
-    masterOwnerId   : string
-    masterObjectId  : ReplicaId
-    roundNumber     : number
-    methodName      : string
-    args            : Array<any>
-    updates         : any
+    masterOwnerId           : string
+    masterObjectId          : ReplicaId
+    roundNumber             : number
+    methodName              : string
+    args                    : Array<any>
+    updates                 : any
+    listenerID              : string
 
-    constructor(gspObjectId : ReplicaId,masterOwnerId : string,roundNumber : number,methodName : string,args : Array<any>){
-        this.masterObjectId     = gspObjectId
-        this.masterOwnerId      = masterOwnerId
-        this.roundNumber        = roundNumber
-        this.methodName         = methodName
-        this.args               = args
-        this.updates            = {}
+    constructor(gspObjectId : ReplicaId,masterOwnerId : string,roundNumber : number,methodName : string,args : Array<any>,listenerID : string){
+        this.masterObjectId         = gspObjectId
+        this.masterOwnerId          = masterOwnerId
+        this.roundNumber            = roundNumber
+        this.methodName             = methodName
+        this.args                   = args
+        this.updates                = {}
+        this.listenerID             = listenerID
     }
 
     addUpdate(update : FieldUpdate){

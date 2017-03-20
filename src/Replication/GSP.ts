@@ -6,6 +6,7 @@ import {CommMedium} from "../commMedium";
 import {FarReference} from "../farRef";
 import {GSPRoundMessage, GSPSyncMessage, GSPRegisterMessage} from "../messages";
 import {Repliq} from "./Repliq";
+var utils = require("../utils")
 /**
  * Created by flo on 09/03/2017.
  */
@@ -13,21 +14,23 @@ import {Repliq} from "./Repliq";
 
 export type ReplicaId               = string
 export class GSP{
-    commMedium          : CommMedium
-    thisActorId         : string
-    thisRef             : FarReference
-    repliqs             : Map<ReplicaId,Repliq>
+    commMedium              : CommMedium
+    thisActorId             : string
+    thisRef                 : FarReference
+    repliqs                 : Map<ReplicaId,Repliq>
     //Keep track of current round for each gsp object
-    current             : Map<ReplicaId,Round>
+    current                 : Map<ReplicaId,Round>
     //Object id -> array of pending rounds
-    pending             : Map<ReplicaId,Array<Round>>
+    pending                 : Map<ReplicaId,Array<Round>>
     //Object id -> array of commited rounds
-    committed           : Map<ReplicaId,Array<Round>>
+    committed               : Map<ReplicaId,Array<Round>>
     //Object id -> last confirmed round number
-    roundNumbers        : Map<ReplicaId,number>
+    roundNumbers            : Map<ReplicaId,number>
     //Object id -> array of known peers having a replica of a master repliq owned by this actor
-    replicaOwners       : Map<ReplicaId,Array<string>>
-    replay              : Array<ReplicaId>
+    replicaOwners           : Map<ReplicaId,Array<string>>
+    replay                  : Array<ReplicaId>
+    //Round number -> array of callbacks to be triggered once the round is committed
+    roundCommitListeners    : Map<string,Array<Function>>
 
     //Checks whether this instance is master of a given gsp object (using the gsp object's owner id)
     private isMaster(anId : string) : boolean{
@@ -40,21 +43,21 @@ export class GSP{
         Reflect.ownKeys(round.updates).forEach((fieldName)=>{
             fields.get(fieldName).update(Reflect.get(round.updates,fieldName))
         })
-        //object[round.methodName](round.args)
     }
 
 
     constructor(commMedium : CommMedium,thisActorId : string,thisRef : FarReference){
-        this.commMedium         = commMedium
-        this.thisActorId        = thisActorId
-        this.thisRef            = thisRef
-        this.repliqs            = new Map()
-        this.current            = new Map()
-        this.pending            = new Map()
-        this.committed          = new Map()
-        this.roundNumbers       = new Map()
-        this.replicaOwners           = new Map()
-        this.replay             = []
+        this.commMedium             = commMedium
+        this.thisActorId            = thisActorId
+        this.thisRef                = thisRef
+        this.repliqs                = new Map()
+        this.current                = new Map()
+        this.pending                = new Map()
+        this.committed              = new Map()
+        this.roundNumbers           = new Map()
+        this.replicaOwners          = new Map()
+        this.replay                 = []
+        this.roundCommitListeners   = new Map()
     }
 
     //////////////////////////////////
@@ -72,9 +75,17 @@ export class GSP{
     newRound(objectId : ReplicaId,ownerId : string,methodName : string,args : Array<any>) : Round{
         //Round number will be determined upon Yield by the master
         let roundNumber = -1
-        let round = new Round(objectId,ownerId,roundNumber,methodName,args)
+        let listenerID  = utils.generateId()
+        let round = new Round(objectId,ownerId,roundNumber,methodName,args,listenerID)
         this.current.set(objectId,round)
         return round
+    }
+
+    registerRoundListener(callback : Function,listenerID : string){
+        if(!this.roundCommitListeners.has(listenerID)){
+            this.roundCommitListeners.set(listenerID,[])
+        }
+        this.roundCommitListeners.get(listenerID).push(callback)
     }
 
     //Called at the end of a method invocation on a gsp object
@@ -160,6 +171,16 @@ export class GSP{
         this.replay = this.replay.filter((oId)=>{
             oId != round.masterObjectId
         })
+        //6) trigger all onceCommited listeners for this round
+        this.triggerCommitListeners(round.listenerID)
+    }
+
+    triggerCommitListeners(listenerID){
+        if(this.roundCommitListeners.has(listenerID)){
+            this.roundCommitListeners.get(listenerID).forEach((callback)=>{
+                callback()
+            })
+        }
     }
 
     /////////////////////////////////////////////

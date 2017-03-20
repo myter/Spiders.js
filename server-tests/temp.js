@@ -9,6 +9,7 @@ var spiders = require("../src/spiders");
 class TestField extends RepliqField_1.RepliqField {
     update(updates) {
         console.log("Updates received : " + updates.length);
+        this.triggerTentative();
     }
 }
 class TestRepliq extends spiders.Repliq {
@@ -32,14 +33,28 @@ __decorate([
 class TestApp extends spiders.Application {
     createAndSend(actRef) {
         this.testRepliq = this.newRepliq(TestRepliq);
+        this.testRepliq.reg.onCommit((commitedValue) => {
+            console.log("On commit triggered for reg with value : " + commitedValue);
+        });
         actRef.getRepliq(this.testRepliq);
     }
 }
 var app = new TestApp();
 class TestActor extends spiders.Actor {
+    constructor() {
+        super();
+        this.someVal = 1;
+    }
     getRepliq(repliq) {
         this.myRepliq = repliq;
-        this.myRepliq.setReg("It worked !");
+        var that = this;
+        this.myRepliq.setReg("It worked !").onceCommited(() => {
+            console.log("Set reg was commited!! : " + that.someVal);
+            that.someVal += 1;
+        });
+        this.myRepliq.t.onTentative((tent) => {
+            console.log("On tentative called for replica with val: " + tent);
+        });
     }
     testAtomicUpdate() {
         this.myRepliq.updateT();

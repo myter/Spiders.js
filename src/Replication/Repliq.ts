@@ -1,7 +1,8 @@
 import {RepliqContainer} from "../serialisation";
 import {GSP, ReplicaId} from "./GSP";
 import {RepliqField} from "./RepliqField";
-import {FieldUpdate} from "./Round";
+import {FieldUpdate, Round} from "./Round";
+import {listenerCount} from "cluster";
 var utils = require("../utils")
 /**
  * Created by flo on 16/03/2017.
@@ -12,6 +13,20 @@ export function atomic(target : any,propertyKey : string,descriptor : PropertyDe
     originalMethod[Repliq.isAtomic] = true
     return {
         value : originalMethod
+    }
+}
+
+class OnceCommited{
+    gspInstance : GSP
+    listenerID  : string
+
+    constructor(gspInstance : GSP,listenerID : string){
+        this.gspInstance    = gspInstance
+        this.listenerID     = listenerID
+    }
+
+    onceCommited(callback){
+        this.gspInstance.registerRoundListener(callback,this.listenerID)
     }
 }
 
@@ -51,8 +66,11 @@ export class Repliq{
                 let res = target.apply(thisProxy,args)
                 if(!gspInstance.inReplay(objectId)){
                     gspInstance.yield(objectId,ownerId)
+                    return new OnceCommited(gspInstance,round.listenerID)
                 }
-                return res
+                else{
+                    return res
+                }
             }
         }
     }
@@ -61,11 +79,12 @@ export class Repliq{
         return {
             apply: function(target,thisArg,args){
                 //The "this" argument of a method is set to a proxy around the original object which intercepts assignment and calls "writeField" on the Field
+                let round
                 let thisProxy = new Proxy(thisArg,{
                     set : function(target,property,value,receiver){
                         let gspField = fields.get(<string> property)
                         if(!gspInstance.inReplay(objectId)){
-                            let round  = gspInstance.newRound(objectId,ownerId,methodName,args)
+                            round  = gspInstance.newRound(objectId,ownerId,methodName,args)
                             let update = new FieldUpdate(property,gspField.read(),value)
                             round.addUpdate(update)
                             gspInstance.yield(objectId,ownerId)
@@ -74,7 +93,13 @@ export class Repliq{
                         return true
                     }
                 })
-                return target.apply(thisProxy,args)
+                let res = target.apply(thisProxy,args)
+                if(!gspInstance.inReplay(objectId)){
+                    return new OnceCommited(gspInstance,round.listenerID)
+                }
+                else{
+                    return res
+                }
             }
         }
     }
@@ -120,7 +145,15 @@ export class Repliq{
                         }
                         else {
                             var field = fields.get(name)
-                            return field.read()
+                            //Wrap value in an object in order to be able to install onCommit and onTentative listeners
+                            let val   = Object(field.read())
+                            Reflect.set(val,"onCommit",(callback)=>{
+                                field.onCommit(callback)
+                            })
+                            Reflect.set(val,"onTentative",(callback)=>{
+                                field.onTentative(callback)
+                            })
+                            return val
                         }
                     }
                     else{

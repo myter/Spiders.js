@@ -554,17 +554,14 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         let blankRepliq     = new Repliq()
         let fields          = new Map();
         (JSON.parse(repliqContainer.fields)).forEach((repliqField : RepliqFieldContainer)=>{
-            let field : any                 = {}
-            let fieldProto : any            = {}
-            Object.setPrototypeOf(field,fieldProto)
-            field.name                      = repliqField.name
-            field.tentative                 = repliqField.tentative
+            let field                       = new RepliqField(repliqField.name,repliqField.tentative)
+            let fieldProto                  = Object.getPrototypeOf(field)
             field.commited                  = repliqField.commited
-            fieldProto.read                 = constructMethod(repliqField.readFunc)
-            fieldProto.writeField           = constructMethod(repliqField.writeFunc)
-            fieldProto.resetToCommit        = constructMethod(repliqField.resetFunc)
-            fieldProto.commit               = constructMethod(repliqField.commitFunc)
-            fieldProto.update               = constructMethod(repliqField.updateFunc)
+            field.read                 = constructMethod(repliqField.readFunc)
+            field.writeField           = constructMethod(repliqField.writeFunc)
+            field.resetToCommit        = constructMethod(repliqField.resetFunc)
+            field.commit               = constructMethod(repliqField.commitFunc)
+            field.update               = constructMethod(repliqField.updateFunc)
             fields.set(field.name,field)
         })
         let methods         = new Map();

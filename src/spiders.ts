@@ -216,7 +216,6 @@ export interface SpiderLib{
 }
 //Ugly, but a far reference has no static interface
 export type FarRef = any
-
 if(utils.isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor

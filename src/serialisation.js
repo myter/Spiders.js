@@ -3,6 +3,7 @@ const messages_1 = require("./messages");
 const farRef_1 = require("./farRef");
 const spiders_1 = require("./spiders");
 const Repliq_1 = require("./Replication/Repliq");
+const RepliqField_1 = require("./Replication/RepliqField");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -484,17 +485,14 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         let blankRepliq = new Repliq_1.Repliq();
         let fields = new Map();
         (JSON.parse(repliqContainer.fields)).forEach((repliqField) => {
-            let field = {};
-            let fieldProto = {};
-            Object.setPrototypeOf(field, fieldProto);
-            field.name = repliqField.name;
-            field.tentative = repliqField.tentative;
+            let field = new RepliqField_1.RepliqField(repliqField.name, repliqField.tentative);
+            let fieldProto = Object.getPrototypeOf(field);
             field.commited = repliqField.commited;
-            fieldProto.read = constructMethod(repliqField.readFunc);
-            fieldProto.writeField = constructMethod(repliqField.writeFunc);
-            fieldProto.resetToCommit = constructMethod(repliqField.resetFunc);
-            fieldProto.commit = constructMethod(repliqField.commitFunc);
-            fieldProto.update = constructMethod(repliqField.updateFunc);
+            field.read = constructMethod(repliqField.readFunc);
+            field.writeField = constructMethod(repliqField.writeFunc);
+            field.resetToCommit = constructMethod(repliqField.resetFunc);
+            field.commit = constructMethod(repliqField.commitFunc);
+            field.update = constructMethod(repliqField.updateFunc);
             fields.set(field.name, field);
         });
         let methods = new Map();
