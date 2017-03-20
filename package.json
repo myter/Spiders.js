@@ -11,7 +11,8 @@
     "build-spiderpong-client": "browserify SpiderPong/spiderClient/js/logic.js -o SpiderPong/spiderClient/bundle.js",
     "build-nativepong-client": "browserify NativePong/nativeClient/js/logic.js -o NativePong/nativeClient/bundle.js",
     "build-speedup-client": "browserify benchmarks/Speedup/ClientSpeedupBenchmarks.js -o benchmarks/Speedup/bundle.js",
-    "build-christophe": "browserify Christophe/app.js -o Christophe/christopheBundle.js"
+    "build-ping-example": "browserify examples/Distributed/pinger.js -o examples/Distributed/pingBundle.js",
+    "build-pong-example": "browserify examples/Distributed/ponger.js -o examples/Distributed/pongBundle.js"
   },
   "dependencies": {
     "webworkify": "1.4.0",
