@@ -372,7 +372,6 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             return new ErrorContainer(value);
         }
         else if (value[farRef_1.FarReference.ServerProxyTypeKey]) {
-            console.log("Is server far ref ? : " + value[farRef_1.FarReference.ServerProxyTypeKey]);
             var farRef = value[farRef_1.FarReference.farRefAccessorKey];
             return new ServerFarRefContainer(farRef.objectId, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
         }

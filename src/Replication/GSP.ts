@@ -197,6 +197,11 @@ export class GSP{
             this.replicaOwners.set(replicaId,[])
         }
         this.replicaOwners.get(replicaId).push(holderId)
+        if(this.committed.has(replicaId)){
+            this.committed.get(replicaId).forEach((round)=>{
+                this.commMedium.sendMessage(holderId,new GSPRoundMessage(this.thisRef,round))
+            })
+        }
     }
 
     roundReceived(round : Round){

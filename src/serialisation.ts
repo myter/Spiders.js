@@ -432,7 +432,6 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             return new ErrorContainer(value)
         }
         else if(value[FarReference.ServerProxyTypeKey]){
-            console.log("Is server far ref ? : " + value[FarReference.ServerProxyTypeKey])
             var farRef : ServerFarReference = value[FarReference.farRefAccessorKey]
             return new ServerFarRefContainer(farRef.objectId,farRef.ownerId,farRef.ownerAddress,farRef.ownerPort)
         }
