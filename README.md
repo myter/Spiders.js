@@ -45,6 +45,65 @@ Spiders.js provides the same API whether the application is running on a server 
 client-side actors are implemented using web workers, while server-side actors run atop child processes.
 Moreover, Spiders.js is browserifiable !
 ## Built-in distribution
-TODO
+All spiders.js actors communicate by asynchronously invoking methods on each other. This communication scheme extends to actors residing on different machines. As an example of how you can implement distributed application using Spiders.js consider the following distributed ping/pong example.
+The application's server simply allows the ping and pong clients to register themselves. It provides two methods ```registerPing``` and ```registerPong``` to this end. Each of these methods is invoked by a client which provides a reference to itself.
+```javascript
+var spider = require('spiders.js')
+class Server extends spider.Application{
+
+    constructor(){
+        super()
+        this.pingerRef
+        this.hasPing = false
+        this.pongerRef
+        this.hasPong = false
+    }
+
+    registerPing(pingerRef){
+        this.pingerRef  = pingerRef
+        this.hasPing    = true
+        if(this.hasPong){
+            this.pingerRef.meet(this.pongerRef)
+            this.pongerRef.meet(this.pingerRef)
+        }
+    }
+
+    registerPong(pongerRef){
+        this.pongerRef  = pongerRef
+        this.hasPong    = true
+        if(this.hasPing){
+            this.pongerRef.meet(this.pingerRef)
+            this.pingerRef.meet(this.pongerRef)
+        }
+    }
+}
+
+new Server("127.0.0.1",8000)
+```
+The client first needs to invoke the appropriate register method on the server. It acquires a reference to the server through the ```remote``` method, which takes the server's address and port number as argument and returns a promise which resolves with a reference to the server. Subsequently the client registers itself and awaits for the server to introduce it to its peer (i.e. via the ```meet``` method).
+```javascript
+var spider = require('spiders.js')
+class Pinger extends spider.Application{
+    constructor(){
+        super()
+        this.remote("127.0.0.1",8000).then((serverRef)=>{
+            serverRef.registerPing(this)
+        })
+    }
+    meet(pongerRef){
+        pongerRef.ping()
+    }
+
+    pong(){
+        document.getElementById("text").value = "Received Pong!"
+    }
+}
+new Pinger()
+```
+Run the example by starting the server:
+```javascript
+node examples/Distributed/server.js
+```
+and opening both ```ping.html``` and ```pong.html``` pages.
 # Typed Spiders
 TODO
