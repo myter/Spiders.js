@@ -80,7 +80,7 @@ class Server extends spider.Application{
 
 new Server("127.0.0.1",8000)
 ```
-The client first needs to invoke the appropriate register method on the server. It acquires a reference to the server through the ```remote``` method, which takes the server's address and port number as argument and returns a promise which resolves with a reference to the server. Subsequently the client registers itself and awaits for the server to introduce it to its peer (i.e. via the ```meet``` method).
+The client first needs to invoke the appropriate register method on the server. It acquires a reference to the server through the ```remote``` method, which takes the server's address and port number as arguments and returns a promise which resolves with a reference to the server. Subsequently the client registers itself and awaits for the server to introduce it to its peer (i.e. via the ```meet``` method).
 ```javascript
 var spider = require('spiders.js')
 class Pinger extends spider.Application{
