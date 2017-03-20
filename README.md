@@ -105,5 +105,3 @@ Run the example by starting the server:
 node examples/Distributed/server.js
 ```
 and opening both ```ping.html``` and ```pong.html``` pages.
-# Typed Spiders
-TODO
