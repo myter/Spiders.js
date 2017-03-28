@@ -15,7 +15,7 @@ var spider  : SpiderLib         = require('../src/spiders')
 
 describe("Replication",() => {
 
-    it("Master to replicas",function(done){
+    /*it("Master to replicas",function(done){
         this.timeout(10000)
         class TestRepliq extends spider.Repliq{
             field
@@ -116,9 +116,134 @@ describe("Replication",() => {
             }
         },2000)
     })
+
+    it("Actor as Master",function (done){
+        this.timeout(10000)
+        class TestRepliq extends spider.Repliq{
+            field
+            constructor(){
+                super()
+                this.field = 1
+            }
+
+            updateField(val){
+                this.field = val
+            }
+        }
+        class App extends spider.Application{
+            myReplica
+            getRepliq(aReplica){
+                this.myReplica = aReplica
+            }
+
+            updateRepliq(){
+                let res
+                let prom = new Promise((resolve)=>{
+                    res = resolve
+                })
+                this.myReplica.updateField(5).onceCommited(()=>{
+                    res(this.myReplica.field.valueOf())
+                })
+                return prom
+            }
+        }
+        class Slave extends spider.Actor{
+            TestRepliq
+            constructor(){
+                super()
+                this.TestRepliq = TestRepliq
+            }
+
+            init(){
+                let rep = this.newRepliq(this.TestRepliq)
+                this.parent.getRepliq(rep)
+            }
+        }
+        var app = new App()
+        var a1  = app.spawnActor(Slave)
+        setTimeout(()=>{
+            app.updateRepliq().then((v)=>{
+                try{
+                    expect(v).to.equal(5)
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
+        },2000)
+    })*/
+
+    it("Re-Replication",function(done){
+        this.timeout(10000)
+        class TestRepliq extends spider.Repliq{
+            field
+            constructor(){
+                super()
+                this.field = 1
+            }
+
+            updateField(val){
+                this.field = val
+            }
+        }
+        class App extends spider.Application{
+            forward(rep){
+                slave.getRepliq(rep)
+            }
+        }
+        class Master extends spider.Actor{
+            TestRepliq
+            constructor(){
+                super()
+                this.TestRepliq = TestRepliq
+            }
+
+            init(){
+                let rep = this.newRepliq(this.TestRepliq)
+                this.parent.forward(rep)
+            }
+        }
+
+        class Slave extends spider.Actor{
+            myRepliq
+            getRepliq(rep){
+                this.myRepliq = rep
+            }
+
+            update(){
+                let res
+                let prom = new Promise((resolve)=>{
+                    res = resolve
+                })
+                this.myRepliq.updateField(5).onceCommited(()=>{
+                    res(this.myRepliq.field.valueOf())
+                })
+                return prom
+            }
+        }
+        var app = new App()
+        var slave = app.spawnActor(Slave)
+        var master = app.spawnActor(Master)
+        setTimeout(()=>{
+            slave.update().then((v)=>{
+                try{
+                    expect(v).to.equal(5)
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
+        },2000)
+    })
 })
 
-describe("Field Behaviour",() => {
+/*describe("Field Behaviour",() => {
     it("Default field LRW",function (done){
         this.timeout(10000)
         class TestRepliq extends spider.Repliq{
@@ -281,7 +406,7 @@ describe("State Change Handling",()=>{
             }
 
             updateRepliq(val){
-                this.myReplica.updateField(val).onceCommited((_)=>{
+                this.myReplica.updateField(val).onceCommited(()=>{
                     this.parent.callbackHandled()
                 })
             }
@@ -621,3 +746,4 @@ describe("Annotations",()=>{
         },2000)
     })
 })
+*/

@@ -1,8 +1,8 @@
-import {SpiderLib} from "../src/spiders";
+import {SpiderLib} from "../../src/spiders";
 /**
  * Created by flo on 20/03/2017.
  */
-var spider : SpiderLib = require("../src/spiders")
+var spider : SpiderLib = require("../../src/spiders")
 
 //Extend the default "last writer wins" field to create a "log" field which checks the diff between two logs
 class LogField extends spider.RepliqField{

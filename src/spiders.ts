@@ -209,6 +209,7 @@ export type ArrayIsolateClass   = {new(...args : any[]): ArrayIsolate}
 export type RepliqClass         = {new(...args : any[]): Repliq}
 export type RepliqFieldClass    = {new(...args : any[]): RepliqField<any>}
 
+
 export interface SpiderLib{
     Application     : ApplicationClass
     Actor           : ActorClass
@@ -231,7 +232,6 @@ exports.Count           = Count
 exports.RepliqField     = RepliqField
 exports.makeAnnotation  = makeAnnotation
 exports.FieldUpdate     = FieldUpdate
-
 if(utils.isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor
@@ -240,6 +240,7 @@ else{
     exports.Application = ServerApplication
     exports.Actor       = ServerActor
 }
+
 
 
 

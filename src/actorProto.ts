@@ -48,7 +48,7 @@ else{
     var methods             = JSON.parse(process.argv[8])
     gspInstance             = new GSP(socketManager,thisId,thisRef)
     var behaviourObject     = reconstructBehaviour({},variables,methods,thisRef,promisePool,socketManager,objectPool,gspInstance)
-    reconstructStatic(behaviourObject,JSON.parse(process.argv[9]),thisRef,promisePool,socketManager,objectPool,gspInstance)
+    //reconstructStatic(behaviourObject,JSON.parse(process.argv[9]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     objectPool.installBehaviourObject(behaviourObject)
     messageHandler          = new MessageHandler(thisRef,socketManager,promisePool,objectPool,gspInstance)
     socketManager.init(messageHandler)

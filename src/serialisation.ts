@@ -10,7 +10,6 @@ import {Isolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
 import {RepliqField} from "./Replication/RepliqField";
 import {GSP} from "./Replication/GSP";
-import {read} from "fs";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -116,7 +115,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
-        if(typeof val != 'function' || isIsolateClass(val)){
+        if(typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val)){
             var serialisedval   = serialise(val,thisRef,receiverId,commMedium,promisePool,objectPool)
             localAccumVars.push([key,serialisedval])
         }
@@ -211,6 +210,7 @@ export abstract class ValueContainer{
     static arrayIsolateType     : number = 8
     static repliqType           : number = 9
     static repliqFieldType      : number = 10
+    static repliqDefinition     : number = 11
     type                        : number
 
     constructor(type : number){
@@ -318,21 +318,29 @@ export class ArrayIsolateContainer extends ValueContainer{
     }
 }
 
+
+
 export class RepliqContainer extends ValueContainer{
     fields                      : string
     methods                     : string
     atomicMethods               : string
     repliqId                    : string
     masterOwnerId               : string
+    isClient                    : boolean
+    ownerAddress                : string
+    ownerPort                   : number
     static checkRepliqFuncKey   : string = "_INSTANCEOF_REPLIQ_"
 
-    constructor(fields : string,methods : string,atomicMethods : string,repliqId : string,masterOwnerId : string){
+    constructor(fields : string,methods : string,atomicMethods : string,repliqId : string,masterOwnerId : string,isClient : boolean,ownerAddress : string,ownerPort : number){
         super(ValueContainer.repliqType)
         this.fields         = fields
         this.methods        = methods
         this.atomicMethods  = atomicMethods
         this.repliqId       = repliqId
         this.masterOwnerId  = masterOwnerId
+        this.isClient       = isClient
+        this.ownerAddress   = ownerAddress
+        this.ownerPort      = ownerPort
     }
 }
 
@@ -356,6 +364,14 @@ class RepliqFieldContainer extends ValueContainer{
         this.resetFunc  = resetFunc
         this.commitFunc = commitFunc
         this.updateFunc = updateFunc
+    }
+}
+
+export class RepliqDefinitionContainer extends ValueContainer{
+    definition : string
+    constructor(definition : string){
+        super(ValueContainer.repliqDefinition)
+        this.definition = definition
     }
 }
 
@@ -401,7 +417,7 @@ function serialiseRepliqFields(fields : Map<string,RepliqField<any>>){
     return ret
 }
 
-function serialiseRepliq(repliqProxy) : RepliqContainer{
+function serialiseRepliq(repliqProxy,thisRef : FarReference) : RepliqContainer{
     let fields          = repliqProxy[Repliq.getRepliqFields]
     let fieldsArr       = serialiseRepliqFields(fields)
     let methods         = repliqProxy[Repliq.getRepliqOriginalMethods]
@@ -417,7 +433,20 @@ function serialiseRepliq(repliqProxy) : RepliqContainer{
     })
     let repliqId        = repliqProxy[Repliq.getRepliqID]
     let repliqOwnerId   = repliqProxy[Repliq.getRepliqOwnerID]
-    return new RepliqContainer(JSON.stringify(fieldsArr),JSON.stringify(methodArr),JSON.stringify(atomicArr),repliqId,repliqOwnerId)
+    let isClient        = repliqProxy[Repliq.isClientMaster]
+    let ownerAddress    = repliqProxy[Repliq.getRepliqOwnerAddress]
+    let ownerPort       = repliqProxy[Repliq.getRepliqOwnerPort]
+    let ret             = new RepliqContainer(JSON.stringify(fieldsArr),JSON.stringify(methodArr),JSON.stringify(atomicArr),repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort)
+    //This actor is the first to serialise this Repliq, set the address and port to this actor
+    if(thisRef instanceof ServerFarReference && ret.ownerAddress == null){
+        ret.ownerAddress = thisRef.ownerAddress
+        ret.ownerPort    = thisRef.ownerPort
+        ret.isClient     = false
+    }
+    else{
+        //TODO
+    }
+    return ret
 }
 
 export function serialise(value,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool) : ValueContainer{
@@ -460,7 +489,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             return new IsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
         }
         else if(value[RepliqContainer.checkRepliqFuncKey]){
-            return serialiseRepliq(value)
+            return serialiseRepliq(value,thisRef)
         }
         else {
             return serialiseObject(value,thisRef,objectPool)
@@ -474,6 +503,10 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
         else if(isClass(value) && isIsolateClass(value)){
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
             return new IsolateDefinitionContainer(definition.replace("super()",''))
+        }
+        else if(isClass(value) && isRepliqClass(value)){
+            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
+            return new RepliqDefinitionContainer(definition)
         }
         else if(isClass(value)){
             throw new Error("Serialisation of classes disallowed")
@@ -553,9 +586,9 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         let blankRepliq     = new Repliq()
         let fields          = new Map();
         (JSON.parse(repliqContainer.fields)).forEach((repliqField : RepliqFieldContainer)=>{
-            let field                       = new RepliqField(repliqField.name,repliqField.tentative)
-            let fieldProto                  = Object.getPrototypeOf(field)
-            field.commited                  = repliqField.commited
+            let field                  = new RepliqField(repliqField.name,repliqField.tentative)
+            let fieldProto             = Object.getPrototypeOf(field)
+            field.commited             = repliqField.commited
             field.read                 = constructMethod(repliqField.readFunc)
             field.writeField           = constructMethod(repliqField.writeFunc)
             field.resetToCommit        = constructMethod(repliqField.resetFunc)
@@ -571,7 +604,24 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName,methodSource])=>{
             atomicMethods.set(methodName,constructMethod(methodSource))
         })
-        return blankRepliq.reconstruct(gspInstance,repliqContainer.repliqId,repliqContainer.masterOwnerId,fields,methods,atomicMethods)
+        if(repliqContainer.isClient){
+            //TODO
+        }
+        else{
+            if(!commMedium.hasConnection(repliqContainer.masterOwnerId)){
+                commMedium.openConnection(repliqContainer.masterOwnerId,repliqContainer.ownerAddress,repliqContainer.ownerPort)
+            }
+        }
+        return blankRepliq.reconstruct(gspInstance,repliqContainer.repliqId,repliqContainer.masterOwnerId,fields,methods,atomicMethods,repliqContainer.isClient,repliqContainer.ownerAddress,repliqContainer.ownerPort)
+    }
+
+    function deSerialiseRepliqDefinition(def : RepliqDefinitionContainer){
+        let index = def.definition.indexOf("{")
+        let start = def.definition.substring(0,index)
+        let stop = def.definition.substring(index,def.definition.length)
+        let Repliq = require("./Replication/Repliq").Repliq
+        var classObj = eval(start + " extends Repliq"+stop)
+        return classObj
     }
 
     switch(value.type){
@@ -595,6 +645,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             return deSerialiseArrayIsolate(value as ArrayIsolateContainer)
         case ValueContainer.repliqType:
             return deSerialiseRepliq(value as RepliqContainer)
+        case ValueContainer.repliqDefinition:
+            return deSerialiseRepliqDefinition(value as RepliqDefinitionContainer)
         default :
             throw "Unknown value container type :  " + value.type
     }

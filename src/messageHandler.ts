@@ -123,10 +123,7 @@ export class MessageHandler{
             }
         }
         catch(reason){
-            console.log("Went wrong for : " + methodName  + " target object : " + targetObject)
-            for(var i in targetObject){
-                console.log(i)
-            }
+            console.log("Went wrong for : " + methodName)
             var serialised : ValueContainer         = serialise(reason,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
             message                             = new RejectPromiseMessage(this.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){
@@ -197,6 +194,7 @@ export class MessageHandler{
     }
 
     private handleGSPRound(msg : GSPRoundMessage){
+        console.log("Received round in: " + this.thisRef.ownerId)
         this.gspInstance.roundReceived(msg.round)
     }
 
@@ -205,6 +203,7 @@ export class MessageHandler{
     }
 
     private handleGSPRegister(msg : GSPRegisterMessage){
+        console.log("Registered replica in : " + this.thisRef.ownerId + " for holder : " + msg.holderId)
         this.gspInstance.registerReplicaHolder(msg.replicaId,msg.holderId)
     }
 

@@ -28,38 +28,17 @@ __decorate([
 __decorate([
     spiders.atomic
 ], TestRepliq.prototype, "setFoo", null);
-class TestApp extends spiders.Application {
+var app = new spiders.Application();
+function foo() {
+}
+class TestActor extends spiders.Actor {
     constructor() {
         super();
-        this.repliq = this.newRepliq(TestRepliq);
+        this.TestRepliq = TestRepliq;
+    }
+    init() {
+        this.newRepliq(this.TestRepliq);
     }
 }
-var app = new TestApp();
-class TestActor extends spiders.Actor {
-    getRepliq(replica) {
-        this.myReplica = replica;
-    }
-    update(val) {
-        this.myReplica.setFoo(val);
-    }
-    updateBar(val) {
-        this.myReplica.setBar(val);
-    }
-}
-var act = app.spawnActor(TestActor);
-act.getRepliq(app.repliq);
-console.log("Foo Value before : " + app.repliq.foo);
-setTimeout(() => {
-    act.update(10);
-    setTimeout(() => {
-        console.log("Foo Value after: " + app.repliq.foo);
-    }, 2000);
-}, 1000);
-console.log("Bar Value before : " + app.repliq.bar);
-setTimeout(() => {
-    act.updateBar(10);
-    setTimeout(() => {
-        console.log("Bar Value after: " + app.repliq.bar);
-    }, 2000);
-}, 1000);
+app.spawnActor(TestActor);
 //# sourceMappingURL=temp.js.map

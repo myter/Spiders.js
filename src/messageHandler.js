@@ -96,10 +96,7 @@ class MessageHandler {
             }
         }
         catch (reason) {
-            console.log("Went wrong for : " + methodName + " target object : " + targetObject);
-            for (var i in targetObject) {
-                console.log(i);
-            }
+            console.log("Went wrong for : " + methodName);
             var serialised = serialisation_1.serialise(reason, this.thisRef, msg.senderId, this.commMedium, this.promisePool, this.objectPool);
             message = new messages_1.RejectPromiseMessage(this.thisRef, msg.promiseId, serialised);
             if (msg.senderType == messages_1.Message.serverSenderType) {
@@ -163,12 +160,14 @@ class MessageHandler {
         this.commMedium.sendMessage(msg.targetId, msg.message);
     }
     handleGSPRound(msg) {
+        console.log("Received round in: " + this.thisRef.ownerId);
         this.gspInstance.roundReceived(msg.round);
     }
     handleGSPSync(msg) {
         this.gspInstance.receiveSync(msg.requesterId, msg.repliqId);
     }
     handleGSPRegister(msg) {
+        console.log("Registered replica in : " + this.thisRef.ownerId + " for holder : " + msg.holderId);
         this.gspInstance.registerReplicaHolder(msg.replicaId, msg.holderId);
     }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)

@@ -106,7 +106,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, thi
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if (typeof val != 'function' || isIsolateClass(val)) {
+        if (typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val)) {
             var serialisedval = serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
             localAccumVars.push([key, serialisedval]);
         }
@@ -203,6 +203,7 @@ ValueContainer.clientFarRefType = 7;
 ValueContainer.arrayIsolateType = 8;
 ValueContainer.repliqType = 9;
 ValueContainer.repliqFieldType = 10;
+ValueContainer.repliqDefinition = 11;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -282,13 +283,16 @@ class ArrayIsolateContainer extends ValueContainer {
 ArrayIsolateContainer.checkArrayIsolateFuncKey = "_INSTANCEOF_ARRAY_ISOLATE_";
 exports.ArrayIsolateContainer = ArrayIsolateContainer;
 class RepliqContainer extends ValueContainer {
-    constructor(fields, methods, atomicMethods, repliqId, masterOwnerId) {
+    constructor(fields, methods, atomicMethods, repliqId, masterOwnerId, isClient, ownerAddress, ownerPort) {
         super(ValueContainer.repliqType);
         this.fields = fields;
         this.methods = methods;
         this.atomicMethods = atomicMethods;
         this.repliqId = repliqId;
         this.masterOwnerId = masterOwnerId;
+        this.isClient = isClient;
+        this.ownerAddress = ownerAddress;
+        this.ownerPort = ownerPort;
     }
 }
 RepliqContainer.checkRepliqFuncKey = "_INSTANCEOF_REPLIQ_";
@@ -306,6 +310,13 @@ class RepliqFieldContainer extends ValueContainer {
         this.updateFunc = updateFunc;
     }
 }
+class RepliqDefinitionContainer extends ValueContainer {
+    constructor(definition) {
+        super(ValueContainer.repliqDefinition);
+        this.definition = definition;
+    }
+}
+exports.RepliqDefinitionContainer = RepliqDefinitionContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -342,7 +353,7 @@ function serialiseRepliqFields(fields) {
     });
     return ret;
 }
-function serialiseRepliq(repliqProxy) {
+function serialiseRepliq(repliqProxy, thisRef) {
     let fields = repliqProxy[Repliq_1.Repliq.getRepliqFields];
     let fieldsArr = serialiseRepliqFields(fields);
     let methods = repliqProxy[Repliq_1.Repliq.getRepliqOriginalMethods];
@@ -358,7 +369,19 @@ function serialiseRepliq(repliqProxy) {
     });
     let repliqId = repliqProxy[Repliq_1.Repliq.getRepliqID];
     let repliqOwnerId = repliqProxy[Repliq_1.Repliq.getRepliqOwnerID];
-    return new RepliqContainer(JSON.stringify(fieldsArr), JSON.stringify(methodArr), JSON.stringify(atomicArr), repliqId, repliqOwnerId);
+    let isClient = repliqProxy[Repliq_1.Repliq.isClientMaster];
+    let ownerAddress = repliqProxy[Repliq_1.Repliq.getRepliqOwnerAddress];
+    let ownerPort = repliqProxy[Repliq_1.Repliq.getRepliqOwnerPort];
+    let ret = new RepliqContainer(JSON.stringify(fieldsArr), JSON.stringify(methodArr), JSON.stringify(atomicArr), repliqId, repliqOwnerId, isClient, ownerAddress, ownerPort);
+    //This actor is the first to serialise this Repliq, set the address and port to this actor
+    if (thisRef instanceof farRef_1.ServerFarReference && ret.ownerAddress == null) {
+        ret.ownerAddress = thisRef.ownerAddress;
+        ret.ownerPort = thisRef.ownerPort;
+        ret.isClient = false;
+    }
+    else {
+    }
+    return ret;
 }
 function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
     if (typeof value == 'object') {
@@ -400,7 +423,7 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             return new IsolateContainer(JSON.stringify(vars), JSON.stringify(methods));
         }
         else if (value[RepliqContainer.checkRepliqFuncKey]) {
-            return serialiseRepliq(value);
+            return serialiseRepliq(value, thisRef);
         }
         else {
             return serialiseObject(value, thisRef, objectPool);
@@ -414,6 +437,10 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         else if (isClass(value) && isIsolateClass(value)) {
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
             return new IsolateDefinitionContainer(definition.replace("super()", ''));
+        }
+        else if (isClass(value) && isRepliqClass(value)) {
+            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
+            return new RepliqDefinitionContainer(definition);
         }
         else if (isClass(value)) {
             throw new Error("Serialisation of classes disallowed");
@@ -502,7 +529,22 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName, methodSource]) => {
             atomicMethods.set(methodName, constructMethod(methodSource));
         });
-        return blankRepliq.reconstruct(gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods);
+        if (repliqContainer.isClient) {
+        }
+        else {
+            if (!commMedium.hasConnection(repliqContainer.masterOwnerId)) {
+                commMedium.openConnection(repliqContainer.masterOwnerId, repliqContainer.ownerAddress, repliqContainer.ownerPort);
+            }
+        }
+        return blankRepliq.reconstruct(gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods, repliqContainer.isClient, repliqContainer.ownerAddress, repliqContainer.ownerPort);
+    }
+    function deSerialiseRepliqDefinition(def) {
+        let index = def.definition.indexOf("{");
+        let start = def.definition.substring(0, index);
+        let stop = def.definition.substring(index, def.definition.length);
+        let Repliq = require("./Replication/Repliq").Repliq;
+        var classObj = eval(start + " extends Repliq" + stop);
+        return classObj;
     }
     switch (value.type) {
         case ValueContainer.nativeType:
@@ -525,6 +567,8 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             return deSerialiseArrayIsolate(value);
         case ValueContainer.repliqType:
             return deSerialiseRepliq(value);
+        case ValueContainer.repliqDefinition:
+            return deSerialiseRepliqDefinition(value);
         default:
             throw "Unknown value container type :  " + value.type;
     }

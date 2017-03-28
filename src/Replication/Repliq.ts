@@ -25,7 +25,7 @@ class OnceCommited{
         this.listenerID     = listenerID
     }
 
-    onceCommited(callback){
+    onceCommited(callback : () => any){
         this.gspInstance.registerRoundListener(callback,this.listenerID)
     }
 }
@@ -39,9 +39,12 @@ export class Repliq{
     static resetRepliqCommit            = "_RESET_REPLIQ_"
     static commitRepliq                 = "_COMMIT_"
     static isAtomic                     = "_IS_ATOMIC_"
+    static isClientMaster               = "_IS_CLIENT_MASTER_"
+    static getRepliqOwnerPort           = "_GET_REPLIQ_OWNER_PORT_"
+    static getRepliqOwnerAddress        = "_GET_REPLIQ_OWNER_ADDRESS_"
 
     private isMetaField(fieldName : string) : boolean{
-        return fieldName == Repliq.getRepliqFields || fieldName == Repliq.getRepliqID || fieldName == Repliq.getRepliqOwnerID || fieldName == Repliq.getRepliqOriginalMethods || fieldName == Repliq.resetRepliqCommit || fieldName == Repliq.commitRepliq || fieldName == RepliqContainer.checkRepliqFuncKey
+        return fieldName == Repliq.getRepliqFields || fieldName == Repliq.getRepliqID || fieldName == Repliq.getRepliqOwnerID || fieldName == Repliq.getRepliqOriginalMethods || fieldName == Repliq.resetRepliqCommit || fieldName == Repliq.commitRepliq || fieldName == RepliqContainer.checkRepliqFuncKey || fieldName == Repliq.isClientMaster || fieldName == Repliq.getRepliqOwnerPort || fieldName == Repliq.getRepliqOwnerAddress
     }
 
     private makeAtomicMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqField<any>>){
@@ -104,7 +107,7 @@ export class Repliq{
         }
     }
 
-    private  makeProxyHandler(fields : Map<string,RepliqField<any>>, originalMethods : Map<string,Function>, objectID : ReplicaId, ownerId : string){
+    private  makeProxyHandler(fields : Map<string,RepliqField<any>>, originalMethods : Map<string,Function>, objectID : ReplicaId, ownerId : string,isClient : boolean,ownerAddress = null,ownerPort = null){
         var that = this
         return {
             set : function(target,property,value,receiver){
@@ -143,6 +146,15 @@ export class Repliq{
                         else if(name == RepliqContainer.checkRepliqFuncKey){
                             return true
                         }
+                        else if(name == Repliq.isClientMaster){
+                            return isClient
+                        }
+                        else if(name == Repliq.getRepliqOwnerAddress){
+                            return ownerAddress
+                        }
+                        else if(name == Repliq.getRepliqOwnerPort){
+                            return ownerPort
+                        }
                         else {
                             var field = fields.get(name)
                             //Wrap value in an object in order to be able to install onCommit and onTentative listeners
@@ -168,7 +180,7 @@ export class Repliq{
         }
     }
 
-    instantiate(gspInstance : GSP,thisActorId : string){
+    instantiate(gspInstance : GSP,thisActorId : string,isClient : boolean,ownerAddress = null ,ownerPort = null){
         this[RepliqContainer.checkRepliqFuncKey] = true
         let objectToProxy   = {}
         let proxyProto      = {}
@@ -178,7 +190,7 @@ export class Repliq{
         let repliqId        = utils.generateId()
         let fieldKeys       = Reflect.ownKeys(this)
         let methodKeys      = Reflect.ownKeys(Object.getPrototypeOf(this))
-        let handler         = this.makeProxyHandler(fields,originalMethods,repliqId,thisActorId)
+        let handler         = this.makeProxyHandler(fields,originalMethods,repliqId,thisActorId,isClient,ownerAddress,ownerPort)
         let meta            = RepliqFields.fieldMetaData
         //"Regular" fields are transformed into standard LWR Fields
         fieldKeys.forEach((key)=>{
@@ -212,7 +224,7 @@ export class Repliq{
         return repliqProxy
     }
 
-    reconstruct(gspInstance : GSP,repliqId : string,repliqOwnerId : string,fields : Map<string,RepliqField<any>>,methods  : Map<string,Function>,atomicMethods : Map<string,Function>){
+    reconstruct(gspInstance : GSP,repliqId : string,repliqOwnerId : string,fields : Map<string,RepliqField<any>>,methods  : Map<string,Function>,atomicMethods : Map<string,Function>,isClient : boolean,ownerAddress : string,ownerPort : number){
         let objectToProxy   = {}
         let protoToProxy    = {}
         Object.setPrototypeOf(objectToProxy,protoToProxy)
@@ -230,7 +242,7 @@ export class Repliq{
             //Store the atomic method in regular methods (in case this repliq is serialised again
             methods.set(methodName,method)
         })
-        let handler         = this.makeProxyHandler(fields,methods,repliqId,repliqOwnerId)
+        let handler         = this.makeProxyHandler(fields,methods,repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort)
         let repliqProxy     = new Proxy(objectToProxy,handler)
         gspInstance.registerReplica(repliqId,repliqProxy)
         return repliqProxy

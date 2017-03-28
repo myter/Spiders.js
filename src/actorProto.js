@@ -45,7 +45,7 @@ else {
     var methods = JSON.parse(process.argv[8]);
     gspInstance = new GSP_1.GSP(socketManager, thisId, thisRef);
     var behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, thisRef, promisePool, socketManager, objectPool, gspInstance);
-    serialisation_1.reconstructStatic(behaviourObject, JSON.parse(process.argv[9]), thisRef, promisePool, socketManager, objectPool, gspInstance);
+    //reconstructStatic(behaviourObject,JSON.parse(process.argv[9]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     objectPool.installBehaviourObject(behaviourObject);
     messageHandler = new messageHandler_1.MessageHandler(thisRef, socketManager, promisePool, objectPool, gspInstance);
     socketManager.init(messageHandler);
