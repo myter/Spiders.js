@@ -1,5 +1,6 @@
 # Spiders.js
 Parallel and Distributed Programming in JavaScript made easy through actors.
+
 # Usage
 Install with npm:
   ```
@@ -9,10 +10,12 @@ Web workers and child processes are basically the only parallel building blocks 
 Let’s face it, parallel programming is hard and dealing with the web workers or Node.js' child processes API doesn’t make it easier.
 Spiders.js offers a comprehensible API based on communicating event loops which allow you to easily spawn actors in parallel.
 Moreover, these actors can natively communicate with any other Spiders.js actor (whether these actors reside on the same machine or not).
+
 # Tutorial
 Actors allow you to deal with parallelism without the hassles of data races and shared mutable state.
 An actor is basically a thread running in complete isolation which communicates with other actors via message passing.
 Communicating event loops are a special flavour of actors which add object-oriented constructs to this parallel model.
+
 ## Spiders.js basics
 Any Spiders.js app must create an instance of the ```application``` class.
 This instance will serve as an actor factory and as a broker between your parallel code and the "outside" world (e.g. the DOM).
