@@ -52,7 +52,6 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
     behaviourObject["Isolate"]      = Isolate
     behaviourObject["ArrayIsolate"] = ArrayIsolate
     behaviourObject["newRepliq"]    = ((repliqClass)=>{
-        console.log("Creating master replica in : " + thisRef.ownerId)
         let repliqOb = new repliqClass()
         return repliqOb.instantiate(gspInstance,thisRef.ownerId)
     })

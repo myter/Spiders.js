@@ -156,14 +156,19 @@ export class RouteMessage extends Message {
     }
 }
 
+//TODO address and port will be removed once communication refactor is done
 export const _GSP_REGISTER_ : MessageTypeTag = 9
 export class GSPRegisterMessage extends Message {
-    holderId    : string
-    replicaId   : string
-    constructor(senderRef : FarReference,holderId : string,replicaId : string){
+    holderId        : string
+    holderAddress   : string
+    holderPort      : number
+    replicaId       : string
+    constructor(senderRef : FarReference,holderId : string,replicaId : string,holderAddress : string,holderPort : number){
         super(_GSP_REGISTER_,senderRef)
-        this.holderId   = holderId
-        this.replicaId  = replicaId
+        this.holderId       = holderId
+        this.replicaId      = replicaId
+        this.holderAddress  = holderAddress
+        this.holderPort     = holderPort
     }
 }
 

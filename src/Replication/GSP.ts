@@ -3,7 +3,7 @@
  */
 import {Round} from "./Round";
 import {CommMedium} from "../commMedium";
-import {FarReference} from "../farRef";
+import {FarReference, ServerFarReference} from "../farRef";
 import {GSPRoundMessage, GSPSyncMessage, GSPRegisterMessage} from "../messages";
 import {Repliq} from "./Repliq";
 var utils = require("../utils")
@@ -16,6 +16,9 @@ export type ReplicaId               = string
 export class GSP{
     commMedium              : CommMedium
     thisActorId             : string
+    //TODO temp fields, will be removed once communication has been refactored
+    thisActorAddress        : string
+    thisActorPort           : number
     thisRef                 : FarReference
     repliqs                 : Map<ReplicaId,Repliq>
     //Keep track of current round for each gsp object
@@ -49,6 +52,9 @@ export class GSP{
     constructor(commMedium : CommMedium,thisActorId : string,thisRef : FarReference){
         this.commMedium             = commMedium
         this.thisActorId            = thisActorId
+        //TODO Initialisisation of fields will be refactored together with communication
+        this.thisActorAddress       = (thisRef as ServerFarReference).ownerAddress
+        this.thisActorPort          = (thisRef as ServerFarReference).ownerPort
         this.thisRef                = thisRef
         this.repliqs                = new Map()
         this.current                = new Map()
@@ -189,7 +195,7 @@ export class GSP{
 
     registerReplica(replicaId : ReplicaId,replica : Repliq){
         this.repliqs.set(replicaId,replica)
-        this.commMedium.sendMessage(replica[Repliq.getRepliqOwnerID],new GSPRegisterMessage(this.thisRef,this.thisActorId,replicaId))
+        this.commMedium.sendMessage(replica[Repliq.getRepliqOwnerID],new GSPRegisterMessage(this.thisRef,this.thisActorId,replicaId,this.thisActorAddress,this.thisActorPort))
     }
 
     registerReplicaHolder(replicaId : ReplicaId,holderId : string){

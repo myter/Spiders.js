@@ -194,7 +194,6 @@ export class MessageHandler{
     }
 
     private handleGSPRound(msg : GSPRoundMessage){
-        console.log("Received round in: " + this.thisRef.ownerId)
         this.gspInstance.roundReceived(msg.round)
     }
 
@@ -203,7 +202,9 @@ export class MessageHandler{
     }
 
     private handleGSPRegister(msg : GSPRegisterMessage){
-        console.log("Registered replica in : " + this.thisRef.ownerId + " for holder : " + msg.holderId)
+        if(!this.commMedium.hasConnection(msg.holderId)){
+            this.commMedium.openConnection(msg.holderId,msg.holderAddress,msg.holderPort)
+        }
         this.gspInstance.registerReplicaHolder(msg.replicaId,msg.holderId)
     }
 

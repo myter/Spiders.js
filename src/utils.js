@@ -44,7 +44,6 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
     behaviourObject["newRepliq"] = ((repliqClass) => {
-        console.log("Creating master replica in : " + thisRef.ownerId);
         let repliqOb = new repliqClass();
         return repliqOb.instantiate(gspInstance, thisRef.ownerId);
     });

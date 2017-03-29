@@ -15,7 +15,7 @@ var spider  : SpiderLib         = require('../src/spiders')
 
 describe("Replication",() => {
 
-    /*it("Master to replicas",function(done){
+    it("Master to replicas",function(done){
         this.timeout(10000)
         class TestRepliq extends spider.Repliq{
             field
@@ -174,7 +174,7 @@ describe("Replication",() => {
                 }
             })
         },2000)
-    })*/
+    })
 
     it("Re-Replication",function(done){
         this.timeout(10000)
@@ -243,7 +243,7 @@ describe("Replication",() => {
     })
 })
 
-/*describe("Field Behaviour",() => {
+describe("Field Behaviour",() => {
     it("Default field LRW",function (done){
         this.timeout(10000)
         class TestRepliq extends spider.Repliq{
@@ -746,4 +746,3 @@ describe("Annotations",()=>{
         },2000)
     })
 })
-*/

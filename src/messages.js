@@ -110,12 +110,15 @@ class RouteMessage extends Message {
     }
 }
 exports.RouteMessage = RouteMessage;
+//TODO address and port will be removed once communication refactor is done
 exports._GSP_REGISTER_ = 9;
 class GSPRegisterMessage extends Message {
-    constructor(senderRef, holderId, replicaId) {
+    constructor(senderRef, holderId, replicaId, holderAddress, holderPort) {
         super(exports._GSP_REGISTER_, senderRef);
         this.holderId = holderId;
         this.replicaId = replicaId;
+        this.holderAddress = holderAddress;
+        this.holderPort = holderPort;
     }
 }
 exports.GSPRegisterMessage = GSPRegisterMessage;

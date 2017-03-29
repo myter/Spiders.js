@@ -18,7 +18,7 @@ var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
 var ps      : PubSubLib         = require("../src/PubSub/PubSub")
 
-/*describe("Publish Subscribe Functionality",() => {
+describe("Publish Subscribe Functionality",() => {
     it("Each",function(done){
         let server = new ps.PubSubServer()
         class TestClient extends ps.PubSubClient{
@@ -98,10 +98,10 @@ var ps      : PubSubLib         = require("../src/PubSub/PubSub")
           })
         },2000)
     })
-})*/
+})
 
 describe("Publish Objects",()=>{
-    /*it("Far ref",function(done){
+    it("Far ref",function(done){
         let server = new ps.PubSubServer()
         class TestClient extends ps.PubSubClient{
             testTag
@@ -191,7 +191,7 @@ describe("Publish Objects",()=>{
                 done(e)
             }
         })
-    })*/
+    })
 
         it("Replica",function(done){
             this.timeout(10000)
@@ -220,9 +220,6 @@ describe("Publish Objects",()=>{
                 pub(){
                     this.myReplica = this.newRepliq(this.TestReplica)
                     this.publish(this.myReplica,this.testTag)
-                    this.myReplica.val.onCommit((_)=>{
-                        console.log("Puber field commited new val ")
-                    })
                 }
 
                 sub(){
@@ -231,10 +228,8 @@ describe("Publish Objects",()=>{
                         resolve = res
                     })
                     this.subscribe(this.testTag).each((rep)=>{
-                        console.log("Received replica in subscribe")
                         rep.update(5).onceCommited(()=>{
-                            console.log("Update resolved")
-                            resolve(rep.val)
+                            resolve(rep.val.valueOf())
                         })
                     })
                     return prom

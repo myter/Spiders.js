@@ -160,14 +160,15 @@ class MessageHandler {
         this.commMedium.sendMessage(msg.targetId, msg.message);
     }
     handleGSPRound(msg) {
-        console.log("Received round in: " + this.thisRef.ownerId);
         this.gspInstance.roundReceived(msg.round);
     }
     handleGSPSync(msg) {
         this.gspInstance.receiveSync(msg.requesterId, msg.repliqId);
     }
     handleGSPRegister(msg) {
-        console.log("Registered replica in : " + this.thisRef.ownerId + " for holder : " + msg.holderId);
+        if (!this.commMedium.hasConnection(msg.holderId)) {
+            this.commMedium.openConnection(msg.holderId, msg.holderAddress, msg.holderPort);
+        }
         this.gspInstance.registerReplicaHolder(msg.replicaId, msg.holderId);
     }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
