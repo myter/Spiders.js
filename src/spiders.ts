@@ -10,7 +10,7 @@ import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
 import {GSP} from "./Replication/GSP";
 import {Repliq, atomic} from "./Replication/Repliq";
-import {RepliqField, LWR, Count, makeAnnotation} from "./Replication/RepliqField";
+import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
 import {FieldUpdate} from "./Replication/Round";
 /**
  * Created by flo on 05/12/2016.
@@ -198,7 +198,7 @@ interface AppType {
     Isolate             : IsolateClass
     ArrayIsolate        : ArrayIsolateClass
     remote              : (string,number)=> Promise<FarRef>
-    newRepliq           : (RepliqClass) => Object
+    newRepliq           : (RepliqClass,... any) => Object
 }
 export type ApplicationClass    = {
     new(...args : any[]): AppType
@@ -207,31 +207,31 @@ export type ActorClass          = {new(...args : any[]): Actor}
 export type IsolateClass        = {new(...args : any[]): Isolate}
 export type ArrayIsolateClass   = {new(...args : any[]): ArrayIsolate}
 export type RepliqClass         = {new(...args : any[]): Repliq}
-export type RepliqFieldClass    = {new(...args : any[]): RepliqField<any>}
+export type RepliqFieldClass    = {new(...args : any[]): RepliqPrimitiveField<any>}
 
 
 export interface SpiderLib{
-    Application     : ApplicationClass
-    Actor           : ActorClass
-    Isolate         : IsolateClass
-    ArrayIsolate    : ArrayIsolateClass
-    Repliq          : RepliqClass
-    atomic          : Function
-    LWR             : Function
-    Count           : Function
-    RepliqField     : RepliqFieldClass
-    FieldUpdate     : FieldUpdate
-    makeAnnotation  : Function
+    Application                 : ApplicationClass
+    Actor                       : ActorClass
+    Isolate                     : IsolateClass
+    ArrayIsolate                : ArrayIsolateClass
+    Repliq                      : RepliqClass
+    atomic                      : Function
+    LWR                         : Function
+    Count                       : Function
+    RepliqPrimitiveField        : RepliqFieldClass
+    FieldUpdate                 : FieldUpdate
+    makeAnnotation              : Function
 }
 //Ugly, but a far reference has no static interface
 export type FarRef = any
-exports.Repliq          = Repliq
-exports.atomic          = atomic
-exports.LWR             = LWR
-exports.Count           = Count
-exports.RepliqField     = RepliqField
-exports.makeAnnotation  = makeAnnotation
-exports.FieldUpdate     = FieldUpdate
+exports.Repliq                      = Repliq
+exports.atomic                      = atomic
+exports.LWR                         = LWR
+exports.Count                       = Count
+exports.RepliqPrimitiveField        = RepliqPrimitiveField
+exports.makeAnnotation              = makeAnnotation
+exports.FieldUpdate                 = FieldUpdate
 if(utils.isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor

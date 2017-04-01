@@ -1,13 +1,14 @@
 import {RepliqContainer} from "../serialisation";
 import {GSP, ReplicaId} from "./GSP";
-import {RepliqField} from "./RepliqField";
-import {FieldUpdate, Round} from "./Round";
-import {listenerCount} from "cluster";
+import {RepliqPrimitiveField, PrimitiveFieldUpdate} from "./RepliqPrimitiveField";
+import {FieldUpdate, RepliqField} from "./RepliqField";
+import {RepliqObjectField, ObjectFieldUpdate} from "./RepliqObjectField";
+import {Round} from "./Round";
 var utils = require("../utils")
 /**
  * Created by flo on 16/03/2017.
  */
-var RepliqFields = require("./RepliqField")
+var RepliqFields = require("./RepliqPrimitiveField")
 export function atomic(target : any,propertyKey : string,descriptor : PropertyDescriptor){
     let originalMethod = descriptor.value
     originalMethod[Repliq.isAtomic] = true
@@ -30,6 +31,9 @@ class OnceCommited{
     }
 }
 
+let isAtomicContext = false
+let atomicRound     = null
+
 
 export class Repliq{
     static getRepliqFields              = "_GET_REPLIQ_FIELDS_"
@@ -47,29 +51,52 @@ export class Repliq{
         return fieldName == Repliq.getRepliqFields || fieldName == Repliq.getRepliqID || fieldName == Repliq.getRepliqOwnerID || fieldName == Repliq.getRepliqOriginalMethods || fieldName == Repliq.resetRepliqCommit || fieldName == Repliq.commitRepliq || fieldName == RepliqContainer.checkRepliqFuncKey || fieldName == Repliq.isClientMaster || fieldName == Repliq.getRepliqOwnerPort || fieldName == Repliq.getRepliqOwnerAddress
     }
 
-    private makeAtomicMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqField<any>>){
+    private makeAtomicMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqPrimitiveField<any>>){
+        var that = this
         return {
             apply: function(target,thisArg,args){
-                let round
+                let stateChanging = false
                 if(!gspInstance.inReplay(objectId)){
-                    round = gspInstance.newRound(objectId,ownerId,methodName,args)
+                    isAtomicContext = true
+                    atomicRound = gspInstance.newRound(objectId,ownerId,methodName,args)
                 }
                 //The "this" argument of a method is set to a proxy around the original object which intercepts assignment and calls "writeField" on the Field
                 let thisProxy = new Proxy(thisArg,{
-                    set : function(target,property,value,receiver){
+                    set : function(target,property,value){
                         let gspField = fields.get(<string> property)
                         if(!gspInstance.inReplay(objectId)){
-                            let update = new FieldUpdate(property,gspField.read(),value)
-                            round.addUpdate(update)
+                            stateChanging = true
+                            let update = new PrimitiveFieldUpdate(property,gspField.read(),value)
+                            atomicRound.addUpdate(update,objectId)
                         }
                         gspField.writeField(value)
                         return true
+                    },
+                    get: function(target,name){
+                        if(fields.has(<string> name)){
+                            let field = fields.get(<string>name)
+                            if(field instanceof RepliqObjectField){
+                                if(!gspInstance.inReplay(objectId)){
+                                    atomicRound = gspInstance.newRound(objectId,ownerId,methodName,args)
+                                }
+                                return that.makeObjectFieldProxy(target[name],field,gspInstance.inReplay(objectId),true,atomicRound,objectId,ownerId,gspInstance)
+                            }
+                            else{
+                                return field
+                            }
+                        }
+                        else{
+                            return target[name]
+                        }
                     }
                 })
                 let res = target.apply(thisProxy,args)
                 if(!gspInstance.inReplay(objectId)){
                     gspInstance.yield(objectId,ownerId)
-                    return new OnceCommited(gspInstance,round.listenerID)
+                    let ret = new OnceCommited(gspInstance,atomicRound.listenerID)
+                    isAtomicContext = false
+                    atomicRound     = null
+                    return ret
                 }
                 else{
                     return res
@@ -78,27 +105,62 @@ export class Repliq{
         }
     }
 
-    private makeMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqField<any>>){
+    private makeMethodProxyHandler(gspInstance : GSP,objectId : ReplicaId,ownerId : string,methodName : string,fields : Map<string,RepliqPrimitiveField<any>>){
+        var that = this
         return {
             apply: function(target,thisArg,args){
                 //The "this" argument of a method is set to a proxy around the original object which intercepts assignment and calls "writeField" on the Field
                 let round
+                let stateChanging = false
                 let thisProxy = new Proxy(thisArg,{
-                    set : function(target,property,value,receiver){
+                    //Set is only called on primitive fields
+                    set : function(target,property,value){
                         let gspField = fields.get(<string> property)
                         if(!gspInstance.inReplay(objectId)){
-                            round  = gspInstance.newRound(objectId,ownerId,methodName,args)
-                            let update = new FieldUpdate(property,gspField.read(),value)
-                            round.addUpdate(update)
-                            gspInstance.yield(objectId,ownerId)
+                            stateChanging = true
+                            let update = new PrimitiveFieldUpdate(property,gspField.read(),value)
+                            if(!isAtomicContext){
+                                round  = gspInstance.newRound(objectId,ownerId,methodName,args)
+                                round.addUpdate(update,objectId)
+                                gspInstance.yield(objectId,ownerId)
+                            }
+                            else{
+                                atomicRound.addUpdate(update,objectId)
+                            }
                         }
                         gspField.writeField(value)
                         return true
+                    },
+
+                    get: function(target,name){
+                        if(fields.has(<string>name)){
+                            let field = fields.get(<string>name)
+                            if(field instanceof RepliqObjectField){
+                                if(!gspInstance.inReplay(objectId)){
+                                    round = gspInstance.newRound(objectId,ownerId,methodName,args)
+                                    stateChanging = true
+                                }
+                                return that.makeObjectFieldProxy(target[name],field,gspInstance.inReplay(objectId),false,round,objectId,ownerId,gspInstance)
+                            }
+                            else{
+                                return field
+                            }
+                        }
+                        else{
+                            return target[name]
+                        }
                     }
                 })
                 let res = target.apply(thisProxy,args)
-                if(!gspInstance.inReplay(objectId)){
-                    return new OnceCommited(gspInstance,round.listenerID)
+                //The invoked method might not update the Repliq's state
+                if(!gspInstance.inReplay(objectId) && stateChanging){
+                    if(isAtomicContext){
+                        return new OnceCommited(gspInstance,atomicRound.listenerID)
+                    }
+                    else{
+                        return new OnceCommited(gspInstance,round.listenerID)
+
+                    }
                 }
                 else{
                     return res
@@ -107,10 +169,37 @@ export class Repliq{
         }
     }
 
-    private  makeProxyHandler(fields : Map<string,RepliqField<any>>, originalMethods : Map<string,Function>, objectID : ReplicaId, ownerId : string,isClient : boolean,ownerAddress = null,ownerPort = null){
+    private makeObjectFieldProxy(unwrappedField,field : RepliqObjectField,replay : boolean,atomic: boolean,round : Round,objectId,ownerId,gspInstance){
+        return new Proxy({},{
+            get: function(target,name){
+                let property = unwrappedField[name]
+                if(property instanceof Function){
+                    return new Proxy(property,{
+                        apply: function(target,thisArg,args){
+                            if(!replay){
+                                let update = new ObjectFieldUpdate(field.name,name.toString(),args)
+                                round.addUpdate(update,objectId)
+                                if(!atomic){
+                                    gspInstance.yield(objectId,ownerId)
+                                }
+                            }
+                            let ret = field.methodInvoked(name.toString(),args)
+                            return ret
+                        }
+                    })
+                }
+                else{
+                    return property
+                }
+            }
+        })
+    }
+
+    private  makeProxyHandler(fields : Map<string,RepliqPrimitiveField<any>>, originalMethods : Map<string,Function>, objectID : ReplicaId, ownerId : string, isClient : boolean, ownerAddress = null, ownerPort = null){
         var that = this
         return {
             set : function(target,property,value,receiver){
+                console.log(property)
                 throw new Error("Assignment of Repliq fields not allowed")
             },
             get : function(target,name){
@@ -156,16 +245,27 @@ export class Repliq{
                             return ownerPort
                         }
                         else {
-                            var field = fields.get(name)
-                            //Wrap value in an object in order to be able to install onCommit and onTentative listeners
-                            let val   = Object(field.read())
+                            let field = fields.get(name)
+                            let val
+                            if(field instanceof RepliqObjectField){
+                                val = field.read()
+                            }
+                            else if(field[RepliqContainer.checkRepliqFuncKey]){
+                                return field
+                            }
+                            else{
+                                //Wrap value in an object in order to be able to install onCommit and onTentative listeners
+                                val   = Object(field.read())
+                            }
                             Reflect.set(val,"onCommit",(callback)=>{
                                 field.onCommit(callback)
                             })
                             Reflect.set(val,"onTentative",(callback)=>{
                                 field.onTentative(callback)
                             })
+                            //TODO for security reasons we could return a proxy in case of a ObjectField which disallows the invocation of methods (i.e. because methods on object fields can only be called from withint a Repliq)
                             return val
+
                         }
                     }
                     else{
@@ -199,8 +299,13 @@ export class Repliq{
                 let fieldClass  = meta.get(key)
                 gspField        = new fieldClass(key,gspField)
             }
-            if(!(gspField instanceof RepliqField)){
-                gspField = new RepliqField(key.toString(),gspField)
+            if(!(gspField instanceof RepliqPrimitiveField) && !(gspField instanceof RepliqObjectField) && !(gspField[RepliqContainer.checkRepliqFuncKey])){
+                if(gspField instanceof Object){
+                    gspField = new RepliqObjectField(key.toString(),gspField)
+                }
+                else{
+                    gspField = new RepliqPrimitiveField(key.toString(),gspField)
+                }
             }
             fields.set(key.toString(),gspField)
             Reflect.set(objectToProxy,key,gspField)
@@ -224,7 +329,7 @@ export class Repliq{
         return repliqProxy
     }
 
-    reconstruct(gspInstance : GSP,repliqId : string,repliqOwnerId : string,fields : Map<string,RepliqField<any>>,methods  : Map<string,Function>,atomicMethods : Map<string,Function>,isClient : boolean,ownerAddress : string,ownerPort : number){
+    reconstruct(gspInstance : GSP, repliqId : string, repliqOwnerId : string, fields : Map<string,RepliqField<any>>, methods  : Map<string,Function>, atomicMethods : Map<string,Function>, isClient : boolean, ownerAddress : string, ownerPort : number){
         let objectToProxy   = {}
         let protoToProxy    = {}
         Object.setPrototypeOf(objectToProxy,protoToProxy)

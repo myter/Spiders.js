@@ -8,8 +8,10 @@ import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {Isolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
-import {RepliqField} from "./Replication/RepliqField";
+import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
 import {GSP} from "./Replication/GSP";
+import {RepliqField} from "./Replication/RepliqField";
+import {RepliqObjectField} from "./Replication/RepliqObjectField";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -321,7 +323,10 @@ export class ArrayIsolateContainer extends ValueContainer{
 
 
 export class RepliqContainer extends ValueContainer{
-    fields                      : string
+    primitiveFields             : string
+    objectFields                : string
+    innerRepFields              : string
+    innerName                   : string
     methods                     : string
     atomicMethods               : string
     repliqId                    : string
@@ -331,16 +336,19 @@ export class RepliqContainer extends ValueContainer{
     ownerPort                   : number
     static checkRepliqFuncKey   : string = "_INSTANCEOF_REPLIQ_"
 
-    constructor(fields : string,methods : string,atomicMethods : string,repliqId : string,masterOwnerId : string,isClient : boolean,ownerAddress : string,ownerPort : number){
+    constructor(primitiveFields : string,objectFields : string,innerRepFields : string,methods : string,atomicMethods : string,repliqId : string,masterOwnerId : string,isClient : boolean,ownerAddress : string,ownerPort : number,innerName = ""){
         super(ValueContainer.repliqType)
-        this.fields         = fields
-        this.methods        = methods
-        this.atomicMethods  = atomicMethods
-        this.repliqId       = repliqId
-        this.masterOwnerId  = masterOwnerId
-        this.isClient       = isClient
-        this.ownerAddress   = ownerAddress
-        this.ownerPort      = ownerPort
+        this.primitiveFields    = primitiveFields
+        this.objectFields       = objectFields
+        this.innerRepFields     = innerRepFields
+        this.innerName          = innerName
+        this.methods            = methods
+        this.atomicMethods      = atomicMethods
+        this.repliqId           = repliqId
+        this.masterOwnerId      = masterOwnerId
+        this.isClient           = isClient
+        this.ownerAddress       = ownerAddress
+        this.ownerPort          = ownerPort
     }
 }
 
@@ -409,17 +417,37 @@ function serialiseObject(object : Object,thisRef : FarReference,objectPool : Obj
     }
 }
 
-function serialiseRepliqFields(fields : Map<string,RepliqField<any>>){
-    let ret = []
-    fields.forEach((repliqField,fieldName)=>{
-        ret.push(new RepliqFieldContainer(fieldName,repliqField.tentative,repliqField.commited,repliqField.read.toString(),repliqField.writeField.toString(),repliqField.resetToCommit.toString(),repliqField.commit.toString(),repliqField.update.toString()))
+function serialiseRepliqFields(fields : Map<string,RepliqField<any>>,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
+    let primitives = []
+    let objects    = []
+    let innerReps  = []
+    let ret        = [primitives,objects,innerReps]
+    fields.forEach((repliqField : RepliqField<any>,fieldName)=>{
+        if(repliqField instanceof RepliqPrimitiveField){
+            primitives.push(new RepliqFieldContainer(fieldName,repliqField.tentative,repliqField.commited,repliqField.read.toString(),repliqField.writeField.toString(),repliqField.resetToCommit.toString(),repliqField.commit.toString(),repliqField.update.toString()))
+        }
+        else if(repliqField instanceof RepliqObjectField){
+            let field       = repliqField as RepliqObjectField
+            let tentative   = JSON.stringify([JSON.stringify(getObjectVars(field.tentative,thisRef,receiverId,commMedium,promisePool,objectPool)),JSON.stringify(getObjectMethods(field.tentative))])
+            let commited    = JSON.stringify([JSON.stringify(getObjectVars(field.commited,thisRef,receiverId,commMedium,promisePool,objectPool)),JSON.stringify(getObjectMethods(field.commited))])
+            objects.push(new RepliqFieldContainer(fieldName,tentative,commited,field.read.toString(),field.writeField.toString(),field.resetToCommit.toString(),field.commit.toString(),field.update.toString()))
+        }
+        else if(repliqField[RepliqContainer.checkRepliqFuncKey]){
+            innerReps.push(serialiseRepliq(repliqField,thisRef,receiverId,commMedium,promisePool,objectPool,fieldName))
+        }
+        else{
+            throw new Error("Unknown Repliq field type in serialisation")
+        }
     })
     return ret
 }
 
-function serialiseRepliq(repliqProxy,thisRef : FarReference) : RepliqContainer{
+function serialiseRepliq(repliqProxy,thisRef : FarReference,receiverId : string,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,innerName = "") : RepliqContainer{
     let fields          = repliqProxy[Repliq.getRepliqFields]
-    let fieldsArr       = serialiseRepliqFields(fields)
+    let fieldsArr       = serialiseRepliqFields(fields,thisRef,receiverId,commMedium,promisePool,objectPool)
+    let primitiveFields = fieldsArr[0]
+    let objectFields    = fieldsArr[1]
+    let innerReps       = fieldsArr[2]
     let methods         = repliqProxy[Repliq.getRepliqOriginalMethods]
     let methodArr       = []
     let atomicArr       = []
@@ -436,7 +464,7 @@ function serialiseRepliq(repliqProxy,thisRef : FarReference) : RepliqContainer{
     let isClient        = repliqProxy[Repliq.isClientMaster]
     let ownerAddress    = repliqProxy[Repliq.getRepliqOwnerAddress]
     let ownerPort       = repliqProxy[Repliq.getRepliqOwnerPort]
-    let ret             = new RepliqContainer(JSON.stringify(fieldsArr),JSON.stringify(methodArr),JSON.stringify(atomicArr),repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort)
+    let ret             = new RepliqContainer(JSON.stringify(primitiveFields),JSON.stringify(objectFields),JSON.stringify(innerReps),JSON.stringify(methodArr),JSON.stringify(atomicArr),repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort,innerName)
     //This actor is the first to serialise this Repliq, set the address and port to this actor
     if(thisRef instanceof ServerFarReference && ret.ownerAddress == null){
         ret.ownerAddress = thisRef.ownerAddress
@@ -489,7 +517,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
             return new IsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
         }
         else if(value[RepliqContainer.checkRepliqFuncKey]){
-            return serialiseRepliq(value,thisRef)
+            return serialiseRepliq(value,thisRef,receiverId,commMedium,promisePool,objectPool)
         }
         else {
             return serialiseObject(value,thisRef,objectPool)
@@ -585,9 +613,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
     function deSerialiseRepliq(repliqContainer : RepliqContainer){
         let blankRepliq     = new Repliq()
         let fields          = new Map();
-        (JSON.parse(repliqContainer.fields)).forEach((repliqField : RepliqFieldContainer)=>{
-            let field                  = new RepliqField(repliqField.name,repliqField.tentative)
-            let fieldProto             = Object.getPrototypeOf(field)
+        (JSON.parse(repliqContainer.primitiveFields)).forEach((repliqField : RepliqFieldContainer)=>{
+            let field                  = new RepliqPrimitiveField(repliqField.name,repliqField.tentative)
             field.commited             = repliqField.commited
             field.read                 = constructMethod(repliqField.readFunc)
             field.writeField           = constructMethod(repliqField.writeFunc)
@@ -595,6 +622,24 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             field.commit               = constructMethod(repliqField.commitFunc)
             field.update               = constructMethod(repliqField.updateFunc)
             fields.set(field.name,field)
+        });
+        (JSON.parse(repliqContainer.objectFields)).forEach((repliqField : RepliqFieldContainer)=>{
+            let tentParsed              = JSON.parse(repliqField.tentative)
+            let comParsed               = JSON.parse(repliqField.commited)
+            let tentative               = reconstructObject({},JSON.parse(tentParsed[0]),JSON.parse(tentParsed[1]),thisRef,promisePool,commMedium,objectPool,gspInstance)
+            let commited                = reconstructObject({},JSON.parse(comParsed[0]),JSON.parse(comParsed[1]),thisRef,promisePool,commMedium,objectPool,gspInstance)
+            let field                   = new RepliqObjectField(repliqField.name,{})
+            field.tentative             = tentative
+            field.commited              = commited
+            field.read                  = constructMethod(repliqField.readFunc)
+            field.writeField            = constructMethod(repliqField.writeFunc)
+            field.resetToCommit         = constructMethod(repliqField.resetFunc)
+            field.commit                = constructMethod(repliqField.commitFunc)
+            field.update                = constructMethod(repliqField.updateFunc)
+            fields.set(field.name,field)
+        });
+        (JSON.parse(repliqContainer.innerRepFields)).forEach((innerRepliq : RepliqContainer)=>{
+            fields.set(innerRepliq.innerName,deserialise(thisRef,innerRepliq,promisePool,commMedium,objectPool,gspInstance))
         })
         let methods         = new Map();
         (JSON.parse(repliqContainer.methods)).forEach(([methodName,methodSource])=>{

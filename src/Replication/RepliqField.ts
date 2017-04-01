@@ -1,37 +1,37 @@
-import {FieldUpdate} from "./Round";
 /**
- * Created by flo on 16/03/2017.
+ * Created by flo on 30/03/2017.
  */
-export class RepliqField<T>{
+
+export abstract class FieldUpdate{
+    fieldName : string
+    constructor(fieldName){
+        this.fieldName = fieldName
+    }
+}
+
+export abstract class RepliqField<T>{
     name                : string
-    tentative           : T
-    commited            : T
     commitListeners     : Array<Function>
     tentativeListeners  : Array<Function>
+    commited            : T
+    tentative           : T
 
-    read() : T{
-        return this.tentative
+    constructor(name){
+        this.commitListeners    = []
+        this.tentativeListeners = []
+        this.name               = name
     }
+    abstract read() : T
 
-    writeField(newValue : T){
-        this.tentative = newValue
-    }
+    abstract writeField(newValue : T)
 
     resetToCommit(){
         this.tentative = this.commited
     }
 
-    commit(){
-        this.commited = this.tentative
-        this.triggerCommit()
-    }
+    abstract commit()
 
-    update(updates : Array<FieldUpdate>){
-        updates.forEach((update : FieldUpdate)=>{
-            this.tentative = update.resVal
-        })
-        this.triggerTentative()
-    }
+    abstract update(updates : Array<FieldUpdate>)
 
     onCommit(callback){
         this.commitListeners.push(callback)
@@ -52,28 +52,4 @@ export class RepliqField<T>{
             callback(this.tentative)
         })
     }
-
-    constructor(name : string,value : T){
-        this.name               = name
-        this.tentative          = value
-        this.commited           = value
-        this.tentativeListeners = []
-        this.commitListeners    = []
-    }
 }
-export var fieldMetaData = new Map()
-export function makeAnnotation(fieldClass) : any{
-    return function(target,propertyKey){
-        fieldMetaData.set(propertyKey,fieldClass)
-    }
-}
-
-export class RepliqCountField extends RepliqField<number>{
-    update(updates : Array<FieldUpdate>){
-        this.tentative += updates.length
-        this.triggerTentative()
-    }
-}
-
-export var LWR      = makeAnnotation(RepliqField)
-export var Count    = makeAnnotation(RepliqCountField)

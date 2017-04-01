@@ -55690,13 +55690,13 @@ exports.GSP = GSP;
 
 },{"../messages":284,"../utils":289,"./Repliq":277,"./Round":279}],277:[function(require,module,exports){
 const serialisation_1 = require("../serialisation");
-const RepliqField_1 = require("./RepliqField");
+const RepliqField_1 = require("./RepliqPrimitiveField");
 const Round_1 = require("./Round");
 var utils = require("../utils");
 /**
  * Created by flo on 16/03/2017.
  */
-var RepliqFields = require("./RepliqField");
+var RepliqFields = require("./RepliqPrimitiveField");
 function atomic(target, propertyKey, descriptor) {
     let originalMethod = descriptor.value;
     originalMethod[Repliq.isAtomic] = true;
@@ -56643,7 +56643,7 @@ const messages_1 = require("./messages");
 const farRef_1 = require("./farRef");
 const spiders_1 = require("./spiders");
 const Repliq_1 = require("./Replication/Repliq");
-const RepliqField_1 = require("./Replication/RepliqField");
+const RepliqField_1 = require("./Replication/RepliqPrimitiveField");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -57303,7 +57303,7 @@ const ChannelManager_1 = require("./ChannelManager");
 const messages_1 = require("./messages");
 const GSP_1 = require("./Replication/GSP");
 const Repliq_1 = require("./Replication/Repliq");
-const RepliqField_1 = require("./Replication/RepliqField");
+const RepliqField_1 = require("./Replication/RepliqPrimitiveField");
 const Round_1 = require("./Replication/Round");
 /**
  * Created by flo on 05/12/2016.

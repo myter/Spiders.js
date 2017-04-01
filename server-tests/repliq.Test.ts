@@ -307,7 +307,7 @@ describe("Field Behaviour",() => {
     })
 
     it("Custom update",function (done){
-        class IncField extends spider.RepliqField{
+        class IncField extends spider.RepliqPrimitiveField{
             update(updates ){
                 this.tentative += updates.length
             }
@@ -544,7 +544,7 @@ describe("State Change Handling",()=>{
 describe("Annotations",()=>{
     it("Atomic method",function (done){
         this.timeout(10000)
-        class TestField extends spider.RepliqField{
+        class TestField extends spider.RepliqPrimitiveField{
             update(updates){
                 this.tentative = updates.length
             }
@@ -681,7 +681,7 @@ describe("Annotations",()=>{
 
     it("Custom field annotations",function (done){
         this.timeout(10000)
-        class TestField extends spider.RepliqField{
+        class TestField extends spider.RepliqPrimitiveField{
             update(updates){
                 this.tentative = updates.length
             }

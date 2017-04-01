@@ -41,10 +41,22 @@ export class GSP{
     }
 
     private playRound(round : Round){
+        //Replay changes for top-level Repliq
         let object = this.repliqs.get(round.masterObjectId)
         let fields = object[Repliq.getRepliqFields]
         Reflect.ownKeys(round.updates).forEach((fieldName)=>{
             fields.get(fieldName).update(Reflect.get(round.updates,fieldName))
+        })
+        //Replay changes for inner Repliqs
+        let innerObjectIds = Reflect.ownKeys(round.innerUpdates)
+        innerObjectIds.forEach((repId)=>{
+            if(this.repliqs.has(repId.toString())){
+                let rep         = this.repliqs.get(repId.toString())
+                let repFields   = rep[Repliq.getRepliqFields]
+                Reflect.ownKeys(round.innerUpdates[repId]).forEach((fieldName)=>{
+                    repFields.get(fieldName).update(Reflect.get(round.innerUpdates[repId],fieldName))
+                })
+            }
         })
     }
 
@@ -159,10 +171,26 @@ export class GSP{
         this.replay.push(round.masterObjectId)
         let object = this.repliqs.get(round.masterObjectId)
         object[Repliq.resetRepliqCommit](round.updates)
+            //reset to commit for inner repliqs
+        Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
+            if(this.repliqs.has(innerId.toString())){
+                let innerRep = this.repliqs.get(innerId.toString())
+                let updates  = round.innerUpdates[innerId]
+                innerRep[Repliq.resetRepliqCommit](updates)
+            }
+        })
         //2) Replay the round on the object. Depending on the field implementation this will commit tentative values
         this.playRound(round)
         //3) Commit all tentative values as a result fo the replay
         object[Repliq.commitRepliq](round.updates)
+            //Commit all tentative values of inner Repliqs
+        Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
+            if(this.repliqs.has(innerId.toString())){
+                let innerRep = this.repliqs.get(innerId.toString())
+                let updates  = round.innerUpdates[innerId]
+                innerRep[Repliq.commitRepliq](updates)
+            }
+        })
         //4) Play pending rounds
         if(this.pending.has(round.masterObjectId)){
             this.pending.get(round.masterObjectId).forEach((round : Round)=>{
