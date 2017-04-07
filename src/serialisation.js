@@ -28,12 +28,11 @@ function getObjectMethods(object) {
     var methods = [];
     var proto = Object.getPrototypeOf(object);
     var properties = Reflect.ownKeys(proto);
-    //Property at index 0 is the constructor, which doesn't need to be serialised given that we are transmitting an instance of the class extending Actor
-    properties.shift();
     for (var i in properties) {
         var key = properties[i];
         var method = Reflect.get(proto, key);
-        if (typeof method == 'function') {
+        //Avoid copying over any construction functions (i.e. class declarations)
+        if (typeof method == 'function' && !(method.toString()).startsWith("class")) {
             methods.push([key, method.toString()]);
         }
     }
@@ -361,8 +360,19 @@ function serialiseRepliqFields(fields, thisRef, receiverId, commMedium, promiseP
         }
         else if (repliqField instanceof RepliqObjectField_1.RepliqObjectField) {
             let field = repliqField;
-            let tentative = JSON.stringify([JSON.stringify(getObjectVars(field.tentative, thisRef, receiverId, commMedium, promisePool, objectPool)), JSON.stringify(getObjectMethods(field.tentative))]);
-            let commited = JSON.stringify([JSON.stringify(getObjectVars(field.commited, thisRef, receiverId, commMedium, promisePool, objectPool)), JSON.stringify(getObjectMethods(field.commited))]);
+            let tentMethods;
+            let commMethods;
+            //Avoid copying over Object prototype methods containing native javascript code (cannot be evalled by deserialiser)
+            if (Object.getPrototypeOf(field.tentative) == Object.getPrototypeOf({})) {
+                tentMethods = [];
+                commMethods = [];
+            }
+            else {
+                tentMethods = getObjectMethods(field.tentative);
+                commMethods = getObjectMethods(field.commited);
+            }
+            let tentative = JSON.stringify([JSON.stringify(getObjectVars(field.tentative, thisRef, receiverId, commMedium, promisePool, objectPool)), JSON.stringify(tentMethods)]);
+            let commited = JSON.stringify([JSON.stringify(getObjectVars(field.commited, thisRef, receiverId, commMedium, promisePool, objectPool)), JSON.stringify(commMethods)]);
             objects.push(new RepliqFieldContainer(fieldName, tentative, commited, field.read.toString(), field.writeField.toString(), field.resetToCommit.toString(), field.commit.toString(), field.update.toString()));
         }
         else if (repliqField[RepliqContainer.checkRepliqFuncKey]) {
@@ -547,8 +557,12 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         (JSON.parse(repliqContainer.objectFields)).forEach((repliqField) => {
             let tentParsed = JSON.parse(repliqField.tentative);
             let comParsed = JSON.parse(repliqField.commited);
-            let tentative = reconstructObject({}, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance);
-            let commited = reconstructObject({}, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance);
+            let tentBase = {};
+            Reflect.setPrototypeOf(tentBase, {});
+            let comBase = {};
+            Reflect.setPrototypeOf(comBase, {});
+            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance);
+            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance);
             let field = new RepliqObjectField_1.RepliqObjectField(repliqField.name, {});
             field.tentative = tentative;
             field.commited = commited;

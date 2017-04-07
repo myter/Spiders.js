@@ -330,26 +330,32 @@ export class Repliq{
     }
 
     reconstruct(gspInstance : GSP, repliqId : string, repliqOwnerId : string, fields : Map<string,RepliqField<any>>, methods  : Map<string,Function>, atomicMethods : Map<string,Function>, isClient : boolean, ownerAddress : string, ownerPort : number){
-        let objectToProxy   = {}
-        let protoToProxy    = {}
-        Object.setPrototypeOf(objectToProxy,protoToProxy)
-        fields.forEach((repliqField,fieldName)=>{
-            Reflect.set(objectToProxy,fieldName,repliqField)
-        })
-        methods.forEach((method,methodName)=>{
-            let proxyMethod  = new Proxy(method,this.makeMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
-            Reflect.set(protoToProxy,methodName,proxyMethod)
-        })
-        atomicMethods.forEach((method,methodName)=>{
-            method[Repliq.isAtomic] = true
-            let proxyMethod = new Proxy(method,this.makeAtomicMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
-            Reflect.set(protoToProxy,methodName,proxyMethod)
-            //Store the atomic method in regular methods (in case this repliq is serialised again
-            methods.set(methodName,method)
-        })
-        let handler         = this.makeProxyHandler(fields,methods,repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort)
-        let repliqProxy     = new Proxy(objectToProxy,handler)
-        gspInstance.registerReplica(repliqId,repliqProxy)
-        return repliqProxy
+        if(gspInstance.repliqs.has(repliqId)){
+            return gspInstance.repliqs.get(repliqId)
+        }
+        else{
+            let objectToProxy   = {}
+            let protoToProxy    = {}
+            Object.setPrototypeOf(objectToProxy,protoToProxy)
+            fields.forEach((repliqField,fieldName)=>{
+                Reflect.set(objectToProxy,fieldName,repliqField)
+            })
+            methods.forEach((method,methodName)=>{
+                let proxyMethod  = new Proxy(method,this.makeMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
+                Reflect.set(protoToProxy,methodName,proxyMethod)
+            })
+            atomicMethods.forEach((method,methodName)=>{
+                method[Repliq.isAtomic] = true
+                let proxyMethod = new Proxy(method,this.makeAtomicMethodProxyHandler(gspInstance,repliqId,repliqOwnerId,methodName,fields))
+                Reflect.set(protoToProxy,methodName,proxyMethod)
+                //Store the atomic method in regular methods (in case this repliq is serialised again
+                methods.set(methodName,method)
+            })
+            let handler         = this.makeProxyHandler(fields,methods,repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort)
+            let repliqProxy     = new Proxy(objectToProxy,handler)
+            gspInstance.registerReplica(repliqId,repliqProxy)
+            return repliqProxy
+        }
+
     }
 }

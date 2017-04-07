@@ -1,7 +1,7 @@
 import {SpiderLib} from "../src/spiders";
 var spiders : SpiderLib = require("../src/spiders")
 
-/*class TestObject{
+class TestObject{
     x
     constructor(){
         this.x = 1
@@ -49,9 +49,9 @@ var act = app.spawnActor(TestActor)
 act.getReplica(app.myReplica)
 setTimeout(()=>{
     console.log("Value in app: " + app.myReplica.objectField.x)
-},2000)*/
+},2000)
 
-class InnerRepliq extends spiders.Repliq{
+/*class InnerRepliq extends spiders.Repliq{
     someInnerField
     constructor(){
         super()
@@ -93,9 +93,9 @@ class TestApp extends spiders.Application{
 class TestActor extends spiders.Actor{
     getAndUpdate(rep){
         //TODO doesn't return a once commited object ??
-        /*rep.incAll().onceCommited(()=>{
-            console.log("Value after commit in actor: " + rep.someOuterField + " , " + rep.inner.someInnerField)
-        })*/
+        //rep.incAll().onceCommited(()=>{
+        //    console.log("Value after commit in actor: " + rep.someOuterField + " , " + rep.inner.someInnerField)
+        //})
         rep.incAll()
         setTimeout(()=>{
             console.log("Value after commit in actor: " + rep.someOuterField + " , " + rep.inner.someInnerField)
@@ -108,7 +108,7 @@ act.getAndUpdate(app.myReplica)
 setTimeout(()=>{
     console.log("Value after: " + app.myReplica.someOuterField + " , " + app.myReplica.inner.someInnerField)
 },2000)
-/*console.log("Outer val before: " + app.myReplica.someOuterField)
+console.log("Outer val before: " + app.myReplica.someOuterField)
 console.log("Inner val before: " + app.myReplica.inner.someInnerField)
 app.myReplica.incAll()
 console.log("Outer val after: " + app.myReplica.someOuterField)

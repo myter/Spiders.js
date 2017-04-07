@@ -11,7 +11,7 @@ import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
 import {GSP} from "./Replication/GSP";
 import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
-import {FieldUpdate} from "./Replication/Round";
+import {FieldUpdate} from "./Replication/RepliqField";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -49,7 +49,7 @@ abstract class Actor{
     Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
     remote          : (string,number)=> Promise<FarRef>
-    newRepliq       : (RepliqClass) => Object
+    newRepliq       : (RepliqClass,... any) => Object
 }
 
 abstract class ClientActor extends Actor{

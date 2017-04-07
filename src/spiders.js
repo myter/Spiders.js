@@ -9,7 +9,7 @@ const messages_1 = require("./messages");
 const GSP_1 = require("./Replication/GSP");
 const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
-const Round_1 = require("./Replication/Round");
+const RepliqField_1 = require("./Replication/RepliqField");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -156,7 +156,7 @@ exports.LWR = RepliqPrimitiveField_1.LWR;
 exports.Count = RepliqPrimitiveField_1.Count;
 exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
 exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
-exports.FieldUpdate = Round_1.FieldUpdate;
+exports.FieldUpdate = RepliqField_1.FieldUpdate;
 if (utils.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;

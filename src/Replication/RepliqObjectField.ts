@@ -26,7 +26,7 @@ export class RepliqObjectField extends RepliqField<Object>{
     }
 
     methodInvoked(methodName : string,args : Array<any>){
-        return this.tentative[methodName](...args)
+        this.tentative[methodName](...args)
     }
 
     commit() {
