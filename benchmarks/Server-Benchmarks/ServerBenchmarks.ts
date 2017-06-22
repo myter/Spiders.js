@@ -142,8 +142,11 @@ runner.schedule(SpiderAStarSearchBench)
 runner.schedule(NodeNQueensFirstNSolutionsBench)
 runner.schedule(SpiderNQueensFirstNSolutionsBench)*/
 
-runner.schedule(NodeQuicksortBench)
-//runner.schedule(SpiderQuickSortBench)
+/*runner.schedule(NodeFJCreationBench)
+runner.schedule(SpiderForkJoinCreationBench)*/
+
+/*runner.schedule(SpiderForkJoinThroughputBench)
+runner.schedule(NodeFJThroughputBench)*/
 
 console.log("Starting server (final) benchmarks")
 runner.nextBenchmark()

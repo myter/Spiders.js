@@ -3,7 +3,6 @@
  */
 import {ValueContainer} from "./serialisation";
 import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
-import {Round} from "./Replication/Round";
 type MessageTypeTag = number
 
 
@@ -174,8 +173,8 @@ export class GSPRegisterMessage extends Message {
 
 export const _GSP_ROUND_ : MessageTypeTag = 10
 export class GSPRoundMessage extends Message {
-    round : Round
-    constructor(senderRef : FarReference,round : Round){
+    round
+    constructor(senderRef : FarReference,round){
         super(_GSP_ROUND_,senderRef)
         this.round = round
     }

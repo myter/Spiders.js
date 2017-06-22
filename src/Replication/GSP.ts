@@ -1,11 +1,15 @@
 /**
  * Created by flo on 16/03/2017.
  */
-import {Round} from "./Round";
 import {CommMedium} from "../commMedium";
 import {FarReference, ServerFarReference} from "../farRef";
 import {GSPRoundMessage, GSPSyncMessage, GSPRegisterMessage} from "../messages";
 import {Repliq} from "./Repliq";
+import {ArrayIsolate} from "../spiders";
+import {
+    newRound, roundListenerId, roundMasterObjectId, roundMasterOwnerId, roundNumber, roundUpdates,
+    setRoundNumber
+} from "./Round";
 var utils = require("../utils")
 /**
  * Created by flo on 09/03/2017.
@@ -13,6 +17,7 @@ var utils = require("../utils")
 //Sending around replicaOwners (i.e. GSP Objects) is the task of the NetworkInterface implementer.
 
 export type ReplicaId               = string
+type Round = ArrayIsolate
 export class GSP{
     commMedium              : CommMedium
     thisActorId             : string
@@ -42,13 +47,13 @@ export class GSP{
 
     private playRound(round : Round){
         //Replay changes for top-level Repliq
-        let object = this.repliqs.get(round.masterObjectId)
+        let object = this.repliqs.get(roundMasterObjectId(round))
         let fields = object[Repliq.getRepliqFields]
-        Reflect.ownKeys(round.updates).forEach((fieldName)=>{
-            fields.get(fieldName).update(Reflect.get(round.updates,fieldName))
+        Reflect.ownKeys(roundUpdates(round)).forEach((fieldName)=>{
+            fields.get(fieldName).update(Reflect.get(roundUpdates(round),fieldName))
         })
         //Replay changes for inner Repliqs
-        let innerObjectIds = Reflect.ownKeys(round.innerUpdates)
+        /*let innerObjectIds = Reflect.ownKeys(round.innerUpdates)
         innerObjectIds.forEach((repId)=>{
             if(this.repliqs.has(repId.toString())){
                 let rep         = this.repliqs.get(repId.toString())
@@ -57,7 +62,7 @@ export class GSP{
                     repFields.get(fieldName).update(Reflect.get(round.innerUpdates[repId],fieldName))
                 })
             }
-        })
+        })*/
     }
 
 
@@ -94,7 +99,7 @@ export class GSP{
         //Round number will be determined upon Yield by the master
         let roundNumber = -1
         let listenerID  = utils.generateId()
-        let round = new Round(objectId,ownerId,roundNumber,methodName,args,listenerID)
+        let round = newRound(objectId,ownerId,roundNumber,methodName,args,listenerID)
         this.current.set(objectId,round)
         return round
     }
@@ -118,16 +123,16 @@ export class GSP{
 
     yieldMasterRound(round : Round){
         //Commit round on the master
-        if(!this.roundNumbers.has(round.masterObjectId)){
-            this.roundNumbers.set(round.masterObjectId,0)
+        if(!this.roundNumbers.has(roundMasterObjectId(round))){
+            this.roundNumbers.set(roundMasterObjectId(round),0)
         }
-        let prevRoundNumber = this.roundNumbers.get(round.masterObjectId)
-        round.roundNumber = prevRoundNumber + 1
-        this.roundNumbers.set(round.masterObjectId,prevRoundNumber + 1)
+        let prevRoundNumber = this.roundNumbers.get(roundMasterObjectId(round))
+        setRoundNumber(round,prevRoundNumber + 1)
+        this.roundNumbers.set(roundMasterObjectId(round),prevRoundNumber + 1)
         this.commitRound(round)
         //Broadcast round to all holders of replicaOwners
-        if(this.replicaOwners.has(round.masterObjectId)){
-            this.replicaOwners.get(round.masterObjectId).forEach((replicaHolderId : string)=>{
+        if(this.replicaOwners.has(roundMasterObjectId(round))){
+            this.replicaOwners.get(roundMasterObjectId(round)).forEach((replicaHolderId : string)=>{
                 this.commMedium.sendMessage(replicaHolderId,new GSPRoundMessage(this.thisRef,round))
             })
         }
@@ -136,77 +141,77 @@ export class GSP{
     yieldReplicaRound(round : Round){
         //A replica just finished performing updates.
         //Add these updates to the pending map and sent the round to the master
-        if(!this.pending.has(round.masterObjectId)){
-            this.pending.set(round.masterObjectId,[])
+        if(!this.pending.has(roundMasterObjectId(round))){
+            this.pending.set(roundMasterObjectId(round),[])
         }
-        this.pending.get(round.masterObjectId).push(round)
-        this.commMedium.sendMessage(round.masterOwnerId,new GSPRoundMessage(this.thisRef,round))
+        this.pending.get(roundMasterObjectId(round)).push(round)
+        this.commMedium.sendMessage(roundMasterOwnerId(round),new GSPRoundMessage(this.thisRef,round))
     }
 
     confirmMasterRound(round : Round){
-        if(!this.roundNumbers.has(round.masterObjectId)){
-            this.roundNumbers.set(round.masterObjectId,0)
+        if(!this.roundNumbers.has(roundMasterObjectId(round))){
+            this.roundNumbers.set(roundMasterObjectId(round),0)
         }
-        if(round.roundNumber == this.roundNumbers.get(round.masterObjectId) + 1){
+        if(roundNumber(round) == this.roundNumbers.get(roundMasterObjectId(round)) + 1){
             //Remove all older pending rounds
-            if(this.pending.has(round.masterObjectId)){
-                let res = this.pending.get(round.masterObjectId).filter((pendingRound : Round)=>{
-                    pendingRound.roundNumber > round.roundNumber
+            if(this.pending.has(roundMasterObjectId(round))){
+                let res = this.pending.get(roundMasterObjectId(round)).filter((pendingRound : Round)=>{
+                    return roundNumber(pendingRound) > roundNumber(round)
                 })
-                this.pending.set(round.masterObjectId,res)
+                this.pending.set(roundMasterObjectId(round),res)
             }
             //Commit the round
             this.commitRound(round)
             //Update the last known round number for the replicated object
-            this.roundNumbers.set(round.masterObjectId,round.roundNumber)
+            this.roundNumbers.set(roundMasterObjectId(round),roundNumber(round))
         }
         else{
             //We missed a number of rounds, request owner of master object to sync with us
-            this.commMedium.sendMessage(round.masterOwnerId,new GSPSyncMessage(this.thisRef,this.thisActorId,round.masterObjectId))
+            this.commMedium.sendMessage(roundMasterOwnerId(round),new GSPSyncMessage(this.thisRef,this.thisActorId,roundMasterObjectId(round)))
         }
     }
 
     commitRound(round : Round){
         //1) Set concerned object on replay modus (i.e. reset concerned fields to commited values)
-        this.replay.push(round.masterObjectId)
-        let object = this.repliqs.get(round.masterObjectId)
-        object[Repliq.resetRepliqCommit](round.updates)
+        this.replay.push(roundMasterObjectId(round))
+        let object = this.repliqs.get(roundMasterObjectId(round))
+        object[Repliq.resetRepliqCommit](roundUpdates(round))
             //reset to commit for inner repliqs
-        Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
+        /*Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
             if(this.repliqs.has(innerId.toString())){
                 let innerRep = this.repliqs.get(innerId.toString())
                 let updates  = round.innerUpdates[innerId]
                 innerRep[Repliq.resetRepliqCommit](updates)
             }
-        })
+        })*/
         //2) Replay the round on the object. Depending on the field implementation this will commit tentative values
         this.playRound(round)
         //3) Commit all tentative values as a result fo the replay
-        object[Repliq.commitRepliq](round.updates)
+        object[Repliq.commitRepliq](roundUpdates(round))
             //Commit all tentative values of inner Repliqs
-        Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
+        /*Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
             if(this.repliqs.has(innerId.toString())){
                 let innerRep = this.repliqs.get(innerId.toString())
                 let updates  = round.innerUpdates[innerId]
                 innerRep[Repliq.commitRepliq](updates)
             }
-        })
+        })*/
         //4) Play pending rounds
-        if(this.pending.has(round.masterObjectId)){
-            this.pending.get(round.masterObjectId).forEach((round : Round)=>{
+        if(this.pending.has(roundMasterObjectId(round))){
+            this.pending.get(roundMasterObjectId(round)).forEach((round : Round)=>{
                 this.playRound(round)
             })
         }
         //5) Add round to commit
-        if(!this.committed.has(round.masterObjectId)){
-            this.committed.set(round.masterObjectId,[])
+        if(!this.committed.has(roundMasterObjectId(round))){
+            this.committed.set(roundMasterObjectId(round),[])
         }
-        this.committed.get(round.masterObjectId).push(round)
+        this.committed.get(roundMasterObjectId(round)).push(round)
         this.replay = this.replay.filter((oId)=>{
-            oId != round.masterObjectId
+            oId != roundMasterObjectId(round)
         })
         //6) trigger all onceCommited listeners for this round
-        this.triggerCommitListeners(round.listenerID)
+        this.triggerCommitListeners(roundListenerId(round))
     }
 
     triggerCommitListeners(listenerID){
@@ -239,7 +244,7 @@ export class GSP{
     }
 
     roundReceived(round : Round){
-        if(this.isMaster(round.masterOwnerId)){
+        if(this.isMaster(roundMasterOwnerId(round))){
             this.yieldMasterRound(round)
         }
         else{

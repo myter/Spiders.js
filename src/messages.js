@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const farRef_1 = require("./farRef");
 class Message {
     constructor(typeTag, senderRef) {

@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("./spiders");
 /**
  * Created by flo on 05/12/2016.

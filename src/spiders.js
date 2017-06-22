@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const sockets_1 = require("./sockets");
 const messageHandler_1 = require("./messageHandler");
 const farRef_1 = require("./farRef");
@@ -10,6 +11,7 @@ const GSP_1 = require("./Replication/GSP");
 const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
 const RepliqField_1 = require("./Replication/RepliqField");
+const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -24,6 +26,15 @@ class ArrayIsolate {
     constructor(array) {
         this[serialisation_1.ArrayIsolateContainer.checkArrayIsolateFuncKey] = true;
         this.array = array;
+        for (var i = 0; i < array.length; i++) {
+            this[i] = array[i];
+        }
+    }
+    forEach(callback) {
+        return this.array.forEach(callback);
+    }
+    filter(callback) {
+        return this.array.filter(callback);
     }
 }
 exports.ArrayIsolate = ArrayIsolate;
@@ -155,6 +166,7 @@ exports.atomic = Repliq_1.atomic;
 exports.LWR = RepliqPrimitiveField_1.LWR;
 exports.Count = RepliqPrimitiveField_1.Count;
 exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
+exports.RepliqObjectField = RepliqObjectField_1.RepliqObjectField;
 exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
 exports.FieldUpdate = RepliqField_1.FieldUpdate;
 if (utils.isBrowser()) {

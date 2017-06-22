@@ -1,4 +1,5 @@
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
+Object.defineProperty(exports, "__esModule", { value: true });
 const messages_1 = require("./messages");
 const farRef_1 = require("./farRef");
 const spiders_1 = require("./spiders");
@@ -204,6 +205,7 @@ ValueContainer.arrayIsolateType = 8;
 ValueContainer.repliqType = 9;
 ValueContainer.repliqFieldType = 10;
 ValueContainer.repliqDefinition = 11;
+ValueContainer.signalType = 12;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -320,6 +322,11 @@ class RepliqDefinitionContainer extends ValueContainer {
     }
 }
 exports.RepliqDefinitionContainer = RepliqDefinitionContainer;
+class SignalContainer extends ValueContainer {
+}
+//TODO
+SignalContainer.checkSignalFuncKey = "_INSTANCEOF_Signal_";
+exports.SignalContainer = SignalContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -414,6 +421,7 @@ function serialiseRepliq(repliqProxy, thisRef, receiverId, commMedium, promisePo
         ret.isClient = false;
     }
     else {
+        //TODO
     }
     return ret;
 }
@@ -539,7 +547,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         return classObj;
     }
     function deSerialiseArrayIsolate(arrayIsolateContainer) {
-        return arrayIsolateContainer.array;
+        return new spiders_1.ArrayIsolate(arrayIsolateContainer.array);
     }
     function deSerialiseRepliq(repliqContainer) {
         let blankRepliq = new Repliq_1.Repliq();
@@ -585,6 +593,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             atomicMethods.set(methodName, constructMethod(methodSource));
         });
         if (repliqContainer.isClient) {
+            //TODO
         }
         else {
             if (!commMedium.hasConnection(repliqContainer.masterOwnerId)) {

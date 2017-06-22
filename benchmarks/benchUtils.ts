@@ -12,7 +12,7 @@ export class BenchConfig {
     static fjThroughputActors   = 10
     static fjThroughputMessages = 10000
     //Fork join creation 
-    static fjCreationActors     = 30
+    static fjCreationActors     = 10
     //Thread ring 
     static threadRingActors     = 10
     static threadRingPings      = 10000
@@ -183,7 +183,7 @@ export class SpiderBenchmarkRunner{
             },
             onCycle: function(){
                 console.log(spiderBench.cycleMessage)
-                console.log("Current mean: " + (this as any).stats.mean)
+                //console.log("Current mean: " + (this as any).stats.mean)
             },
             onComplete: function(){
                 if(isNode){
@@ -194,7 +194,7 @@ export class SpiderBenchmarkRunner{
                 //This will actually be bound to type
                 console.log(spiderBench.completeMessage + (this as any).stats.mean)
                 console.log("Error margin: " + (this as any).stats.moe)
-                console.log((this as any).stats.sample.toString())
+                //console.log((this as any).stats.sample.toString())
                 spiderBench.cleanUp()
                 that.nextBenchmark()
             },

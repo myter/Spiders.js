@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const messages_1 = require("./messages");
 const serialisation_1 = require("./serialisation");
 /**

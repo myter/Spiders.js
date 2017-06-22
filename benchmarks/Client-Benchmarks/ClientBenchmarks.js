@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const benchUtils_1 = require("../benchUtils");
 const AStarSearchMain_1 = require("./Native/A-Star-Search/AStarSearchMain");
 const AStarSearch_1 = require("./Spiders/AStarSearch");

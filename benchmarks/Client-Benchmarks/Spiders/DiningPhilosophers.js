@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const benchUtils_1 = require("../../benchUtils");
 /**
  * Created by flo on 30/01/2017.

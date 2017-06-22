@@ -626,7 +626,7 @@ describe("Annotations",()=>{
             }
 
             updateCount(val){
-                this.count = val
+                this.count = this.count.read() + val
             }
         }
 
@@ -661,12 +661,12 @@ describe("Annotations",()=>{
         var app = new Master()
         var a1  = app.spawnActor(Slave)
         a1.getRepliq(app.repliq)
-        a1.updateCount(5)
+        a1.updateCount(3)
         a1.updateLwr(5)
         setTimeout(()=>{
             a1.retVal().then((v)=>{
                 try{
-                    expect(v[0]).to.equal(2)
+                    expect(v[0]).to.equal(4)
                     expect(v[1]).to.equal(5)
                     app.kill()
                     done()

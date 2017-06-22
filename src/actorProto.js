@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 const messageHandler_1 = require("./messageHandler");
 const sockets_1 = require("./sockets");

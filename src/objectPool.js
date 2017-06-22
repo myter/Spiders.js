@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 08/01/2017.
  */

@@ -6,7 +6,7 @@ import {ResolvePromiseMessage, RejectPromiseMessage} from "./messages";
 import {ObjectPool} from "./objectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
-import {Isolate} from "./spiders";
+import {ArrayIsolate, Isolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
 import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
 import {GSP} from "./Replication/GSP";
@@ -212,6 +212,7 @@ export abstract class ValueContainer{
     static repliqType           : number = 9
     static repliqFieldType      : number = 10
     static repliqDefinition     : number = 11
+    static signalType           : number = 12
     type                        : number
 
     constructor(type : number){
@@ -380,6 +381,11 @@ export class RepliqDefinitionContainer extends ValueContainer{
         super(ValueContainer.repliqDefinition)
         this.definition = definition
     }
+}
+
+export class SignalContainer extends ValueContainer{
+    //TODO
+    static checkSignalFuncKey      : string = "_INSTANCEOF_Signal_"
 }
 
 function isClass(func : Function) : boolean{
@@ -617,7 +623,7 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
     }
 
     function deSerialiseArrayIsolate(arrayIsolateContainer : ArrayIsolateContainer){
-        return arrayIsolateContainer.array
+        return new ArrayIsolate(arrayIsolateContainer.array)
     }
 
     function deSerialiseRepliq(repliqContainer : RepliqContainer){

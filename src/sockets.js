@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
@@ -66,6 +67,7 @@ class SocketHandler {
                 var q = [msg];
                 this.fuckUpMessage.set(actorId, q);
             }
+            //throw new Error("Unable to send message to unknown actor (socket handler) in " + msg.fieldName + " to : " + actorId + " in : " + this.messageHandler.thisRef.ownerId)
         }
     }
 }

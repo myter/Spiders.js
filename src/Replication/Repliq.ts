@@ -1,9 +1,10 @@
 import {RepliqContainer} from "../serialisation";
 import {GSP, ReplicaId} from "./GSP";
 import {RepliqPrimitiveField, PrimitiveFieldUpdate} from "./RepliqPrimitiveField";
-import {FieldUpdate, RepliqField} from "./RepliqField";
+import {RepliqField} from "./RepliqField";
 import {RepliqObjectField, ObjectFieldUpdate} from "./RepliqObjectField";
-import {Round} from "./Round";
+import {ArrayIsolate} from "../spiders";
+import {addRoundUpdate, roundListenerId} from "./Round";
 var utils = require("../utils")
 /**
  * Created by flo on 16/03/2017.
@@ -33,7 +34,7 @@ class OnceCommited{
 
 let isAtomicContext = false
 let atomicRound     = null
-
+type Round = ArrayIsolate
 
 export class Repliq{
     static getRepliqFields              = "_GET_REPLIQ_FIELDS_"
@@ -67,7 +68,7 @@ export class Repliq{
                         if(!gspInstance.inReplay(objectId)){
                             stateChanging = true
                             let update = new PrimitiveFieldUpdate(property,gspField.read(),value)
-                            atomicRound.addUpdate(update,objectId)
+                            addRoundUpdate(atomicRound,update,objectId)
                         }
                         gspField.writeField(value)
                         return true
@@ -93,7 +94,7 @@ export class Repliq{
                 let res = target.apply(thisProxy,args)
                 if(!gspInstance.inReplay(objectId)){
                     gspInstance.yield(objectId,ownerId)
-                    let ret = new OnceCommited(gspInstance,atomicRound.listenerID)
+                    let ret = new OnceCommited(gspInstance,roundListenerId(atomicRound))
                     isAtomicContext = false
                     atomicRound     = null
                     return ret
@@ -121,11 +122,11 @@ export class Repliq{
                             let update = new PrimitiveFieldUpdate(property,gspField.read(),value)
                             if(!isAtomicContext){
                                 round  = gspInstance.newRound(objectId,ownerId,methodName,args)
-                                round.addUpdate(update,objectId)
+                                addRoundUpdate(round,update,objectId)
                                 gspInstance.yield(objectId,ownerId)
                             }
                             else{
-                                atomicRound.addUpdate(update,objectId)
+                                addRoundUpdate(atomicRound,update,objectId)
                             }
                         }
                         gspField.writeField(value)
@@ -155,10 +156,10 @@ export class Repliq{
                 //The invoked method might not update the Repliq's state
                 if(!gspInstance.inReplay(objectId) && stateChanging){
                     if(isAtomicContext){
-                        return new OnceCommited(gspInstance,atomicRound.listenerID)
+                        return new OnceCommited(gspInstance,roundListenerId(atomicRound))
                     }
                     else{
-                        return new OnceCommited(gspInstance,round.listenerID)
+                        return new OnceCommited(gspInstance,roundListenerId(round))
 
                     }
                 }
@@ -178,7 +179,7 @@ export class Repliq{
                         apply: function(target,thisArg,args){
                             if(!replay){
                                 let update = new ObjectFieldUpdate(field.name,name.toString(),args)
-                                round.addUpdate(update,objectId)
+                                addRoundUpdate(round,update,objectId)
                                 if(!atomic){
                                     gspInstance.yield(objectId,ownerId)
                                 }

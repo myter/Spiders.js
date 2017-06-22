@@ -1,6 +1,7 @@
 /**
  * Created by flo on 22/12/2016.
  */
+Object.defineProperty(exports, "__esModule", { value: true });
 class PromiseAllocation {
     constructor(promise, promiseId) {
         this.promise = promise;

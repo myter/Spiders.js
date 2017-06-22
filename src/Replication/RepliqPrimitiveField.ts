@@ -53,9 +53,14 @@ export function makeAnnotation(fieldClass) : any{
 
 export class RepliqCountField extends RepliqPrimitiveField<number>{
     update(updates : Array<FieldUpdate>){
-        this.tentative += updates.length
+        let inc = 0
+        updates.forEach((update : PrimitiveFieldUpdate)=>{
+            inc += (update.resVal - update.initVal)
+        })
+        this.tentative += inc
         this.triggerTentative()
     }
+
 }
 
 export var LWR      = makeAnnotation(RepliqPrimitiveField)

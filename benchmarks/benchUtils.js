@@ -1,3 +1,4 @@
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 24/01/2017.
  */
@@ -22,7 +23,7 @@ BenchConfig.count = 50000;
 BenchConfig.fjThroughputActors = 10;
 BenchConfig.fjThroughputMessages = 10000;
 //Fork join creation 
-BenchConfig.fjCreationActors = 30;
+BenchConfig.fjCreationActors = 10;
 //Thread ring 
 BenchConfig.threadRingActors = 10;
 BenchConfig.threadRingPings = 10000;
@@ -168,7 +169,7 @@ class SpiderBenchmarkRunner {
             },
             onCycle: function () {
                 console.log(spiderBench.cycleMessage);
-                console.log("Current mean: " + this.stats.mean);
+                //console.log("Current mean: " + (this as any).stats.mean)
             },
             onComplete: function () {
                 if (isNode) {
@@ -179,7 +180,7 @@ class SpiderBenchmarkRunner {
                 //This will actually be bound to type
                 console.log(spiderBench.completeMessage + this.stats.mean);
                 console.log("Error margin: " + this.stats.moe);
-                console.log(this.stats.sample.toString());
+                //console.log((this as any).stats.sample.toString())
                 spiderBench.cleanUp();
                 that.nextBenchmark();
             },

@@ -1,0 +1,6 @@
+
+Child Process Parallel Filter completed5.4695684302 . Error margin: 0.6685808844621566
+Spiders.js Filter Bank completed7.4370644892 . Error margin: 0.08714625001186123
+Child Process Parallel Filter completed5.8577552648 . Error margin: 1.5810786990253143
+Sequential Filter Completed20.5590328846 . Error margin: 5.803849305152299
+Parallel Filter completed5.7855144545999995 . Error margin: 1.1234272664063434

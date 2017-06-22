@@ -12,6 +12,7 @@ import {GSP} from "./Replication/GSP";
 import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
 import {FieldUpdate} from "./Replication/RepliqField";
+import {RepliqObjectField} from "./Replication/RepliqObjectField";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -28,7 +29,20 @@ export class ArrayIsolate{
     constructor(array : Array<any>){
         this[ArrayIsolateContainer.checkArrayIsolateFuncKey] = true
         this.array = array
+        for(var i = 0;i < array.length;i++){
+            this[i] = array[i]
+        }
     }
+
+    forEach(callback){
+        return this.array.forEach(callback)
+    }
+
+    filter(callback){
+        return this.array.filter(callback)
+    }
+
+    //TODO implement rest
 }
 
 function updateExistingChannels(mainRef : FarReference,existingActors : Array<any>,newActorId : string) : Array<any> {
@@ -203,11 +217,12 @@ interface AppType {
 export type ApplicationClass    = {
     new(...args : any[]): AppType
 }
-export type ActorClass          = {new(...args : any[]): Actor}
-export type IsolateClass        = {new(...args : any[]): Isolate}
-export type ArrayIsolateClass   = {new(...args : any[]): ArrayIsolate}
-export type RepliqClass         = {new(...args : any[]): Repliq}
-export type RepliqFieldClass    = {new(...args : any[]): RepliqPrimitiveField<any>}
+export type ActorClass                  = {new(...args : any[]): Actor}
+export type IsolateClass                = {new(...args : any[]): Isolate}
+export type ArrayIsolateClass           = {new(...args : any[]): ArrayIsolate}
+export type RepliqClass                 = {new(...args : any[]): Repliq}
+export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitiveField<any>}
+export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectField}
 
 
 export interface SpiderLib{
@@ -220,6 +235,7 @@ export interface SpiderLib{
     LWR                         : Function
     Count                       : Function
     RepliqPrimitiveField        : RepliqFieldClass
+    RepliqObjectField           : RepliqObjectFieldClass
     FieldUpdate                 : FieldUpdate
     makeAnnotation              : Function
 }
@@ -230,6 +246,7 @@ exports.atomic                      = atomic
 exports.LWR                         = LWR
 exports.Count                       = Count
 exports.RepliqPrimitiveField        = RepliqPrimitiveField
+exports.RepliqObjectField           = RepliqObjectField
 exports.makeAnnotation              = makeAnnotation
 exports.FieldUpdate                 = FieldUpdate
 if(utils.isBrowser()){
