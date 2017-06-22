@@ -13,6 +13,8 @@ import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
 import {FieldUpdate} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
+import {Signal} from "./Reactivivity/signal";
+import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -64,6 +66,8 @@ abstract class Actor{
     ArrayIsolate    : ArrayIsolateClass
     remote          : (string,number)=> Promise<FarRef>
     newRepliq       : (RepliqClass,... any) => Object
+    newSignal       : (any) => SignalClass
+    lift            : Function
 }
 
 abstract class ClientActor extends Actor{
@@ -117,6 +121,7 @@ abstract class Application {
     mainPromisePool     : PromisePool
     mainObjectPool      : ObjectPool
     mainCommMedium      : CommMedium
+    mainSignalPool      : SignalPool
     mainRef             : FarReference
     gspInstance         : GSP
     appActors           : number = 0
@@ -152,10 +157,11 @@ class ServerApplication extends Application{
         this.mainCommMedium     = new ServerSocketManager(mainIp,mainPort)
         this.socketManager      = this.mainCommMedium as ServerSocketManager
         this.mainRef            = new ServerFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainIp,this.mainPort,null,this.mainCommMedium as ServerSocketManager,this.mainPromisePool,this.mainObjectPool)
+        this.mainSignalPool     = new SignalPool(this.mainCommMedium,this.mainRef)
         this.gspInstance        = new GSP(this.socketManager,this.mainId,this.mainRef)
-        this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance)
+        this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance,this.mainSignalPool)
         this.socketManager.init(this.mainMessageHandler)
-        utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool,this.gspInstance)
+        utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool,this.gspInstance,this.mainSignalPool)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
@@ -186,7 +192,8 @@ class ClientApplication extends Application{
         this.channelManager     = this.mainCommMedium as ChannelManager
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
         this.gspInstance        = new GSP(this.channelManager,this.mainId,this.mainRef)
-        this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance)
+        this.mainSignalPool     = new SignalPool(this.channelManager,this.mainRef)
+        this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance,this.mainSignalPool)
         this.channelManager.init(this.mainMessageHandler)
         utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool,this.gspInstance)
     }
@@ -213,6 +220,8 @@ interface AppType {
     ArrayIsolate        : ArrayIsolateClass
     remote              : (string,number)=> Promise<FarRef>
     newRepliq           : (RepliqClass,... any) => Object
+    newSignal           : (any) => SignalClass
+    lift                : Function
 }
 export type ApplicationClass    = {
     new(...args : any[]): AppType
@@ -223,6 +232,7 @@ export type ArrayIsolateClass           = {new(...args : any[]): ArrayIsolate}
 export type RepliqClass                 = {new(...args : any[]): Repliq}
 export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitiveField<any>}
 export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectField}
+export type SignalClass                 = {new(...args : any[]): Signal}
 
 
 export interface SpiderLib{

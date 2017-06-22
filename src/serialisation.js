@@ -6,6 +6,7 @@ const spiders_1 = require("./spiders");
 const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
 const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
+const signal_1 = require("./Reactivivity/signal");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -76,7 +77,7 @@ function constructMethod(functionSource) {
     }
     return method;
 }
-function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePool, commMedium, objectPool, gspInstance) {
+function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool) {
     staticProperties.forEach((propertyArray) => {
         var className = propertyArray[0];
         var stub = {};
@@ -84,7 +85,7 @@ function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePo
         var methods = propertyArray[2];
         vars.forEach((varPair) => {
             var key = varPair[0];
-            var val = deserialise(thisRef, varPair[1], promisePool, commMedium, objectPool, gspInstance);
+            var val = deserialise(thisRef, varPair[1], promisePool, commMedium, objectPool, gspInstance, signalPool);
             stub[key] = val;
         });
         methods.forEach((methodPair) => {
@@ -136,7 +137,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, thi
     }
 }
 exports.deconstructBehaviour = deconstructBehaviour;
-function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool, gspInstance) {
+function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool) {
     var amountOfProtos = methods.length;
     for (var i = 0; i < amountOfProtos; i++) {
         var copy = baseObject.__proto__;
@@ -150,7 +151,7 @@ function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePo
         levelVariables.forEach((varEntry) => {
             var key = varEntry[0];
             var rawVal = varEntry[1];
-            var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool, gspInstance);
+            var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool, gspInstance, signalPool);
             installIn[key] = val;
         });
     });
@@ -173,11 +174,11 @@ function getProtoForLevel(level, object) {
     }
     return ret;
 }
-function reconstructObject(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool, gspInstance) {
+function reconstructObject(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool) {
     variables.forEach((varEntry) => {
         var key = varEntry[0];
         var rawVal = varEntry[1];
-        var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool, gspInstance);
+        var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool, gspInstance, signalPool);
         baseObject[key] = val;
     });
     methods.forEach((methodEntry) => {
@@ -322,9 +323,19 @@ class RepliqDefinitionContainer extends ValueContainer {
     }
 }
 exports.RepliqDefinitionContainer = RepliqDefinitionContainer;
+//When a signal is serialised and passed to another actor it can implicitly only depend on the original signal
+//From the moment the signal is deserialised on the receiving side it will act as a source for that actor
+//Hence, all the information needed is the signal's id and its current value
 class SignalContainer extends ValueContainer {
+    constructor(id, currentValue, ownerId, ownerAddress, ownerPort) {
+        super(ValueContainer.signalType);
+        this.id = id;
+        this.currentValue = currentValue;
+        this.ownerId = ownerId;
+        this.ownerAddress = ownerAddress;
+        this.ownerPort = ownerPort;
+    }
 }
-//TODO
 SignalContainer.checkSignalFuncKey = "_INSTANCEOF_Signal_";
 exports.SignalContainer = SignalContainer;
 function isClass(func) {
@@ -467,6 +478,10 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         else if (value[RepliqContainer.checkRepliqFuncKey]) {
             return serialiseRepliq(value, thisRef, receiverId, commMedium, promisePool, objectPool);
         }
+        else if (value[SignalContainer.checkSignalFuncKey]) {
+            let sig = value;
+            return new SignalContainer(sig.id, sig.currentVal, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+        }
         else {
             return serialiseObject(value, thisRef, objectPool);
         }
@@ -496,7 +511,7 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
     }
 }
 exports.serialise = serialise;
-function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspInstance) {
+function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspInstance, signalPool) {
     function deSerialisePromise(promiseContainer) {
         return promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
     }
@@ -533,12 +548,12 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
     }
     function deSerialiseArray(arrayContainer) {
         var deserialised = arrayContainer.values.map((valCont) => {
-            return deserialise(thisRef, valCont, promisePool, commMedium, objectPool, gspInstance);
+            return deserialise(thisRef, valCont, promisePool, commMedium, objectPool, gspInstance, signalPool);
         });
         return deserialised;
     }
     function deSerialiseIsolate(isolateContainer) {
-        var isolate = reconstructObject(new spiders_1.Isolate(), JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), thisRef, promisePool, commMedium, objectPool, gspInstance);
+        var isolate = reconstructObject(new spiders_1.Isolate(), JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
         return isolate;
     }
     function deSerialiseIsolateDefinition(isolateDefContainer) {
@@ -569,8 +584,8 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             Reflect.setPrototypeOf(tentBase, {});
             let comBase = {};
             Reflect.setPrototypeOf(comBase, {});
-            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance);
-            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance);
+            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
+            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
             let field = new RepliqObjectField_1.RepliqObjectField(repliqField.name, {});
             field.tentative = tentative;
             field.commited = commited;
@@ -582,7 +597,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             fields.set(field.name, field);
         });
         (JSON.parse(repliqContainer.innerRepFields)).forEach((innerRepliq) => {
-            fields.set(innerRepliq.innerName, deserialise(thisRef, innerRepliq, promisePool, commMedium, objectPool, gspInstance));
+            fields.set(innerRepliq.innerName, deserialise(thisRef, innerRepliq, promisePool, commMedium, objectPool, gspInstance, signalPool));
         });
         let methods = new Map();
         (JSON.parse(repliqContainer.methods)).forEach(([methodName, methodSource]) => {
@@ -610,6 +625,18 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         var classObj = eval(start + " extends Repliq" + stop);
         return classObj;
     }
+    function deSerialiseSignal(sigContainer) {
+        if (!commMedium.hasConnection(sigContainer.ownerId)) {
+            commMedium.openConnection(sigContainer.ownerId, sigContainer.ownerAddress, sigContainer.ownerPort);
+        }
+        let signalId = sigContainer.id;
+        let currentVal = sigContainer.currentValue;
+        let signalProxy = new signal_1.Signal(currentVal);
+        signalProxy.id = signalId;
+        signalPool.newSignal(signalProxy);
+        commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(thisRef, thisRef.ownerId, signalId, thisRef.ownerAddress, thisRef.ownerPort));
+        return signalProxy;
+    }
     switch (value.type) {
         case ValueContainer.nativeType:
             return value.value;
@@ -633,6 +660,8 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             return deSerialiseRepliq(value);
         case ValueContainer.repliqDefinition:
             return deSerialiseRepliqDefinition(value);
+        case ValueContainer.signalType:
+            return deSerialiseSignal(value);
         default:
             throw "Unknown value container type :  " + value.type;
     }

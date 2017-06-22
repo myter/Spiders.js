@@ -6,6 +6,8 @@ import {Message, RouteMessage} from "./messages";
 import {MessageHandler} from "./messageHandler";
 import {Isolate, ArrayIsolate} from "./spiders";
 import {GSP} from "./Replication/GSP";
+import {lift, Signal} from "./Reactivivity/signal";
+import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -110,7 +112,7 @@ function getInitChain(behaviourObject : any,result : Array<Function>){
 }
 
 
-export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool,gspInstance : GSP){
+export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool,gspInstance : GSP,signalPool : SignalPool){
     if(!appActor){
         behaviourObject["parent"]   = parentRef.proxyify()
     }
@@ -123,6 +125,20 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
         let repliqOb = new repliqClass(...args)
         return repliqOb.instantiate(gspInstance,thisRef.ownerId)
     })
+    behaviourObject["newSignal"]    = (initVal) =>{
+        let sig = new Signal(initVal)
+        signalPool.newSignal(sig)
+        return sig
+    }
+    //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
+    behaviourObject["lift"]         = (func) => {
+        let inner = lift(func)
+        return (...args) => {
+            let sig = inner(...args)
+            signalPool.newSignal(sig)
+            return sig
+        }
+    }
     if(!appActor){
         var initChain                   = getInitChain(behaviourObject,[])
         initChain.forEach((initFunc)=>{

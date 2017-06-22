@@ -8,6 +8,7 @@ const PromisePool_1 = require("./PromisePool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
 const GSP_1 = require("./Replication/GSP");
+const signalPool_1 = require("./Reactivivity/signalPool");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -15,6 +16,7 @@ var utils = require('./utils');
 var messageHandler;
 var objectPool;
 var promisePool;
+var signalPool;
 var gspInstance;
 var parentRef;
 var thisId;
@@ -24,7 +26,7 @@ if (utils.isBrowser()) {
         var channelManager = new ChannelManager_1.ChannelManager();
         promisePool = new PromisePool_1.PromisePool();
         objectPool = new objectPool_1.ObjectPool();
-        messageHandler = new messageHandler_1.MessageHandler(null, channelManager, promisePool, objectPool, null);
+        messageHandler = new messageHandler_1.MessageHandler(null, channelManager, promisePool, objectPool, null, null);
         channelManager.init(messageHandler);
         self.addEventListener('message', function (ev) {
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
@@ -45,14 +47,15 @@ else {
     var variables = JSON.parse(process.argv[7]);
     var methods = JSON.parse(process.argv[8]);
     gspInstance = new GSP_1.GSP(socketManager, thisId, thisRef);
-    var behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, thisRef, promisePool, socketManager, objectPool, gspInstance);
+    signalPool = new signalPool_1.SignalPool(socketManager, thisRef);
+    var behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, thisRef, promisePool, socketManager, objectPool, gspInstance, signalPool);
     //reconstructStatic(behaviourObject,JSON.parse(process.argv[9]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     objectPool.installBehaviourObject(behaviourObject);
-    messageHandler = new messageHandler_1.MessageHandler(thisRef, socketManager, promisePool, objectPool, gspInstance);
+    messageHandler = new messageHandler_1.MessageHandler(thisRef, socketManager, promisePool, objectPool, gspInstance, signalPool);
     socketManager.init(messageHandler);
     parentRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, parentId, address, parentPort, thisRef, socketManager, promisePool, objectPool);
     var parentServer = parentRef;
     socketManager.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    utils.installSTDLib(false, thisRef, parentRef, behaviourObject, socketManager, promisePool, gspInstance);
+    utils.installSTDLib(false, thisRef, parentRef, behaviourObject, socketManager, promisePool, gspInstance, signalPool);
 }
 //# sourceMappingURL=actorProto.js.map

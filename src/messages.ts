@@ -191,4 +191,32 @@ export class GSPSyncMessage extends Message{
     }
 }
 
+export const _REGISTER_EXTERNAL_SIGNAL_ : MessageTypeTag = 12
+export class RegisterExternalSignalMessage extends Message{
+    requesterId         : string
+    signalId            : string
+    requesterAddress    : string
+    requesterPort       : number
+
+    constructor(senderRef : FarReference,requesterId,signalId,requesterAddress,requesterPort){
+        super(_REGISTER_EXTERNAL_SIGNAL_,senderRef)
+        this.requesterId        = requesterId
+        this.signalId           = signalId
+        this.requesterAddress   = requesterAddress
+        this.requesterPort      = requesterPort
+    }
+}
+
+export const _EXTERNAL_SIGNAL_CHANGE_ : MessageTypeTag = 13
+export class ExternalSignalChangeMessage extends  Message{
+    signalId    : string
+    newVal      : any
+
+    constructor(senderRef : FarReference,signalId,newVal){
+        super(_EXTERNAL_SIGNAL_CHANGE_,senderRef)
+        this.signalId   = signalId
+        this.newVal     = newVal
+    }
+}
+
 

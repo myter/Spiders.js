@@ -140,4 +140,24 @@ class GSPSyncMessage extends Message {
     }
 }
 exports.GSPSyncMessage = GSPSyncMessage;
+exports._REGISTER_EXTERNAL_SIGNAL_ = 12;
+class RegisterExternalSignalMessage extends Message {
+    constructor(senderRef, requesterId, signalId, requesterAddress, requesterPort) {
+        super(exports._REGISTER_EXTERNAL_SIGNAL_, senderRef);
+        this.requesterId = requesterId;
+        this.signalId = signalId;
+        this.requesterAddress = requesterAddress;
+        this.requesterPort = requesterPort;
+    }
+}
+exports.RegisterExternalSignalMessage = RegisterExternalSignalMessage;
+exports._EXTERNAL_SIGNAL_CHANGE_ = 13;
+class ExternalSignalChangeMessage extends Message {
+    constructor(senderRef, signalId, newVal) {
+        super(exports._EXTERNAL_SIGNAL_CHANGE_, senderRef);
+        this.signalId = signalId;
+        this.newVal = newVal;
+    }
+}
+exports.ExternalSignalChangeMessage = ExternalSignalChangeMessage;
 //# sourceMappingURL=messages.js.map

@@ -2,7 +2,7 @@
 
 
 import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {ResolvePromiseMessage, RejectPromiseMessage} from "./messages";
+import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./messages";
 import {ObjectPool} from "./objectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
@@ -12,6 +12,8 @@ import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
 import {GSP} from "./Replication/GSP";
 import {RepliqField} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
+import {Signal} from "./Reactivivity/signal";
+import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -85,7 +87,7 @@ function constructMethod(functionSource){
     return method
 }
 
-export function reconstructStatic(behaviourObject : Object,staticProperties : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP){
+export function reconstructStatic(behaviourObject : Object,staticProperties : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP,signalPool : SignalPool){
     staticProperties.forEach((propertyArray : Array<any>)=>{
         var className   = propertyArray[0]
         var stub        = {}
@@ -93,7 +95,7 @@ export function reconstructStatic(behaviourObject : Object,staticProperties : Ar
         var methods     = propertyArray[2]
         vars.forEach((varPair : Array<any>)=>{
             var key     = varPair[0]
-            var val     = deserialise(thisRef,varPair[1],promisePool,commMedium,objectPool,gspInstance)
+            var val     = deserialise(thisRef,varPair[1],promisePool,commMedium,objectPool,gspInstance,signalPool)
             stub[key]   = val
         })
         methods.forEach((methodPair : Array<any>)=>{
@@ -145,7 +147,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     }
 }
 
-export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP) {
+export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP,signalPool : SignalPool) {
     var amountOfProtos = methods.length
     for(var i = 0;i < amountOfProtos;i++){
         var copy                = baseObject.__proto__
@@ -159,7 +161,7 @@ export function reconstructBehaviour(baseObject : any,variables :Array<any>, met
         levelVariables.forEach((varEntry)=>{
             var key             = varEntry[0]
             var rawVal          = varEntry[1]
-            var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool,gspInstance)
+            var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool,gspInstance,signalPool)
             installIn[key]      = val
         })
     })
@@ -184,11 +186,11 @@ function getProtoForLevel(level,object){
     return ret
 }
 
-export function reconstructObject(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP) {
+export function reconstructObject(baseObject : any,variables :Array<any>, methods : Array<any>,thisRef : FarReference,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP,signalPool : SignalPool) {
     variables.forEach((varEntry) => {
         var key             = varEntry[0]
         var rawVal          = varEntry[1]
-        var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool,gspInstance)
+        var val             = deserialise(thisRef,rawVal,promisePool,commMedium,objectPool,gspInstance,signalPool)
         baseObject[key]      = val
     })
     methods.forEach((methodEntry) => {
@@ -383,9 +385,25 @@ export class RepliqDefinitionContainer extends ValueContainer{
     }
 }
 
+//When a signal is serialised and passed to another actor it can implicitly only depend on the original signal
+//From the moment the signal is deserialised on the receiving side it will act as a source for that actor
+//Hence, all the information needed is the signal's id and its current value
 export class SignalContainer extends ValueContainer{
-    //TODO
+    id                             : string
+    currentValue                   : any
+    ownerId                        : string
+    ownerAddress                   : string
+    ownerPort                      : number
     static checkSignalFuncKey      : string = "_INSTANCEOF_Signal_"
+
+    constructor(id,currentValue,ownerId,ownerAddress,ownerPort){
+        super(ValueContainer.signalType)
+        this.id             = id
+        this.currentValue   = currentValue
+        this.ownerId        = ownerId
+        this.ownerAddress   = ownerAddress
+        this.ownerPort      = ownerPort
+    }
 }
 
 function isClass(func : Function) : boolean{
@@ -535,6 +553,10 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
         else if(value[RepliqContainer.checkRepliqFuncKey]){
             return serialiseRepliq(value,thisRef,receiverId,commMedium,promisePool,objectPool)
         }
+        else if(value[SignalContainer.checkSignalFuncKey]){
+            let sig = value as Signal
+            return new SignalContainer(sig.id,sig.currentVal,thisRef.ownerId,(thisRef as ServerFarReference).ownerAddress,(thisRef as ServerFarReference).ownerPort)
+        }
         else {
             return serialiseObject(value,thisRef,objectPool)
         }
@@ -564,7 +586,7 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
     }
 }
 
-export function deserialise(thisRef : FarReference,value : ValueContainer,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP) : any{
+export function deserialise(thisRef : FarReference,value : ValueContainer,promisePool : PromisePool,commMedium : CommMedium,objectPool : ObjectPool,gspInstance : GSP,signalPool : SignalPool) : any{
     function deSerialisePromise(promiseContainer : PromiseContainer){
         return promisePool.newForeignPromise(promiseContainer.promiseId,promiseContainer.promiseCreatorId)
     }
@@ -606,13 +628,13 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
 
     function deSerialiseArray(arrayContainer : ArrayContainer){
         var deserialised = arrayContainer.values.map((valCont) => {
-            return deserialise(thisRef,valCont,promisePool,commMedium,objectPool,gspInstance)
+            return deserialise(thisRef,valCont,promisePool,commMedium,objectPool,gspInstance,signalPool)
         })
         return deserialised
     }
 
     function deSerialiseIsolate(isolateContainer : IsolateContainer){
-        var isolate = reconstructObject(new Isolate(),JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool,gspInstance)
+        var isolate = reconstructObject(new Isolate(),JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),thisRef,promisePool,commMedium,objectPool,gspInstance,signalPool)
         return isolate
     }
 
@@ -646,8 +668,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             Reflect.setPrototypeOf(tentBase,{})
             let comBase                 = {}
             Reflect.setPrototypeOf(comBase,{})
-            let tentative               = reconstructObject(tentBase,JSON.parse(tentParsed[0]),JSON.parse(tentParsed[1]),thisRef,promisePool,commMedium,objectPool,gspInstance)
-            let commited                = reconstructObject(comBase,JSON.parse(comParsed[0]),JSON.parse(comParsed[1]),thisRef,promisePool,commMedium,objectPool,gspInstance)
+            let tentative               = reconstructObject(tentBase,JSON.parse(tentParsed[0]),JSON.parse(tentParsed[1]),thisRef,promisePool,commMedium,objectPool,gspInstance,signalPool)
+            let commited                = reconstructObject(comBase,JSON.parse(comParsed[0]),JSON.parse(comParsed[1]),thisRef,promisePool,commMedium,objectPool,gspInstance,signalPool)
             let field                   = new RepliqObjectField(repliqField.name,{})
             field.tentative             = tentative
             field.commited              = commited
@@ -659,7 +681,7 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             fields.set(field.name,field)
         });
         (JSON.parse(repliqContainer.innerRepFields)).forEach((innerRepliq : RepliqContainer)=>{
-            fields.set(innerRepliq.innerName,deserialise(thisRef,innerRepliq,promisePool,commMedium,objectPool,gspInstance))
+            fields.set(innerRepliq.innerName,deserialise(thisRef,innerRepliq,promisePool,commMedium,objectPool,gspInstance,signalPool))
         })
         let methods         = new Map();
         (JSON.parse(repliqContainer.methods)).forEach(([methodName,methodSource])=>{
@@ -689,6 +711,19 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         return classObj
     }
 
+    function deSerialiseSignal(sigContainer : SignalContainer){
+        if(!commMedium.hasConnection(sigContainer.ownerId)){
+            commMedium.openConnection(sigContainer.ownerId,sigContainer.ownerAddress,sigContainer.ownerPort)
+        }
+        let signalId    = sigContainer.id
+        let currentVal  = sigContainer.currentValue
+        let signalProxy = new Signal(currentVal)
+        signalProxy.id  = signalId
+        signalPool.newSignal(signalProxy)
+        commMedium.sendMessage(sigContainer.ownerId,new RegisterExternalSignalMessage(thisRef,thisRef.ownerId,signalId,(thisRef as ServerFarReference).ownerAddress,(thisRef as ServerFarReference).ownerPort))
+        return signalProxy
+    }
+
     switch(value.type){
         case ValueContainer.nativeType :
             return (value as NativeContainer).value
@@ -712,6 +747,8 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
             return deSerialiseRepliq(value as RepliqContainer)
         case ValueContainer.repliqDefinition:
             return deSerialiseRepliqDefinition(value as RepliqDefinitionContainer)
+        case ValueContainer.signalType:
+            return deSerialiseSignal(value as SignalContainer)
         default :
             throw "Unknown value container type :  " + value.type
     }

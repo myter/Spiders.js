@@ -34,6 +34,7 @@ export class Signal{
     signalDependencies  : Map<string,SignalDependency>
     staticDependencies  : Array<StaticDependency>
     changesReceived     : number
+    listeners           : Array<Function>
 
     constructor(initVal, evalFunc : Function = null){
         this[SignalContainer.checkSignalFuncKey]    = true
@@ -44,6 +45,7 @@ export class Signal{
         this.signalDependencies                     = new Map()
         this.staticDependencies                     = new Array()
         this.changesReceived                        = 0
+        this.listeners                              = new Array()
     }
 
     addChild(signal : Signal){
@@ -82,8 +84,16 @@ export class Signal{
             })
             this.currentVal = this.evalFunc(... args)
             this.changesReceived = 0
+            this.listeners.forEach((listener)=>{
+                listener()
+            })
             this.propagate(this.currentVal)
         }
+    }
+
+    //Used by Spiders.js to notify remote signals of a change
+    registerListener(callback : Function){
+        this.listeners.push(callback)
     }
 }
 

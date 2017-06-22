@@ -28,6 +28,7 @@ class Signal {
         this.signalDependencies = new Map();
         this.staticDependencies = new Array();
         this.changesReceived = 0;
+        this.listeners = new Array();
     }
     addChild(signal) {
         this.children.push(signal);
@@ -60,8 +61,15 @@ class Signal {
             });
             this.currentVal = this.evalFunc(...args);
             this.changesReceived = 0;
+            this.listeners.forEach((listener) => {
+                listener();
+            });
             this.propagate(this.currentVal);
         }
+    }
+    //Used by Spiders.js to notify remote signals of a change
+    registerListener(callback) {
+        this.listeners.push(callback);
     }
 }
 exports.Signal = Signal;

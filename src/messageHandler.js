@@ -4,16 +4,18 @@ const objectPool_1 = require("./objectPool");
 const serialisation_1 = require("./serialisation");
 const farRef_1 = require("./farRef");
 const GSP_1 = require("./Replication/GSP");
+const signalPool_1 = require("./Reactivivity/signalPool");
 /**
  * Created by flo on 20/12/2016.
  */
 var utils = require('./utils');
 class MessageHandler {
-    constructor(thisRef, commMedium, promisePool, objectPool, gspInstance) {
+    constructor(thisRef, commMedium, promisePool, objectPool, gspInstance, signalPool) {
         this.commMedium = commMedium;
         this.promisePool = promisePool;
         this.objectPool = objectPool;
         this.gspInstance = gspInstance;
+        this.signalPool = signalPool;
         this.thisRef = thisRef;
     }
     sendReturnServer(actorId, actorAddress, actorPort, msg) {
@@ -42,20 +44,21 @@ class MessageHandler {
         var mainId = msg.mainId;
         var thisRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, mainId, null, this.commMedium, this.promisePool, this.objectPool);
         this.gspInstance = new GSP_1.GSP(this.commMedium, thisId, thisRef);
-        var behaviourObject = serialisation_1.reconstructBehaviour({}, msg.vars, msg.methods, thisRef, this.promisePool, this.commMedium, this.objectPool, this.gspInstance);
-        serialisation_1.reconstructStatic(behaviourObject, msg.staticProperties, thisRef, this.promisePool, this.commMedium, this.objectPool, this.gspInstance);
+        var behaviourObject = serialisation_1.reconstructBehaviour({}, msg.vars, msg.methods, thisRef, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
+        serialisation_1.reconstructStatic(behaviourObject, msg.staticProperties, thisRef, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
         var otherActorIds = msg.otherActorIds;
         this.objectPool.installBehaviourObject(behaviourObject);
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
+        this.signalPool = new signalPool_1.SignalPool(channelManag, thisRef);
         var mainPort = ports[0];
         channelManag.newConnection(mainId, mainPort);
         otherActorIds.forEach((id, index) => {
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id, ports[index + 1]);
         });
-        utils.installSTDLib(false, thisRef, parentRef, behaviourObject, this.commMedium, this.promisePool, this.gspInstance);
+        utils.installSTDLib(false, thisRef, parentRef, behaviourObject, this.commMedium, this.promisePool, this.gspInstance, this.signalPool);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.commMedium;
@@ -81,7 +84,7 @@ class MessageHandler {
         var methodName = msg.methodName;
         var args = msg.args;
         var deserialisedArgs = args.map((arg) => {
-            return serialisation_1.deserialise(this.thisRef, arg, this.promisePool, this.commMedium, this.objectPool, this.gspInstance);
+            return serialisation_1.deserialise(this.thisRef, arg, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
         });
         var retVal;
         try {
@@ -109,7 +112,7 @@ class MessageHandler {
         }
     }
     handlePromiseResolve(msg) {
-        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.value, this.promisePool, this.commMedium, this.objectPool, this.gspInstance);
+        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.value, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
         if (msg.foreign) {
             this.promisePool.resolveForeignPromise(msg.promiseId, msg.senderId, deSerialised);
         }
@@ -118,7 +121,7 @@ class MessageHandler {
         }
     }
     handlePromiseReject(msg) {
-        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.reason, this.promisePool, this.commMedium, this.objectPool, this.gspInstance);
+        var deSerialised = serialisation_1.deserialise(this.thisRef, msg.reason, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
         if (msg.foreign) {
             this.promisePool.rejectForeignPromise(msg.promiseId, msg.senderId, deSerialised);
         }
@@ -172,6 +175,15 @@ class MessageHandler {
         }
         this.gspInstance.registerReplicaHolder(msg.replicaId, msg.holderId);
     }
+    handleRegisterExternalSignal(msg) {
+        if (!this.commMedium.hasConnection(msg.requesterId)) {
+            this.commMedium.openConnection(msg.requesterId, msg.requesterAddress, msg.requesterPort);
+        }
+        this.signalPool.registerExternalListener(msg.signalId, msg.requesterId);
+    }
+    handleExternalSignalChange(msg) {
+        this.signalPool.getSignal(msg.signalId).change(msg.newVal);
+    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg, ports = [], clientSocket = null) {
@@ -211,6 +223,12 @@ class MessageHandler {
                 break;
             case messages_1._GSP_REGISTER_:
                 this.handleGSPRegister(msg);
+                break;
+            case messages_1._REGISTER_EXTERNAL_SIGNAL_:
+                this.handleRegisterExternalSignal(msg);
+                break;
+            case messages_1._EXTERNAL_SIGNAL_CHANGE_:
+                this.handleExternalSignalChange(msg);
                 break;
             default:
                 throw "Unknown message in actor : " + msg.toString();

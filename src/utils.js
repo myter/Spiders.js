@@ -1,5 +1,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("./spiders");
+const signal_1 = require("./Reactivivity/signal");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -100,7 +101,7 @@ function getInitChain(behaviourObject, result) {
         return getInitChain(behaviourObject.__proto__, result);
     }
 }
-function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool, gspInstance) {
+function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool, gspInstance, signalPool) {
     if (!appActor) {
         behaviourObject["parent"] = parentRef.proxyify();
     }
@@ -113,6 +114,20 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
         let repliqOb = new repliqClass(...args);
         return repliqOb.instantiate(gspInstance, thisRef.ownerId);
     });
+    behaviourObject["newSignal"] = (initVal) => {
+        let sig = new signal_1.Signal(initVal);
+        signalPool.newSignal(sig);
+        return sig;
+    };
+    //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
+    behaviourObject["lift"] = (func) => {
+        let inner = signal_1.lift(func);
+        return (...args) => {
+            let sig = inner(...args);
+            signalPool.newSignal(sig);
+            return sig;
+        };
+    };
     if (!appActor) {
         var initChain = getInitChain(behaviourObject, []);
         initChain.forEach((initFunc) => {

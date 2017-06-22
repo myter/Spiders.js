@@ -7,6 +7,7 @@ import {PromisePool} from "./PromisePool";
 import {reconstructBehaviour, reconstructStatic} from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 import {GSP} from "./Replication/GSP";
+import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -15,6 +16,7 @@ var utils           = require('./utils')
 var messageHandler  : MessageHandler
 var objectPool      : ObjectPool
 var promisePool     : PromisePool
+var signalPool      : SignalPool
 var gspInstance     : GSP
 var parentRef       : FarReference
 var thisId          : string
@@ -26,7 +28,7 @@ if(utils.isBrowser()){
         var channelManager  = new ChannelManager()
         promisePool         = new PromisePool()
         objectPool          = new ObjectPool()
-        messageHandler      = new MessageHandler(null,channelManager,promisePool,objectPool,null)
+        messageHandler      = new MessageHandler(null,channelManager,promisePool,objectPool,null,null)
         channelManager.init(messageHandler)
         self.addEventListener('message',function (ev : MessageEvent){
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
@@ -47,15 +49,16 @@ else{
     var variables           = JSON.parse(process.argv[7])
     var methods             = JSON.parse(process.argv[8])
     gspInstance             = new GSP(socketManager,thisId,thisRef)
-    var behaviourObject     = reconstructBehaviour({},variables,methods,thisRef,promisePool,socketManager,objectPool,gspInstance)
+    signalPool              = new SignalPool(socketManager,thisRef)
+    var behaviourObject     = reconstructBehaviour({},variables,methods,thisRef,promisePool,socketManager,objectPool,gspInstance,signalPool)
     //reconstructStatic(behaviourObject,JSON.parse(process.argv[9]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     objectPool.installBehaviourObject(behaviourObject)
-    messageHandler          = new MessageHandler(thisRef,socketManager,promisePool,objectPool,gspInstance)
+    messageHandler          = new MessageHandler(thisRef,socketManager,promisePool,objectPool,gspInstance,signalPool)
     socketManager.init(messageHandler)
     parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,parentId,address,parentPort,thisRef,socketManager,promisePool,objectPool)
     var parentServer        = parentRef as ServerFarReference
     socketManager.openConnection(parentServer.ownerId,parentServer.ownerAddress,parentServer.ownerPort)
-    utils.installSTDLib(false,thisRef,parentRef,behaviourObject,socketManager,promisePool,gspInstance)
+    utils.installSTDLib(false,thisRef,parentRef,behaviourObject,socketManager,promisePool,gspInstance,signalPool)
 }
 
 
