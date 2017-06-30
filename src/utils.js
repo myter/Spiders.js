@@ -114,9 +114,10 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
         let repliqOb = new repliqClass(...args);
         return repliqOb.instantiate(gspInstance, thisRef.ownerId);
     });
+    //TODO this is probably temp and should not be exposed to the programmer ?
     behaviourObject["newSignal"] = (initVal) => {
         let sig = new signal_1.Signal(initVal);
-        signalPool.newSignal(sig);
+        signalPool.newSource(sig);
         return sig;
     };
     //Re-wrap the lift function to catch creation of new signals as the result of lifted function application

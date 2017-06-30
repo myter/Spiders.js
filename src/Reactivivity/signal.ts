@@ -16,7 +16,7 @@ abstract class Dependency{
 }
 
 class SignalDependency extends Dependency{
-    signalId
+    signalId    : string
 
     constructor(signalId : string,val,position){
         super(val,position)
@@ -35,6 +35,8 @@ export class Signal{
     staticDependencies  : Array<StaticDependency>
     changesReceived     : number
     listeners           : Array<Function>
+    //Indicates whether the signal is actually a stub for a remote signal
+    foreignStub         : boolean
 
     constructor(initVal, evalFunc : Function = null){
         this[SignalContainer.checkSignalFuncKey]    = true
@@ -62,7 +64,9 @@ export class Signal{
 
     //Called on source nodes by "external" code
     change(val){
+        this.currentVal = val
         this.propagate(val)
+        this.triggerExternal()
     }
 
     propagate(val){
@@ -71,9 +75,16 @@ export class Signal{
         })
     }
 
+    triggerExternal(){
+        this.listeners.forEach((listener)=>{
+            listener()
+        })
+    }
+
     parentChanged(parentId : string,val){
-        this.signalDependencies.get(parentId).value = val
-        this.changesReceived                        += 1
+        let dependency : SignalDependency = this.signalDependencies.get(parentId)
+        dependency.value        = val
+        this.changesReceived    += 1
         if(this.changesReceived == this.signalDependencies.size){
             let args = []
             this.signalDependencies.forEach((dep : SignalDependency)=>{
@@ -84,9 +95,7 @@ export class Signal{
             })
             this.currentVal = this.evalFunc(... args)
             this.changesReceived = 0
-            this.listeners.forEach((listener)=>{
-                listener()
-            })
+            this.triggerExternal()
             this.propagate(this.currentVal)
         }
     }

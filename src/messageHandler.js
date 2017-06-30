@@ -182,7 +182,7 @@ class MessageHandler {
         this.signalPool.registerExternalListener(msg.signalId, msg.requesterId);
     }
     handleExternalSignalChange(msg) {
-        this.signalPool.getSignal(msg.signalId).change(msg.newVal);
+        this.signalPool.sourceChanged(msg.signalId, msg.newVal);
     }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor

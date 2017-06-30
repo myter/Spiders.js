@@ -17,6 +17,22 @@ var serialisation               = require('../src/serialisation')
 
 describe("Behaviour serialisation",() => {
 
+    it("From file",(done)=>{
+        var app = new spider.Application()
+        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition',"TestActor")
+        act.getValue().then((val)=>{
+            try{
+                expect(val).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
     it("Field serialisation",function(done){
         this.timeout(3000)
         var app = new spider.Application()
@@ -338,6 +354,8 @@ describe("Behaviour serialisation",() => {
         })
 
     })*/
+
+
 
 })
 

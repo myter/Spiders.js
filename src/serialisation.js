@@ -633,7 +633,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         let currentVal = sigContainer.currentValue;
         let signalProxy = new signal_1.Signal(currentVal);
         signalProxy.id = signalId;
-        signalPool.newSignal(signalProxy);
+        signalPool.newSource(signalProxy);
         commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(thisRef, thisRef.ownerId, signalId, thisRef.ownerAddress, thisRef.ownerPort));
         return signalProxy;
     }

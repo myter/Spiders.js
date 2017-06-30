@@ -719,7 +719,7 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         let currentVal  = sigContainer.currentValue
         let signalProxy = new Signal(currentVal)
         signalProxy.id  = signalId
-        signalPool.newSignal(signalProxy)
+        signalPool.newSource(signalProxy)
         commMedium.sendMessage(sigContainer.ownerId,new RegisterExternalSignalMessage(thisRef,thisRef.ownerId,signalId,(thisRef as ServerFarReference).ownerAddress,(thisRef as ServerFarReference).ownerPort))
         return signalProxy
     }

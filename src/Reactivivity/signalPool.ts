@@ -7,6 +7,7 @@ import {FarReference} from "../farRef";
  */
 export class SignalPool{
     signals             : Map<string,Signal>
+    sources             : Map<string,Signal>
     commMedium          : CommMedium
     thisRef             : FarReference
 
@@ -14,6 +15,11 @@ export class SignalPool{
         this.commMedium         = commMedium
         this.thisRef            = thisRef
         this.signals            = new Map()
+        this.sources            = new Map()
+    }
+
+    newSource(signal : Signal){
+        this.sources.set(signal.id,signal)
     }
 
     newSignal(signal : Signal){
@@ -21,13 +27,30 @@ export class SignalPool{
     }
 
     registerExternalListener(signalId : string,holderId : string){
-        let signal = this.signals.get(signalId)
+        let signal
+        if(this.signals.has(signalId)){
+            signal = this.signals.get(signalId)
+        }
+        else if(this.sources.has(signalId)){
+            signal = this.sources.get(signalId)
+        }
+        else{
+            throw new Error("Unable to find signal to register listener")
+        }
         signal.registerListener(()=>{
             this.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.thisRef,signal.id,signal.currentVal))
         })
     }
 
-    getSignal(signalId : string) : Signal{
-        return this.signals.get(signalId)
+    sourceChanged(signalId : string,val : any){
+        //Elm style propagation, signal pool serves as event dispatcher
+        this.sources.forEach((sourceSignal : Signal,id : string)=>{
+            if(id == signalId){
+                sourceSignal.change(val)
+            }
+            else{
+                sourceSignal.change(sourceSignal.currentVal)
+            }
+        })
     }
 }

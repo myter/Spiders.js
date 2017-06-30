@@ -3,7 +3,10 @@ import {MessageHandler} from "./messageHandler";
 import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
 import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./objectPool";
-import {deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic} from "./serialisation";
+import {
+    deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic,
+    serialise
+} from "./serialisation";
 import {CommMedium} from "./commMedium";
 import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
@@ -97,6 +100,7 @@ abstract class ClientActor extends Actor{
 }
 
 abstract class ServerActor extends Actor{
+
     spawn(app : ServerApplication,port : number,thisClass){
         var socketManager               = app.mainCommMedium as ServerSocketManager
         var fork		                = require('child_process').fork
@@ -107,9 +111,24 @@ abstract class ServerActor extends Actor{
         var staticProperties            = deconstructStatic(thisClass,app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool,[])
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties)])
+        var actor                       = fork(__dirname + '/actorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties)])
         app.spawnedActors.push(actor)
         var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainIp,port,app.mainRef,app.mainCommMedium,app.mainPromisePool,app.mainObjectPool)
+        socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
+        return ref.proxyify()
+    }
+
+    static spawnFromFile(app : ServerApplication,port :number,filePath : string,actorClassName : string,constructorArgs : Array<any>){
+        var socketManager   = app.mainCommMedium as ServerSocketManager
+        var fork            = require('child_process').fork
+        var actorId         = utils.generateId()
+        let serialisedArgs  = []
+        constructorArgs.forEach((constructorArg)=>{
+            serialisedArgs.push(serialise(constructorArg,app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool))
+        })
+        var actor           = fork(__dirname + '/actorProto.js',[true,app.mainIp,port,actorId,app.mainId,app.mainPort,filePath,actorClassName,JSON.stringify(serialisedArgs)])
+        app.spawnedActors.push(actor)
+        var ref             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainIp,port,app.mainRef,app.mainCommMedium,app.mainPromisePool,app.mainObjectPool)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
         return ref.proxyify()
     }
@@ -172,6 +191,13 @@ class ServerApplication extends Application{
         return actorObject.spawn(this,port,actorClass)
     }
 
+    spawnActorFromFile(path : string,className : string,constructorArgs : Array<any> = [],port : number = -1){
+        if(port == -1){
+            port = this.portCounter++
+        }
+        return ServerActor.spawnFromFile(this,port,path,className,constructorArgs)
+    }
+
     kill(){
         this.socketManager.closeAll()
         this.spawnedActors.forEach((actor : ChildProcess) => {
@@ -214,6 +240,7 @@ class ClientApplication extends Application{
 }
 interface AppType {
     spawnActor
+    spawnActorFromFile
     kill
     //Provided by standard lib
     Isolate             : IsolateClass

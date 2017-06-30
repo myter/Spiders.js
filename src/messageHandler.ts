@@ -222,7 +222,7 @@ export class MessageHandler{
     }
 
     private handleExternalSignalChange(msg : ExternalSignalChangeMessage){
-        this.signalPool.getSignal(msg.signalId).change(msg.newVal)
+        this.signalPool.sourceChanged(msg.signalId,msg.newVal)
     }
 
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)

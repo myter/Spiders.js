@@ -89,7 +89,21 @@ class ServerActor extends Actor {
         var staticProperties = serialisation_1.deconstructStatic(thisClass, app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool, []);
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var actor = fork(__dirname + '/actorProto.js', [app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties)]);
+        var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties)]);
+        app.spawnedActors.push(actor);
+        var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool);
+        socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
+        return ref.proxyify();
+    }
+    static spawnFromFile(app, port, filePath, actorClassName, constructorArgs) {
+        var socketManager = app.mainCommMedium;
+        var fork = require('child_process').fork;
+        var actorId = utils.generateId();
+        let serialisedArgs = [];
+        constructorArgs.forEach((constructorArg) => {
+            serialisedArgs.push(serialisation_1.serialise(constructorArg, app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool));
+        });
+        var actor = fork(__dirname + '/actorProto.js', [true, app.mainIp, port, actorId, app.mainId, app.mainPort, filePath, actorClassName, JSON.stringify(serialisedArgs)]);
         app.spawnedActors.push(actor);
         var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
@@ -131,6 +145,12 @@ class ServerApplication extends Application {
             port = this.portCounter++;
         }
         return actorObject.spawn(this, port, actorClass);
+    }
+    spawnActorFromFile(path, className, constructorArgs = [], port = -1) {
+        if (port == -1) {
+            port = this.portCounter++;
+        }
+        return ServerActor.spawnFromFile(this, port, path, className, constructorArgs);
     }
     kill() {
         this.socketManager.closeAll();

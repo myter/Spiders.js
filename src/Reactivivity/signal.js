@@ -41,15 +41,23 @@ class Signal {
     }
     //Called on source nodes by "external" code
     change(val) {
+        this.currentVal = val;
         this.propagate(val);
+        this.triggerExternal();
     }
     propagate(val) {
         this.children.forEach((child) => {
             child.parentChanged(this.id, val);
         });
     }
+    triggerExternal() {
+        this.listeners.forEach((listener) => {
+            listener();
+        });
+    }
     parentChanged(parentId, val) {
-        this.signalDependencies.get(parentId).value = val;
+        let dependency = this.signalDependencies.get(parentId);
+        dependency.value = val;
         this.changesReceived += 1;
         if (this.changesReceived == this.signalDependencies.size) {
             let args = [];
@@ -61,9 +69,7 @@ class Signal {
             });
             this.currentVal = this.evalFunc(...args);
             this.changesReceived = 0;
-            this.listeners.forEach((listener) => {
-                listener();
-            });
+            this.triggerExternal();
             this.propagate(this.currentVal);
         }
     }

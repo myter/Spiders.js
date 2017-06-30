@@ -35,21 +35,36 @@ if (utils.isBrowser()) {
     };
 }
 else {
-    var address = process.argv[2];
-    var port = parseInt(process.argv[3]);
-    thisId = process.argv[4];
-    var parentId = process.argv[5];
-    var parentPort = parseInt(process.argv[6]);
+    var loadFromFile = JSON.parse(process.argv[2]);
+    var address = process.argv[3];
+    var port = parseInt(process.argv[4]);
+    thisId = process.argv[5];
+    var parentId = process.argv[6];
+    var parentPort = parseInt(process.argv[7]);
     var socketManager = new sockets_1.ServerSocketManager(address, port);
     promisePool = new PromisePool_1.PromisePool();
     objectPool = new objectPool_1.ObjectPool();
     var thisRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, address, port, null, null, null, null);
-    var variables = JSON.parse(process.argv[7]);
-    var methods = JSON.parse(process.argv[8]);
     gspInstance = new GSP_1.GSP(socketManager, thisId, thisRef);
     signalPool = new signalPool_1.SignalPool(socketManager, thisRef);
-    var behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, thisRef, promisePool, socketManager, objectPool, gspInstance, signalPool);
-    //reconstructStatic(behaviourObject,JSON.parse(process.argv[9]),thisRef,promisePool,socketManager,objectPool,gspInstance)
+    var behaviourObject;
+    if (loadFromFile) {
+        var filePath = process.argv[8];
+        var className = process.argv[9];
+        var serialisedArgs = JSON.parse(process.argv[10]);
+        var constructorArgs = [];
+        serialisedArgs.forEach((serArg) => {
+            constructorArgs.push(serialisation_1.deserialise(thisRef, serArg, promisePool, socketManager, objectPool, gspInstance, signalPool));
+        });
+        var actorClass = require(filePath)[className];
+        behaviourObject = new actorClass();
+    }
+    else {
+        var variables = JSON.parse(process.argv[8]);
+        var methods = JSON.parse(process.argv[9]);
+        behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, thisRef, promisePool, socketManager, objectPool, gspInstance, signalPool);
+        //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
+    }
     objectPool.installBehaviourObject(behaviourObject);
     messageHandler = new messageHandler_1.MessageHandler(thisRef, socketManager, promisePool, objectPool, gspInstance, signalPool);
     socketManager.init(messageHandler);
