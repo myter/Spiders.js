@@ -12,6 +12,7 @@ const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
 const RepliqField_1 = require("./Replication/RepliqField");
 const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
+const signal_1 = require("./Reactivivity/signal");
 const signalPool_1 = require("./Reactivivity/signalPool");
 /**
  * Created by flo on 05/12/2016.
@@ -133,7 +134,7 @@ class ServerApplication extends Application {
         this.mainCommMedium = new sockets_1.ServerSocketManager(mainIp, mainPort);
         this.socketManager = this.mainCommMedium;
         this.mainRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainIp, this.mainPort, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
-        this.mainSignalPool = new signalPool_1.SignalPool(this.mainCommMedium, this.mainRef);
+        this.mainSignalPool = new signalPool_1.SignalPool(this.mainCommMedium, this.mainRef, this.mainPromisePool, this.mainObjectPool);
         this.gspInstance = new GSP_1.GSP(this.socketManager, this.mainId, this.mainRef);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.socketManager, this.mainPromisePool, this.mainObjectPool, this.gspInstance, this.mainSignalPool);
         this.socketManager.init(this.mainMessageHandler);
@@ -167,7 +168,7 @@ class ClientApplication extends Application {
         this.channelManager = this.mainCommMedium;
         this.mainRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, this.mainId, this.mainId, null, this.mainCommMedium, this.mainPromisePool, this.mainObjectPool);
         this.gspInstance = new GSP_1.GSP(this.channelManager, this.mainId, this.mainRef);
-        this.mainSignalPool = new signalPool_1.SignalPool(this.channelManager, this.mainRef);
+        this.mainSignalPool = new signalPool_1.SignalPool(this.channelManager, this.mainRef, this.mainPromisePool, this.mainObjectPool);
         this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainRef, this.channelManager, this.mainPromisePool, this.mainObjectPool, this.gspInstance, this.mainSignalPool);
         this.channelManager.init(this.mainMessageHandler);
         utils.installSTDLib(true, this.mainRef, null, this, this.mainCommMedium, this.mainPromisePool, this.gspInstance);
@@ -185,6 +186,7 @@ class ClientApplication extends Application {
     }
 }
 exports.Repliq = Repliq_1.Repliq;
+exports.Signal = signal_1.SignalObject;
 exports.atomic = Repliq_1.atomic;
 exports.LWR = RepliqPrimitiveField_1.LWR;
 exports.Count = RepliqPrimitiveField_1.Count;
@@ -192,6 +194,7 @@ exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
 exports.RepliqObjectField = RepliqObjectField_1.RepliqObjectField;
 exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
 exports.FieldUpdate = RepliqField_1.FieldUpdate;
+exports.Isolate = Isolate;
 if (utils.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;

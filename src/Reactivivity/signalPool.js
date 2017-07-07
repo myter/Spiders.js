@@ -1,10 +1,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
+const signal_1 = require("./signal");
 const messages_1 = require("../messages");
+const serialisation_1 = require("../serialisation");
 /**
  * Created by flo on 22/06/2017.
  */
 class SignalPool {
-    constructor(commMedium, thisRef) {
+    constructor(commMedium, thisRef, promisePool, objectPool) {
         this.commMedium = commMedium;
         this.thisRef = thisRef;
         this.signals = new Map();
@@ -12,6 +14,25 @@ class SignalPool {
     }
     newSource(signal) {
         this.sources.set(signal.id, signal);
+        if (signal.rateLowerBound < Infinity) {
+            this.trackLease(signal.id, signal.rateLowerBound);
+        }
+    }
+    knownSignal(signalId) {
+        return this.sources.has(signalId);
+    }
+    trackLease(signalId, bound) {
+        let valBeforeTimeout = this.sources.get(signalId).value;
+        setTimeout(() => {
+            let valAfterTimeout = this.sources.get(signalId).value;
+            if (valAfterTimeout == valBeforeTimeout) {
+                //console.log("Lease should be destroyed yo ! in: " + this.thisRef.ownerId)
+            }
+            else {
+                //console.log("Lease still ok in: " + this.thisRef.ownerId)
+                this.trackLease(signalId, bound);
+            }
+        }, bound);
     }
     newSignal(signal) {
         this.signals.set(signal.id, signal);
@@ -28,7 +49,7 @@ class SignalPool {
             throw new Error("Unable to find signal to register listener");
         }
         signal.registerListener(() => {
-            this.commMedium.sendMessage(holderId, new messages_1.ExternalSignalChangeMessage(this.thisRef, signal.id, signal.currentVal));
+            this.commMedium.sendMessage(holderId, new messages_1.ExternalSignalChangeMessage(this.thisRef, signal.id, serialisation_1.serialise(signal.value, this.thisRef, holderId, this.commMedium, this.promisePool, this.objectPool)));
         });
     }
     sourceChanged(signalId, val) {
@@ -38,7 +59,7 @@ class SignalPool {
                 sourceSignal.change(val);
             }
             else {
-                sourceSignal.change(sourceSignal.currentVal);
+                sourceSignal.change(signal_1.Signal.NO_CHANGE);
             }
         });
     }

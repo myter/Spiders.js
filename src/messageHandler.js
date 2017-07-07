@@ -51,7 +51,7 @@ class MessageHandler {
         this.thisRef = thisRef;
         var parentRef = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.thisRef, this.commMedium, this.promisePool, this.objectPool);
         var channelManag = this.commMedium;
-        this.signalPool = new signalPool_1.SignalPool(channelManag, thisRef);
+        this.signalPool = new signalPool_1.SignalPool(channelManag, thisRef, this.promisePool, this.objectPool);
         var mainPort = ports[0];
         channelManag.newConnection(mainId, mainPort);
         otherActorIds.forEach((id, index) => {
@@ -179,10 +179,13 @@ class MessageHandler {
         if (!this.commMedium.hasConnection(msg.requesterId)) {
             this.commMedium.openConnection(msg.requesterId, msg.requesterAddress, msg.requesterPort);
         }
+        //console.log("External listener added for actor: "  + msg.requesterId + " in " + this.thisRef.ownerId + " signal: " + msg.signalId)
         this.signalPool.registerExternalListener(msg.signalId, msg.requesterId);
     }
     handleExternalSignalChange(msg) {
-        this.signalPool.sourceChanged(msg.signalId, msg.newVal);
+        //console.log("External signal changed in: " + this.thisRef.ownerId + " signal: " + msg.signalId)
+        let newVal = serialisation_1.deserialise(this.thisRef, msg.newVal, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
+        this.signalPool.sourceChanged(msg.signalId, newVal);
     }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor

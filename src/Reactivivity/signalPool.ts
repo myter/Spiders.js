@@ -2,6 +2,9 @@ import {Signal} from "./signal";
 import {CommMedium} from "../commMedium";
 import {ExternalSignalChangeMessage} from "../messages";
 import {FarReference} from "../farRef";
+import {serialise} from "../serialisation";
+import {PromisePool} from "../PromisePool";
+import {ObjectPool} from "../objectPool";
 /**
  * Created by flo on 22/06/2017.
  */
@@ -9,9 +12,11 @@ export class SignalPool{
     signals             : Map<string,Signal>
     sources             : Map<string,Signal>
     commMedium          : CommMedium
+    promisePool         : PromisePool
+    objectPool          : ObjectPool
     thisRef             : FarReference
 
-    constructor(commMedium : CommMedium,thisRef : FarReference){
+    constructor(commMedium : CommMedium,thisRef : FarReference,promisePool : PromisePool,objectPool : ObjectPool){
         this.commMedium         = commMedium
         this.thisRef            = thisRef
         this.signals            = new Map()
@@ -20,6 +25,27 @@ export class SignalPool{
 
     newSource(signal : Signal){
         this.sources.set(signal.id,signal)
+        if(signal.rateLowerBound < Infinity){
+            this.trackLease(signal.id,signal.rateLowerBound)
+        }
+    }
+
+    knownSignal(signalId : string) : boolean {
+        return this.sources.has(signalId)
+    }
+
+    trackLease(signalId : string,bound : number){
+        let valBeforeTimeout = this.sources.get(signalId).value
+        setTimeout(()=>{
+            let valAfterTimeout = this.sources.get(signalId).value
+            if(valAfterTimeout == valBeforeTimeout){
+                //console.log("Lease should be destroyed yo ! in: " + this.thisRef.ownerId)
+            }
+            else{
+                //console.log("Lease still ok in: " + this.thisRef.ownerId)
+                this.trackLease(signalId,bound)
+            }
+        },bound)
     }
 
     newSignal(signal : Signal){
@@ -38,7 +64,7 @@ export class SignalPool{
             throw new Error("Unable to find signal to register listener")
         }
         signal.registerListener(()=>{
-            this.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.thisRef,signal.id,signal.currentVal))
+            this.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.thisRef,signal.id,serialise(signal.value,this.thisRef,holderId,this.commMedium,this.promisePool,this.objectPool)))
         })
     }
 
@@ -49,7 +75,7 @@ export class SignalPool{
                 sourceSignal.change(val)
             }
             else{
-                sourceSignal.change(sourceSignal.currentVal)
+                sourceSignal.change(Signal.NO_CHANGE)
             }
         })
     }

@@ -2,9 +2,7 @@
 import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
 import {CommMedium} from "./commMedium";
 import {PromisePool} from "./PromisePool";
-import {Message, RouteMessage} from "./messages";
-import {MessageHandler} from "./messageHandler";
-import {Isolate, ArrayIsolate} from "./spiders";
+import {Isolate, ArrayIsolate, SignalObjectClass} from "./spiders";
 import {GSP} from "./Replication/GSP";
 import {lift, Signal} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
@@ -125,11 +123,18 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
         let repliqOb = new repliqClass(...args)
         return repliqOb.instantiate(gspInstance,thisRef.ownerId)
     })
-    //TODO this is probably temp and should not be exposed to the programmer ?
-    behaviourObject["newSignal"]    = (initVal) =>{
-        let sig = new Signal(initVal)
-        signalPool.newSource(sig)
-        return sig
+    behaviourObject["newSignal"]    = (signalClass : SignalObjectClass,...args) =>{
+        let sigVal = new signalClass(...args)
+        let signal = new Signal(sigVal)
+        sigVal.setHolder(signal)
+        sigVal.instantiateMeta()
+        signalPool.newSource(signal)
+        return signal.value
+    }
+    //Lowerbound serves as real "leasing" contract. Upper bound will serve for backpressure
+    behaviourObject["leaseSignal"]  = (signal : Signal,lowerBound : number,upperBound : number) => {
+        signal.rateLowerBound = lowerBound
+        signal.rateUpperBound = upperBound
     }
     //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
     behaviourObject["lift"]         = (func) => {
@@ -137,7 +142,8 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
         return (...args) => {
             let sig = inner(...args)
             signalPool.newSignal(sig)
-            return sig
+            sig.value.setHolder(sig)
+            return sig.value
         }
     }
     if(!appActor){

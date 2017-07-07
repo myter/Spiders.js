@@ -14,14 +14,16 @@ const signal_1 = require("./Reactivivity/signal");
 function toType(obj) {
     return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
 }
-function getObjectVars(object, thisRef, receiverId, commMedium, promisePool, objectPool) {
+function getObjectVars(object, thisRef, receiverId, commMedium, promisePool, objectPool, ignoreSet = []) {
     var vars = [];
     var properties = Reflect.ownKeys(object);
     for (var i in properties) {
         var key = properties[i];
-        var val = Reflect.get(object, key);
-        var serialisedval = serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
-        vars.push([key, serialisedval]);
+        if (!ignoreSet.includes(key)) {
+            var val = Reflect.get(object, key);
+            var serialisedval = serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
+            vars.push([key, serialisedval]);
+        }
     }
     return vars;
 }
@@ -207,6 +209,7 @@ ValueContainer.repliqType = 9;
 ValueContainer.repliqFieldType = 10;
 ValueContainer.repliqDefinition = 11;
 ValueContainer.signalType = 12;
+ValueContainer.signalDefinition = 13;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -327,10 +330,13 @@ exports.RepliqDefinitionContainer = RepliqDefinitionContainer;
 //From the moment the signal is deserialised on the receiving side it will act as a source for that actor
 //Hence, all the information needed is the signal's id and its current value
 class SignalContainer extends ValueContainer {
-    constructor(id, currentValue, ownerId, ownerAddress, ownerPort) {
+    constructor(id, objectValue, currentValue, rateLowerBound, rateUpperBound, ownerId, ownerAddress, ownerPort) {
         super(ValueContainer.signalType);
         this.id = id;
+        this.obectValue = objectValue;
         this.currentValue = currentValue;
+        this.rateLowerBound = rateLowerBound;
+        this.rateUpperBound = rateUpperBound;
         this.ownerId = ownerId;
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
@@ -338,6 +344,13 @@ class SignalContainer extends ValueContainer {
 }
 SignalContainer.checkSignalFuncKey = "_INSTANCEOF_Signal_";
 exports.SignalContainer = SignalContainer;
+class SignalDefinitionContainer extends ValueContainer {
+    constructor(definition) {
+        super(ValueContainer.signalDefinition);
+        this.definition = definition;
+    }
+}
+exports.SignalDefinitionContainer = SignalDefinitionContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -346,6 +359,9 @@ function isIsolateClass(func) {
 }
 function isRepliqClass(func) {
     return (func.toString().search(/extends.*?Repliq/) != -1);
+}
+function isSignalClass(func) {
+    return (func.toString().search(/extends.*?Signal/) != -1);
 }
 function serialisePromise(promise, thisRef, receiverId, commMedium, promisePool, objectPool) {
     var wrapper = promisePool.newPromise();
@@ -479,8 +495,28 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
             return serialiseRepliq(value, thisRef, receiverId, commMedium, promisePool, objectPool);
         }
         else if (value[SignalContainer.checkSignalFuncKey]) {
-            let sig = value;
-            return new SignalContainer(sig.id, sig.currentVal, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+            let sig = (value.holder);
+            let isValueObject = sig.value instanceof signal_1.SignalObject;
+            let val;
+            if (isValueObject) {
+                let vars = getObjectVars(sig.value, thisRef, receiverId, commMedium, promisePool, objectPool, ["holder"]);
+                let methods = getObjectMethods(sig.value);
+                //No need to keep track of which methods are mutators during serialisation. Only owner can mutate and change/propagate!
+                methods.forEach((methodArr, index) => {
+                    let name = methodArr[0];
+                    if (sig.value[name][signal_1.SignalValue.IS_MUTATOR]) {
+                        let sigProto = Object.getPrototypeOf(sig.value);
+                        let method = Reflect.get(sigProto, name);
+                        methods[index] = [name, method[signal_1.SignalValue.GET_ORIGINAL].toString()];
+                    }
+                });
+                val = [JSON.stringify(vars), JSON.stringify(methods)];
+            }
+            else {
+                //Only way that value isn't an object is if it is the result of a lifted function
+                val = sig.value.lastVal;
+            }
+            return new SignalContainer(sig.id, isValueObject, val, sig.rateLowerBound, sig.rateUpperBound, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
         }
         else {
             return serialiseObject(value, thisRef, objectPool);
@@ -498,6 +534,10 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         else if (isClass(value) && isRepliqClass(value)) {
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
             return new RepliqDefinitionContainer(definition);
+        }
+        else if (isClass(value) && isSignalClass(value)) {
+            var definition = value.toString.replace(/(\extends)(.*?)(?=\{)/, '');
+            return new SignalDefinitionContainer(definition);
         }
         else if (isClass(value)) {
             throw new Error("Serialisation of classes disallowed");
@@ -630,12 +670,35 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             commMedium.openConnection(sigContainer.ownerId, sigContainer.ownerAddress, sigContainer.ownerPort);
         }
         let signalId = sigContainer.id;
-        let currentVal = sigContainer.currentValue;
+        let currentVal;
+        if (sigContainer.obectValue) {
+            let infoArr = sigContainer.currentValue;
+            currentVal = reconstructObject(new signal_1.SignalObject(), JSON.parse(infoArr[0]), JSON.parse(infoArr[1]), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
+        }
+        else {
+            let dummyFunc = new signal_1.SignalFunction(() => { });
+            dummyFunc.lastVal = sigContainer.currentValue;
+            currentVal = dummyFunc;
+        }
         let signalProxy = new signal_1.Signal(currentVal);
+        signalProxy.rateLowerBound = sigContainer.rateLowerBound;
+        signalProxy.rateUpperBound = sigContainer.rateUpperBound;
         signalProxy.id = signalId;
-        signalPool.newSource(signalProxy);
-        commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(thisRef, thisRef.ownerId, signalId, thisRef.ownerAddress, thisRef.ownerPort));
-        return signalProxy;
+        signalProxy.value.setHolder(signalProxy);
+        let known = signalPool.knownSignal(signalId);
+        if (!known) {
+            signalPool.newSource(signalProxy);
+            commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(thisRef, thisRef.ownerId, signalId, thisRef.ownerAddress, thisRef.ownerPort));
+        }
+        return signalProxy.value;
+    }
+    function deSerialiseSignalDefinition(def) {
+        let index = def.definition.indexOf("{");
+        let start = def.definition.substring(0, index);
+        let stop = def.definition.substring(index, def.definition.length);
+        let Signal = require("Reactivivity/signal").Signal;
+        var classObj = eval(start + " extends Signal" + stop);
+        return classObj;
     }
     switch (value.type) {
         case ValueContainer.nativeType:
@@ -662,6 +725,8 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             return deSerialiseRepliqDefinition(value);
         case ValueContainer.signalType:
             return deSerialiseSignal(value);
+        case ValueContainer.signalDefinition:
+            return deSerialiseSignalDefinition(value);
         default:
             throw "Unknown value container type :  " + value.type;
     }

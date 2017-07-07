@@ -114,11 +114,18 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
         let repliqOb = new repliqClass(...args);
         return repliqOb.instantiate(gspInstance, thisRef.ownerId);
     });
-    //TODO this is probably temp and should not be exposed to the programmer ?
-    behaviourObject["newSignal"] = (initVal) => {
-        let sig = new signal_1.Signal(initVal);
-        signalPool.newSource(sig);
-        return sig;
+    behaviourObject["newSignal"] = (signalClass, ...args) => {
+        let sigVal = new signalClass(...args);
+        let signal = new signal_1.Signal(sigVal);
+        sigVal.setHolder(signal);
+        sigVal.instantiateMeta();
+        signalPool.newSource(signal);
+        return signal.value;
+    };
+    //Lowerbound serves as real "leasing" contract. Upper bound will serve for backpressure
+    behaviourObject["leaseSignal"] = (signal, lowerBound, upperBound) => {
+        signal.rateLowerBound = lowerBound;
+        signal.rateUpperBound = upperBound;
     };
     //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
     behaviourObject["lift"] = (func) => {
@@ -126,7 +133,8 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
         return (...args) => {
             let sig = inner(...args);
             signalPool.newSignal(sig);
-            return sig;
+            sig.value.setHolder(sig);
+            return sig.value;
         };
     };
     if (!appActor) {

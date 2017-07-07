@@ -46,7 +46,7 @@ else {
     objectPool = new objectPool_1.ObjectPool();
     var thisRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, thisId, address, port, null, null, null, null);
     gspInstance = new GSP_1.GSP(socketManager, thisId, thisRef);
-    signalPool = new signalPool_1.SignalPool(socketManager, thisRef);
+    signalPool = new signalPool_1.SignalPool(socketManager, thisRef, promisePool, objectPool);
     var behaviourObject;
     if (loadFromFile) {
         var filePath = process.argv[8];

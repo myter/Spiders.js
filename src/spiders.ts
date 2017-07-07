@@ -16,7 +16,7 @@ import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
 import {FieldUpdate} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
-import {Signal} from "./Reactivivity/signal";
+import {Signal, SignalObject} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 05/12/2016.
@@ -69,7 +69,8 @@ abstract class Actor{
     ArrayIsolate    : ArrayIsolateClass
     remote          : (string,number)=> Promise<FarRef>
     newRepliq       : (RepliqClass,... any) => Object
-    newSignal       : (any) => SignalClass
+    newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
+    leaseSignal     : (signal : Signal,rateLowerBound : number,rateUpperBound : number) => void
     lift            : Function
 }
 
@@ -176,7 +177,7 @@ class ServerApplication extends Application{
         this.mainCommMedium     = new ServerSocketManager(mainIp,mainPort)
         this.socketManager      = this.mainCommMedium as ServerSocketManager
         this.mainRef            = new ServerFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainIp,this.mainPort,null,this.mainCommMedium as ServerSocketManager,this.mainPromisePool,this.mainObjectPool)
-        this.mainSignalPool     = new SignalPool(this.mainCommMedium,this.mainRef)
+        this.mainSignalPool     = new SignalPool(this.mainCommMedium,this.mainRef,this.mainPromisePool,this.mainObjectPool)
         this.gspInstance        = new GSP(this.socketManager,this.mainId,this.mainRef)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.socketManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance,this.mainSignalPool)
         this.socketManager.init(this.mainMessageHandler)
@@ -218,7 +219,7 @@ class ClientApplication extends Application{
         this.channelManager     = this.mainCommMedium as ChannelManager
         this.mainRef            = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,null,this.mainCommMedium as ChannelManager,this.mainPromisePool,this.mainObjectPool)
         this.gspInstance        = new GSP(this.channelManager,this.mainId,this.mainRef)
-        this.mainSignalPool     = new SignalPool(this.channelManager,this.mainRef)
+        this.mainSignalPool     = new SignalPool(this.channelManager,this.mainRef,this.mainPromisePool,this.mainObjectPool)
         this.mainMessageHandler = new MessageHandler(this.mainRef,this.channelManager,this.mainPromisePool,this.mainObjectPool,this.gspInstance,this.mainSignalPool)
         this.channelManager.init(this.mainMessageHandler)
         utils.installSTDLib(true,this.mainRef,null,this,this.mainCommMedium,this.mainPromisePool,this.gspInstance)
@@ -247,7 +248,8 @@ interface AppType {
     ArrayIsolate        : ArrayIsolateClass
     remote              : (string,number)=> Promise<FarRef>
     newRepliq           : (RepliqClass,... any) => Object
-    newSignal           : (any) => SignalClass
+    newSignal           : (signalClass : SignalObjectClass,... any) => Signal
+    leaseSignal         : (signal : Signal,rateLowerBound : number,rateUpperBound : number) => void
     lift                : Function
 }
 export type ApplicationClass    = {
@@ -260,6 +262,7 @@ export type RepliqClass                 = {new(...args : any[]): Repliq}
 export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitiveField<any>}
 export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectField}
 export type SignalClass                 = {new(...args : any[]): Signal}
+export type SignalObjectClass           = {new(...args : any[]): SignalObject}
 
 
 export interface SpiderLib{
@@ -268,6 +271,7 @@ export interface SpiderLib{
     Isolate                     : IsolateClass
     ArrayIsolate                : ArrayIsolateClass
     Repliq                      : RepliqClass
+    Signal                      : SignalObjectClass
     atomic                      : Function
     LWR                         : Function
     Count                       : Function
@@ -276,9 +280,11 @@ export interface SpiderLib{
     FieldUpdate                 : FieldUpdate
     makeAnnotation              : Function
 }
+
 //Ugly, but a far reference has no static interface
 export type FarRef = any
 exports.Repliq                      = Repliq
+exports.Signal                      = SignalObject
 exports.atomic                      = atomic
 exports.LWR                         = LWR
 exports.Count                       = Count
@@ -286,6 +292,7 @@ exports.RepliqPrimitiveField        = RepliqPrimitiveField
 exports.RepliqObjectField           = RepliqObjectField
 exports.makeAnnotation              = makeAnnotation
 exports.FieldUpdate                 = FieldUpdate
+exports.Isolate                     = Isolate
 if(utils.isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor
