@@ -5,5 +5,7 @@ var spiders : SpiderLib = require("../src/spiders")
 let monitor = new ServiceMonitor()
 
 //deploy TestService ./tempServiceDefinition FastPubTestService
+//deploy TestService ./tempServiceDefinition SlowPubTestService
 //deploy TestService ./tempServiceDefinition SubTestService
+//deploy-all ["TestService","TestService","TestService"] ./tempServiceDefinition ["SubTestService","SlowPubTestService","FastPubTestService"]
 

@@ -187,7 +187,11 @@ class ClientApplication extends Application {
 }
 exports.Repliq = Repliq_1.Repliq;
 exports.Signal = signal_1.SignalObject;
+exports.mutator = signal_1.mutator;
 exports.atomic = Repliq_1.atomic;
+exports.lease = signal_1.lease;
+exports.strong = signal_1.strong;
+exports.weak = signal_1.weak;
 exports.LWR = RepliqPrimitiveField_1.LWR;
 exports.Count = RepliqPrimitiveField_1.Count;
 exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;

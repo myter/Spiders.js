@@ -219,4 +219,13 @@ export class ExternalSignalChangeMessage extends  Message{
     }
 }
 
+export const _EXTERNAL_SIGNAL_DELETE_ : MessageTypeTag = 14
+export class ExternalSignalDeleteMessage extends Message{
+    signalId : string
+    constructor(senderRef,signalId){
+        super(_EXTERNAL_SIGNAL_DELETE_,senderRef)
+        this.signalId = signalId
+    }
+}
+
 

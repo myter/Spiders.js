@@ -8,18 +8,33 @@ var spiders : SpiderLib = require("../spiders")
 export class Subscription extends spiders.Isolate{
     private subArray    : Array<any>
     private listeners   : Array<(any)=> any>
+    private onceMode    : boolean
+    private discovered  : number
 
     constructor(){
         super()
         this.subArray   = []
         this.listeners  = []
+        this.onceMode   = false
+        this.discovered = 0
     }
 
     newPublishedObject(publishedObject : Object){
+        this.discovered++
         this.subArray.push(publishedObject)
-        this.listeners.forEach((callback)=>{
-            callback(publishedObject)
-        })
+
+        if(this.onceMode){
+            if(!(this.discovered > 1)){
+                this.listeners.forEach((callback)=>{
+                    callback(publishedObject)
+                })
+            }
+        }
+        else{
+            this.listeners.forEach((callback)=>{
+                callback(publishedObject)
+            })
+        }
     }
 
     each(callback : (any)=> any){
@@ -28,6 +43,11 @@ export class Subscription extends spiders.Isolate{
 
     all() : Array<any>{
         return this.subArray
+    }
+
+    once(callback : (any)=> any){
+        this.onceMode = true
+        this.listeners.push(callback)
     }
 
     cancel(){
@@ -47,14 +67,14 @@ export class Publication extends spiders.Isolate{
 }
 
 export class PubSubClient extends spiders.Actor{
-    private Subscription
+    protected Subscription
     private Publication
     private connected           : boolean = false
     private serverAddress       : string
     private serverPort          : number
     private serverRef           : FarRef
     private bufferedMessages    : Array<Function>
-    private subscriptions       : Map<string,Array<Subscription>>
+    protected subscriptions       : Map<string,Array<Subscription>>
 
     constructor(serverAddress : string = "127.0.0.1",serverPort : number = 8000){
         super()

@@ -13,6 +13,10 @@ export class ServiceMonitor extends PubSubServer{
         console.log("[INFO] " + msg)
     }
 
+    warnInfo(msg : string){
+        console.log("[WARNING] " + msg)
+    }
+
     private deployService(currentDir : string,serviceName : string, definitionPath : string,className : string){
         //TODO configuration arguments
         if(definitionPath.startsWith(".")){
@@ -42,7 +46,7 @@ export class ServiceMonitor extends PubSubServer{
             switch(args[0]){
                 case "deploy":
                     let serviceName     = args[1].toString()
-                    let definitionPath  = args[2].toString()
+                    var definitionPath  = args[2].toString()
                     let className
                     if(args[3] == undefined){
                         className = serviceName
@@ -51,6 +55,14 @@ export class ServiceMonitor extends PubSubServer{
                         className = args[3].toString()
                     }
                     that.deployService(process.cwd(),serviceName,definitionPath,className)
+                    break
+                case "deploy-all":
+                    let serviceNames    = JSON.parse(args[1])
+                    var definitionPath  = args[2].toString()
+                    let classNames      = JSON.parse(args[3])
+                    serviceNames.forEach((serviceName,index)=>{
+                        that.deployService(process.cwd(),serviceName,definitionPath,classNames[index])
+                    })
                     break
                 case "ls-services":
                     that.listServices()

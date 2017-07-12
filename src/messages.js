@@ -160,4 +160,12 @@ class ExternalSignalChangeMessage extends Message {
     }
 }
 exports.ExternalSignalChangeMessage = ExternalSignalChangeMessage;
+exports._EXTERNAL_SIGNAL_DELETE_ = 14;
+class ExternalSignalDeleteMessage extends Message {
+    constructor(senderRef, signalId) {
+        super(exports._EXTERNAL_SIGNAL_DELETE_, senderRef);
+        this.signalId = signalId;
+    }
+}
+exports.ExternalSignalDeleteMessage = ExternalSignalDeleteMessage;
 //# sourceMappingURL=messages.js.map

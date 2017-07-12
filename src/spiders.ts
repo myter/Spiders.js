@@ -16,7 +16,7 @@ import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
 import {FieldUpdate} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
-import {Signal, SignalObject} from "./Reactivivity/signal";
+import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 05/12/2016.
@@ -70,8 +70,10 @@ abstract class Actor{
     remote          : (string,number)=> Promise<FarRef>
     newRepliq       : (RepliqClass,... any) => Object
     newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
-    leaseSignal     : (signal : Signal,rateLowerBound : number,rateUpperBound : number) => void
     lift            : Function
+    liftStrong      : Function
+    liftWeak        : Function
+    liftFailure     : Function
 }
 
 abstract class ClientActor extends Actor{
@@ -249,8 +251,10 @@ interface AppType {
     remote              : (string,number)=> Promise<FarRef>
     newRepliq           : (RepliqClass,... any) => Object
     newSignal           : (signalClass : SignalObjectClass,... any) => Signal
-    leaseSignal         : (signal : Signal,rateLowerBound : number,rateUpperBound : number) => void
     lift                : Function
+    liftStrong          : Function
+    liftWeak            : Function
+    liftFailure         : Function
 }
 export type ApplicationClass    = {
     new(...args : any[]): AppType
@@ -272,6 +276,10 @@ export interface SpiderLib{
     ArrayIsolate                : ArrayIsolateClass
     Repliq                      : RepliqClass
     Signal                      : SignalObjectClass
+    mutator                     : Function
+    lease                       : Function
+    strong                      : Function
+    weak                        : Function
     atomic                      : Function
     LWR                         : Function
     Count                       : Function
@@ -285,7 +293,11 @@ export interface SpiderLib{
 export type FarRef = any
 exports.Repliq                      = Repliq
 exports.Signal                      = SignalObject
+exports.mutator                     = mutator
 exports.atomic                      = atomic
+exports.lease                       = lease
+exports.strong                      = strong
+exports.weak                        = weak
 exports.LWR                         = LWR
 exports.Count                       = Count
 exports.RepliqPrimitiveField        = RepliqPrimitiveField

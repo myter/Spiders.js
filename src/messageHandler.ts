@@ -4,7 +4,8 @@ import {
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
     ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_, _GSP_ROUND_,
     GSPRoundMessage, _GSP_SYNC_, GSPSyncMessage, _GSP_REGISTER_, GSPRegisterMessage, RegisterExternalSignalMessage,
-    _REGISTER_EXTERNAL_SIGNAL_, ExternalSignalChangeMessage, _EXTERNAL_SIGNAL_CHANGE_
+    _REGISTER_EXTERNAL_SIGNAL_, ExternalSignalChangeMessage, _EXTERNAL_SIGNAL_CHANGE_, ExternalSignalDeleteMessage,
+    _EXTERNAL_SIGNAL_DELETE_
 } from "./messages";
 import {ServerSocketManager} from "./sockets";
 import {PromisePool} from "./PromisePool";
@@ -228,6 +229,10 @@ export class MessageHandler{
         this.signalPool.sourceChanged(msg.signalId,newVal)
     }
 
+    private handleExternalSignalDelete(msg : ExternalSignalDeleteMessage){
+        this.signalPool.garbageCollect(msg.signalId)
+    }
+
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
@@ -273,6 +278,9 @@ export class MessageHandler{
                 break
             case _EXTERNAL_SIGNAL_CHANGE_:
                 this.handleExternalSignalChange(msg as ExternalSignalChangeMessage)
+                break
+            case _EXTERNAL_SIGNAL_DELETE_:
+                this.handleExternalSignalDelete(msg as ExternalSignalDeleteMessage)
                 break
             default:
                 throw "Unknown message in actor : " + msg.toString()

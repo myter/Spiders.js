@@ -4,7 +4,7 @@ import {CommMedium} from "./commMedium";
 import {PromisePool} from "./PromisePool";
 import {Isolate, ArrayIsolate, SignalObjectClass} from "./spiders";
 import {GSP} from "./Replication/GSP";
-import {lift, Signal} from "./Reactivivity/signal";
+import {lift, liftGarbage, Signal, SignalDependency, SignalValue, weak} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
 /**
  * Created by flo on 05/12/2016.
@@ -109,6 +109,53 @@ function getInitChain(behaviourObject : any,result : Array<Function>){
     }
 }
 
+const CONSTRAINT_OK = "ok"
+
+function checkRegularLiftConstraints(...liftArgs) : string{
+    let someGarbage = false
+    liftArgs.forEach((a)=>{
+        if(a instanceof SignalValue){
+            someGarbage = someGarbage || a.holder.isGarbage
+        }
+    })
+    if(someGarbage){
+        return "Cannot use regular lift (i.e. lift/liftStrong/liftStrong) on signal part of garbage dependency graph"
+    }
+    else{
+        return CONSTRAINT_OK
+    }
+}
+
+function checkFailureLiftConstraints(...liftArgs) : string{
+    let someStrong = false
+    liftArgs.forEach((a)=>{
+        if(a instanceof SignalValue){
+            someStrong = someStrong || a.holder.strong
+        }
+    })
+    if(someStrong){
+        return "Calling failure lift on strong signal (which will never propagate garbage collection event"
+    }
+    else{
+        return CONSTRAINT_OK
+    }
+}
+
+function checkStrongLiftConstraints(...liftArgs) : string {
+    let allStrong = true
+    liftArgs.forEach((a)=>{
+        if(a instanceof SignalValue){
+            allStrong = allStrong && a.holder.strong
+        }
+    })
+    if(allStrong){
+        return CONSTRAINT_OK
+    }
+    else{
+        return "Trying to create strong lifted signal with a weak dependency"
+    }
+}
+
 
 export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool,gspInstance : GSP,signalPool : SignalPool){
     if(!appActor){
@@ -131,19 +178,96 @@ export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRe
         signalPool.newSource(signal)
         return signal.value
     }
-    //Lowerbound serves as real "leasing" contract. Upper bound will serve for backpressure
-    behaviourObject["leaseSignal"]  = (signal : Signal,lowerBound : number,upperBound : number) => {
-        signal.rateLowerBound = lowerBound
-        signal.rateUpperBound = upperBound
+    //Automatically converts the resulting signal to weak if one of the dependencies is weak (leaves signal as strong otherwise)
+    behaviourObject["lift"] = (func) => {
+        let inner = lift(func)
+        return (... args) => {
+            let constraintsOk = checkRegularLiftConstraints(...args)
+            if(constraintsOk == CONSTRAINT_OK){
+                let sig = inner(...args)
+                let allStrong = true
+                sig.signalDependencies.forEach((dep : SignalDependency)=>{
+                    allStrong = allStrong && dep.signal.strong
+                })
+                if(!allStrong){
+                    signalPool.newSignal(sig)
+                    sig.value.setHolder(sig)
+                    sig.makeWeak()
+                    return sig.value
+                }
+                else{
+                    signalPool.newSignal(sig)
+                    sig.value.setHolder(sig)
+                    return sig.value
+                }
+            }
+            else{
+                throw new Error(constraintsOk)
+            }
+
+        }
     }
     //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
-    behaviourObject["lift"]         = (func) => {
+    behaviourObject["liftStrong"]         = (func) => {
         let inner = lift(func)
         return (...args) => {
-            let sig = inner(...args)
-            signalPool.newSignal(sig)
-            sig.value.setHolder(sig)
-            return sig.value
+            let regularConstraints = checkRegularLiftConstraints(...args)
+            if(regularConstraints == CONSTRAINT_OK){
+                let sig = inner(...args)
+                let constraint = checkStrongLiftConstraints(... args)
+                if(constraint != CONSTRAINT_OK){
+                    throw new Error(constraint)
+                }
+                else{
+                    signalPool.newSignal(sig)
+                    sig.value.setHolder(sig)
+                    return sig.value
+                }
+            }
+            else{
+                throw new Error(regularConstraints)
+            }
+
+        }
+    }
+    behaviourObject["liftWeak"] = (func) => {
+        let inner = lift(func)
+        return (...args) => {
+            let constraints = checkRegularLiftConstraints(...args)
+            if(constraints == CONSTRAINT_OK){
+                let sig     = inner(...args)
+                signalPool.newSignal(sig)
+                sig.value.setHolder(sig)
+                sig.makeWeak()
+                return sig.value
+            }
+            else{
+                throw new Error(constraints)
+            }
+
+        }
+    }
+    behaviourObject["liftFailure"] = (func) =>{
+        let inner = liftGarbage(func)
+        return (...args)=>{
+            let constraint = checkFailureLiftConstraints(...args)
+            if(constraint == CONSTRAINT_OK){
+                let sig     = inner(...args)
+                signalPool.newGarbageSignal(sig)
+                args.forEach((a)=>{
+                    if(a instanceof SignalValue){
+                        if(!a.holder.isGarbage){
+                            signalPool.addGarbageDependency(a.holder.id,sig.id)
+                        }
+                    }
+                })
+                sig.value.setHolder(sig)
+                return sig.value
+            }
+            else{
+                throw new Error(constraint)
+            }
+
         }
     }
     if(!appActor){

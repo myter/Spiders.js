@@ -187,6 +187,9 @@ class MessageHandler {
         let newVal = serialisation_1.deserialise(this.thisRef, msg.newVal, this.promisePool, this.commMedium, this.objectPool, this.gspInstance, this.signalPool);
         this.signalPool.sourceChanged(msg.signalId, newVal);
     }
+    handleExternalSignalDelete(msg) {
+        this.signalPool.garbageCollect(msg.signalId);
+    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg, ports = [], clientSocket = null) {
@@ -232,6 +235,9 @@ class MessageHandler {
                 break;
             case messages_1._EXTERNAL_SIGNAL_CHANGE_:
                 this.handleExternalSignalChange(msg);
+                break;
+            case messages_1._EXTERNAL_SIGNAL_DELETE_:
+                this.handleExternalSignalDelete(msg);
                 break;
             default:
                 throw "Unknown message in actor : " + msg.toString();

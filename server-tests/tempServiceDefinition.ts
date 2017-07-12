@@ -1,31 +1,45 @@
 import {MicroService} from "../src/MicroService/MicroService";
 import {SpiderLib} from "../src/spiders";
-import {mutator} from "../src/Reactivivity/signal";
 /**
  * Created by flo on 02/07/2017.
  */
 var spiders : SpiderLib = require("../src/spiders")
 
+@spiders.lease(5000)
+@spiders.weak
 class CounterSignal extends spiders.Signal{
     c
 
-    //TODO specify boundaries
     constructor(initVal){
         super()
         this.c = initVal
     }
 
-    @mutator
+    @spiders.mutator
     inc(){
         this.c++
     }
 
-    @mutator
+    @spiders.mutator
     dec(){
         this.c--
     }
+}
 
+@spiders.lease(5000)
+@spiders.weak
+class LogSignal extends spiders.Signal{
+    log
 
+    constructor(initLog){
+        super()
+        this.log = initLog
+    }
+
+    @spiders.mutator
+    append(text){
+        this.log = this.log + text
+    }
 }
 
 class DeriveIsolate extends spiders.Isolate{
@@ -41,40 +55,77 @@ export class FastPubTestService extends MicroService{
 
     init(){
         this.published      = this.newSignal(CounterSignal,1)
-        this.derived        = this.lift((counter)=>{
+        /*this.derived        = this.lift((counter)=>{
             let isol = new DeriveIsolate(counter.c * 10)
             return isol
-        })(this.published)
-        //this.leaseSignal(this.published,5000,Infinity)
+        })(this.published)*/
         this.publish(this.published,this.newTopic("TestTopic"))
-        this.pulse(10)
+        this.pulse(5)
     }
 
     pulse(times){
         if(times > 0){
             setTimeout(()=>{
-                if(times % 2 == 0){
-                    this.published.inc()
-                }
-                else{
-                    this.published.dec()
-                }
+                this.published.inc()
                 this.pulse(times - 1)
-            },4000)
+            },2000)
+        }
+
+    }
+}
+
+export class SlowPubTestService extends MicroService{
+    published
+
+    init(){
+        this.published = this.newSignal(LogSignal,"initial:")
+        this.publish(this.published,this.newTopic("LogTopic"))
+        this.pulse(5)
+    }
+
+    pulse(times){
+        if(times > 0){
+            setTimeout(()=>{
+                this.published.append(times.toString() + ":")
+                this.pulse(times - 1)
+            },3000)
         }
 
     }
 }
 
 export class SubTestService extends MicroService{
-    init(){
+    counterSig
+    logSig
 
-        this.subscribe(this.newTopic("TestTopic")).each((sig)=>{
-            console.log("Got sub val ")
-            let f = this.lift((v)=>{
-                console.log("New val (FUCK YEAH) = " + v.c)
+    init(){
+        let res
+        let p = new Promise((resolve)=>{
+           res = resolve
+        })
+        this.subscribe(this.newTopic("TestTopic")).once((sig)=>{
+            this.counterSig = sig
+            if(this.logSig != null){
+                res()
+            }
+        })
+        this.subscribe(this.newTopic("LogTopic")).once((sig)=>{
+            this.logSig = sig
+            if(this.counterSig != null){
+                res()
+            }
+        })
+        p.then(()=>{
+            let f = this.lift((counter,log)=>{
+                console.log("Counter value: " +  counter.c + " log : " + log.log)
             })
-            f(sig)
+            f(this.counterSig,this.logSig)
+            let failure = this.liftFailure((_,__)=>{
+                console.log("Counter and log being garbage collected")
+            })(this.counterSig,this.logSig)
+            this.liftFailure((_)=>{
+                console.log("Garbage propagation seems to work")
+            })(failure)
         })
     }
 

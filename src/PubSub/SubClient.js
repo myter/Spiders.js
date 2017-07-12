@@ -8,18 +8,34 @@ class Subscription extends spiders.Isolate {
         super();
         this.subArray = [];
         this.listeners = [];
+        this.onceMode = false;
+        this.discovered = 0;
     }
     newPublishedObject(publishedObject) {
+        this.discovered++;
         this.subArray.push(publishedObject);
-        this.listeners.forEach((callback) => {
-            callback(publishedObject);
-        });
+        if (this.onceMode) {
+            if (!(this.discovered > 1)) {
+                this.listeners.forEach((callback) => {
+                    callback(publishedObject);
+                });
+            }
+        }
+        else {
+            this.listeners.forEach((callback) => {
+                callback(publishedObject);
+            });
+        }
     }
     each(callback) {
         this.listeners.push(callback);
     }
     all() {
         return this.subArray;
+    }
+    once(callback) {
+        this.onceMode = true;
+        this.listeners.push(callback);
     }
     cancel() {
         //TODO

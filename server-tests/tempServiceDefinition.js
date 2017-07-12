@@ -6,13 +6,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const MicroService_1 = require("../src/MicroService/MicroService");
-const signal_1 = require("../src/Reactivivity/signal");
 /**
  * Created by flo on 02/07/2017.
  */
 var spiders = require("../src/spiders");
-class CounterSignal extends spiders.Signal {
-    //TODO specify boundaries
+let CounterSignal = class CounterSignal extends spiders.Signal {
     constructor(initVal) {
         super();
         this.c = initVal;
@@ -23,13 +21,33 @@ class CounterSignal extends spiders.Signal {
     dec() {
         this.c--;
     }
-}
+};
 __decorate([
-    signal_1.mutator
+    spiders.mutator
 ], CounterSignal.prototype, "inc", null);
 __decorate([
-    signal_1.mutator
+    spiders.mutator
 ], CounterSignal.prototype, "dec", null);
+CounterSignal = __decorate([
+    spiders.lease(5000),
+    spiders.weak
+], CounterSignal);
+let LogSignal = class LogSignal extends spiders.Signal {
+    constructor(initLog) {
+        super();
+        this.log = initLog;
+    }
+    append(text) {
+        this.log = this.log + text;
+    }
+};
+__decorate([
+    spiders.mutator
+], LogSignal.prototype, "append", null);
+LogSignal = __decorate([
+    spiders.lease(5000),
+    spiders.weak
+], LogSignal);
 class DeriveIsolate extends spiders.Isolate {
     constructor(v) {
         super();
@@ -39,37 +57,68 @@ class DeriveIsolate extends spiders.Isolate {
 class FastPubTestService extends MicroService_1.MicroService {
     init() {
         this.published = this.newSignal(CounterSignal, 1);
-        this.derived = this.lift((counter) => {
-            let isol = new DeriveIsolate(counter.c * 10);
-            return isol;
-        })(this.published);
-        //this.leaseSignal(this.published,5000,Infinity)
+        /*this.derived        = this.lift((counter)=>{
+            let isol = new DeriveIsolate(counter.c * 10)
+            return isol
+        })(this.published)*/
         this.publish(this.published, this.newTopic("TestTopic"));
-        this.pulse(10);
+        this.pulse(5);
     }
     pulse(times) {
         if (times > 0) {
             setTimeout(() => {
-                if (times % 2 == 0) {
-                    this.published.inc();
-                }
-                else {
-                    this.published.dec();
-                }
+                this.published.inc();
                 this.pulse(times - 1);
-            }, 4000);
+            }, 2000);
         }
     }
 }
 exports.FastPubTestService = FastPubTestService;
+class SlowPubTestService extends MicroService_1.MicroService {
+    init() {
+        this.published = this.newSignal(LogSignal, "initial:");
+        this.publish(this.published, this.newTopic("LogTopic"));
+        this.pulse(5);
+    }
+    pulse(times) {
+        if (times > 0) {
+            setTimeout(() => {
+                this.published.append(times.toString() + ":");
+                this.pulse(times - 1);
+            }, 3000);
+        }
+    }
+}
+exports.SlowPubTestService = SlowPubTestService;
 class SubTestService extends MicroService_1.MicroService {
     init() {
-        this.subscribe(this.newTopic("TestTopic")).each((sig) => {
-            console.log("Got sub val ");
-            let f = this.lift((v) => {
-                console.log("New val (FUCK YEAH) = " + v.c);
+        let res;
+        let p = new Promise((resolve) => {
+            res = resolve;
+        });
+        this.subscribe(this.newTopic("TestTopic")).once((sig) => {
+            this.counterSig = sig;
+            if (this.logSig != null) {
+                res();
+            }
+        });
+        this.subscribe(this.newTopic("LogTopic")).once((sig) => {
+            this.logSig = sig;
+            if (this.counterSig != null) {
+                res();
+            }
+        });
+        p.then(() => {
+            let f = this.lift((counter, log) => {
+                console.log("Counter value: " + counter.c + " log : " + log.log);
             });
-            f(sig);
+            f(this.counterSig, this.logSig);
+            let failure = this.liftFailure((_, __) => {
+                console.log("Counter and log being garbage collected");
+            })(this.counterSig, this.logSig);
+            this.liftFailure((_) => {
+                console.log("Garbage propagation seems to work");
+            })(failure);
         });
     }
 }

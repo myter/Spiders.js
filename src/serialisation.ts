@@ -397,18 +397,22 @@ export class SignalContainer extends ValueContainer{
     currentValue                   : any
     rateLowerBound                 : number
     rateUpperBound                 : number
+    clock                          : number
+    strong                         : boolean
     ownerId                        : string
     ownerAddress                   : string
     ownerPort                      : number
     static checkSignalFuncKey      : string = "_INSTANCEOF_Signal_"
 
-    constructor(id,objectValue,currentValue,rateLowerBound,rateUpperBound,ownerId,ownerAddress,ownerPort){
+    constructor(id,objectValue,currentValue,rateLowerBound,rateUpperBound,clock,strong,ownerId,ownerAddress,ownerPort){
         super(ValueContainer.signalType)
         this.id             = id
         this.obectValue     = objectValue
         this.currentValue   = currentValue
         this.rateLowerBound = rateLowerBound
         this.rateUpperBound = rateUpperBound
+        this.clock          = clock
+        this.strong         = strong
         this.ownerId        = ownerId
         this.ownerAddress   = ownerAddress
         this.ownerPort      = ownerPort
@@ -576,27 +580,32 @@ export function serialise(value,thisRef : FarReference,receiverId : string,commM
         }
         else if(value[SignalContainer.checkSignalFuncKey]){
             let sig = (value.holder)
-            let isValueObject = sig.value instanceof  SignalObject
-            let val
-            if(isValueObject){
-                let vars        = getObjectVars(sig.value,thisRef,receiverId,commMedium,promisePool,objectPool,["holder"])
-                let methods     = getObjectMethods(sig.value)
-                //No need to keep track of which methods are mutators during serialisation. Only owner can mutate and change/propagate!
-                methods.forEach((methodArr,index)=>{
-                    let name        = methodArr[0]
-                    if(sig.value[name][SignalValue.IS_MUTATOR]){
-                        let sigProto    = Object.getPrototypeOf(sig.value)
-                        let method      = Reflect.get(sigProto,name)
-                        methods[index]  = [name,method[SignalValue.GET_ORIGINAL].toString()]
-                    }
-                })
-                val = [JSON.stringify(vars),JSON.stringify(methods)]
+            if(!sig.isGarbage){
+                let isValueObject = sig.value instanceof  SignalObject
+                let val
+                if(isValueObject){
+                    let vars        = getObjectVars(sig.value,thisRef,receiverId,commMedium,promisePool,objectPool,["holder"])
+                    let methods     = getObjectMethods(sig.value)
+                    //No need to keep track of which methods are mutators during serialisation. Only owner can mutate and change/propagate!
+                    methods.forEach((methodArr,index)=>{
+                        let name        = methodArr[0]
+                        if(sig.value[name][SignalValue.IS_MUTATOR]){
+                            let sigProto    = Object.getPrototypeOf(sig.value)
+                            let method      = Reflect.get(sigProto,name)
+                            methods[index]  = [name,method[SignalValue.GET_ORIGINAL].toString()]
+                        }
+                    })
+                    val = [JSON.stringify(vars),JSON.stringify(methods)]
+                }
+                else{
+                    //Only way that value isn't an object is if it is the result of a lifted function
+                    val = (sig.value as SignalFunction).lastVal
+                }
+                return new SignalContainer(sig.id,isValueObject,val,sig.rateLowerBound,sig.rateUpperBound,sig.clock,sig.tempStrong,thisRef.ownerId,(thisRef as ServerFarReference).ownerAddress,(thisRef as ServerFarReference).ownerPort)
             }
             else{
-                //Only way that value isn't an object is if it is the result of a lifted function
-                val = (sig.value as SignalFunction).lastVal
+                throw new Error("Serialisation of signals part of garbage dependency graph dissalowed ")
             }
-            return new SignalContainer(sig.id,isValueObject,val,sig.rateLowerBound,sig.rateUpperBound,thisRef.ownerId,(thisRef as ServerFarReference).ownerAddress,(thisRef as ServerFarReference).ownerPort)
         }
         else {
             return serialiseObject(value,thisRef,objectPool)
@@ -774,8 +783,10 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         let signalProxy             = new Signal(currentVal)
         signalProxy.rateLowerBound  = sigContainer.rateLowerBound
         signalProxy.rateUpperBound  = sigContainer.rateUpperBound
+        signalProxy.clock           = sigContainer.clock
         signalProxy.id              = signalId
         signalProxy.value.setHolder(signalProxy)
+        signalProxy.strong          = sigContainer.strong
         let known                   = signalPool.knownSignal(signalId)
         if(!known){
             signalPool.newSource(signalProxy)

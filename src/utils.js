@@ -101,6 +101,49 @@ function getInitChain(behaviourObject, result) {
         return getInitChain(behaviourObject.__proto__, result);
     }
 }
+const CONSTRAINT_OK = "ok";
+function checkRegularLiftConstraints(...liftArgs) {
+    let someGarbage = false;
+    liftArgs.forEach((a) => {
+        if (a instanceof signal_1.SignalValue) {
+            someGarbage = someGarbage || a.holder.isGarbage;
+        }
+    });
+    if (someGarbage) {
+        return "Cannot use regular lift (i.e. lift/liftStrong/liftStrong) on signal part of garbage dependency graph";
+    }
+    else {
+        return CONSTRAINT_OK;
+    }
+}
+function checkFailureLiftConstraints(...liftArgs) {
+    let someStrong = false;
+    liftArgs.forEach((a) => {
+        if (a instanceof signal_1.SignalValue) {
+            someStrong = someStrong || a.holder.strong;
+        }
+    });
+    if (someStrong) {
+        return "Calling failure lift on strong signal (which will never propagate garbage collection event";
+    }
+    else {
+        return CONSTRAINT_OK;
+    }
+}
+function checkStrongLiftConstraints(...liftArgs) {
+    let allStrong = true;
+    liftArgs.forEach((a) => {
+        if (a instanceof signal_1.SignalValue) {
+            allStrong = allStrong && a.holder.strong;
+        }
+    });
+    if (allStrong) {
+        return CONSTRAINT_OK;
+    }
+    else {
+        return "Trying to create strong lifted signal with a weak dependency";
+    }
+}
 function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool, gspInstance, signalPool) {
     if (!appActor) {
         behaviourObject["parent"] = parentRef.proxyify();
@@ -122,19 +165,92 @@ function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium
         signalPool.newSource(signal);
         return signal.value;
     };
-    //Lowerbound serves as real "leasing" contract. Upper bound will serve for backpressure
-    behaviourObject["leaseSignal"] = (signal, lowerBound, upperBound) => {
-        signal.rateLowerBound = lowerBound;
-        signal.rateUpperBound = upperBound;
-    };
-    //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
+    //Automatically converts the resulting signal to weak if one of the dependencies is weak (leaves signal as strong otherwise)
     behaviourObject["lift"] = (func) => {
         let inner = signal_1.lift(func);
         return (...args) => {
-            let sig = inner(...args);
-            signalPool.newSignal(sig);
-            sig.value.setHolder(sig);
-            return sig.value;
+            let constraintsOk = checkRegularLiftConstraints(...args);
+            if (constraintsOk == CONSTRAINT_OK) {
+                let sig = inner(...args);
+                let allStrong = true;
+                sig.signalDependencies.forEach((dep) => {
+                    allStrong = allStrong && dep.signal.strong;
+                });
+                if (!allStrong) {
+                    signalPool.newSignal(sig);
+                    sig.value.setHolder(sig);
+                    sig.makeWeak();
+                    return sig.value;
+                }
+                else {
+                    signalPool.newSignal(sig);
+                    sig.value.setHolder(sig);
+                    return sig.value;
+                }
+            }
+            else {
+                throw new Error(constraintsOk);
+            }
+        };
+    };
+    //Re-wrap the lift function to catch creation of new signals as the result of lifted function application
+    behaviourObject["liftStrong"] = (func) => {
+        let inner = signal_1.lift(func);
+        return (...args) => {
+            let regularConstraints = checkRegularLiftConstraints(...args);
+            if (regularConstraints == CONSTRAINT_OK) {
+                let sig = inner(...args);
+                let constraint = checkStrongLiftConstraints(...args);
+                if (constraint != CONSTRAINT_OK) {
+                    throw new Error(constraint);
+                }
+                else {
+                    signalPool.newSignal(sig);
+                    sig.value.setHolder(sig);
+                    return sig.value;
+                }
+            }
+            else {
+                throw new Error(regularConstraints);
+            }
+        };
+    };
+    behaviourObject["liftWeak"] = (func) => {
+        let inner = signal_1.lift(func);
+        return (...args) => {
+            let constraints = checkRegularLiftConstraints(...args);
+            if (constraints == CONSTRAINT_OK) {
+                let sig = inner(...args);
+                signalPool.newSignal(sig);
+                sig.value.setHolder(sig);
+                sig.makeWeak();
+                return sig.value;
+            }
+            else {
+                throw new Error(constraints);
+            }
+        };
+    };
+    behaviourObject["liftFailure"] = (func) => {
+        let inner = signal_1.liftGarbage(func);
+        return (...args) => {
+            let constraint = checkFailureLiftConstraints(...args);
+            if (constraint == CONSTRAINT_OK) {
+                let sig = inner(...args);
+                signalPool.newGarbageSignal(sig);
+                args.forEach((a) => {
+                    if (a instanceof signal_1.SignalValue) {
+                        if (!a.holder.isGarbage) {
+                            signalPool.addGarbageDependency(a.holder.id, sig.id);
+                        }
+                    }
+                });
+                sig.value.setHolder(sig);
+                return sig.value;
+            }
+            else {
+                throw new Error(constraint);
+            }
         };
     };
     if (!appActor) {
