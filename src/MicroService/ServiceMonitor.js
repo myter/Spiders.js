@@ -1,5 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const ServiceGateway_1 = require("./ServiceGateway");
 const SubServer_1 = require("../PubSub/SubServer");
 /**
  * Created by flo on 30/06/2017.
@@ -67,7 +66,7 @@ class ServiceMonitor extends SubServer_1.PubSubServer {
                     console.log("Unknown command");
             }
         });
-        this.gatewayRef = this.spawnActor(ServiceGateway_1.ServiceGateway);
+        //this.gatewayRef = this.spawnActor(ServiceGateway)
     }
 }
 exports.ServiceMonitor = ServiceMonitor;

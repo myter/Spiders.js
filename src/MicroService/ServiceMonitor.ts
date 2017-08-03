@@ -74,6 +74,6 @@ export class ServiceMonitor extends PubSubServer{
                     console.log("Unknown command")
             }
         })
-        this.gatewayRef = this.spawnActor(ServiceGateway)
+        //this.gatewayRef = this.spawnActor(ServiceGateway)
     }
 }
