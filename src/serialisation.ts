@@ -12,8 +12,10 @@ import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
 import {GSP} from "./Replication/GSP";
 import {RepliqField} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
-import {Signal, SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
+import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
+
+var Signal      = require("./Reactivivity/signal").Signal
 /**
  * Created by flo on 19/12/2016.
  */
@@ -799,7 +801,6 @@ export function deserialise(thisRef : FarReference,value : ValueContainer,promis
         let index       = def.definition.indexOf("{")
         let start       = def.definition.substring(0,index)
         let stop        = def.definition.substring(index,def.definition.length)
-        let Signal      = require("Reactivivity/signal").Signal
         var classObj    = eval(start + " extends Signal"+stop)
         return classObj
     }

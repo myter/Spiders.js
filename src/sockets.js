@@ -3,7 +3,6 @@ const commMedium_1 = require("./commMedium");
 /**
  * Created by flo on 19/12/2016.
  */
-var io = require('socket.io');
 class SocketHandler {
     constructor(owner) {
         this.owner = owner;
@@ -75,6 +74,8 @@ exports.SocketHandler = SocketHandler;
 class ServerSocketManager extends commMedium_1.CommMedium {
     constructor(ip, socketPort) {
         super();
+        //Again very dirty hack to satisfy react-native
+        var io = eval("req" + "uire('socket.io')");
         this.socketIp = ip;
         this.socketPort = socketPort;
         this.socket = io(socketPort);

@@ -7,6 +7,7 @@ const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
 const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
 const signal_1 = require("./Reactivivity/signal");
+var Signal = require("./Reactivivity/signal").Signal;
 /**
  * Created by flo on 19/12/2016.
  */
@@ -687,7 +688,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             dummyFunc.lastVal = sigContainer.currentValue;
             currentVal = dummyFunc;
         }
-        let signalProxy = new signal_1.Signal(currentVal);
+        let signalProxy = new Signal(currentVal);
         signalProxy.rateLowerBound = sigContainer.rateLowerBound;
         signalProxy.rateUpperBound = sigContainer.rateUpperBound;
         signalProxy.clock = sigContainer.clock;
@@ -705,7 +706,6 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         let index = def.definition.indexOf("{");
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
-        let Signal = require("Reactivivity/signal").Signal;
         var classObj = eval(start + " extends Signal" + stop);
         return classObj;
     }

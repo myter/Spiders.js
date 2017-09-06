@@ -1,43 +1,61 @@
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 03/02/2017.
  */
 var spiders = require("../../../src/spiders");
 var graph = require("./graphics");
-class PortalIsolate extends spiders.Isolate {
-    constructor(x, y, r, c) {
-        super();
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.c = c;
+var PortalIsolate = (function (_super) {
+    __extends(PortalIsolate, _super);
+    function PortalIsolate(x, y, r, c) {
+        var _this = _super.call(this) || this;
+        _this.x = x;
+        _this.y = y;
+        _this.r = r;
+        _this.c = c;
+        return _this;
     }
-}
-class SpiderPongClient extends spiders.Application {
-    constructor(nickName) {
-        super();
-        this.nickName = nickName;
-        this.remote("127.0.0.1", 8000).then((serverRef) => {
-            this.serverRef = serverRef;
-            serverRef.newClient(this.nickName, this);
+    return PortalIsolate;
+}(spiders.Isolate));
+var SpiderPongClient = (function (_super) {
+    __extends(SpiderPongClient, _super);
+    function SpiderPongClient(nickName) {
+        var _this = _super.call(this) || this;
+        _this.nickName = nickName;
+        _this.remote("127.0.0.1", 8000).then(function (serverRef) {
+            _this.serverRef = serverRef;
+            serverRef.newClient(_this.nickName, _this);
         });
-        document.getElementById("newRoomButton").onclick = () => {
+        document.getElementById("newRoomButton").onclick = function () {
             var roomName = document.getElementById('roomName').value;
-            this.currentGame = new graph.game(roomName, this);
-            this.serverRef.createNewGame(roomName, this, this.nickName);
-            this.currentGame.start(true);
+            _this.currentGame = new graph.game(roomName, _this);
+            _this.serverRef.createNewGame(roomName, _this, _this.nickName);
+            _this.currentGame.start(true);
         };
+        return _this;
     }
-    joinGame(roomName, gameCreator) {
+    SpiderPongClient.prototype.joinGame = function (roomName, gameCreator) {
+        var _this = this;
         this.currentGame = new graph.game(roomName, this);
         this.currentGame.setOpponentReference(gameCreator);
         this.serverRef.playerJoined(roomName, this, this.nickName);
         gameCreator.playerJoins(this, this.nickName);
-        gameCreator.getPortal().then((portal) => {
-            this.currentGame.receivePortal(portal);
+        gameCreator.getPortal().then(function (portal) {
+            _this.currentGame.receivePortal(portal);
         });
         this.currentGame.start(false); // false indicates we joined the game and hence don't have the ball
-    }
-    newGameCreated(roomName, gameCreator) {
+    };
+    SpiderPongClient.prototype.newGameCreated = function (roomName, gameCreator) {
         var row = document.getElementById('roomList').insertRow();
         var nameCell = row.insertCell();
         var noPlayersCell = row.insertCell();
@@ -50,42 +68,42 @@ class SpiderPongClient extends spiders.Application {
                 that.joinGame(roomName, gameCreator);
             }
         };
-    }
-    playerJoins(player, nickName) {
+    };
+    SpiderPongClient.prototype.playerJoins = function (player, nickName) {
         this.currentGame.setOpponentReference(player);
         this.currentGame.playerJoined(nickName);
-    }
-    updateRoomInfo(roomName) {
+    };
+    SpiderPongClient.prototype.updateRoomInfo = function (roomName) {
         document.getElementById(roomName).cells[1].innerHTML = "2/2";
-    }
-    getPortal() {
+    };
+    SpiderPongClient.prototype.getPortal = function () {
         var gamePortal = this.currentGame.getPortal();
         return new PortalIsolate(gamePortal.x, gamePortal.y, gamePortal.r, gamePortal.c);
-    }
-    receiveBall(x, y, vx, vy) {
+    };
+    SpiderPongClient.prototype.receiveBall = function (x, y, vx, vy) {
         this.currentGame.receiveBall({ x: x, y: y, vx: vx, vy: vy });
-    }
-    scoreChange(score) {
+    };
+    SpiderPongClient.prototype.scoreChange = function (score) {
         this.currentGame.receiveOpponentScore(score);
-    }
-    receivePowerup(type) {
+    };
+    SpiderPongClient.prototype.receivePowerup = function (type) {
         this.currentGame.receivePowerup(type);
-    }
+    };
     //Invoked by UI
-    sendBall(x, y, vx, vy, ref) {
+    SpiderPongClient.prototype.sendBall = function (x, y, vx, vy, ref) {
         ref.receiveBall(x, y, vx, vy);
-    }
+    };
     //Invoked by UI
-    sendScoreChange(score, ref) {
+    SpiderPongClient.prototype.sendScoreChange = function (score, ref) {
         ref.scoreChange(score);
-    }
+    };
     //Invoked by UI
-    sendPowerup(type, ref) {
+    SpiderPongClient.prototype.sendPowerup = function (type, ref) {
         ref.receivePowerup(type);
-    }
-}
-window.start = () => {
+    };
+    return SpiderPongClient;
+}(spiders.Application));
+window.start = function () {
     var nickName = document.getElementById('nickname').value;
     new SpiderPongClient(nickName);
 };
-//# sourceMappingURL=logic.js.map

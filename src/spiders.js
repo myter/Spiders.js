@@ -82,7 +82,8 @@ class ClientActor extends Actor {
 class ServerActor extends Actor {
     spawn(app, port, thisClass) {
         var socketManager = app.mainCommMedium;
-        var fork = require('child_process').fork;
+        //Really ugly hack to satisfy React-native's "static analyser"
+        var fork = eval("req" + "uire('child_process')").fork;
         var actorId = utils.generateId();
         var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], app.mainRef, actorId, socketManager, app.mainPromisePool, app.mainObjectPool);
         var actorVariables = decon[0];
@@ -98,7 +99,8 @@ class ServerActor extends Actor {
     }
     static spawnFromFile(app, port, filePath, actorClassName, constructorArgs) {
         var socketManager = app.mainCommMedium;
-        var fork = require('child_process').fork;
+        //Really ugly hack to satisfy React-native's "static analyser"
+        var fork = eval("req" + "uire('child_process')").fork;
         var actorId = utils.generateId();
         let serialisedArgs = [];
         constructorArgs.forEach((constructorArg) => {

@@ -8,7 +8,6 @@ import {
     serialise
 } from "./serialisation";
 import {CommMedium} from "./commMedium";
-import {ChildProcess} from "child_process";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
 import {GSP} from "./Replication/GSP";
@@ -106,7 +105,8 @@ abstract class ServerActor extends Actor{
 
     spawn(app : ServerApplication,port : number,thisClass){
         var socketManager               = app.mainCommMedium as ServerSocketManager
-        var fork		                = require('child_process').fork
+        //Really ugly hack to satisfy React-native's "static analyser"
+        var fork		                = eval("req" + "uire('child_process')").fork
         var actorId: string             = utils.generateId()
         var decon                       = deconstructBehaviour(this,0,[],[],app.mainRef,actorId,socketManager,app.mainPromisePool,app.mainObjectPool)
         var actorVariables              = decon[0]
@@ -123,7 +123,8 @@ abstract class ServerActor extends Actor{
 
     static spawnFromFile(app : ServerApplication,port :number,filePath : string,actorClassName : string,constructorArgs : Array<any>){
         var socketManager   = app.mainCommMedium as ServerSocketManager
-        var fork            = require('child_process').fork
+        //Really ugly hack to satisfy React-native's "static analyser"
+        var fork            = eval("req" + "uire('child_process')").fork
         var actorId         = utils.generateId()
         let serialisedArgs  = []
         constructorArgs.forEach((constructorArg)=>{
@@ -167,7 +168,8 @@ class ServerApplication extends Application{
     mainIp                          : string
     mainPort                        : number
     portCounter                     : number
-    spawnedActors                   : Array<ChildProcess>
+    //SpawnedActors is actually of type Array<ChildProcess> but the ChildProcess types gives error for React-Native applications
+    spawnedActors                   : Array<any>
     socketManager                   : ServerSocketManager
 
     constructor(mainIp : string = "127.0.0.1",mainPort : number = 8000){
@@ -203,7 +205,7 @@ class ServerApplication extends Application{
 
     kill(){
         this.socketManager.closeAll()
-        this.spawnedActors.forEach((actor : ChildProcess) => {
+        this.spawnedActors.forEach((actor) => {
             actor.kill()
         })
     }

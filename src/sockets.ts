@@ -5,7 +5,8 @@ import {CommMedium} from "./commMedium";
 /**
  * Created by flo on 19/12/2016.
  */
-var io = require('socket.io')
+
+
 
 export class SocketHandler{
     disconnectedActors  : Array<string>
@@ -95,6 +96,8 @@ export class ServerSocketManager extends CommMedium{
 
     constructor(ip : string,socketPort : number){
         super()
+        //Again very dirty hack to satisfy react-native
+        var io                      = eval("req" + "uire('socket.io')")
         this.socketIp               = ip
         this.socketPort             = socketPort
         this.socket                 = io(socketPort)
