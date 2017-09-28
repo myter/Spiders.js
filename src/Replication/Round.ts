@@ -44,6 +44,10 @@ export function roundMasterOwnerId(round){
     return round[masterOwnerIdIndex]
 }
 
+export function setRoundMasterOwnerId(round,newId){
+    round[masterOwnerIdIndex] = newId
+}
+
 export function roundNumber(round){
     return round[roundNumberIndex]
 }

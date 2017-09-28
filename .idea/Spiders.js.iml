@@ -6,7 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/client-tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/server-tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/full-tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/ReactiveMicroserviceExample" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/PerformanceTest(temp)" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/EmixisExamples" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />

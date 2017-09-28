@@ -6,6 +6,7 @@ import {Isolate, ArrayIsolate, SignalObjectClass} from "./spiders";
 import {GSP} from "./Replication/GSP";
 import {lift, liftGarbage, Signal, SignalDependency, SignalValue, weak} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
+import {ActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -134,7 +135,7 @@ function checkFailureLiftConstraints(...liftArgs) : string{
         }
     })
     if(someStrong){
-        return "Calling failure lift on strong signal (which will never propagate garbage collection event"
+        return "Calling failure lift on strong signal (which will never propagate garbage collection event)"
     }
     else{
         return CONSTRAINT_OK
@@ -157,7 +158,13 @@ function checkStrongLiftConstraints(...liftArgs) : string {
 }
 
 
-export function installSTDLib(appActor : boolean,thisRef : FarReference,parentRef : FarReference,behaviourObject : Object,commMedium : CommMedium,promisePool : PromisePool,gspInstance : GSP,signalPool : SignalPool){
+export function installSTDLib(appActor : boolean,parentRef : FarReference,behaviourObject : Object,environment : ActorEnvironment){
+    let commMedium  = environment.commMedium
+    let thisRef     = environment.thisRef
+    let promisePool = environment.promisePool
+    let signalPool  = environment.signalPool
+    let gspInstance = environment.gspInstance
+
     if(!appActor){
         behaviourObject["parent"]   = parentRef.proxyify()
     }

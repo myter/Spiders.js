@@ -12,8 +12,12 @@ export class ParsingService extends MicroService{
         let persist     = this.lift((fleetData)=>{
             //Store in DB
         })
+        let fail        = this.liftFailure((fleetData)=>{
+            console.log("Failure detected")
+        })
         this.subscribe(inTopic).each((dataSignal)=>{
             let deserialised = deserialise(dataSignal)
+            fail(deserialised)
             persist(deserialised)
             this.publish(deserialised,outTopic)
         })

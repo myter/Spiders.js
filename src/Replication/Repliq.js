@@ -300,11 +300,12 @@ class Repliq {
         gspInstance.newMasterRepliq(repliqProxy, repliqId);
         return repliqProxy;
     }
-    reconstruct(gspInstance, repliqId, repliqOwnerId, fields, methods, atomicMethods, isClient, ownerAddress, ownerPort) {
+    reconstruct(gspInstance, repliqId, repliqOwnerId, fields, methods, atomicMethods, isClient, ownerAddress, ownerPort, roundNumber) {
         if (gspInstance.repliqs.has(repliqId)) {
             return gspInstance.repliqs.get(repliqId);
         }
         else {
+            gspInstance.roundNumbers.set(repliqId, roundNumber);
             let objectToProxy = {};
             let protoToProxy = {};
             Object.setPrototypeOf(objectToProxy, protoToProxy);

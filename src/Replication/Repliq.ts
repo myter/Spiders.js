@@ -330,11 +330,12 @@ export class Repliq{
         return repliqProxy
     }
 
-    reconstruct(gspInstance : GSP, repliqId : string, repliqOwnerId : string, fields : Map<string,RepliqField<any>>, methods  : Map<string,Function>, atomicMethods : Map<string,Function>, isClient : boolean, ownerAddress : string, ownerPort : number){
+    reconstruct(gspInstance : GSP, repliqId : string, repliqOwnerId : string, fields : Map<string,RepliqField<any>>, methods  : Map<string,Function>, atomicMethods : Map<string,Function>, isClient : boolean, ownerAddress : string, ownerPort : number,roundNumber : number){
         if(gspInstance.repliqs.has(repliqId)){
             return gspInstance.repliqs.get(repliqId)
         }
         else{
+            gspInstance.roundNumbers.set(repliqId,roundNumber)
             let objectToProxy   = {}
             let protoToProxy    = {}
             Object.setPrototypeOf(objectToProxy,protoToProxy)

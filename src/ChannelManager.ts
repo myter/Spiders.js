@@ -49,7 +49,7 @@ export class ChannelManager extends CommMedium{
                 },10)
             }
             else{
-                throw new Error("Unable to send message to unknown actor (channel manager): " + actorId + " in : " + this.messageHandler.thisRef.ownerId)
+                throw new Error("Unable to send message to unknown actor (channel manager): " + actorId + " in : " + this.messageHandler.environment.thisRef.ownerId)
             }
         }
     }

@@ -5,23 +5,20 @@ const serialisation_1 = require("./serialisation");
  * Created by flo on 21/12/2016.
  */
 class FarReference {
-    constructor(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, isServer) {
+    constructor(objectId, ownerId, environment, isServer) {
         this.ownerId = ownerId;
         this.objectId = objectId;
-        this.promisePool = promisePool;
-        this.objectPool = objectPool;
-        this.holderRef = holderRef;
-        this.commMedium = commMedium;
+        this.environemnt = environment;
         this.isServer = isServer;
     }
     sendFieldAccess(fieldName) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId));
+        var promiseAlloc = this.environemnt.promisePool.newPromise();
+        this.environemnt.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId));
         return promiseAlloc.promise;
     }
     sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.promisePool.newPromise();
-        this.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId));
+        var promiseAlloc = this.environemnt.promisePool.newPromise();
+        this.environemnt.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId));
         return promiseAlloc.promise;
     }
     proxyify() {
@@ -45,7 +42,7 @@ class FarReference {
                         var prom = baseObject.sendFieldAccess(property.toString());
                         var ret = function (...args) {
                             var serialisedArgs = args.map((arg) => {
-                                return serialisation_1.serialise(arg, baseObject.holderRef, baseObject.ownerId, baseObject.commMedium, baseObject.promisePool, baseObject.objectPool);
+                                return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
                             });
                             return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
                         };
@@ -69,35 +66,36 @@ FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
 FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
 exports.FarReference = FarReference;
 class ClientFarReference extends FarReference {
-    constructor(objectId, ownerId, mainId, holderRef, commMedium, promisePool, objectPool, contactId = null, contactAddress = null, contactPort = null) {
-        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, false);
+    constructor(objectId, ownerId, mainId, environment, contactId = null, contactAddress = null, contactPort = null) {
+        super(objectId, ownerId, environment, false);
         this.mainId = mainId;
         this.contactId = contactId;
         this.contactAddress = contactAddress;
         this.contactPort = contactPort;
     }
     sendRoute(toId, msg) {
-        if (!this.commMedium.hasConnection(this.contactId)) {
-            this.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
+        if (!this.environemnt.commMedium.hasConnection(this.contactId)) {
+            this.environemnt.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
         }
         //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
         msg.contactId = this.contactId;
         msg.contactAddress = this.contactAddress;
         msg.contactPort = this.contactPort;
-        this.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+        this.environemnt.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
     }
     send(toId, msg) {
-        if (this.holderRef instanceof ServerFarReference) {
-            if (this.holderRef.ownerId == this.contactId) {
-                this.commMedium.sendMessage(toId, msg);
+        let holderRef = this.environemnt.thisRef;
+        if (holderRef instanceof ServerFarReference) {
+            if (holderRef.ownerId == this.contactId) {
+                this.environemnt.commMedium.sendMessage(toId, msg);
             }
             else {
                 this.sendRoute(this.contactId, msg);
             }
         }
         else {
-            if (this.holderRef.mainId == this.mainId) {
-                this.commMedium.sendMessage(this.ownerId, msg);
+            if (holderRef.mainId == this.mainId) {
+                this.environemnt.commMedium.sendMessage(this.ownerId, msg);
             }
             else {
                 this.sendRoute(this.contactId, msg);
@@ -105,22 +103,22 @@ class ClientFarReference extends FarReference {
         }
     }
     sendFieldAccess(fieldName) {
-        var promiseAlloc = this.promisePool.newPromise();
-        var message = new messages_1.FieldAccessMessage(this.holderRef, this.objectId, fieldName, promiseAlloc.promiseId);
+        var promiseAlloc = this.environemnt.promisePool.newPromise();
+        var message = new messages_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId);
         this.send(this.ownerId, message);
         return promiseAlloc.promise;
     }
     sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.promisePool.newPromise();
-        var message = new messages_1.MethodInvocationMessage(this.holderRef, this.objectId, methodName, args, promiseAlloc.promiseId);
+        var promiseAlloc = this.environemnt.promisePool.newPromise();
+        var message = new messages_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId);
         this.send(this.ownerId, message);
         return promiseAlloc.promise;
     }
 }
 exports.ClientFarReference = ClientFarReference;
 class ServerFarReference extends FarReference {
-    constructor(objectId, ownerId, ownerAddress, ownerPort, holderRef, commMedium, promisePool, objectPool) {
-        super(objectId, ownerId, holderRef, commMedium, promisePool, objectPool, true);
+    constructor(objectId, ownerId, ownerAddress, ownerPort, environment) {
+        super(objectId, ownerId, environment, true);
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
     }

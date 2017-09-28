@@ -39,6 +39,10 @@ function roundMasterOwnerId(round) {
     return round[masterOwnerIdIndex];
 }
 exports.roundMasterOwnerId = roundMasterOwnerId;
+function setRoundMasterOwnerId(round, newId) {
+    round[masterOwnerIdIndex] = newId;
+}
+exports.setRoundMasterOwnerId = setRoundMasterOwnerId;
 function roundNumber(round) {
     return round[roundNumberIndex];
 }

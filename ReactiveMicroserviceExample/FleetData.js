@@ -27,7 +27,8 @@ __decorate([
     spiders.mutator
 ], FleetData.prototype, "actualise", null);
 FleetData = __decorate([
-    spiders.lease(3000)
+    spiders.lease(3000),
+    spiders.weak
 ], FleetData);
 exports.FleetData = FleetData;
 //# sourceMappingURL=FleetData.js.map

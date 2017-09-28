@@ -28,16 +28,18 @@ export class FleetMember extends MicroService{
         let compressed  = serialise(this.dataSignal)
         let topic       = this.newTopic("FleetData")
         this.publish(compressed,topic)
-        this.update()
+        this.update(10)
     }
 
-    update(){
+    update(i){
         let newLat      = this.getRandom()
         let newLong     = this.getRandom()
         let newSpeed    = this.getRandom()
         this.dataSignal.actualise(newLat,newLong,newSpeed)
         setTimeout(()=>{
-            this.update()
+            if(i > 0){
+                this.update(--i)
+            }
         },3000)
     }
 }

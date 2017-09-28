@@ -1,3 +1,6 @@
+/**
+ * Created by flo on 16/03/2017.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const messages_1 = require("../messages");
 const Repliq_1 = require("./Repliq");
@@ -27,13 +30,12 @@ class GSP {
             }
         })*/
     }
-    constructor(commMedium, thisActorId, thisRef) {
-        this.commMedium = commMedium;
+    constructor(thisActorId, environment) {
         this.thisActorId = thisActorId;
+        this.environment = environment;
         //TODO Initialisisation of fields will be refactored together with communication
-        this.thisActorAddress = thisRef.ownerAddress;
-        this.thisActorPort = thisRef.ownerPort;
-        this.thisRef = thisRef;
+        this.thisActorAddress = this.environment.thisRef.ownerAddress;
+        this.thisActorPort = this.environment.thisRef.ownerPort;
         this.repliqs = new Map();
         this.current = new Map();
         this.pending = new Map();
@@ -42,6 +44,8 @@ class GSP {
         this.replicaOwners = new Map();
         this.replay = [];
         this.roundCommitListeners = new Map();
+        this.forwardingM = new Map();
+        this.forwardingS = new Map();
     }
     //////////////////////////////////
     //Methods invoked by Repliqs    //
@@ -87,7 +91,7 @@ class GSP {
         //Broadcast round to all holders of replicaOwners
         if (this.replicaOwners.has(Round_1.roundMasterObjectId(round))) {
             this.replicaOwners.get(Round_1.roundMasterObjectId(round)).forEach((replicaHolderId) => {
-                this.commMedium.sendMessage(replicaHolderId, new messages_1.GSPRoundMessage(this.thisRef, round));
+                this.environment.commMedium.sendMessage(replicaHolderId, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
             });
         }
     }
@@ -98,12 +102,14 @@ class GSP {
             this.pending.set(Round_1.roundMasterObjectId(round), []);
         }
         this.pending.get(Round_1.roundMasterObjectId(round)).push(round);
-        this.commMedium.sendMessage(Round_1.roundMasterOwnerId(round), new messages_1.GSPRoundMessage(this.thisRef, round));
+        this.environment.commMedium.sendMessage(Round_1.roundMasterOwnerId(round), new messages_1.GSPRoundMessage(this.environment.thisRef, round));
     }
     confirmMasterRound(round) {
         if (!this.roundNumbers.has(Round_1.roundMasterObjectId(round))) {
             this.roundNumbers.set(Round_1.roundMasterObjectId(round), 0);
         }
+        //console.log("Confirming master round: " + roundNumber(round) + " for object id: " + roundMasterObjectId(round))
+        //console.log("Last known round: " + this.roundNumbers.get(roundMasterObjectId(round)))
         if (Round_1.roundNumber(round) == this.roundNumbers.get(Round_1.roundMasterObjectId(round)) + 1) {
             //Remove all older pending rounds
             if (this.pending.has(Round_1.roundMasterObjectId(round))) {
@@ -119,7 +125,7 @@ class GSP {
         }
         else {
             //We missed a number of rounds, request owner of master object to sync with us
-            this.commMedium.sendMessage(Round_1.roundMasterOwnerId(round), new messages_1.GSPSyncMessage(this.thisRef, this.thisActorId, Round_1.roundMasterObjectId(round)));
+            this.environment.commMedium.sendMessage(Round_1.roundMasterOwnerId(round), new messages_1.GSPSyncMessage(this.environment.thisRef, this.thisActorId, Round_1.roundMasterObjectId(round)));
         }
     }
     commitRound(round) {
@@ -176,31 +182,66 @@ class GSP {
     /////////////////////////////////////////////
     registerReplica(replicaId, replica) {
         this.repliqs.set(replicaId, replica);
-        this.commMedium.sendMessage(replica[Repliq_1.Repliq.getRepliqOwnerID], new messages_1.GSPRegisterMessage(this.thisRef, this.thisActorId, replicaId, this.thisActorAddress, this.thisActorPort));
+        this.environment.commMedium.sendMessage(replica[Repliq_1.Repliq.getRepliqOwnerID], new messages_1.GSPRegisterMessage(this.environment.thisRef, this.thisActorId, replicaId, this.thisActorAddress, this.thisActorPort, this.roundNumbers.get(replicaId)));
     }
-    registerReplicaHolder(replicaId, holderId) {
+    registerReplicaHolder(replicaId, holderId, roundNr) {
         if (!this.replicaOwners.has(replicaId)) {
             this.replicaOwners.set(replicaId, []);
         }
         this.replicaOwners.get(replicaId).push(holderId);
-        if (this.committed.has(replicaId)) {
+        //Added for p2p
+        if (this.forwardingM.has(replicaId)) {
+            if (!this.forwardingS.has(replicaId)) {
+                this.forwardingS.set(replicaId, []);
+            }
+            this.forwardingS.get(replicaId).push(holderId);
+        }
+        //
+        if (this.committed.has(replicaId) && roundNr < this.roundNumbers.get(replicaId)) {
             this.committed.get(replicaId).forEach((round) => {
-                this.commMedium.sendMessage(holderId, new messages_1.GSPRoundMessage(this.thisRef, round));
+                this.environment.commMedium.sendMessage(holderId, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
             });
         }
     }
-    roundReceived(round) {
+    roundReceived(round, senderId) {
         if (this.isMaster(Round_1.roundMasterOwnerId(round))) {
-            this.yieldMasterRound(round);
+            //added for p2p
+            if (this.forwardingM.has(Round_1.roundMasterObjectId(round))) {
+                Round_1.setRoundMasterOwnerId(round, this.forwardingM.get(Round_1.roundMasterObjectId(round)));
+                this.environment.commMedium.sendMessage(this.forwardingM.get(Round_1.roundMasterObjectId(round)), new messages_1.GSPRoundMessage(this.environment.thisRef, round));
+            }
+            else {
+                //
+                this.yieldMasterRound(round);
+            }
         }
         else {
-            this.confirmMasterRound(round);
+            //Added for p2p
+            if (this.forwardingM.has(Round_1.roundMasterObjectId(round))) {
+                //Original master has confirmed a round
+                if (senderId == this.forwardingM.get(Round_1.roundMasterObjectId(round))) {
+                    this.confirmMasterRound(round);
+                    this.forwardingS.get(Round_1.roundMasterObjectId(round)).forEach((slaveId) => {
+                        this.environment.commMedium.sendMessage(slaveId, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
+                    });
+                }
+                else {
+                    let originalOwner = this.forwardingM.get(Round_1.roundMasterObjectId(round));
+                    this.environment.commMedium.sendMessage(originalOwner, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
+                }
+            }
+            else {
+                this.confirmMasterRound(round);
+            }
         }
     }
     receiveSync(sender, masterObjectId) {
         this.committed.get(masterObjectId).forEach((round) => {
-            this.commMedium.sendMessage(sender, new messages_1.GSPRoundMessage(this.thisRef, round));
+            this.environment.commMedium.sendMessage(sender, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
         });
+    }
+    addForward(replicaId, ownerId) {
+        this.forwardingM.set(replicaId, ownerId);
     }
 }
 exports.GSP = GSP;

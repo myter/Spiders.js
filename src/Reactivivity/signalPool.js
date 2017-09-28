@@ -6,16 +6,13 @@ const serialisation_1 = require("../serialisation");
  * Created by flo on 22/06/2017.
  */
 class SignalPool {
-    constructor(commMedium, thisRef, promisePool, objectPool) {
-        this.commMedium = commMedium;
-        this.thisRef = thisRef;
+    constructor(environment) {
+        this.environment = environment;
         this.signals = new Map();
         this.garbageSignals = new Map();
         this.garbageDependencies = new Map();
         this.sources = new Map();
         this.garbageCollected = new Array();
-        this.promisePool = promisePool;
-        this.objectPool = objectPool;
     }
     newSource(signal) {
         this.sources.set(signal.id, signal);
@@ -128,10 +125,10 @@ class SignalPool {
             throw new Error("Unable to find signal to register listener");
         }
         signal.registerOnChangeListener(() => {
-            this.commMedium.sendMessage(holderId, new messages_1.ExternalSignalChangeMessage(this.thisRef, signal.id, serialisation_1.serialise(signal.value, this.thisRef, holderId, this.commMedium, this.promisePool, this.objectPool)));
+            this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalChangeMessage(this.environment.thisRef, signal.id, serialisation_1.serialise(signal.value, holderId, this.environment)));
         });
         signal.registerOnDeleteListener(() => {
-            this.commMedium.sendMessage(holderId, new messages_1.ExternalSignalDeleteMessage(this.thisRef, signal.id));
+            this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalDeleteMessage(this.environment.thisRef, signal.id));
         });
     }
     sourceChanged(signalId, val) {

@@ -12,21 +12,22 @@
     "build-nativepong-client": "browserify NativePong/nativeClient/js/logic.js -o NativePong/nativeClient/bundle.js",
     "build-speedup-client": "browserify benchmarks/Speedup/ClientSpeedupBenchmarks.js -o benchmarks/Speedup/bundle.js",
     "build-ping-example": "browserify examples/Distributed/pinger.js -o examples/Distributed/pingBundle.js",
-    "build-pong-example": "browserify examples/Distributed/ponger.js -o examples/Distributed/pongBundle.js"
+    "build-pong-example": "browserify examples/Distributed/ponger.js -o examples/Distributed/pongBundle.js",
+    "build-rep-test": "browserify FullRepTest/client.js -o FullRepTest/RepBundle.js"
   },
   "dependencies": {
-    "webworkify": "1.4.0",
+    "browserify": "14.0.0",
+    "bufferutil": "1.3.0",
+    "net": "1.0.2",
     "socket.io": "1.7.2",
     "socket.io-client": "1.7.2",
-    "bufferutil": "1.3.0",
     "utf-8-validate": "2.0.0",
-    "net": "1.0.2",
-    "browserify": "14.0.0"
+    "webworkify": "1.4.0"
   },
   "devDependencies": {
-    "mocha": "^3.2.0",
+    "benchmark": "^2.1.4",
     "chai": "^3.5.0",
-    "benchmark": "^2.1.3",
-    "decimal.js": "7.1.1"
+    "decimal.js": "7.1.1",
+    "mocha": "^3.5.3"
   }
 }

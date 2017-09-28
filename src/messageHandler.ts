@@ -21,85 +21,78 @@ import {Socket} from "net";
 import {GSP} from "./Replication/GSP";
 import {Signal} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
+import {ActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 20/12/2016.
  */
 var utils       = require('./utils')
 
 export class MessageHandler{
-    private commMedium      : CommMedium
-    private promisePool     : PromisePool
-    private objectPool      : ObjectPool
-    private signalPool      : SignalPool
-    private gspInstance     : GSP
-    thisRef         : FarReference
+    environment : ActorEnvironment
 
-    constructor(thisRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,gspInstance : GSP,signalPool){
-        this.commMedium     = commMedium
-        this.promisePool    = promisePool
-        this.objectPool     = objectPool
-        this.gspInstance    = gspInstance
-        this.signalPool     = signalPool
-        this.thisRef        = thisRef
+    constructor(environment : ActorEnvironment){
+        this.environment = environment
     }
 
     private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message){
-        if(!(this.commMedium.hasConnection(actorId))){
-            this.commMedium.openConnection(actorId,actorAddress,actorPort)
+        let commMedium = this.environment.commMedium
+        if(!(commMedium.hasConnection(actorId))){
+            commMedium.openConnection(actorId,actorAddress,actorPort)
         }
-        this.commMedium.sendMessage(actorId,msg)
+        commMedium.sendMessage(actorId,msg)
     }
 
     private sendReturnClient(actorId : string,originalMsg : Message,returnMsg : Message){
-        if(this.thisRef instanceof ClientFarReference){
+        let thisRef     = this.environment.thisRef
+        let commMedium  = this.environment.commMedium
+        if(thisRef instanceof ClientFarReference){
             //Message to which actor is replying came from a different client host, send routing message to contact server actor
-            if((this.thisRef as ClientFarReference).mainId != originalMsg.senderMainId){
-                this.sendReturnServer(originalMsg.contactId,originalMsg.contactAddress,originalMsg.contactPort,new RouteMessage(this.thisRef,actorId,returnMsg))
+            if((thisRef as ClientFarReference).mainId != originalMsg.senderMainId){
+                this.sendReturnServer(originalMsg.contactId,originalMsg.contactAddress,originalMsg.contactPort,new RouteMessage(this.environment.thisRef,actorId,returnMsg))
             }
             else{
-                this.commMedium.sendMessage(actorId,returnMsg)
+                commMedium.sendMessage(actorId,returnMsg)
             }
         }
         else{
-            this.commMedium.sendMessage(actorId,returnMsg)
+            commMedium.sendMessage(actorId,returnMsg)
         }
     }
 
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
     private handleInstall(msg : InstallBehaviourMessage,ports : Array<MessagePort>){
-        var thisId                  = msg.actorId
-        var mainId                  = msg.mainId
-        var thisRef                 = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,null,this.commMedium,this.promisePool,this.objectPool)
-        this.gspInstance            = new GSP(this.commMedium,thisId,thisRef)
-        var behaviourObject         = reconstructBehaviour({},msg.vars,msg.methods,thisRef,this.promisePool,this.commMedium,this.objectPool,this.gspInstance,this.signalPool)
-        reconstructStatic(behaviourObject,msg.staticProperties,thisRef,this.promisePool,this.commMedium,this.objectPool,this.gspInstance,this.signalPool)
-        var otherActorIds           = msg.otherActorIds
-        this.objectPool.installBehaviourObject(behaviourObject)
-        this.thisRef                = thisRef
-        var parentRef               = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.thisRef,this.commMedium,this.promisePool,this.objectPool)
-        var channelManag            = this.commMedium as ChannelManager
-        this.signalPool             = new SignalPool(channelManag,thisRef,this.promisePool,this.objectPool)
+        var thisId                      = msg.actorId
+        var mainId                      = msg.mainId
+        this.environment.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,this.environment)
+        this.environment.gspInstance    = new GSP(thisId,this.environment)
+        var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,this.environment)
+        reconstructStatic(behaviourObject,msg.staticProperties,this.environment)
+        var otherActorIds               = msg.otherActorIds
+        this.environment.objectPool     = new ObjectPool(behaviourObject)
+        var parentRef                   = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.environment)
+        let channelManag                = this.environment.commMedium as ChannelManager
+        this.environment.signalPool     = new SignalPool(this.environment)
         var mainPort                = ports[0]
         channelManag.newConnection(mainId,mainPort)
         otherActorIds.forEach((id,index)=>{
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id,ports[index + 1])
         })
-        utils.installSTDLib(false,thisRef,parentRef,behaviourObject,this.commMedium,this.promisePool,this.gspInstance,this.signalPool)
+        utils.installSTDLib(false,parentRef,behaviourObject,this.environment)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
-        var channelManager = (this.commMedium as ChannelManager)
+        var channelManager = (this.environment.commMedium as ChannelManager)
         channelManager.newConnection(msg.actorId,port)
     }
 
     private handleFieldAccess(msg : FieldAccessMessage){
-        var targetObject    = this.objectPool.getObject(msg.objectId)
+        var targetObject    = this.environment.objectPool.getObject(msg.objectId)
         var fieldVal        = Reflect.get(targetObject,msg.fieldName)
         //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
         if(typeof fieldVal != 'function'){
-            var serialised  = serialise(fieldVal,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
-            var message     = new ResolvePromiseMessage(this.thisRef,msg.promiseId,serialised)
+            var serialised  = serialise(fieldVal,msg.senderId,this.environment)
+            var message     = new ResolvePromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){
                 this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
             }
@@ -110,18 +103,18 @@ export class MessageHandler{
     }
 
     private handleMethodInvocation(msg : MethodInvocationMessage){
-        var targetObject                        = this.objectPool.getObject(msg.objectId)
+        var targetObject                        = this.environment.objectPool.getObject(msg.objectId)
         var methodName                          = msg.methodName
         var args                                = msg.args
         var deserialisedArgs                    = args.map((arg) => {
-            return deserialise(this.thisRef,arg,this.promisePool,this.commMedium,this.objectPool,this.gspInstance,this.signalPool)
+            return deserialise(arg,this.environment)
         })
         var retVal
         try{
             retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
             //retVal = targetObject[methodName](...deserialisedArgs)
-            var serialised : ValueContainer         = serialise(retVal,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
-            var message    : Message                = new ResolvePromiseMessage(this.thisRef,msg.promiseId,serialised)
+            var serialised : ValueContainer         = serialise(retVal,msg.senderId,this.environment)
+            var message    : Message                = new ResolvePromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){
                 this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
             }
@@ -131,8 +124,8 @@ export class MessageHandler{
         }
         catch(reason){
             console.log("Went wrong for : " + methodName)
-            var serialised : ValueContainer         = serialise(reason,this.thisRef,msg.senderId,this.commMedium,this.promisePool,this.objectPool)
-            message                             = new RejectPromiseMessage(this.thisRef,msg.promiseId,serialised)
+            var serialised : ValueContainer         = serialise(reason,msg.senderId,this.environment)
+            message                             = new RejectPromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
             if(msg.senderType == Message.serverSenderType){
                 this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
             }
@@ -144,42 +137,44 @@ export class MessageHandler{
     }
 
     private handlePromiseResolve(msg : ResolvePromiseMessage){
-        var deSerialised = deserialise(this.thisRef,msg.value,this.promisePool,this.commMedium,this.objectPool,this.gspInstance,this.signalPool)
+        let promisePool = this.environment.promisePool
+        var deSerialised = deserialise(msg.value,this.environment)
         if(msg.foreign){
-            this.promisePool.resolveForeignPromise(msg.promiseId,msg.senderId,deSerialised)
+            promisePool.resolveForeignPromise(msg.promiseId,msg.senderId,deSerialised)
         }
         else{
-            this.promisePool.resolvePromise(msg.promiseId,deSerialised)
+            promisePool.resolvePromise(msg.promiseId,deSerialised)
         }
     }
 
     private handlePromiseReject(msg : RejectPromiseMessage){
-        var deSerialised  = deserialise(this.thisRef,msg.reason,this.promisePool,this.commMedium,this.objectPool,this.gspInstance,this.signalPool)
+        let promisePool = this.environment.promisePool
+        var deSerialised  = deserialise(msg.reason,this.environment)
         if(msg.foreign){
-            this.promisePool.rejectForeignPromise(msg.promiseId,msg.senderId,deSerialised)
+            promisePool.rejectForeignPromise(msg.promiseId,msg.senderId,deSerialised)
         }
         else{
-            this.promisePool.rejectPromise(msg.promiseId,deSerialised)
+            promisePool.rejectPromise(msg.promiseId,deSerialised)
         }
     }
 
     //Can only be received by a server actor
     private handleConnectRemote(msg : ConnectRemoteMessage,clientSocket : Socket){
-        var resolveMessage = new ResolveConnectionMessage(this.thisRef,msg.promiseId,msg.connectionId)
+        var resolveMessage = new ResolveConnectionMessage(this.environment.thisRef,msg.promiseId,msg.connectionId)
         if(msg.senderType == Message.serverSenderType){
             this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,resolveMessage)
         }
         else{
-            var socketManager = this.commMedium as ServerSocketManager
+            var socketManager = this.environment.commMedium as ServerSocketManager
             socketManager.addNewClient(msg.senderId,clientSocket)
             this.sendReturnClient(msg.senderId,msg,resolveMessage)
         }
     }
 
     private handleResolveConnection(msg : ResolveConnectionMessage){
-        this.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
-        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderId,msg.senderAddress,msg.senderPort,this.thisRef,this.commMedium,this.promisePool,this.objectPool)
-        this.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
+        this.environment.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
+        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
+        this.environment.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
     }
 
     private handleRoute(msg : RouteMessage){
@@ -190,47 +185,50 @@ export class MessageHandler{
                 if(valContainer.type == ValueContainer.clientFarRefType){
                     var container = valContainer as ClientFarRefContainer
                     if(container.contactId == null){
-                        container.contactId = this.thisRef.ownerId
-                        container.contactAddress = (this.thisRef as ServerFarReference).ownerAddress
-                        container.contactPort = (this.thisRef as ServerFarReference).ownerPort
+                        let thisRef                 = this.environment.thisRef
+                        container.contactId         = thisRef.ownerId
+                        container.contactAddress    = (thisRef as ServerFarReference).ownerAddress
+                        container.contactPort       = (thisRef as ServerFarReference).ownerPort
                     }
                 }
             })
         }
-        this.commMedium.sendMessage(msg.targetId,msg.message)
+        this.environment.commMedium.sendMessage(msg.targetId,msg.message)
     }
 
     private handleGSPRound(msg : GSPRoundMessage){
-        this.gspInstance.roundReceived(msg.round)
+        this.environment.gspInstance.roundReceived(msg.round,msg.senderId)
     }
 
     private handleGSPSync(msg : GSPSyncMessage){
-        this.gspInstance.receiveSync(msg.requesterId,msg.repliqId)
+        this.environment.gspInstance.receiveSync(msg.requesterId,msg.repliqId)
     }
 
     private handleGSPRegister(msg : GSPRegisterMessage){
-        if(!this.commMedium.hasConnection(msg.holderId)){
-            this.commMedium.openConnection(msg.holderId,msg.holderAddress,msg.holderPort)
+        let commMedium = this.environment.commMedium
+        if(!commMedium.hasConnection(msg.holderId)){
+            commMedium.openConnection(msg.holderId,msg.holderAddress,msg.holderPort)
         }
-        this.gspInstance.registerReplicaHolder(msg.replicaId,msg.holderId)
+        this.environment.gspInstance.registerReplicaHolder(msg.replicaId,msg.holderId,msg.roundNr)
     }
 
     private handleRegisterExternalSignal(msg : RegisterExternalSignalMessage){
-        if(!this.commMedium.hasConnection(msg.requesterId)){
-            this.commMedium.openConnection(msg.requesterId,msg.requesterAddress,msg.requesterPort)
+        let commMedium = this.environment.commMedium
+        if(!commMedium.hasConnection(msg.requesterId)){
+            commMedium.openConnection(msg.requesterId,msg.requesterAddress,msg.requesterPort)
         }
         //console.log("External listener added for actor: "  + msg.requesterId + " in " + this.thisRef.ownerId + " signal: " + msg.signalId)
-        this.signalPool.registerExternalListener(msg.signalId,msg.requesterId)
+        this.environment.signalPool.registerExternalListener(msg.signalId,msg.requesterId)
     }
 
     private handleExternalSignalChange(msg : ExternalSignalChangeMessage){
         //console.log("External signal changed in: " + this.thisRef.ownerId + " signal: " + msg.signalId)
-        let newVal = deserialise(this.thisRef,msg.newVal,this.promisePool,this.commMedium,this.objectPool,this.gspInstance,this.signalPool)
-        this.signalPool.sourceChanged(msg.signalId,newVal)
+        let newVal = deserialise(msg.newVal,this.environment)
+        this.environment.signalPool.sourceChanged(msg.signalId,newVal)
     }
 
     private handleExternalSignalDelete(msg : ExternalSignalDeleteMessage){
-        this.signalPool.garbageCollect(msg.signalId)
+        this.environment.signalPool.garbageCollect(msg.signalId)
     }
 
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)

@@ -162,21 +162,25 @@ export class GSPRegisterMessage extends Message {
     holderAddress   : string
     holderPort      : number
     replicaId       : string
-    constructor(senderRef : FarReference,holderId : string,replicaId : string,holderAddress : string,holderPort : number){
+    roundNr         : number
+    constructor(senderRef : FarReference,holderId : string,replicaId : string,holderAddress : string,holderPort : number,roundNr : number){
         super(_GSP_REGISTER_,senderRef)
         this.holderId       = holderId
         this.replicaId      = replicaId
         this.holderAddress  = holderAddress
         this.holderPort     = holderPort
+        this.roundNr        = roundNr
     }
 }
 
 export const _GSP_ROUND_ : MessageTypeTag = 10
 export class GSPRoundMessage extends Message {
     round
+    senderId : string
     constructor(senderRef : FarReference,round){
         super(_GSP_ROUND_,senderRef)
-        this.round = round
+        this.round      = round
+        this.senderId   = senderRef.ownerId
     }
 }
 

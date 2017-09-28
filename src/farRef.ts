@@ -3,10 +3,11 @@ import {FieldAccessMessage, MethodInvocationMessage, Message, RouteMessage} from
 import {serialise} from "./serialisation";
 import {ObjectPool} from "./objectPool";
 import {CommMedium} from "./commMedium";
+import {GSP} from "./Replication/GSP";
+import {ActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 21/12/2016.
  */
-
 
 export abstract class FarReference {
     static farRefAccessorKey        = "_FAR_REF_"
@@ -15,30 +16,24 @@ export abstract class FarReference {
     static ClientProxyTypeKey       = "SPIDER_CLIENT_TYPE"
     ownerId     : string
     objectId    : number
-    promisePool : PromisePool
-    objectPool  : ObjectPool
-    holderRef   : FarReference
-    commMedium  : CommMedium
+    environemnt : ActorEnvironment
     isServer    : boolean
 
-    constructor(objectId : number,ownerId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,isServer : boolean){
+    constructor(objectId : number,ownerId : string,environment : ActorEnvironment,isServer : boolean){
         this.ownerId        = ownerId
         this.objectId       = objectId
-        this.promisePool    = promisePool
-        this.objectPool     = objectPool
-        this.holderRef      = holderRef
-        this.commMedium     = commMedium
+        this.environemnt    = environment
         this.isServer       = isServer
     }
     sendFieldAccess(fieldName : string) : Promise<any>{
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        this.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId))
+        var promiseAlloc : PromiseAllocation = this.environemnt.promisePool.newPromise()
+        this.environemnt.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.environemnt.thisRef,this.objectId,fieldName,promiseAlloc.promiseId))
         return promiseAlloc.promise
     }
 
     sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        this.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId))
+        var promiseAlloc : PromiseAllocation = this.environemnt.promisePool.newPromise()
+        this.environemnt.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.environemnt.thisRef,this.objectId,methodName,args,promiseAlloc.promiseId))
         return promiseAlloc.promise
     }
 
@@ -65,7 +60,7 @@ export abstract class FarReference {
                         var prom = baseObject.sendFieldAccess(property.toString())
                         var ret = function(... args){
                             var serialisedArgs = args.map((arg) => {
-                                return serialise(arg,baseObject.holderRef,baseObject.ownerId,baseObject.commMedium,baseObject.promisePool,baseObject.objectPool)
+                                return serialise(arg,baseObject.ownerId,baseObject.environemnt)
                             })
                             return baseObject.sendMethodInvocation(property.toString(),serialisedArgs)
                         }
@@ -90,8 +85,8 @@ export class ClientFarReference extends FarReference {
     contactAddress  : string
     contactPort     : number
 
-    constructor(objectId : number,ownerId : string,mainId : string,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool,contactId : string = null,contactAddress : string = null,contactPort : number = null){
-        super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool,false)
+    constructor(objectId : number,ownerId : string,mainId : string,environment : ActorEnvironment,contactId : string = null,contactAddress : string = null,contactPort : number = null){
+        super(objectId,ownerId,environment,false)
         this.mainId         = mainId
         this.contactId      = contactId
         this.contactAddress = contactAddress
@@ -99,29 +94,30 @@ export class ClientFarReference extends FarReference {
     }
 
     private sendRoute(toId : string,msg : Message){
-        if(!this.commMedium.hasConnection(this.contactId)){
-            this.commMedium.openConnection(this.contactId,this.contactAddress,this.contactPort)
+        if(!this.environemnt.commMedium.hasConnection(this.contactId)){
+            this.environemnt.commMedium.openConnection(this.contactId,this.contactAddress,this.contactPort)
         }
         //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
             msg.contactId = this.contactId
             msg.contactAddress = this.contactAddress
             msg.contactPort = this.contactPort
 
-        this.commMedium.sendMessage(this.contactId,new RouteMessage(this,this.ownerId,msg))
+        this.environemnt.commMedium.sendMessage(this.contactId,new RouteMessage(this,this.ownerId,msg))
     }
 
     private send(toId : string,msg : Message){
-        if(this.holderRef instanceof ServerFarReference){
-            if(this.holderRef.ownerId == this.contactId){
-                this.commMedium.sendMessage(toId,msg)
+        let holderRef = this.environemnt.thisRef
+        if(holderRef instanceof ServerFarReference){
+            if(holderRef.ownerId == this.contactId){
+                this.environemnt.commMedium.sendMessage(toId,msg)
             }
             else{
                 this.sendRoute(this.contactId,msg)
             }
         }
         else{
-            if((this.holderRef as ClientFarReference).mainId == this.mainId){
-                this.commMedium.sendMessage(this.ownerId,msg)
+            if((holderRef as ClientFarReference).mainId == this.mainId){
+                this.environemnt.commMedium.sendMessage(this.ownerId,msg)
             }
             else{
                 this.sendRoute(this.contactId,msg)
@@ -130,15 +126,15 @@ export class ClientFarReference extends FarReference {
     }
 
     sendFieldAccess(fieldName : string) : Promise<any>{
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        var message = new FieldAccessMessage(this.holderRef,this.objectId,fieldName,promiseAlloc.promiseId)
+        var promiseAlloc : PromiseAllocation = this.environemnt.promisePool.newPromise()
+        var message = new FieldAccessMessage(this.environemnt.thisRef,this.objectId,fieldName,promiseAlloc.promiseId)
         this.send(this.ownerId,message)
         return promiseAlloc.promise
     }
 
     sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.promisePool.newPromise()
-        var message = new MethodInvocationMessage(this.holderRef,this.objectId,methodName,args,promiseAlloc.promiseId)
+        var promiseAlloc : PromiseAllocation = this.environemnt.promisePool.newPromise()
+        var message = new MethodInvocationMessage(this.environemnt.thisRef,this.objectId,methodName,args,promiseAlloc.promiseId)
         this.send(this.ownerId,message)
         return promiseAlloc.promise
     }
@@ -148,8 +144,8 @@ export class ServerFarReference extends FarReference {
     ownerAddress : string
     ownerPort    : number
 
-    constructor(objectId : number,ownerId : string,ownerAddress : string,ownerPort : number,holderRef : FarReference,commMedium : CommMedium,promisePool : PromisePool,objectPool : ObjectPool){
-        super(objectId,ownerId,holderRef,commMedium,promisePool,objectPool,true)
+    constructor(objectId : number,ownerId : string,ownerAddress : string,ownerPort : number,environment : ActorEnvironment){
+        super(objectId,ownerId,environment,true)
         this.ownerAddress   = ownerAddress
         this.ownerPort      = ownerPort
     }

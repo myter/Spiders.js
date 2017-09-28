@@ -5,6 +5,8 @@ import {FarReference} from "../farRef";
 import {serialise} from "../serialisation";
 import {PromisePool} from "../PromisePool";
 import {ObjectPool} from "../objectPool";
+import {GSP} from "../Replication/GSP";
+import {ActorEnvironment} from "../ActorEnvironment";
 /**
  * Created by flo on 22/06/2017.
  */
@@ -13,23 +15,17 @@ export class SignalPool{
     garbageSignals      : Map<string,Signal>
     garbageDependencies : Map<string,Array<String>>
     sources             : Map<string,Signal>
-    commMedium          : CommMedium
-    promisePool         : PromisePool
-    objectPool          : ObjectPool
-    thisRef             : FarReference
+    environment         : ActorEnvironment
     //Keep track of garbage collected nodes (to
     garbageCollected    : Array<string>
 
-    constructor(commMedium : CommMedium,thisRef : FarReference,promisePool : PromisePool,objectPool : ObjectPool){
-        this.commMedium             = commMedium
-        this.thisRef                = thisRef
+    constructor(environment : ActorEnvironment){
+        this.environment            = environment
         this.signals                = new Map()
         this.garbageSignals         = new Map()
         this.garbageDependencies    = new Map()
         this.sources                = new Map()
         this.garbageCollected       = new Array()
-        this.promisePool            = promisePool
-        this.objectPool             = objectPool
     }
 
     newSource(signal : Signal){
@@ -155,10 +151,10 @@ export class SignalPool{
             throw new Error("Unable to find signal to register listener")
         }
         signal.registerOnChangeListener(()=>{
-            this.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.thisRef,signal.id,serialise(signal.value,this.thisRef,holderId,this.commMedium,this.promisePool,this.objectPool)))
+            this.environment.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.environment.thisRef,signal.id,serialise(signal.value,holderId,this.environment)))
         })
         signal.registerOnDeleteListener(()=>{
-            this.commMedium.sendMessage(holderId,new ExternalSignalDeleteMessage(this.thisRef,signal.id))
+            this.environment.commMedium.sendMessage(holderId,new ExternalSignalDeleteMessage(this.environment.thisRef,signal.id))
         })
     }
 

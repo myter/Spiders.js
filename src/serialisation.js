@@ -15,14 +15,14 @@ var Signal = require("./Reactivivity/signal").Signal;
 function toType(obj) {
     return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
 }
-function getObjectVars(object, thisRef, receiverId, commMedium, promisePool, objectPool, ignoreSet = []) {
+function getObjectVars(object, receiverId, environment, ignoreSet = []) {
     var vars = [];
     var properties = Reflect.ownKeys(object);
     for (var i in properties) {
         var key = properties[i];
         if (!ignoreSet.includes(key)) {
             var val = Reflect.get(object, key);
-            var serialisedval = serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
+            var serialisedval = serialise(val, receiverId, environment);
             vars.push([key, serialisedval]);
         }
     }
@@ -44,7 +44,7 @@ function getObjectMethods(object) {
     return methods;
 }
 exports.getObjectMethods = getObjectMethods;
-function deconstructStatic(actorClass, thisRef, receiverId, commMedium, promisePool, objectPool, results) {
+function deconstructStatic(actorClass, receiverId, results, environment) {
     //Reached the end of the class chain (i.e. current class is function(){})
     if (actorClass.name == "") {
         return results;
@@ -62,12 +62,12 @@ function deconstructStatic(actorClass, thisRef, receiverId, commMedium, promiseP
                     thisMethods.push([key, property.toString()]);
                 }
                 else {
-                    thisVars.push([key, serialise(property, thisRef, receiverId, commMedium, promisePool, objectPool)]);
+                    thisVars.push([key, serialise(property, receiverId, environment)]);
                 }
             }
         });
         results.push([thisName, thisVars, thisMethods]);
-        return deconstructStatic(actorClass.__proto__, thisRef, receiverId, commMedium, promisePool, objectPool, results);
+        return deconstructStatic(actorClass.__proto__, receiverId, results, environment);
     }
 }
 exports.deconstructStatic = deconstructStatic;
@@ -80,7 +80,7 @@ function constructMethod(functionSource) {
     }
     return method;
 }
-function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool) {
+function reconstructStatic(behaviourObject, staticProperties, environment) {
     staticProperties.forEach((propertyArray) => {
         var className = propertyArray[0];
         var stub = {};
@@ -88,7 +88,7 @@ function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePo
         var methods = propertyArray[2];
         vars.forEach((varPair) => {
             var key = varPair[0];
-            var val = deserialise(thisRef, varPair[1], promisePool, commMedium, objectPool, gspInstance, signalPool);
+            var val = deserialise(varPair[1], environment);
             stub[key] = val;
         });
         methods.forEach((methodPair) => {
@@ -105,14 +105,14 @@ function reconstructStatic(behaviourObject, staticProperties, thisRef, promisePo
     });
 }
 exports.reconstructStatic = reconstructStatic;
-function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool) {
+function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, receiverId, environment) {
     var properties = Reflect.ownKeys(object);
     var localAccumVars = [];
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
         if (typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val)) {
-            var serialisedval = serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
+            var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
     }
@@ -133,14 +133,14 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, thi
         }
         localAccumMethods.unshift(currentLevel + 1);
         accumMethods.push(localAccumMethods);
-        return deconstructBehaviour(proto, currentLevel + 1, accumVars, accumMethods, thisRef, receiverId, commMedium, promisePool, objectPool);
+        return deconstructBehaviour(proto, currentLevel + 1, accumVars, accumMethods, receiverId, environment);
     }
     else {
         return [accumVars, accumMethods];
     }
 }
 exports.deconstructBehaviour = deconstructBehaviour;
-function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool) {
+function reconstructBehaviour(baseObject, variables, methods, environment) {
     var amountOfProtos = methods.length;
     for (var i = 0; i < amountOfProtos; i++) {
         var copy = baseObject.__proto__;
@@ -154,7 +154,7 @@ function reconstructBehaviour(baseObject, variables, methods, thisRef, promisePo
         levelVariables.forEach((varEntry) => {
             var key = varEntry[0];
             var rawVal = varEntry[1];
-            var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool, gspInstance, signalPool);
+            var val = deserialise(rawVal, environment);
             installIn[key] = val;
         });
     });
@@ -177,11 +177,11 @@ function getProtoForLevel(level, object) {
     }
     return ret;
 }
-function reconstructObject(baseObject, variables, methods, thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool) {
+function reconstructObject(baseObject, variables, methods, environment) {
     variables.forEach((varEntry) => {
         var key = varEntry[0];
         var rawVal = varEntry[1];
-        var val = deserialise(thisRef, rawVal, promisePool, commMedium, objectPool, gspInstance, signalPool);
+        var val = deserialise(rawVal, environment);
         baseObject[key] = val;
     });
     methods.forEach((methodEntry) => {
@@ -290,7 +290,7 @@ class ArrayIsolateContainer extends ValueContainer {
 ArrayIsolateContainer.checkArrayIsolateFuncKey = "_INSTANCEOF_ARRAY_ISOLATE_";
 exports.ArrayIsolateContainer = ArrayIsolateContainer;
 class RepliqContainer extends ValueContainer {
-    constructor(primitiveFields, objectFields, innerRepFields, methods, atomicMethods, repliqId, masterOwnerId, isClient, ownerAddress, ownerPort, innerName = "") {
+    constructor(primitiveFields, objectFields, innerRepFields, methods, atomicMethods, repliqId, masterOwnerId, isClient, ownerAddress, ownerPort, lastConfirmedRound, innerName = "") {
         super(ValueContainer.repliqType);
         this.primitiveFields = primitiveFields;
         this.objectFields = objectFields;
@@ -303,6 +303,7 @@ class RepliqContainer extends ValueContainer {
         this.isClient = isClient;
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
+        this.lastConfirmedRound = lastConfirmedRound;
     }
 }
 RepliqContainer.checkRepliqFuncKey = "_INSTANCEOF_REPLIQ_";
@@ -366,15 +367,15 @@ function isRepliqClass(func) {
 function isSignalClass(func) {
     return (func.toString().search(/extends.*?Signal/) != -1);
 }
-function serialisePromise(promise, thisRef, receiverId, commMedium, promisePool, objectPool) {
-    var wrapper = promisePool.newPromise();
+function serialisePromise(promise, receiverId, enviroment) {
+    var wrapper = enviroment.promisePool.newPromise();
     promise.then((val) => {
-        commMedium.sendMessage(receiverId, new messages_1.ResolvePromiseMessage(thisRef, wrapper.promiseId, serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool), true));
+        enviroment.commMedium.sendMessage(receiverId, new messages_1.ResolvePromiseMessage(enviroment.thisRef, wrapper.promiseId, serialise(val, receiverId, enviroment), true));
     });
     promise.catch((reason) => {
-        commMedium.sendMessage(receiverId, new messages_1.RejectPromiseMessage(thisRef, wrapper.promiseId, serialise(reason, thisRef, receiverId, commMedium, promisePool, objectPool), true));
+        enviroment.commMedium.sendMessage(receiverId, new messages_1.RejectPromiseMessage(enviroment.thisRef, wrapper.promiseId, serialise(reason, receiverId, enviroment), true));
     });
-    return new PromiseContainer(wrapper.promiseId, thisRef.ownerId);
+    return new PromiseContainer(wrapper.promiseId, enviroment.thisRef.ownerId);
 }
 function serialiseObject(object, thisRef, objectPool) {
     var oId = objectPool.allocateObject(object);
@@ -386,7 +387,7 @@ function serialiseObject(object, thisRef, objectPool) {
         return new ClientFarRefContainer(oId, clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
     }
 }
-function serialiseRepliqFields(fields, thisRef, receiverId, commMedium, promisePool, objectPool) {
+function serialiseRepliqFields(fields, receiverId, environment) {
     let primitives = [];
     let objects = [];
     let innerReps = [];
@@ -408,12 +409,12 @@ function serialiseRepliqFields(fields, thisRef, receiverId, commMedium, promiseP
                 tentMethods = getObjectMethods(field.tentative);
                 commMethods = getObjectMethods(field.commited);
             }
-            let tentative = JSON.stringify([JSON.stringify(getObjectVars(field.tentative, thisRef, receiverId, commMedium, promisePool, objectPool)), JSON.stringify(tentMethods)]);
-            let commited = JSON.stringify([JSON.stringify(getObjectVars(field.commited, thisRef, receiverId, commMedium, promisePool, objectPool)), JSON.stringify(commMethods)]);
+            let tentative = JSON.stringify([JSON.stringify(getObjectVars(field.tentative, receiverId, environment)), JSON.stringify(tentMethods)]);
+            let commited = JSON.stringify([JSON.stringify(getObjectVars(field.commited, receiverId, environment)), JSON.stringify(commMethods)]);
             objects.push(new RepliqFieldContainer(fieldName, tentative, commited, field.read.toString(), field.writeField.toString(), field.resetToCommit.toString(), field.commit.toString(), field.update.toString()));
         }
         else if (repliqField[RepliqContainer.checkRepliqFuncKey]) {
-            innerReps.push(serialiseRepliq(repliqField, thisRef, receiverId, commMedium, promisePool, objectPool, fieldName));
+            innerReps.push(serialiseRepliq(repliqField, receiverId, environment, fieldName));
         }
         else {
             throw new Error("Unknown Repliq field type in serialisation");
@@ -421,9 +422,9 @@ function serialiseRepliqFields(fields, thisRef, receiverId, commMedium, promiseP
     });
     return ret;
 }
-function serialiseRepliq(repliqProxy, thisRef, receiverId, commMedium, promisePool, objectPool, innerName = "") {
+function serialiseRepliq(repliqProxy, receiverId, environment, innerName = "") {
     let fields = repliqProxy[Repliq_1.Repliq.getRepliqFields];
-    let fieldsArr = serialiseRepliqFields(fields, thisRef, receiverId, commMedium, promisePool, objectPool);
+    let fieldsArr = serialiseRepliqFields(fields, receiverId, environment);
     let primitiveFields = fieldsArr[0];
     let objectFields = fieldsArr[1];
     let innerReps = fieldsArr[2];
@@ -443,25 +444,41 @@ function serialiseRepliq(repliqProxy, thisRef, receiverId, commMedium, promisePo
     let isClient = repliqProxy[Repliq_1.Repliq.isClientMaster];
     let ownerAddress = repliqProxy[Repliq_1.Repliq.getRepliqOwnerAddress];
     let ownerPort = repliqProxy[Repliq_1.Repliq.getRepliqOwnerPort];
-    let ret = new RepliqContainer(JSON.stringify(primitiveFields), JSON.stringify(objectFields), JSON.stringify(innerReps), JSON.stringify(methodArr), JSON.stringify(atomicArr), repliqId, repliqOwnerId, isClient, ownerAddress, ownerPort, innerName);
-    //This actor is the first to serialise this Repliq, set the address and port to this actor
-    if (thisRef instanceof farRef_1.ServerFarReference && ret.ownerAddress == null) {
-        ret.ownerAddress = thisRef.ownerAddress;
-        ret.ownerPort = thisRef.ownerPort;
-        ret.isClient = false;
+    let roundNr;
+    //Possible that repliq has not yet been modified at serialisation time
+    if (environment.gspInstance.roundNumbers.has(repliqId)) {
+        roundNr = environment.gspInstance.roundNumbers.get(repliqId);
     }
     else {
-        //TODO
+        roundNr = 0;
+    }
+    let ret = new RepliqContainer(JSON.stringify(primitiveFields), JSON.stringify(objectFields), JSON.stringify(innerReps), JSON.stringify(methodArr), JSON.stringify(atomicArr), repliqId, repliqOwnerId, isClient, ownerAddress, ownerPort, roundNr, innerName);
+    if (environment.thisRef instanceof farRef_1.ServerFarReference) {
+        if (ret.isClient) {
+            environment.gspInstance.addForward(ret.repliqId, ret.masterOwnerId);
+            ret.masterOwnerId = environment.thisRef.ownerId;
+            ret.ownerAddress = environment.thisRef.ownerAddress;
+            ret.ownerPort = environment.thisRef.ownerPort;
+            ret.isClient = false;
+        }
+        else if (ret.ownerAddress == null) {
+            ret.ownerAddress = environment.thisRef.ownerAddress;
+            ret.ownerPort = environment.thisRef.ownerPort;
+            ret.isClient = false;
+        }
+    }
+    else {
+        ret.isClient = true;
     }
     return ret;
 }
-function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPool) {
+function serialise(value, receiverId, environment) {
     if (typeof value == 'object') {
         if (value == null) {
             return new NativeContainer(null);
         }
         else if (value instanceof Promise) {
-            return serialisePromise(value, thisRef, receiverId, commMedium, promisePool, objectPool);
+            return serialisePromise(value, receiverId, environment);
         }
         else if (value instanceof Error) {
             return new ErrorContainer(value);
@@ -472,9 +489,9 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         }
         else if (value[farRef_1.FarReference.ClientProxyTypeKey]) {
             let farRef = value[farRef_1.FarReference.farRefAccessorKey];
-            if (thisRef instanceof farRef_1.ServerFarReference && farRef.contactId == null) {
+            if (environment.thisRef instanceof farRef_1.ServerFarReference && farRef.contactId == null) {
                 //Current actor is a server and is the first to obtain a reference to this client actor. conversation with this client should now be rooted through this actor given that it has a socket reference to it
-                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, environment.thisRef.ownerId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort);
             }
             else {
                 return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
@@ -485,17 +502,17 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
         }
         else if (value instanceof Array) {
             var values = value.map((val) => {
-                return serialise(val, thisRef, receiverId, commMedium, promisePool, objectPool);
+                return serialise(val, receiverId, environment);
             });
             return new ArrayContainer(values);
         }
         else if (value[IsolateContainer.checkIsolateFuncKey]) {
-            var vars = getObjectVars(value, thisRef, receiverId, commMedium, promisePool, objectPool);
+            var vars = getObjectVars(value, receiverId, environment);
             var methods = getObjectMethods(value);
             return new IsolateContainer(JSON.stringify(vars), JSON.stringify(methods));
         }
         else if (value[RepliqContainer.checkRepliqFuncKey]) {
-            return serialiseRepliq(value, thisRef, receiverId, commMedium, promisePool, objectPool);
+            return serialiseRepliq(value, receiverId, environment);
         }
         else if (value[SignalContainer.checkSignalFuncKey]) {
             let sig = (value.holder);
@@ -503,7 +520,7 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
                 let isValueObject = sig.value instanceof signal_1.SignalObject;
                 let val;
                 if (isValueObject) {
-                    let vars = getObjectVars(sig.value, thisRef, receiverId, commMedium, promisePool, objectPool, ["holder"]);
+                    let vars = getObjectVars(sig.value, receiverId, environment, ["holder"]);
                     let methods = getObjectMethods(sig.value);
                     //No need to keep track of which methods are mutators during serialisation. Only owner can mutate and change/propagate!
                     methods.forEach((methodArr, index) => {
@@ -520,20 +537,20 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
                     //Only way that value isn't an object is if it is the result of a lifted function
                     val = sig.value.lastVal;
                 }
-                return new SignalContainer(sig.id, isValueObject, val, sig.rateLowerBound, sig.rateUpperBound, sig.clock, sig.tempStrong, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+                return new SignalContainer(sig.id, isValueObject, val, sig.rateLowerBound, sig.rateUpperBound, sig.clock, sig.tempStrong, environment.thisRef.ownerId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort);
             }
             else {
                 throw new Error("Serialisation of signals part of garbage dependency graph dissalowed ");
             }
         }
         else {
-            return serialiseObject(value, thisRef, objectPool);
+            return serialiseObject(value, environment.thisRef, environment.objectPool);
         }
     }
     else if (typeof value == 'function') {
         //Value is actualy not a function but the result of a field access on a proxy (which is technically a function, see farRef)
         if (value[farRef_1.FarReference.proxyWrapperAccessorKey]) {
-            return serialisePromise(value, thisRef, receiverId, commMedium, promisePool, objectPool);
+            return serialisePromise(value, receiverId, environment);
         }
         else if (isClass(value) && isIsolateClass(value)) {
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
@@ -559,32 +576,32 @@ function serialise(value, thisRef, receiverId, commMedium, promisePool, objectPo
     }
 }
 exports.serialise = serialise;
-function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspInstance, signalPool) {
+function deserialise(value, enviroment) {
     function deSerialisePromise(promiseContainer) {
-        return promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
+        return enviroment.promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
     }
     function deSerialiseServerFarRef(farRefContainer) {
-        var farRef = new farRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, thisRef, commMedium, promisePool, objectPool);
-        if (thisRef instanceof farRef_1.ServerFarReference) {
-            if (!(commMedium.hasConnection(farRef.ownerId))) {
-                commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
+        var farRef = new farRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, enviroment);
+        if (enviroment.thisRef instanceof farRef_1.ServerFarReference) {
+            if (!(enviroment.commMedium.hasConnection(farRef.ownerId))) {
+                enviroment.commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
             }
         }
         else {
-            if (!(commMedium.hasConnection(farRef.ownerId))) {
-                commMedium.connectTransientRemote(thisRef, farRef, promisePool);
+            if (!(enviroment.commMedium.hasConnection(farRef.ownerId))) {
+                enviroment.commMedium.connectTransientRemote(enviroment.thisRef, farRef, enviroment.promisePool);
             }
         }
         return farRef.proxyify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
         var farRef;
-        if ((thisRef instanceof farRef_1.ServerFarReference) && farRefContainer.contactId == null) {
+        if ((enviroment.thisRef instanceof farRef_1.ServerFarReference) && farRefContainer.contactId == null) {
             //This is the first server side actor to come into contact with this client-side far reference and will henceforth be the contact point for all messages sent to this far reference
-            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, enviroment.thisRef.ownerId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort);
         }
         else {
-            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
         return farRef.proxyify();
     }
@@ -596,12 +613,12 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
     }
     function deSerialiseArray(arrayContainer) {
         var deserialised = arrayContainer.values.map((valCont) => {
-            return deserialise(thisRef, valCont, promisePool, commMedium, objectPool, gspInstance, signalPool);
+            return deserialise(valCont, enviroment);
         });
         return deserialised;
     }
     function deSerialiseIsolate(isolateContainer) {
-        var isolate = reconstructObject(new spiders_1.Isolate(), JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
+        var isolate = reconstructObject(new spiders_1.Isolate(), JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), enviroment);
         return isolate;
     }
     function deSerialiseIsolateDefinition(isolateDefContainer) {
@@ -632,8 +649,8 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             Reflect.setPrototypeOf(tentBase, {});
             let comBase = {};
             Reflect.setPrototypeOf(comBase, {});
-            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
-            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
+            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), enviroment);
+            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), enviroment);
             let field = new RepliqObjectField_1.RepliqObjectField(repliqField.name, {});
             field.tentative = tentative;
             field.commited = commited;
@@ -645,7 +662,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
             fields.set(field.name, field);
         });
         (JSON.parse(repliqContainer.innerRepFields)).forEach((innerRepliq) => {
-            fields.set(innerRepliq.innerName, deserialise(thisRef, innerRepliq, promisePool, commMedium, objectPool, gspInstance, signalPool));
+            fields.set(innerRepliq.innerName, deserialise(innerRepliq, enviroment));
         });
         let methods = new Map();
         (JSON.parse(repliqContainer.methods)).forEach(([methodName, methodSource]) => {
@@ -655,15 +672,10 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName, methodSource]) => {
             atomicMethods.set(methodName, constructMethod(methodSource));
         });
-        if (repliqContainer.isClient) {
-            //TODO
+        if (!repliqContainer.isClient && !enviroment.commMedium.hasConnection(repliqContainer.masterOwnerId)) {
+            enviroment.commMedium.openConnection(repliqContainer.masterOwnerId, repliqContainer.ownerAddress, repliqContainer.ownerPort);
         }
-        else {
-            if (!commMedium.hasConnection(repliqContainer.masterOwnerId)) {
-                commMedium.openConnection(repliqContainer.masterOwnerId, repliqContainer.ownerAddress, repliqContainer.ownerPort);
-            }
-        }
-        return blankRepliq.reconstruct(gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods, repliqContainer.isClient, repliqContainer.ownerAddress, repliqContainer.ownerPort);
+        return blankRepliq.reconstruct(enviroment.gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods, repliqContainer.isClient, repliqContainer.ownerAddress, repliqContainer.ownerPort, repliqContainer.lastConfirmedRound);
     }
     function deSerialiseRepliqDefinition(def) {
         let index = def.definition.indexOf("{");
@@ -674,14 +686,14 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         return classObj;
     }
     function deSerialiseSignal(sigContainer) {
-        if (!commMedium.hasConnection(sigContainer.ownerId)) {
-            commMedium.openConnection(sigContainer.ownerId, sigContainer.ownerAddress, sigContainer.ownerPort);
+        if (!enviroment.commMedium.hasConnection(sigContainer.ownerId)) {
+            enviroment.commMedium.openConnection(sigContainer.ownerId, sigContainer.ownerAddress, sigContainer.ownerPort);
         }
         let signalId = sigContainer.id;
         let currentVal;
         if (sigContainer.obectValue) {
             let infoArr = sigContainer.currentValue;
-            currentVal = reconstructObject(new signal_1.SignalObject(), JSON.parse(infoArr[0]), JSON.parse(infoArr[1]), thisRef, promisePool, commMedium, objectPool, gspInstance, signalPool);
+            currentVal = reconstructObject(new signal_1.SignalObject(), JSON.parse(infoArr[0]), JSON.parse(infoArr[1]), enviroment);
         }
         else {
             let dummyFunc = new signal_1.SignalFunction(() => { });
@@ -695,10 +707,11 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         signalProxy.id = signalId;
         signalProxy.value.setHolder(signalProxy);
         signalProxy.strong = sigContainer.strong;
-        let known = signalPool.knownSignal(signalId);
+        signalProxy.tempStrong = sigContainer.strong;
+        let known = enviroment.signalPool.knownSignal(signalId);
         if (!known) {
-            signalPool.newSource(signalProxy);
-            commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(thisRef, thisRef.ownerId, signalId, thisRef.ownerAddress, thisRef.ownerPort));
+            enviroment.signalPool.newSource(signalProxy);
+            enviroment.commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(enviroment.thisRef, enviroment.thisRef.ownerId, signalId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort));
         }
         return signalProxy.value;
     }

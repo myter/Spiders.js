@@ -14,7 +14,9 @@
     "benchmarks/**/*",
     "examples/**/*",
     "server-tests/**/*",
+    "PerformanceTest(temp)/**/*",
     "ReactiveMicroserviceExample/**/*",
+    "FullRepTest/**/*",
     "typings/**/*" // <-- don't forget this line!
   ],
   "exclude": [
