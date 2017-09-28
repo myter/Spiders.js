@@ -111,7 +111,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if (typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val)) {
+        if (typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val) || isSignalClass(val)) {
             var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
@@ -349,9 +349,10 @@ class SignalContainer extends ValueContainer {
 SignalContainer.checkSignalFuncKey = "_INSTANCEOF_Signal_";
 exports.SignalContainer = SignalContainer;
 class SignalDefinitionContainer extends ValueContainer {
-    constructor(definition) {
+    constructor(definition, mutators) {
         super(ValueContainer.signalDefinition);
         this.definition = definition;
+        this.mutators = mutators;
     }
 }
 exports.SignalDefinitionContainer = SignalDefinitionContainer;
@@ -557,12 +558,23 @@ function serialise(value, receiverId, environment) {
             return new IsolateDefinitionContainer(definition.replace("super()", ''));
         }
         else if (isClass(value) && isRepliqClass(value)) {
+            //TODO might need to extract annotations in same way that is done for signals
             var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
             return new RepliqDefinitionContainer(definition);
         }
         else if (isClass(value) && isSignalClass(value)) {
-            var definition = value.toString.replace(/(\extends)(.*?)(?=\{)/, '');
-            return new SignalDefinitionContainer(definition);
+            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
+            let mutators = [];
+            //Need to find out which of the definition's methods are mutating. Can only do this on an instantiated object
+            let dummy = new value();
+            let methodKeys = Reflect.ownKeys(Object.getPrototypeOf(dummy));
+            methodKeys.forEach((methodName) => {
+                var property = Reflect.get(Object.getPrototypeOf(dummy), methodName);
+                if (property[signal_1.SignalValue.IS_MUTATOR]) {
+                    mutators.push(methodName);
+                }
+            });
+            return new SignalDefinitionContainer(definition, mutators);
         }
         else if (isClass(value)) {
             throw new Error("Serialisation of classes disallowed");
@@ -719,7 +731,12 @@ function deserialise(value, enviroment) {
         let index = def.definition.indexOf("{");
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
+        let Signal = require("./Reactivivity/signal").SignalObject;
         var classObj = eval(start + " extends Signal" + stop);
+        //TODO will need to store in some registry that certain methods of this class of signals are mutators (unable to change the definition with an annotation at this point)
+        for (var i in Reflect.getPrototypeOf(classObj)) {
+            console.log(i);
+        }
         return classObj;
     }
     switch (value.type) {
