@@ -6,26 +6,35 @@
 
 
 import {SpiderLib} from "../src/spiders";
-import Base = Mocha.reporters.Base;
-import {PubSubLib} from "../src/PubSub/PubSub";
 
 /**
  * Created by flo on 20/03/2017.
  */
-var assert                      = require('assert')
 var chai                        = require('chai')
 var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
-var ps      : PubSubLib         = require("../src/PubSub/PubSub")
+
+class TestServer extends spider.Application{
+    constructor(){
+        super()
+        this.PSServer()
+    }
+}
 
 describe("Publish Subscribe Functionality",() => {
     it("Each",function(done){
-        let server = new ps.PubSubServer()
-        class TestClient extends ps.PubSubClient{
+        let server = new TestServer()
+        class TestClient extends spider.Actor{
             testTag
-            constructor(){
+
+            /*constructor(){
                 super()
                 this.testTag = new ps.PubSubTag("test")
+            }*/
+
+            init(){
+                this.testTag = this.newPSTag("test")
+                this.PSClient()
             }
             pub(){
                 this.publish(5,this.testTag)
@@ -60,13 +69,14 @@ describe("Publish Subscribe Functionality",() => {
 
     it("All",function(done){
         this.timeout(4000)
-        let server = new ps.PubSubServer()
-        class TestClient extends ps.PubSubClient{
+        let server = new TestServer()
+        class TestClient extends spider.Actor{
             testTag
             subscription
-            constructor(){
-                super()
-                this.testTag = new ps.PubSubTag("test")
+
+            init(){
+                this.PSClient()
+                this.testTag = this.newPSTag("test")
             }
             pub(v){
                 this.publish(v,this.testTag)
@@ -102,12 +112,13 @@ describe("Publish Subscribe Functionality",() => {
 
 describe("Publish Objects",()=>{
     it("Far ref",function(done){
-        let server = new ps.PubSubServer()
-        class TestClient extends ps.PubSubClient{
+        let server = new TestServer()
+        class TestClient extends spider.Actor{
             testTag
-            constructor(){
-                super()
-                this.testTag = new ps.PubSubTag("test")
+
+            init(){
+                this.PSClient()
+                this.testTag = this.newPSTag("test")
             }
             pub(){
                 this.publish({x: 5},this.testTag)
@@ -143,7 +154,7 @@ describe("Publish Objects",()=>{
     })
 
     it("Isolate",function(done) {
-        let server = new ps.PubSubServer()
+        let server = new TestServer()
         class TestIsolate extends spider.Isolate {
             val
 
@@ -152,14 +163,18 @@ describe("Publish Objects",()=>{
                 this.val = v
             }
         }
-        class TestClient extends ps.PubSubClient {
+        class TestClient extends spider.Actor {
             testTag
             TestIsolate
 
             constructor() {
                 super()
-                this.testTag = new ps.PubSubTag("test")
                 this.TestIsolate = TestIsolate
+            }
+
+            init(){
+                this.PSClient()
+                this.testTag = this.newPSTag("test")
             }
 
             pub() {
@@ -195,7 +210,7 @@ describe("Publish Objects",()=>{
 
         it("Replica",function(done){
             this.timeout(10000)
-            let server = new ps.PubSubServer()
+            let server = new TestServer()
             class TestReplica extends spider.Repliq{
                 val
                 constructor(){
@@ -208,14 +223,17 @@ describe("Publish Objects",()=>{
                 }
 
             }
-            class TestClient extends ps.PubSubClient{
+            class TestClient extends spider.Actor{
                 testTag
                 TestReplica
                 myReplica
                 constructor(){
                     super()
-                    this.testTag = new ps.PubSubTag("test")
                     this.TestReplica = TestReplica
+                }
+                init(){
+                    this.PSClient()
+                    this.testTag = this.newPSTag("test")
                 }
                 pub(){
                     this.myReplica = this.newRepliq(this.TestReplica)

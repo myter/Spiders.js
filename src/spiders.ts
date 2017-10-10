@@ -18,6 +18,8 @@ import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
 import {ActorEnvironment} from "./ActorEnvironment";
+import {PubSubTag} from "./PubSub/SubTag";
+import {Subscription} from "./PubSub/SubClient";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -68,7 +70,15 @@ abstract class Actor{
     Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
     remote          : (string,number)=> Promise<FarRef>
+    //Pub-sub
+    PSClient        : (string?,number?) => null
+    PSServer        : (string?,number?) => null
+    publish         : (Object,PubSubTag) => null
+    subscribe       : (PubSubTag) => Subscription
+    newPSTag        : (string) => PubSubTag
+    //Replication
     newRepliq       : (RepliqClass,... any) => Object
+    //Reactivity
     newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
     lift            : Function
     liftStrong      : Function
@@ -247,7 +257,15 @@ interface AppType {
     Isolate             : IsolateClass
     ArrayIsolate        : ArrayIsolateClass
     remote              : (string,number)=> Promise<FarRef>
+    //Pub-sub
+    PSClient            : (string?,number?) => null
+    PSServer            : (string?,number?) => null
+    publish             : (Object,PubSubTag) => null
+    subscribe           : (PubSubTag) => Subscription
+    newPSTag            : (string)=>PubSubTag
+    //Replication
     newRepliq           : (RepliqClass,... any) => Object
+    //Reactivity
     newSignal           : (signalClass : SignalObjectClass,... any) => Signal
     lift                : Function
     liftStrong          : Function

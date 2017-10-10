@@ -13,6 +13,16 @@ class SignalPool {
         this.garbageDependencies = new Map();
         this.sources = new Map();
         this.garbageCollected = new Array();
+        this.mutators = new Map();
+    }
+    addMutator(className, methodName) {
+        if (!this.mutators.has(className)) {
+            this.mutators.set(className, []);
+        }
+        this.mutators.get(className).push(methodName);
+    }
+    isMutator(className, methodName) {
+        return this.mutators.has(className) && this.mutators.get(className).includes(methodName);
     }
     newSource(signal) {
         this.sources.set(signal.id, signal);
@@ -48,8 +58,6 @@ class SignalPool {
             }
         }, bound);
     }
-    //TODO first propagate garbage collection, then garbage collect the actual node
-    //TODO will need to garbage collect the "failure" dependency graph as well !
     //Recursively delete all children of the specified head node
     garbageCollect(headId) {
         //Node might have been removed by common ancestor

@@ -1,11 +1,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
+const serialisation_1 = require("../serialisation");
 /**
  * Created by flo on 22/03/2017.
  */
-var spiders = require("../spiders");
-class Subscription extends spiders.Isolate {
+class Subscription {
     constructor() {
-        super();
+        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.subArray = [];
         this.listeners = [];
         this.onceMode = false;
@@ -42,28 +42,23 @@ class Subscription extends spiders.Isolate {
     }
 }
 exports.Subscription = Subscription;
-class Publication extends spiders.Isolate {
+class Publication {
     constructor() {
-        super();
+        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
     }
     cancel() {
         //TODO, How can server identifiy which publiciation to withdraw ? Far ref equality will probably not work
     }
 }
 exports.Publication = Publication;
-class PubSubClient extends spiders.Actor {
-    constructor(serverAddress = "127.0.0.1", serverPort = 8000) {
-        super();
+class PSClient {
+    constructor(serverAddress = "127.0.0.1", serverPort = 8000, hostActor) {
         this.connected = false;
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
-        this.Subscription = Subscription;
-        this.Publication = Publication;
-    }
-    init() {
         var that = this;
         this.bufferedMessages = [];
-        this.remote(this.serverAddress, this.serverPort).then((serverRef) => {
+        hostActor.remote(this.serverAddress, this.serverPort).then((serverRef) => {
             that.serverRef = serverRef;
             that.connected = true;
             if (that.bufferedMessages.length > 0) {
@@ -94,7 +89,7 @@ class PubSubClient extends spiders.Actor {
                 this.serverRef.addSubscriber(typeTag, this);
             });
         }
-        let sub = new this.Subscription();
+        let sub = new Subscription();
         if (!this.subscriptions.has(typeTag.tagVal)) {
             this.subscriptions.set(typeTag.tagVal, []);
         }
@@ -108,5 +103,5 @@ class PubSubClient extends spiders.Actor {
         });
     }
 }
-exports.PubSubClient = PubSubClient;
+exports.PSClient = PSClient;
 //# sourceMappingURL=SubClient.js.map

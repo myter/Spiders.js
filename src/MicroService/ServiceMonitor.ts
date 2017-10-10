@@ -5,8 +5,7 @@ import {PubSubServer} from "../PubSub/SubServer";
  * Created by flo on 30/06/2017.
  */
 var spiders : SpiderLib = require("../spiders")
-export class ServiceMonitor extends PubSubServer{
-    gatewayRef
+export class ServiceMonitor extends spiders.Application{
     services    : Map<string,FarRef>
 
     logInfo(msg : string){
@@ -36,6 +35,7 @@ export class ServiceMonitor extends PubSubServer{
 
     constructor(){
         super()
+        this.PSServer()
         this.services   = new Map()
         var stdin       = (process as any).openStdin();
         var that        = this
@@ -74,6 +74,5 @@ export class ServiceMonitor extends PubSubServer{
                     console.log("Unknown command")
             }
         })
-        //this.gatewayRef = this.spawnActor(ServiceGateway)
     }
 }

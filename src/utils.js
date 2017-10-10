@@ -1,6 +1,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("./spiders");
 const signal_1 = require("./Reactivivity/signal");
+const SubClient_1 = require("./PubSub/SubClient");
+const SubTag_1 = require("./PubSub/SubTag");
+const SubServer_1 = require("./PubSub/SubServer");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -158,15 +161,38 @@ function installSTDLib(appActor, parentRef, behaviourObject, environment) {
     };
     behaviourObject["Isolate"] = spiders_1.Isolate;
     behaviourObject["ArrayIsolate"] = spiders_1.ArrayIsolate;
+    ///////////////////
+    //Pub/Sub       //
+    //////////////////
+    behaviourObject["PSClient"] = ((serverAddress = "127.0.0.1", serverPort = 8000) => {
+        let psClient = new SubClient_1.PSClient(serverAddress, serverPort, behaviourObject);
+        behaviourObject["publish"] = psClient.publish.bind(psClient);
+        behaviourObject["subscribe"] = psClient.subscribe.bind(psClient);
+        behaviourObject["newPublished"] = psClient.newPublished.bind(psClient);
+    });
+    behaviourObject["newPSTag"] = ((name) => {
+        return new SubTag_1.PubSubTag(name);
+    });
+    behaviourObject["PSServer"] = ((serverAddress = "127.0.0.1", serverPort = 8000) => {
+        let psServer = new SubServer_1.PSServer(serverAddress, serverPort);
+        behaviourObject["addPublish"] = psServer.addPublish.bind(psServer);
+        behaviourObject["addSubscriber"] = psServer.addSubscriber.bind(psServer);
+    });
+    ///////////////////
+    //Replication   //
+    //////////////////
     behaviourObject["newRepliq"] = ((repliqClass, ...args) => {
         let repliqOb = new repliqClass(...args);
         return repliqOb.instantiate(gspInstance, thisRef.ownerId);
     });
+    ///////////////////
+    //Reactivity   //
+    //////////////////
     behaviourObject["newSignal"] = (signalClass, ...args) => {
         let sigVal = new signalClass(...args);
         let signal = new signal_1.Signal(sigVal);
         sigVal.setHolder(signal);
-        sigVal.instantiateMeta();
+        sigVal.instantiateMeta(environment);
         signalPool.newSource(signal);
         return signal.value;
     };

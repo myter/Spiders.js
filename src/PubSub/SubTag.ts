@@ -1,14 +1,15 @@
 import {SpiderLib} from "../spiders";
+import {IsolateContainer} from "../serialisation";
 /**
  * Created by flo on 22/03/2017.
  */
 var spiders : SpiderLib = require("../spiders")
 
-export class PubSubTag extends spiders.Isolate{
+export class PubSubTag{
     tagVal : string
 
     constructor(tagVal : string){
-        super()
+        this[IsolateContainer.checkIsolateFuncKey] = true
         this.tagVal = tagVal
     }
 

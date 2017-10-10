@@ -18,6 +18,8 @@ export class SignalPool{
     environment         : ActorEnvironment
     //Keep track of garbage collected nodes (to
     garbageCollected    : Array<string>
+    //Keep track of mutating methods for each class of signal
+    mutators            : Map<string,Array<string>>
 
     constructor(environment : ActorEnvironment){
         this.environment            = environment
@@ -26,6 +28,18 @@ export class SignalPool{
         this.garbageDependencies    = new Map()
         this.sources                = new Map()
         this.garbageCollected       = new Array()
+        this.mutators               = new Map()
+    }
+
+    addMutator(className : string, methodName : string){
+        if(!this.mutators.has(className)){
+            this.mutators.set(className,[])
+        }
+        this.mutators.get(className).push(methodName)
+    }
+
+    isMutator(className : string, methodName : string){
+        return this.mutators.has(className) && (this.mutators.get(className) as any).includes(methodName)
     }
 
     newSource(signal : Signal){
@@ -66,8 +80,7 @@ export class SignalPool{
         },bound)
     }
 
-    //TODO first propagate garbage collection, then garbage collect the actual node
-    //TODO will need to garbage collect the "failure" dependency graph as well !
+
     //Recursively delete all children of the specified head node
     garbageCollect(headId : string){
         //Node might have been removed by common ancestor

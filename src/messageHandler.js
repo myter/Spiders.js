@@ -181,11 +181,11 @@ class MessageHandler {
         if (!commMedium.hasConnection(msg.requesterId)) {
             commMedium.openConnection(msg.requesterId, msg.requesterAddress, msg.requesterPort);
         }
-        //console.log("External listener added for actor: "  + msg.requesterId + " in " + this.thisRef.ownerId + " signal: " + msg.signalId)
+        //console.log("External listener added for signal: " + msg.signalId + " from : " + msg.requesterId)
         this.environment.signalPool.registerExternalListener(msg.signalId, msg.requesterId);
     }
     handleExternalSignalChange(msg) {
-        //console.log("External signal changed in: " + this.thisRef.ownerId + " signal: " + msg.signalId)
+        //console.log("External signal changed received")
         let newVal = serialisation_1.deserialise(msg.newVal, this.environment);
         this.environment.signalPool.sourceChanged(msg.signalId, newVal);
     }

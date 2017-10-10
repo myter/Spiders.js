@@ -1,12 +1,11 @@
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
-import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
-import {CommMedium} from "./commMedium";
-import {PromisePool} from "./PromisePool";
+import {FarReference} from "./farRef";
 import {Isolate, ArrayIsolate, SignalObjectClass} from "./spiders";
-import {GSP} from "./Replication/GSP";
-import {lift, liftGarbage, Signal, SignalDependency, SignalValue, weak} from "./Reactivivity/signal";
-import {SignalPool} from "./Reactivivity/signalPool";
+import {lift, liftGarbage, Signal, SignalDependency, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
+import {PSClient} from "./PubSub/SubClient";
+import {PubSubTag} from "./PubSub/SubTag";
+import {PSServer} from "./PubSub/SubServer";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -173,15 +172,46 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
     }
     behaviourObject["Isolate"]      = Isolate
     behaviourObject["ArrayIsolate"] = ArrayIsolate
+
+    ///////////////////
+    //Pub/Sub       //
+    //////////////////
+
+    behaviourObject["PSClient"]     = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
+        let psClient                    = new PSClient(serverAddress,serverPort,behaviourObject)
+        behaviourObject["publish"]      = psClient.publish.bind(psClient)
+        behaviourObject["subscribe"]    = psClient.subscribe.bind(psClient)
+        behaviourObject["newPublished"] = psClient.newPublished.bind(psClient)
+    })
+
+    behaviourObject["newPSTag"]     = ((name : string)=>{
+        return new PubSubTag(name)
+    })
+
+    behaviourObject["PSServer"]     = ((serverAddress = "127.0.0.1",serverPort = 8000)=>{
+        let psServer                        = new PSServer(serverAddress,serverPort)
+        behaviourObject["addPublish"]       = psServer.addPublish.bind(psServer)
+        behaviourObject["addSubscriber"]    = psServer.addSubscriber.bind(psServer)
+    })
+
+    ///////////////////
+    //Replication   //
+    //////////////////
+
     behaviourObject["newRepliq"]    = ((repliqClass,...args)=>{
         let repliqOb = new repliqClass(...args)
         return repliqOb.instantiate(gspInstance,thisRef.ownerId)
     })
+
+    ///////////////////
+    //Reactivity   //
+    //////////////////
+
     behaviourObject["newSignal"]    = (signalClass : SignalObjectClass,...args) =>{
         let sigVal = new signalClass(...args)
         let signal = new Signal(sigVal)
         sigVal.setHolder(signal)
-        sigVal.instantiateMeta()
+        sigVal.instantiateMeta(environment)
         signalPool.newSource(signal)
         return signal.value
     }

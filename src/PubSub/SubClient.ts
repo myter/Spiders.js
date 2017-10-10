@@ -1,18 +1,18 @@
-import {SpiderLib,FarRef} from "../spiders";
+import {FarRef, Isolate} from "../spiders";
 import {PubSubTag} from "./SubTag";
+import {IsolateContainer} from "../serialisation";
 /**
  * Created by flo on 22/03/2017.
  */
-var spiders : SpiderLib = require("../spiders")
 
-export class Subscription extends spiders.Isolate{
+export class Subscription{
     private subArray    : Array<any>
     private listeners   : Array<(any)=> any>
     private onceMode    : boolean
     private discovered  : number
 
     constructor(){
-        super()
+        this[IsolateContainer.checkIsolateFuncKey] = true
         this.subArray   = []
         this.listeners  = []
         this.onceMode   = false
@@ -55,10 +55,10 @@ export class Subscription extends spiders.Isolate{
     }
 }
 
-export class Publication extends spiders.Isolate{
+export class Publication{
 
     constructor(){
-        super()
+        this[IsolateContainer.checkIsolateFuncKey] = true
     }
 
     cancel(){
@@ -66,28 +66,20 @@ export class Publication extends spiders.Isolate{
     }
 }
 
-export class PubSubClient extends spiders.Actor{
-    protected Subscription
-    private Publication
+export class PSClient{
     private connected           : boolean = false
     private serverAddress       : string
     private serverPort          : number
     private serverRef           : FarRef
     private bufferedMessages    : Array<Function>
-    protected subscriptions       : Map<string,Array<Subscription>>
+    protected subscriptions     : Map<string,Array<Subscription>>
 
-    constructor(serverAddress : string = "127.0.0.1",serverPort : number = 8000){
-        super()
+    constructor(serverAddress : string = "127.0.0.1",serverPort : number = 8000,hostActor){
         this.serverAddress  = serverAddress
         this.serverPort     = serverPort
-        this.Subscription   = Subscription
-        this.Publication    = Publication
-    }
-
-    init(){
         var that                = this
         this.bufferedMessages   = []
-        this.remote(this.serverAddress,this.serverPort).then((serverRef : FarRef)=>{
+        hostActor.remote(this.serverAddress,this.serverPort).then((serverRef : FarRef)=>{
             that.serverRef = serverRef
             that.connected = true
             if(that.bufferedMessages.length > 0){
@@ -120,7 +112,7 @@ export class PubSubClient extends spiders.Actor{
                 this.serverRef.addSubscriber(typeTag,this)
             })
         }
-        let sub = new this.Subscription()
+        let sub = new Subscription()
         if(!this.subscriptions.has(typeTag.tagVal)){
             this.subscriptions.set(typeTag.tagVal,[])
         }

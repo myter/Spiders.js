@@ -30,6 +30,7 @@ class SignalValue {
 }
 SignalValue.IS_MUTATOR = "_IS_MUTATOR_";
 SignalValue.GET_ORIGINAL = "_GET_ORIGINAL_";
+SignalValue.IS_WRAPPED = "_IS_WRAPPED_";
 SignalValue.LOWER_BOUND = "_LOWER_BOUND_";
 SignalValue.UPPER_BOUND = "_UPPER_BOUND_";
 SignalValue.WEAK_ANN = "_WEAK_ANN_";
@@ -67,18 +68,33 @@ function strong(constructor) {
 }
 exports.strong = strong;
 class SignalObject extends SignalValue {
-    instantiateMeta() {
+    instantiateMeta(environment) {
         let methodKeys = Reflect.ownKeys(Object.getPrototypeOf(this));
         methodKeys.forEach((methodName) => {
             var property = Reflect.get(Object.getPrototypeOf(this), methodName);
-            if (property[SignalValue.IS_MUTATOR]) {
-                let wrapped = (...args) => {
-                    property.apply(this, args, this);
-                    this.holder.change();
-                };
-                wrapped[SignalValue.IS_MUTATOR] = true;
-                wrapped[SignalValue.GET_ORIGINAL] = property;
-                Object.getPrototypeOf(this)[methodName] = wrapped;
+            if (property[SignalValue.IS_MUTATOR] || environment.signalPool.isMutator(this.constructor.name.toString(), methodName.toString())) {
+                if (!property[SignalValue.IS_WRAPPED]) {
+                    let wrapped = (...args) => {
+                        property.apply(this, args, this);
+                        this.holder.change();
+                    };
+                    wrapped[SignalValue.IS_MUTATOR] = true;
+                    wrapped[SignalValue.GET_ORIGINAL] = property;
+                    wrapped[SignalValue.IS_WRAPPED] = true;
+                    Object.getPrototypeOf(this)[methodName] = wrapped;
+                }
+                else {
+                    //Re-wrap (to have correct this pointer)
+                    let original = property[SignalValue.GET_ORIGINAL];
+                    let wrapped = (...args) => {
+                        original.apply(this, args, this);
+                        this.holder.change();
+                    };
+                    wrapped[SignalValue.IS_MUTATOR] = true;
+                    wrapped[SignalValue.GET_ORIGINAL] = original;
+                    wrapped[SignalValue.IS_WRAPPED] = true;
+                    Object.getPrototypeOf(this)[methodName] = wrapped;
+                }
             }
         });
     }

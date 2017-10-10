@@ -529,6 +529,7 @@ function serialise(value, receiverId, environment) {
                         if (sig.value[name][signal_1.SignalValue.IS_MUTATOR]) {
                             let sigProto = Object.getPrototypeOf(sig.value);
                             let method = Reflect.get(sigProto, name);
+                            //console.log("Original method: " + method[SignalValue.GET_ORIGINAL].toString())
                             methods[index] = [name, method[signal_1.SignalValue.GET_ORIGINAL].toString()];
                         }
                     });
@@ -733,10 +734,12 @@ function deserialise(value, enviroment) {
         let stop = def.definition.substring(index, def.definition.length);
         let Signal = require("./Reactivivity/signal").SignalObject;
         var classObj = eval(start + " extends Signal" + stop);
-        //TODO will need to store in some registry that certain methods of this class of signals are mutators (unable to change the definition with an annotation at this point)
-        for (var i in Reflect.getPrototypeOf(classObj)) {
-            console.log(i);
-        }
+        let mutators = def.mutators;
+        //Create a dummy signal instance to get the class name
+        let dummy = new classObj();
+        mutators.forEach((mutator) => {
+            enviroment.signalPool.addMutator(dummy.constructor.name, mutator);
+        });
         return classObj;
     }
     switch (value.type) {

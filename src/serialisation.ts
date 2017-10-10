@@ -618,6 +618,7 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                         if(sig.value[name][SignalValue.IS_MUTATOR]){
                             let sigProto    = Object.getPrototypeOf(sig.value)
                             let method      = Reflect.get(sigProto,name)
+                            //console.log("Original method: " + method[SignalValue.GET_ORIGINAL].toString())
                             methods[index]  = [name,method[SignalValue.GET_ORIGINAL].toString()]
                         }
                     })
@@ -834,10 +835,12 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let stop        = def.definition.substring(index,def.definition.length)
         let Signal      = require("./Reactivivity/signal").SignalObject
         var classObj    = eval(start + " extends Signal"+stop)
-        //TODO will need to store in some registry that certain methods of this class of signals are mutators (unable to change the definition with an annotation at this point)
-        for(var i in Reflect.getPrototypeOf(classObj)){
-            console.log(i)
-        }
+        let mutators    = def.mutators
+        //Create a dummy signal instance to get the class name
+        let dummy       = new classObj()
+        mutators.forEach((mutator : string)=>{
+            enviroment.signalPool.addMutator(dummy.constructor.name,mutator)
+        })
         return classObj
     }
 

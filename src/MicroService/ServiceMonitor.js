@@ -1,10 +1,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const SubServer_1 = require("../PubSub/SubServer");
 /**
  * Created by flo on 30/06/2017.
  */
 var spiders = require("../spiders");
-class ServiceMonitor extends SubServer_1.PubSubServer {
+class ServiceMonitor extends spiders.Application {
     logInfo(msg) {
         console.log("[INFO] " + msg);
     }
@@ -28,6 +27,7 @@ class ServiceMonitor extends SubServer_1.PubSubServer {
     }
     constructor() {
         super();
+        this.PSServer();
         this.services = new Map();
         var stdin = process.openStdin();
         var that = this;
@@ -66,7 +66,6 @@ class ServiceMonitor extends SubServer_1.PubSubServer {
                     console.log("Unknown command");
             }
         });
-        //this.gatewayRef = this.spawnActor(ServiceGateway)
     }
 }
 exports.ServiceMonitor = ServiceMonitor;
