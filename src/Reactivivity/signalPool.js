@@ -1,7 +1,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const signal_1 = require("./signal");
 const messages_1 = require("../messages");
-const serialisation_1 = require("../serialisation");
+const NoGlitchFreedom_1 = require("./NoGlitchFreedom");
 /**
  * Created by flo on 22/06/2017.
  */
@@ -10,10 +9,20 @@ class SignalPool {
         this.environment = environment;
         this.signals = new Map();
         this.garbageSignals = new Map();
+        this.externalHolders = new Map();
         this.garbageDependencies = new Map();
         this.sources = new Map();
         this.garbageCollected = new Array();
         this.mutators = new Map();
+        this.distAlgo = new NoGlitchFreedom_1.NoGlitchFreedom();
+        this.distAlgo.setSignalPool(this);
+    }
+    installDPropAlgorithm(algoInstance) {
+        this.distAlgo = algoInstance;
+        this.distAlgo.setSignalPool(this);
+    }
+    setLastPropMessage(propMessage) {
+        this.lastPropMessage = propMessage;
     }
     addMutator(className, methodName) {
         if (!this.mutators.has(className)) {
@@ -132,27 +141,22 @@ class SignalPool {
         else {
             throw new Error("Unable to find signal to register listener");
         }
-        signal.registerOnChangeListener(() => {
-            this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalChangeMessage(this.environment.thisRef, signal.id, serialisation_1.serialise(signal.value, holderId, this.environment)));
-        });
+        if (this.externalHolders.has(signalId)) {
+            this.externalHolders.get(signalId).push(holderId);
+        }
+        else {
+            this.externalHolders.set(signalId, [holderId]);
+            signal.registerOnChangeListener(() => {
+                this.distAlgo.propagate(signal, this.externalHolders.get(signalId));
+                //this.environment.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.environment.thisRef,signal.id,serialise(signal.value,holderId,this.environment)))
+            });
+        }
         signal.registerOnDeleteListener(() => {
             this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalDeleteMessage(this.environment.thisRef, signal.id));
         });
     }
-    sourceChanged(signalId, val) {
-        //Could be that the signal was garbage collected (shouldn't happen given the failure model)
-        if (this.knownSignal(signalId)) {
-            //Elm style propagation, signal pool serves as event dispatcher
-            this.sources.forEach((sourceSignal, id) => {
-                if (id == signalId) {
-                    sourceSignal.clock++;
-                    sourceSignal.change(val);
-                }
-                else {
-                    sourceSignal.change(signal_1.Signal.NO_CHANGE);
-                }
-            });
-        }
+    externalChangeReceived(fromId, signalId, val) {
+        this.distAlgo.propagationReceived(fromId, signalId, val);
     }
 }
 exports.SignalPool = SignalPool;

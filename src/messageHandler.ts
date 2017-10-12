@@ -224,7 +224,8 @@ export class MessageHandler{
     private handleExternalSignalChange(msg : ExternalSignalChangeMessage){
         //console.log("External signal changed received")
         let newVal = deserialise(msg.newVal,this.environment)
-        this.environment.signalPool.sourceChanged(msg.signalId,newVal)
+        this.environment.signalPool.externalChangeReceived(msg.senderId,msg.signalId,newVal)
+        //this.environment.signalPool.sourceChanged(msg.signalId,newVal)
     }
 
     private handleExternalSignalDelete(msg : ExternalSignalDeleteMessage){

@@ -1,3 +1,15 @@
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 18/01/2017.
  */
@@ -6,19 +18,22 @@ var spider = require("../src/spiders");
  * Created by flo on 10/01/2017.
  */
 var scheduled = [];
-class testApp extends spider.Application {
-    constructor() {
-        super();
-        this.mainValue = 10;
-        this.field = 10;
+var testApp = (function (_super) {
+    __extends(testApp, _super);
+    function testApp() {
+        var _this = _super.call(this) || this;
+        _this.mainValue = 10;
+        _this.field = 10;
+        return _this;
     }
-    mainMethod() {
+    testApp.prototype.mainMethod = function () {
         return 10;
-    }
-    getGUI() {
+    };
+    testApp.prototype.getGUI = function () {
         return window.guiField;
-    }
-}
+    };
+    return testApp;
+}(spider.Application));
 var app = new testApp();
 function log(result) {
     if (result.includes("false")) {
@@ -28,113 +43,150 @@ function log(result) {
         console.log("[TESTING] " + result + " [TESTING]");
     }
 }
-class testFieldSerActor extends spider.Actor {
-    constructor() {
-        super();
-        this.val = 10;
+var testFieldSerActor = (function (_super) {
+    __extends(testFieldSerActor, _super);
+    function testFieldSerActor() {
+        var _this = _super.call(this) || this;
+        _this.val = 10;
+        return _this;
     }
-}
-var performFieldSer = () => {
+    return testFieldSerActor;
+}(spider.Actor));
+var performFieldSer = function () {
     var fieldActor = app.spawnActor(testFieldSerActor);
-    return fieldActor.val.then((v) => {
+    return fieldActor.val.then(function (v) {
         log("Field Serialisation: " + (v == 10));
         app.kill();
     });
 };
 scheduled.push(performFieldSer);
-class testMethSerActor extends spider.Actor {
-    msub() {
+var testMethSerActor = (function (_super) {
+    __extends(testMethSerActor, _super);
+    function testMethSerActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    testMethSerActor.prototype.msub = function () {
         return 5;
-    }
-    m() {
+    };
+    testMethSerActor.prototype.m = function () {
         return this.msub() + 5;
-    }
-}
-var performMethSer = () => {
+    };
+    return testMethSerActor;
+}(spider.Actor));
+var performMethSer = function () {
     var methActor = app.spawnActor(testMethSerActor);
-    return methActor.m().then((v) => {
+    return methActor.m().then(function (v) {
         log("Method Serialisaton: " + (v == 10));
         app.kill();
     });
 };
 scheduled.push(performMethSer);
 var aValue = 5;
-class testConSerActor extends spider.Actor {
-    constructor() {
-        super();
-        this.val = aValue;
+var testConSerActor = (function (_super) {
+    __extends(testConSerActor, _super);
+    function testConSerActor() {
+        var _this = _super.call(this) || this;
+        _this.val = aValue;
+        return _this;
     }
-    test() {
+    testConSerActor.prototype.test = function () {
         return this.val;
-    }
-}
-var performConSer = () => {
+    };
+    return testConSerActor;
+}(spider.Actor));
+var performConSer = function () {
     var actor = app.spawnActor(testConSerActor);
-    return actor.test().then((v) => {
+    return actor.test().then(function (v) {
         log("Construction: " + (v == aValue));
         app.kill();
     });
 };
 scheduled.push(performConSer);
-class testInitSerActor extends spider.Actor {
-    constructor() {
-        super();
-        this.val = 10;
+var testInitSerActor = (function (_super) {
+    __extends(testInitSerActor, _super);
+    function testInitSerActor() {
+        var _this = _super.call(this) || this;
+        _this.val = 10;
+        return _this;
     }
-    init() {
+    testInitSerActor.prototype.init = function () {
         this.val += 5;
-    }
-}
-var peformInitSer = () => {
+    };
+    return testInitSerActor;
+}(spider.Actor));
+var peformInitSer = function () {
     var actor = app.spawnActor(testInitSerActor);
-    return actor.val.then((v) => {
+    return actor.val.then(function (v) {
         log("Initialisation: " + (v == 15));
         app.kill();
     });
 };
 scheduled.push(peformInitSer);
-class testScopeActor extends spider.Actor {
-    get() {
-        return this.promisePool;
+var testScopeActor = (function (_super) {
+    __extends(testScopeActor, _super);
+    function testScopeActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performScopeSer = () => {
+    testScopeActor.prototype.get = function () {
+        return this.promisePool;
+    };
+    return testScopeActor;
+}(spider.Actor));
+var performScopeSer = function () {
     var actor = app.spawnActor(testScopeActor);
-    return actor.get().then((v) => {
+    return actor.get().then(function (v) {
         log("Scope: " + (v == undefined));
         app.kill();
     });
 };
 scheduled.push(performScopeSer);
-class baseMethodInhActor extends spider.Actor {
-    test() {
+var baseMethodInhActor = (function (_super) {
+    __extends(baseMethodInhActor, _super);
+    function baseMethodInhActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    baseMethodInhActor.prototype.test = function () {
         return 5;
+    };
+    return baseMethodInhActor;
+}(spider.Actor));
+var inhActor = (function (_super) {
+    __extends(inhActor, _super);
+    function inhActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-class inhActor extends baseMethodInhActor {
-    testInh() {
+    inhActor.prototype.testInh = function () {
         return this.test();
-    }
-}
-var performMethodInhSer = () => {
+    };
+    return inhActor;
+}(baseMethodInhActor));
+var performMethodInhSer = function () {
     var actor = app.spawnActor(inhActor);
-    return actor.testInh().then((v) => {
+    return actor.testInh().then(function (v) {
         log("Inheritance (Method): " + (v == 5));
         app.kill();
     });
 };
 scheduled.push(performMethodInhSer);
-class baseFieldInhActor extends spider.Actor {
-    constructor() {
-        super();
-        this.baseField = 5;
+var baseFieldInhActor = (function (_super) {
+    __extends(baseFieldInhActor, _super);
+    function baseFieldInhActor() {
+        var _this = _super.call(this) || this;
+        _this.baseField = 5;
+        return _this;
     }
-}
-class fieldInhActor extends baseFieldInhActor {
-}
-var performFieldInhSer = () => {
+    return baseFieldInhActor;
+}(spider.Actor));
+var fieldInhActor = (function (_super) {
+    __extends(fieldInhActor, _super);
+    function fieldInhActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return fieldInhActor;
+}(baseFieldInhActor));
+var performFieldInhSer = function () {
     var actor = app.spawnActor(fieldInhActor);
-    return actor.baseField.then((v) => {
+    return actor.baseField.then(function (v) {
         log("Inheritance (Field): " + (v == 5));
         app.kill();
     });
@@ -142,247 +194,323 @@ var performFieldInhSer = () => {
 scheduled.push(performFieldInhSer);
 //Due to Browserify's static analyser it is impossible to dynamically require a module. therefore require must happen on actor creation time (the required library is available to the actor is a far reference)
 //Warning, this entails that all work done by the required librarby is performed on the spawning thread (use importscripts if needed to require in actor self)
-class testReqActor extends spider.Actor {
-    constructor() {
-        super();
-        this.mod = require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule');
+var testReqActor = (function (_super) {
+    __extends(testReqActor, _super);
+    function testReqActor() {
+        var _this = _super.call(this) || this;
+        _this.mod = require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule');
+        return _this;
     }
-    invoke() {
+    testReqActor.prototype.invoke = function () {
         return this.mod.testFunction();
-    }
-}
-var performReq = () => {
+    };
+    return testReqActor;
+}(spider.Actor));
+var performReq = function () {
     var actor = app.spawnActor(testReqActor);
-    return actor.invoke().then((v) => {
+    return actor.invoke().then(function (v) {
         log("Require: " + (v == 5));
         app.kill();
     });
 };
 scheduled.push(performReq);
-class testFieldAccessActor extends spider.Actor {
-    constructor() {
-        super();
-        this.value = 10;
+var testFieldAccessActor = (function (_super) {
+    __extends(testFieldAccessActor, _super);
+    function testFieldAccessActor() {
+        var _this = _super.call(this) || this;
+        _this.value = 10;
+        return _this;
     }
-}
-var performFieldAccess = () => {
+    return testFieldAccessActor;
+}(spider.Actor));
+var performFieldAccess = function () {
     var actor = app.spawnActor(testFieldAccessActor);
-    return actor.value.then((value) => {
+    return actor.value.then(function (value) {
         log("Accessing actor instance variable: " + (value == 10));
         app.kill();
     });
 };
 scheduled.push(performFieldAccess);
-class testMethodInvocActor extends spider.Actor {
-    m() {
-        return 10;
+var testMethodInvocActor = (function (_super) {
+    __extends(testMethodInvocActor, _super);
+    function testMethodInvocActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performMethodInvoc = () => {
+    testMethodInvocActor.prototype.m = function () {
+        return 10;
+    };
+    return testMethodInvocActor;
+}(spider.Actor));
+var performMethodInvoc = function () {
     var actor = app.spawnActor(testMethodInvocActor);
-    return actor.m().then((retVal) => {
+    return actor.m().then(function (retVal) {
         log("Invoking method on far reference: " + (retVal == 10));
         app.kill();
     });
 };
 scheduled.push(performMethodInvoc);
-class testParentAccessActor extends spider.Actor {
-    access() {
-        return this.parent.mainValue;
+var testParentAccessActor = (function (_super) {
+    __extends(testParentAccessActor, _super);
+    function testParentAccessActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performParentAccess = () => {
+    testParentAccessActor.prototype.access = function () {
+        return this.parent.mainValue;
+    };
+    return testParentAccessActor;
+}(spider.Actor));
+var performParentAccess = function () {
     var actor = app.spawnActor(testParentAccessActor);
-    return actor.access().then((v) => {
+    return actor.access().then(function (v) {
         log("Actor accessing main instance variable: " + (v == 10));
         app.kill();
     });
 };
 scheduled.push(performParentAccess);
-class testParentInvokeActor extends spider.Actor {
-    invoke() {
-        return this.parent.mainMethod();
+var testParentInvokeActor = (function (_super) {
+    __extends(testParentInvokeActor, _super);
+    function testParentInvokeActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performParentInvoke = () => {
+    testParentInvokeActor.prototype.invoke = function () {
+        return this.parent.mainMethod();
+    };
+    return testParentInvokeActor;
+}(spider.Actor));
+var performParentInvoke = function () {
     var actor = app.spawnActor(testParentInvokeActor);
-    return actor.invoke().then((v) => {
+    return actor.invoke().then(function (v) {
         log("Actor invoking main method: " + (v == 10));
         app.kill();
     });
 };
 scheduled.push(performParentInvoke);
-class testPromiseRejectActor extends spider.Actor {
-    m() {
-        throw new Error("This is an error");
+var testPromiseRejectActor = (function (_super) {
+    __extends(testPromiseRejectActor, _super);
+    function testPromiseRejectActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performPromiseReject = () => {
+    testPromiseRejectActor.prototype.m = function () {
+        throw new Error("This is an error");
+    };
+    return testPromiseRejectActor;
+}(spider.Actor));
+var performPromiseReject = function () {
     var actor = app.spawnActor(testPromiseRejectActor);
-    return actor.m().catch((reason) => {
+    return actor.m().catch(function (reason) {
         log("Promise rejection handling (method invocation): " + (reason.message == "This is an error"));
         app.kill();
     });
 };
 scheduled.push(performPromiseReject);
-class testPromisePipeActor extends spider.Actor {
-    get() {
-        return this.parent.field;
+var testPromisePipeActor = (function (_super) {
+    __extends(testPromisePipeActor, _super);
+    function testPromisePipeActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performPromisePipe = () => {
+    testPromisePipeActor.prototype.get = function () {
+        return this.parent.field;
+    };
+    return testPromisePipeActor;
+}(spider.Actor));
+var performPromisePipe = function () {
     var actor = app.spawnActor(testPromisePipeActor);
-    return actor.get().then((val) => {
+    return actor.get().then(function (val) {
         log("Promise pipelining (field access)" + (val == 10));
         app.kill();
     });
 };
 scheduled.push(performPromisePipe);
-class testPromiseInvocPipeActor extends spider.Actor {
-    get() {
-        return this.parent.mainMethod();
+var testPromiseInvocPipeActor = (function (_super) {
+    __extends(testPromiseInvocPipeActor, _super);
+    function testPromiseInvocPipeActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performPromiseInvocPipe = () => {
+    testPromiseInvocPipeActor.prototype.get = function () {
+        return this.parent.mainMethod();
+    };
+    return testPromiseInvocPipeActor;
+}(spider.Actor));
+var performPromiseInvocPipe = function () {
     var actor = app.spawnActor(testPromiseInvocPipeActor);
-    return actor.get().then((val) => {
+    return actor.get().then(function (val) {
         log("Promise pipelining (method invocation): " + (val == 10));
         app.kill();
     });
 };
 scheduled.push(performPromiseInvocPipe);
-class mIsolate extends spider.Isolate {
-    constructor() {
-        super();
-        this.field = 6;
+var mIsolate = (function (_super) {
+    __extends(mIsolate, _super);
+    function mIsolate() {
+        var _this = _super.call(this) || this;
+        _this.field = 6;
+        return _this;
     }
-    m() {
+    mIsolate.prototype.m = function () {
         return 5;
+    };
+    return mIsolate;
+}(spider.Isolate));
+var testIsolateActor = (function (_super) {
+    __extends(testIsolateActor, _super);
+    function testIsolateActor() {
+        var _this = _super.call(this) || this;
+        _this.mIsolate = mIsolate;
+        return _this;
     }
-}
-class testIsolateActor extends spider.Actor {
-    constructor() {
-        super();
-        this.mIsolate = mIsolate;
-    }
-    getIsolate() {
+    testIsolateActor.prototype.getIsolate = function () {
         return new this.mIsolate();
-    }
-}
-var performIsolate = () => {
+    };
+    return testIsolateActor;
+}(spider.Actor));
+var performIsolate = function () {
     var actor = app.spawnActor(testIsolateActor);
-    return actor.getIsolate().then((isol) => {
+    return actor.getIsolate().then(function (isol) {
         log("Isolate passing: " + (isol.field == 6) + " ," + (isol.m() == 5));
         app.kill();
     });
 };
 scheduled.push(performIsolate);
-class innerIsolate extends spider.Isolate {
-    constructor() {
-        super();
-        this.innerField = 5;
+var innerIsolate = (function (_super) {
+    __extends(innerIsolate, _super);
+    function innerIsolate() {
+        var _this = _super.call(this) || this;
+        _this.innerField = 5;
+        return _this;
     }
-}
-class outerIsolate extends spider.Isolate {
-    constructor() {
-        super();
-        this.outerField = 6;
-        this.innerIsol = new innerIsolate();
+    return innerIsolate;
+}(spider.Isolate));
+var outerIsolate = (function (_super) {
+    __extends(outerIsolate, _super);
+    function outerIsolate() {
+        var _this = _super.call(this) || this;
+        _this.outerField = 6;
+        _this.innerIsol = new innerIsolate();
+        return _this;
     }
-    getOuterField() {
+    outerIsolate.prototype.getOuterField = function () {
         return this.outerField;
-    }
-    getInnerIsolate() {
+    };
+    outerIsolate.prototype.getInnerIsolate = function () {
         return this.innerIsol;
-    }
-}
+    };
+    return outerIsolate;
+}(spider.Isolate));
 var app = new testApp();
-class testNestedIsolateActor extends spider.Actor {
-    constructor() {
-        super();
-        this.mIsolate = new outerIsolate();
+var testNestedIsolateActor = (function (_super) {
+    __extends(testNestedIsolateActor, _super);
+    function testNestedIsolateActor() {
+        var _this = _super.call(this) || this;
+        _this.mIsolate = new outerIsolate();
+        return _this;
     }
-    getIsolate() {
+    testNestedIsolateActor.prototype.getIsolate = function () {
         return this.mIsolate;
-    }
-}
-var performNestedIsolate = () => {
+    };
+    return testNestedIsolateActor;
+}(spider.Actor));
+var performNestedIsolate = function () {
     var actor = app.spawnActor(testNestedIsolateActor);
-    return actor.getIsolate().then((isol) => {
+    return actor.getIsolate().then(function (isol) {
         log("Nested Isolate passing: " + (isol.getOuterField() == 6) + " , " + (isol.getInnerIsolate().innerField == 5));
         app.kill();
     });
 };
 scheduled.push(performNestedIsolate);
-class testNumSerActor extends spider.Actor {
-    compute(num) {
-        return num + 5;
+var testNumSerActor = (function (_super) {
+    __extends(testNumSerActor, _super);
+    function testNumSerActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performNumSer = () => {
+    testNumSerActor.prototype.compute = function (num) {
+        return num + 5;
+    };
+    return testNumSerActor;
+}(spider.Actor));
+var performNumSer = function () {
     var actor = app.spawnActor(testNumSerActor);
-    return actor.compute(5).then((val) => {
+    return actor.compute(5).then(function (val) {
         log("Correct serialisation of numeric values: " + (val == 10));
         app.kill();
     });
 };
 scheduled.push(performNumSer);
-class testStringSerActor extends spider.Actor {
-    append(str) {
-        return str + 5;
+var testStringSerActor = (function (_super) {
+    __extends(testStringSerActor, _super);
+    function testStringSerActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performStringSer = () => {
+    testStringSerActor.prototype.append = function (str) {
+        return str + 5;
+    };
+    return testStringSerActor;
+}(spider.Actor));
+var performStringSer = function () {
     var actor = app.spawnActor(testStringSerActor);
-    return actor.append("5").then((val) => {
+    return actor.append("5").then(function (val) {
         log("Correct serialisation of string values: " + (val == 55));
         app.kill();
     });
 };
 scheduled.push(performStringSer);
-class testBoolSerActor extends spider.Actor {
-    test(bool) {
+var testBoolSerActor = (function (_super) {
+    __extends(testBoolSerActor, _super);
+    function testBoolSerActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    testBoolSerActor.prototype.test = function (bool) {
         if (bool) {
             return "ok";
         }
         else {
             return "nok";
         }
-    }
-}
-var performBoolSer = () => {
+    };
+    return testBoolSerActor;
+}(spider.Actor));
+var performBoolSer = function () {
     var actor = app.spawnActor(testBoolSerActor);
-    return actor.test(false).then((val) => {
+    return actor.test(false).then(function (val) {
         log("Correct serialisation of boolean values: " + (val == "nok"));
         app.kill();
     });
 };
 scheduled.push(performBoolSer);
-class testUserPromActor extends spider.Actor {
-    async() {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
+var testUserPromActor = (function (_super) {
+    __extends(testUserPromActor, _super);
+    function testUserPromActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    testUserPromActor.prototype.async = function () {
+        return new Promise(function (resolve, reject) {
+            setTimeout(function () {
                 resolve(5);
             }, 200);
         });
-    }
-}
-var performUserProm = () => {
+    };
+    return testUserPromActor;
+}(spider.Actor));
+var performUserProm = function () {
     var actor = app.spawnActor(testUserPromActor);
-    return actor.async().then((val) => {
+    return actor.async().then(function (val) {
         log("User-level promise serialisation: " + (val == 5));
         app.kill();
     });
 };
 scheduled.push(performUserProm);
-class testArgSerActor extends spider.Actor {
-    m(num, str, bool) {
-        return [num, str, bool];
+var testArgSerActor = (function (_super) {
+    __extends(testArgSerActor, _super);
+    function testArgSerActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performArgSer = () => {
+    testArgSerActor.prototype.m = function (num, str, bool) {
+        return [num, str, bool];
+    };
+    return testArgSerActor;
+}(spider.Actor));
+var performArgSer = function () {
     var actor = app.spawnActor(testArgSerActor);
-    return actor.m(1, "1", true).then((retArr) => {
+    return actor.m(1, "1", true).then(function (retArr) {
         log("Method argument serialisation: " + (retArr[0] == 1) + " , " + (retArr[1] == "1") + " , " + retArr[2]);
         app.kill();
     });
@@ -391,114 +519,156 @@ scheduled.push(performArgSer);
 var ob = {
     field: 5
 };
-class testLexObActor extends spider.Actor {
-    constructor() {
-        super();
-        this.farRef = ob;
+var testLexObActor = (function (_super) {
+    __extends(testLexObActor, _super);
+    function testLexObActor() {
+        var _this = _super.call(this) || this;
+        _this.farRef = ob;
+        return _this;
     }
-    test() {
+    testLexObActor.prototype.test = function () {
         return this.farRef.field;
-    }
-}
-var performLexOb = () => {
+    };
+    return testLexObActor;
+}(spider.Actor));
+var performLexOb = function () {
     var actor = app.spawnActor(testLexObActor);
-    return actor.test().then((v) => {
+    return actor.test().then(function (v) {
         log("Lexical object serialisation during construction:  " + (v == ob.field));
         app.kill();
     });
 };
 scheduled.push(performLexOb);
-class testFarRefActor1 extends spider.Actor {
-    constructor() {
-        super();
-        this.value = 666;
+var testFarRefActor1 = (function (_super) {
+    __extends(testFarRefActor1, _super);
+    function testFarRefActor1() {
+        var _this = _super.call(this) || this;
+        _this.value = 666;
+        return _this;
     }
-}
-class testFarRefActor2 extends spider.Actor {
-    obtainAndAccess(farRef) {
+    return testFarRefActor1;
+}(spider.Actor));
+var testFarRefActor2 = (function (_super) {
+    __extends(testFarRefActor2, _super);
+    function testFarRefActor2() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    testFarRefActor2.prototype.obtainAndAccess = function (farRef) {
         return farRef.value;
-    }
-}
-var performFarRef = () => {
+    };
+    return testFarRefActor2;
+}(spider.Actor));
+var performFarRef = function () {
     var actor1 = app.spawnActor(testFarRefActor1);
     var actor2 = app.spawnActor(testFarRefActor2);
-    return actor2.obtainAndAccess(actor1).then((v) => {
+    return actor2.obtainAndAccess(actor1).then(function (v) {
         log("Far ref serialisation: " + (v == 666));
         app.kill();
     });
 };
 scheduled.push(performFarRef);
-class testGUIActor extends spider.Actor {
-    getField() {
-        return this.parent.getGUI();
+var testGUIActor = (function (_super) {
+    __extends(testGUIActor, _super);
+    function testGUIActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-var performGUI = () => {
+    testGUIActor.prototype.getField = function () {
+        return this.parent.getGUI();
+    };
+    return testGUIActor;
+}(spider.Actor));
+var performGUI = function () {
     var actor = app.spawnActor(testGUIActor);
-    return actor.getField().then((v) => {
+    return actor.getField().then(function (v) {
         log("GUI: " + (v == "guiField"));
         app.kill();
     });
 };
 scheduled.push(performGUI);
-class testReferencePassing_ReferencedActor extends spider.Actor {
-    setValue(x) { this.x = x; }
-    getValue() { return this.x; }
-}
-class testReferencePassing_ReferencingActor extends spider.Actor {
-    constructor(ref) {
-        super();
-        this.actorreference = ref;
+var testReferencePassing_ReferencedActor = (function (_super) {
+    __extends(testReferencePassing_ReferencedActor, _super);
+    function testReferencePassing_ReferencedActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-    init() {
+    testReferencePassing_ReferencedActor.prototype.setValue = function (x) { this.x = x; };
+    testReferencePassing_ReferencedActor.prototype.getValue = function () { return this.x; };
+    return testReferencePassing_ReferencedActor;
+}(spider.Actor));
+var testReferencePassing_ReferencingActor = (function (_super) {
+    __extends(testReferencePassing_ReferencingActor, _super);
+    function testReferencePassing_ReferencingActor(ref) {
+        var _this = _super.call(this) || this;
+        _this.actorreference = ref;
+        return _this;
+    }
+    testReferencePassing_ReferencingActor.prototype.init = function () {
         this.actorreference.setValue(0);
-    }
-    getValue() { return this.actorreference.getValue(); }
-}
-var performActorReferencePassingTest = () => {
+    };
+    testReferencePassing_ReferencingActor.prototype.getValue = function () { return this.actorreference.getValue(); };
+    return testReferencePassing_ReferencingActor;
+}(spider.Actor));
+var performActorReferencePassingTest = function () {
     var actor1 = app.spawnActor(testReferencePassing_ReferencedActor);
     var actor2 = app.spawnActor(testReferencePassing_ReferencingActor, [actor1], 8081);
-    return actor2.getValue().then((v) => {
+    return actor2.getValue().then(function (v) {
         log("Actor reference passing and referencing in init: " + (v == 0));
         app.kill();
     });
 };
 scheduled.push(performActorReferencePassingTest);
-class arrayIsolate1 extends spider.Actor {
-    getArrayLength(arr) {
+var arrayIsolate1 = (function (_super) {
+    __extends(arrayIsolate1, _super);
+    function arrayIsolate1() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    arrayIsolate1.prototype.getArrayLength = function (arr) {
         return arr.length;
+    };
+    return arrayIsolate1;
+}(spider.Actor));
+var arrayIsolate2 = (function (_super) {
+    __extends(arrayIsolate2, _super);
+    function arrayIsolate2() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-class arrayIsolate2 extends spider.Actor {
-    sendArray(ref) {
+    arrayIsolate2.prototype.sendArray = function (ref) {
         return ref.getArrayLength(new this.ArrayIsolate([1, 2, 3, 4, 5]));
-    }
-}
-var performArrayIsolateTest = () => {
+    };
+    return arrayIsolate2;
+}(spider.Actor));
+var performArrayIsolateTest = function () {
     var actor1 = app.spawnActor(arrayIsolate1);
     var actor2 = app.spawnActor(arrayIsolate2);
-    return actor2.sendArray(actor1).then((v) => {
+    return actor2.sendArray(actor1).then(function (v) {
         log("Array Isolate passing : " + (v == 5));
     });
 };
 scheduled.push(performArrayIsolateTest);
-class SuperInitActor extends spider.Actor {
-    constructor() {
-        super();
-        this.val = 10;
+var SuperInitActor = (function (_super) {
+    __extends(SuperInitActor, _super);
+    function SuperInitActor() {
+        var _this = _super.call(this) || this;
+        _this.val = 10;
+        return _this;
     }
-    init() {
+    SuperInitActor.prototype.init = function () {
         this.val += 5;
+    };
+    return SuperInitActor;
+}(spider.Actor));
+var BaseInitActor = (function (_super) {
+    __extends(BaseInitActor, _super);
+    function BaseInitActor() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
-}
-class BaseInitActor extends SuperInitActor {
-    init() {
+    BaseInitActor.prototype.init = function () {
         this.val = this.val * 2;
-    }
-}
-var performInitChaining = () => {
+    };
+    return BaseInitActor;
+}(SuperInitActor));
+var performInitChaining = function () {
     var a = app.spawnActor(BaseInitActor);
-    return a.val.then((v) => {
+    return a.val.then(function (v) {
         log("Init chaining : " + (v == 30));
     });
 };
@@ -558,11 +728,10 @@ var performStaticError = () =>{
 }
 scheduled.push(performStaticError)*/
 function performAll(nextTest) {
-    nextTest().then((dc) => {
+    nextTest().then(function (dc) {
         if (scheduled.length > 0) {
             performAll(scheduled.pop());
         }
     });
 }
 performAll(scheduled.pop());
-//# sourceMappingURL=test.js.map

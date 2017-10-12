@@ -79,6 +79,8 @@ abstract class Actor{
     //Replication
     newRepliq       : (RepliqClass,... any) => Object
     //Reactivity
+    QPROP           : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
+    publishSignal   : (signal) => null
     newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
     lift            : Function
     liftStrong      : Function
@@ -266,6 +268,8 @@ interface AppType {
     //Replication
     newRepliq           : (RepliqClass,... any) => Object
     //Reactivity
+    QPROP               : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
+    publishSignal       : (signal) => null
     newSignal           : (signalClass : SignalObjectClass,... any) => Signal
     lift                : Function
     liftStrong          : Function

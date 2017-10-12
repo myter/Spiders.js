@@ -12,6 +12,9 @@ class PubSubTag {
     equals(otherTag) {
         otherTag.tagVal == this.tagVal;
     }
+    asString() {
+        return this.tagVal;
+    }
 }
 exports.PubSubTag = PubSubTag;
 //# sourceMappingURL=SubTag.js.map

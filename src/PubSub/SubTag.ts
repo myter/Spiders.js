@@ -16,4 +16,8 @@ export class PubSubTag{
     equals(otherTag : PubSubTag){
         otherTag.tagVal == this.tagVal
     }
+
+    asString(){
+        return this.tagVal
+    }
 }

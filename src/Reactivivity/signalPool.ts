@@ -7,6 +7,9 @@ import {PromisePool} from "../PromisePool";
 import {ObjectPool} from "../objectPool";
 import {GSP} from "../Replication/GSP";
 import {ActorEnvironment} from "../ActorEnvironment";
+import {DPropAlgorithm} from "./DPropAlgorithm";
+import {NoGlitchFreedom} from "./NoGlitchFreedom";
+import {PropagationValue} from "./QPROP";
 /**
  * Created by flo on 22/06/2017.
  */
@@ -14,21 +17,37 @@ export class SignalPool{
     signals             : Map<string,Signal>
     garbageSignals      : Map<string,Signal>
     garbageDependencies : Map<string,Array<String>>
+    externalHolders     : Map<string,Array<string>>
     sources             : Map<string,Signal>
     environment         : ActorEnvironment
     //Keep track of garbage collected nodes (to
     garbageCollected    : Array<string>
     //Keep track of mutating methods for each class of signal
     mutators            : Map<string,Array<string>>
+    //Algorithm used for distributed glitch freedom
+    distAlgo            : DPropAlgorithm
+    lastPropMessage     : PropagationValue
 
     constructor(environment : ActorEnvironment){
         this.environment            = environment
         this.signals                = new Map()
         this.garbageSignals         = new Map()
+        this.externalHolders        = new Map()
         this.garbageDependencies    = new Map()
         this.sources                = new Map()
         this.garbageCollected       = new Array()
         this.mutators               = new Map()
+        this.distAlgo               = new NoGlitchFreedom()
+        this.distAlgo.setSignalPool(this)
+    }
+
+    installDPropAlgorithm(algoInstance : DPropAlgorithm){
+        this.distAlgo = algoInstance
+        this.distAlgo.setSignalPool(this)
+    }
+
+    setLastPropMessage(propMessage : PropagationValue){
+        this.lastPropMessage = propMessage
     }
 
     addMutator(className : string, methodName : string){
@@ -163,15 +182,27 @@ export class SignalPool{
         else{
             throw new Error("Unable to find signal to register listener")
         }
-        signal.registerOnChangeListener(()=>{
-            this.environment.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.environment.thisRef,signal.id,serialise(signal.value,holderId,this.environment)))
-        })
+        if(this.externalHolders.has(signalId)){
+            this.externalHolders.get(signalId).push(holderId)
+        }
+        else{
+            this.externalHolders.set(signalId,[holderId])
+            signal.registerOnChangeListener(()=>{
+                this.distAlgo.propagate(signal,this.externalHolders.get(signalId))
+                //this.environment.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.environment.thisRef,signal.id,serialise(signal.value,holderId,this.environment)))
+            })
+        }
+
         signal.registerOnDeleteListener(()=>{
             this.environment.commMedium.sendMessage(holderId,new ExternalSignalDeleteMessage(this.environment.thisRef,signal.id))
         })
     }
 
-    sourceChanged(signalId : string,val : any){
+    externalChangeReceived(fromId : string,signalId : string,val : any){
+        this.distAlgo.propagationReceived(fromId,signalId,val)
+    }
+
+    /*sourceChanged(signalId : string,val : any){
         //Could be that the signal was garbage collected (shouldn't happen given the failure model)
         if(this.knownSignal(signalId)){
             //Elm style propagation, signal pool serves as event dispatcher
@@ -185,5 +216,5 @@ export class SignalPool{
                 }
             })
         }
-    }
+    }*/
 }

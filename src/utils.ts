@@ -6,6 +6,7 @@ import {ActorEnvironment} from "./ActorEnvironment";
 import {PSClient} from "./PubSub/SubClient";
 import {PubSubTag} from "./PubSub/SubTag";
 import {PSServer} from "./PubSub/SubServer";
+import {QPROPNode, QPROPSourceSignal} from "./Reactivivity/QPROP";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -206,6 +207,25 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
     ///////////////////
     //Reactivity   //
     //////////////////
+
+    //Setup QPROP instance
+    behaviourObject["QPROP"]        = (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) =>{
+        let qNode       = new QPROPNode(ownType,directParents,directChildren,behaviourObject,defaultValue)
+        environment.signalPool.installDPropAlgorithm(qNode)
+        let qNodeSignal = qNode.ownSignal
+        let signal      = new Signal(qNodeSignal)
+        qNodeSignal.setHolder(signal)
+        qNodeSignal.instantiateMeta(environment)
+        signalPool.newSource(signal)
+        return behaviourObject["lift"]((qSignal : QPROPSourceSignal)=>{
+            return qSignal.parentVals
+        })(qNodeSignal)
+    }
+
+    //Instruct QPROP instance to publish the given signal
+    behaviourObject["publishSignal"]          = (signal) => {
+        (environment.signalPool.distAlgo as QPROPNode).publishSignal(signal)
+    }
 
     behaviourObject["newSignal"]    = (signalClass : SignalObjectClass,...args) =>{
         let sigVal = new signalClass(...args)

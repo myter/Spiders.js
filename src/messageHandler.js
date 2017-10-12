@@ -187,7 +187,8 @@ class MessageHandler {
     handleExternalSignalChange(msg) {
         //console.log("External signal changed received")
         let newVal = serialisation_1.deserialise(msg.newVal, this.environment);
-        this.environment.signalPool.sourceChanged(msg.signalId, newVal);
+        this.environment.signalPool.externalChangeReceived(msg.senderId, msg.signalId, newVal);
+        //this.environment.signalPool.sourceChanged(msg.signalId,newVal)
     }
     handleExternalSignalDelete(msg) {
         this.environment.signalPool.garbageCollect(msg.signalId);
