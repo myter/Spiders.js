@@ -122,19 +122,18 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     receivedAllParents(){
-        return this.parentsReceived == this.directParents.length
+        return (this.parentsReceived == this.directParents.length) && (this.directParentRefs.length == this.directParents.length)
     }
 
     sendReady(){
-        if((this.startsReceived == this.directChildrenRefs.length) && (this.directParentRefs.length == this.directParents.length) && (this.directChildrenRefs.length != 0)){
+        if((this.startsReceived == this.directChildren.length) && (this.directParentRefs.length == this.directParents.length) && (this.directChildren.length != 0)){
             this.directParentRefs.forEach((parentRef : FarRef)=>{
-                parentRef.receiveStart()
+                parentRef.receiveStart(this.ownType)
             })
             this.readyListeners.forEach((readyListener : Function)=>{
                 readyListener()
             })
             console.log("Node : " + this.ownType.tagVal + " is ready !")
-            //this.printInfo()
         }
     }
 
@@ -145,10 +144,9 @@ export class QPROPNode implements DPropAlgorithm{
             })
             if(this.directChildrenRefs.length == 0 && (this.directParentRefs.length == this.directParents.length)){
                 this.directParentRefs.forEach((parentRef : FarRef)=>{
-                    parentRef.receiveStart()
+                    parentRef.receiveStart(this.ownType)
                 })
                 console.log("Node : " + this.ownType.tagVal + " is ready !")
-                //this.printInfo()
             }
         }
     }
@@ -157,7 +155,10 @@ export class QPROPNode implements DPropAlgorithm{
         let all : any = []
         this.sourceMap.forEach((sources : Array<PubSubTag>)=>{
             sources.forEach((source : PubSubTag)=>{
-                if(!all.includes(source)){
+                let filtered = all.filter((s)=>{
+                    return source.tagVal == source.tagVal
+                })
+                if(filtered.length == 0){
                     all.push(source)
                 }
             })
@@ -181,11 +182,31 @@ export class QPROPNode implements DPropAlgorithm{
     ///////////////////////////////////////
 
     pickInit(){
-        //TODO add dynamic behaviour
         this.directParents.forEach((parentType : PubSubTag)=>{
             this.inputQueues.set(parentType.tagVal,new Map())
         })
-        this.initRegular()
+        let check = (ref)=>{
+            ref.isReferenced(this.ownType).then((b)=>{
+                if(b){
+                    this.initRegular()
+                }
+                else{
+                    console.log("Init dynamic for: " + this.ownType.tagVal)
+                    this.initDynamic()
+                    this.dynamic = true
+                }
+            })
+        }
+        if(this.directParents.length == 0){
+            this.host.subscribe(this.directChildren[0]).once((childRef  : FarRef)=>{
+                check(childRef)
+            })
+        }
+        else{
+            this.host.subscribe(this.directParents[0]).once((parentRef : FarRef)=>{
+                check(parentRef)
+            })
+        }
     }
 
     initRegular(){
@@ -195,8 +216,9 @@ export class QPROPNode implements DPropAlgorithm{
                 this.sendReady()
                 if(this.receivedAllParents() && this.directChildren.length == 0){
                     this.directParentRefs.forEach((parentRef : FarRef)=>{
-                        parentRef.receiveStart()
+                        parentRef.receiveStart(this.ownType)
                     })
+                    console.log("Node : " + this.ownType.tagVal + " is ready !")
                 }
             })
         })
@@ -214,6 +236,10 @@ export class QPROPNode implements DPropAlgorithm{
                 }
             })
         })
+    }
+
+    initDynamic(){
+
     }
 
     canPropagate(messageOrigin : PubSubTag){
@@ -270,7 +296,7 @@ export class QPROPNode implements DPropAlgorithm{
     // Calls made by other QPROP nodes  ///
     ///////////////////////////////////////
 
-    receiveStart(){
+    receiveStart(from){
         this.startsReceived++
         this.sendReady()
     }
@@ -283,8 +309,6 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     receiveMessage(from : PubSubTag,message : PropagationValue){
-        //TODO, big issue is probably nesting of isolate values !
-        //console.log("Got message: " + message.origin.asString())
         let qSet            = this.inputQueues.get(from.tagVal)
         let originQueue     = qSet.get(message.origin.tagVal)
         originQueue.enQueue(message)
@@ -301,6 +325,16 @@ export class QPROPNode implements DPropAlgorithm{
                 childRef.receiveMessage(this.ownType,new PropagationValue(message.origin,this.ownSignal.v,message.timeStamp))
             })*/
         }
+    }
+
+    isReferenced(someType : PubSubTag){
+        let parentsFilter   = this.directParents.filter((parenType : PubSubTag)=>{
+            return parenType.tagVal == someType.tagVal
+        })
+        let childrenFilter  = this.directChildren.filter((childType : PubSubTag)=>{
+            return childType.tagVal == someType.tagVal
+        })
+        return (parentsFilter.length > 0) || (childrenFilter.length > 0)
     }
 
     getSignal(signal){
