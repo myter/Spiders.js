@@ -14,6 +14,7 @@ let sourceTag = new SubTag_1.PubSubTag("source");
 let sinkTag = new SubTag_1.PubSubTag("sink");
 let aTag = new SubTag_1.PubSubTag("a");
 let bTag = new SubTag_1.PubSubTag("b");
+let dynTag = new SubTag_1.PubSubTag("dynamic");
 class TestSignal extends spiders.Signal {
     constructor() {
         super();
@@ -39,9 +40,13 @@ class SourceService extends MicroService_1.MicroService {
         this.QPROP(this.sourceTag, [], [this.aTag, this.bTag], null);
         let t = this.newSignal(this.TestSignal);
         this.publishSignal(t);
+        this.update(t);
+    }
+    update(t) {
         setTimeout(() => {
             t.inc();
-        }, 3000);
+            this.update(t);
+        }, 2000);
     }
 }
 class ServiceA extends MicroService_1.MicroService {
@@ -76,6 +81,22 @@ class ServiceB extends MicroService_1.MicroService {
         this.publishSignal(ss);
     }
 }
+class DynamicService extends MicroService_1.MicroService {
+    constructor() {
+        super();
+        this.sinkTag = sinkTag;
+        this.sourceTag = sourceTag;
+        this.dynTag = dynTag;
+    }
+    init() {
+        let s = this.QPROP(this.dynTag, [this.sourceTag], [this.sinkTag], null);
+        let ss = this.lift((sa) => {
+            console.log("Got change in dynamic: " + sa[0].value);
+            return (sa[0].value + 1);
+        })(s);
+        this.publishSignal(ss);
+    }
+}
 class SinkService extends MicroService_1.MicroService {
     constructor() {
         super();
@@ -85,11 +106,11 @@ class SinkService extends MicroService_1.MicroService {
     }
     init() {
         let s = this.QPROP(this.sinkTag, [this.aTag, this.bTag], [], null);
-        this.lift((sab) => {
-            for (var i in sab[0]) {
-                console.log(i);
-            }
-            console.log("Got change in sink: " + (sab[0] + sab[1]));
+        this.lift((vals) => {
+            /*console.log("Got change in sink: " + vals.reduce((prev,curr)=>{
+                return prev + curr
+            }))*/
+            console.log("Got change in sink: " + vals);
         })(s);
     }
 }
@@ -97,4 +118,7 @@ let source = monitor.spawnActor(SourceService);
 let sink = monitor.spawnActor(SinkService);
 let a = monitor.spawnActor(ServiceA);
 let b = monitor.spawnActor(ServiceB);
+setTimeout(() => {
+    monitor.spawnActor(DynamicService);
+}, 3500);
 //# sourceMappingURL=temp.js.map

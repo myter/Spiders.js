@@ -124,7 +124,6 @@ class Signal {
         this.garbageStaticDependencies = new Array();
         this.changesReceived = 0;
         this.noChangesReceived = 0;
-        this.onChangeListeners = new Array();
         this.onDeleteListeners = new Array();
         this.clock = 0;
         this.isGarbage = isGarbage;
@@ -221,9 +220,9 @@ class Signal {
         return ret;
     }
     triggerExternal() {
-        this.onChangeListeners.forEach((listener) => {
-            listener();
-        });
+        if (this.onChangeListener) {
+            this.onChangeListener();
+        }
     }
     parentChanged(parentId, val) {
         this.changesReceived += 1;
@@ -279,7 +278,7 @@ class Signal {
     }
     //Used by Spiders.js to notify remote signals of a change
     registerOnChangeListener(callback) {
-        this.onChangeListeners.push(callback);
+        this.onChangeListener = callback;
     }
     //Used by spiders.js to notify remote signal of garbage collection
     registerOnDeleteListener(callback) {

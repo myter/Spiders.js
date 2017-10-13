@@ -15,7 +15,7 @@ class SourceIsolate{
     }
 }
 
-class PropagationValue{
+export class PropagationValue{
     origin      : PubSubTag
     value       : any
     timeStamp   : number
@@ -252,7 +252,7 @@ export class QPROPNode implements DPropAlgorithm{
             let childrenUpdated = 0
             this.directChildren.forEach((childType : PubSubTag)=>{
                 this.host.subscribe(childType).each((childRef : FarRef)=>{
-                    this.directParentRefs.push(childRef)
+                    this.directChildrenRefs.push(childRef)
                     childRef.updateSources(this.ownType,this.getAllSources(),true,this.ownDefault).then(()=>{
                         childrenUpdated++
                         if(childrenUpdated == this.directChildren.length){
@@ -492,6 +492,11 @@ export class QPROPNode implements DPropAlgorithm{
         }
         else{
             this.readyListeners.push(publish)
+        }
+        if(this.startsReceived != this.directChildren.length || !this.dynamic){
+            signal.holder.onChangeListener = () => {
+                this.propagate(signal.holder,[])
+            }
         }
     }
 

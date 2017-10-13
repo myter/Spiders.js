@@ -9,6 +9,7 @@ let sourceTag   = new PubSubTag("source")
 let sinkTag     = new PubSubTag("sink")
 let aTag        = new PubSubTag("a")
 let bTag        = new PubSubTag("b")
+let dynTag      = new PubSubTag("dynamic")
 
 class TestSignal extends spiders.Signal{
     value
@@ -44,9 +45,14 @@ class SourceService extends MicroService{
         this.QPROP(this.sourceTag,[],[this.aTag,this.bTag],null)
         let t : any = this.newSignal(this.TestSignal)
         this.publishSignal(t)
+        this.update(t)
+    }
+
+    update(t){
         setTimeout(()=>{
             t.inc()
-        },3000)
+            this.update(t)
+        },2000)
     }
 }
 
@@ -94,6 +100,29 @@ class ServiceB extends MicroService{
     }
 }
 
+class DynamicService extends MicroService{
+    sinkTag
+    sourceTag
+    dynTag
+
+    constructor(){
+        super()
+        this.sinkTag = sinkTag
+        this.sourceTag = sourceTag
+        this.dynTag = dynTag
+    }
+
+    init(){
+        let s = this.QPROP(this.dynTag,[this.sourceTag],[this.sinkTag],null)
+        let ss = this.lift((sa)=>{
+            console.log("Got change in dynamic: "+ sa[0].value)
+            return (sa[0].value + 1)
+        })(s)
+        this.publishSignal(ss)
+    }
+
+}
+
 class SinkService extends MicroService{
     aTag
     bTag
@@ -108,11 +137,11 @@ class SinkService extends MicroService{
 
     init(){
         let s = this.QPROP(this.sinkTag,[this.aTag,this.bTag],[],null)
-        this.lift((sab)=>{
-            for(var i in sab[0]){
-                console.log(i)
-            }
-            console.log("Got change in sink: " + (sab[0] + sab[1]))
+        this.lift((vals : Array<number>)=>{
+            /*console.log("Got change in sink: " + vals.reduce((prev,curr)=>{
+                return prev + curr
+            }))*/
+            console.log("Got change in sink: " + vals)
         })(s)
     }
 }
@@ -120,3 +149,7 @@ let source  = monitor.spawnActor(SourceService)
 let sink    = monitor.spawnActor(SinkService)
 let a       = monitor.spawnActor(ServiceA)
 let b       = monitor.spawnActor(ServiceB)
+
+setTimeout(()=>{
+    monitor.spawnActor(DynamicService)
+},3500)

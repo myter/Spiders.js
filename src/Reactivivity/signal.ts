@@ -138,7 +138,7 @@ export class Signal{
     garbageStaticDependencies   : Array<StaticDependency>
     changesReceived             : number
     noChangesReceived           : number
-    onChangeListeners           : Array<Function>
+    onChangeListener            : Function
     onDeleteListeners           : Array<Function>
     isSource                    : boolean
     //Node is part of the garbage dependency graph
@@ -165,7 +165,6 @@ export class Signal{
         this.garbageStaticDependencies              = new Array()
         this.changesReceived                        = 0
         this.noChangesReceived                      = 0
-        this.onChangeListeners                      = new Array()
         this.onDeleteListeners                      = new Array()
         this.clock                                  = 0
         this.isGarbage                              = isGarbage
@@ -279,9 +278,9 @@ export class Signal{
     }
 
     triggerExternal(){
-        this.onChangeListeners.forEach((listener)=>{
-            listener()
-        })
+        if(this.onChangeListener){
+            this.onChangeListener()
+        }
     }
 
     parentChanged(parentId : string,val){
@@ -340,7 +339,7 @@ export class Signal{
 
     //Used by Spiders.js to notify remote signals of a change
     registerOnChangeListener(callback : Function){
-        this.onChangeListeners.push(callback)
+        this.onChangeListener = callback
     }
 
     //Used by spiders.js to notify remote signal of garbage collection

@@ -1,11 +1,5 @@
 import {Signal, SignalDependency} from "./signal";
-import {CommMedium} from "../commMedium";
-import {ExternalSignalChangeMessage, ExternalSignalDeleteMessage} from "../messages";
-import {FarReference} from "../farRef";
-import {serialise} from "../serialisation";
-import {PromisePool} from "../PromisePool";
-import {ObjectPool} from "../objectPool";
-import {GSP} from "../Replication/GSP";
+import {ExternalSignalDeleteMessage} from "../messages";
 import {ActorEnvironment} from "../ActorEnvironment";
 import {DPropAlgorithm} from "./DPropAlgorithm";
 import {NoGlitchFreedom} from "./NoGlitchFreedom";
