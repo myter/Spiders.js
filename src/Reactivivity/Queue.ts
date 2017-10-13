@@ -49,4 +49,34 @@ export class Queue{
     peek(){
         return this.queue.length > 0 ? this.queue[this.offset] : undefined
     }
+
+    peekAll(callback){
+        this.queue.forEach((el,index)=>{
+            if(index > this.offset){
+                callback(el)
+            }
+        })
+    }
+
+    contains(comp){
+        let has = false
+        this.queue.forEach((el,index)=>{
+            if(index > this.offset && comp(el)){
+                has = true
+            }
+        })
+        return has
+    }
+
+    remove(comp){
+        let newValues   = []
+        let newOffset   = 0
+        this.queue.forEach((el,index)=>{
+            if(index > this.offset && comp(el)){
+                newValues.push(el)
+            }
+        })
+        this.queue      = newValues
+        this.offset     = newOffset
+    }
 }

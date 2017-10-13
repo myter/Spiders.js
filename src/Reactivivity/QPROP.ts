@@ -67,7 +67,7 @@ export class QPROPNode implements DPropAlgorithm{
     parentsReceived             : number
     startsReceived              : number
     readyListeners              : Array<Function>
-    instabilitySet              : Set<any>
+    instabilitySet              : Array<PubSubTag>
     stampCounter                : number
     dynamic                     : boolean
     signalPool                  : SignalPool
@@ -91,7 +91,7 @@ export class QPROPNode implements DPropAlgorithm{
         this.parentsReceived            = 0
         this.startsReceived             = 0
         this.readyListeners             = []
-        this.instabilitySet             = new Set()
+        this.instabilitySet             = []
         this.stampCounter               = 0
         this.dynamic                    = false
         hostActor.publish(this,ownType)
@@ -155,10 +155,7 @@ export class QPROPNode implements DPropAlgorithm{
         let all : any = []
         this.sourceMap.forEach((sources : Array<PubSubTag>)=>{
             sources.forEach((source : PubSubTag)=>{
-                let filtered = all.filter((s)=>{
-                    return source.tagVal == source.tagVal
-                })
-                if(filtered.length == 0){
+                if(!this.contains(all,source)){
                     all.push(source)
                 }
             })
@@ -175,6 +172,12 @@ export class QPROPNode implements DPropAlgorithm{
         sources.forEach((source : PubSubTag)=>{
             allQs.set(source.tagVal,new Queue())
         })
+    }
+
+    contains(typeArray : Array<PubSubTag>,targettype : PubSubTag){
+        return typeArray.filter((type : PubSubTag)=>{
+            return type.tagVal == targettype.tagVal
+        }).length > 0
     }
 
     ////////////////////////////////////////
@@ -239,7 +242,54 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     initDynamic(){
+        let updateParents = ()=>{
+            this.directParentRefs.forEach((parentRef : FarRef)=>{
+                parentRef.addChild(this)
+            })
+        }
 
+        let updateChildren = ()=>{
+            let childrenUpdated = 0
+            this.directChildren.forEach((childType : PubSubTag)=>{
+                this.host.subscribe(childType).each((childRef : FarRef)=>{
+                    this.directParentRefs.push(childRef)
+                    childRef.updateSources(this.ownType,this.getAllSources(),true,this.ownDefault).then(()=>{
+                        childrenUpdated++
+                        if(childrenUpdated == this.directChildren.length){
+                            updateParents()
+                        }
+                    })
+                })
+            })
+        }
+
+        let queuesConstructed = 0
+        this.directParents.forEach((parentType : PubSubTag)=>{
+            this.host.subscribe(parentType).each((parentRef : FarRef)=>{
+                this.directParentRefs.push(parentRef)
+                parentRef.getDefaultValue().then((defVal)=>{
+                    this.directParentDefaultVals.set(parentType.tagVal,defVal)
+                })
+                parentRef.getSourceMap().then((sourceMap : SourceIsolate)=>{
+                    let theseSources = this.getAllSources().sources
+                    sourceMap.sources.forEach((source : PubSubTag)=>{
+                        let hasSource   = this.contains(theseSources,source)
+                        let hasInstable = this.contains(this.instabilitySet,source)
+                        if(hasSource && hasInstable){
+                            this.instabilitySet.push(source)
+                        }
+                    })
+                    this.constructQueue(parentType,sourceMap.sources)
+                    queuesConstructed++
+                    if(queuesConstructed == this.directParents.length){
+                        updateChildren()
+                    }
+                })
+            })
+        })
+        if(this.directParents.length == 0){
+            updateChildren()
+        }
     }
 
     canPropagate(messageOrigin : PubSubTag){
@@ -254,7 +304,50 @@ export class QPROPNode implements DPropAlgorithm{
                 }
             }
         })
-        return propagate
+        if(this.contains(this.instabilitySet,messageOrigin)){
+            return propagate && this.canStabilise(qs,messageOrigin)
+        }
+        else{
+            return propagate
+        }
+    }
+
+    canStabilise(qs : Array<Queue>,messageOrigin: PubSubTag){
+        let commonStamps    : Array<number> = []
+        let allStamps       : Array<number> = []
+        let commonTimeStamp                 = false
+        qs.forEach((outerQ : Queue)=>{
+            outerQ.peekAll((v : PropagationValue)=>{
+                let found = true
+                allStamps.push(v.timeStamp)
+                qs.forEach((innerQ : Queue)=>{
+                    if(outerQ != innerQ){
+                        found = found && (innerQ.contains((el)=>{return el.timeStamp == v.timeStamp}))
+                    }
+                })
+                if(found && (!(commonStamps as any).includes(v.timeStamp))){
+                    commonStamps.push(v.timeStamp)
+                }
+                commonTimeStamp = commonTimeStamp || found
+            })
+        })
+        if(commonTimeStamp){
+            let lowest = -1
+            commonStamps.forEach((stamp : number)=>{
+                if(stamp < lowest || lowest < 0){
+                    lowest = stamp
+                }
+            })
+            qs.forEach((q : Queue)=>{
+                q.remove((val : PropagationValue)=>{
+                    return val.timeStamp >= lowest
+                })
+            })
+            this.instabilitySet = this.instabilitySet.filter((source : PubSubTag)=>{
+                return source.tagVal != messageOrigin.tagVal
+            })
+        }
+        return commonTimeStamp
     }
 
     getArgumentPosition(parentType : string){
@@ -328,13 +421,52 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     isReferenced(someType : PubSubTag){
-        let parentsFilter   = this.directParents.filter((parenType : PubSubTag)=>{
-            return parenType.tagVal == someType.tagVal
+        return (this.contains(this.directParents,someType)) || (this.contains(this.directChildren,someType))
+    }
+
+
+    addChild(childRef : FarRef){
+        this.directChildrenRefs.push(childRef)
+    }
+
+    getDefaultValue(){
+        return this.ownDefault
+    }
+
+    updateSources(from : PubSubTag,sourceMap : SourceIsolate,updateDef = false,defVal = null){
+        let sources     = sourceMap.sources
+        let mySources   = this.getAllSources().sources
+        sources.forEach((source : PubSubTag)=>{
+            if(this.contains(mySources,source) && (!this.contains(this.instabilitySet,source))){
+                this.instabilitySet.push(source)
+            }
         })
-        let childrenFilter  = this.directChildren.filter((childType : PubSubTag)=>{
-            return childType.tagVal == someType.tagVal
-        })
-        return (parentsFilter.length > 0) || (childrenFilter.length > 0)
+        if(updateDef){
+            this.inputQueues.set(from.tagVal,new Map())
+            this.directParentDefaultVals.set(from.tagVal,defVal)
+            this.directParents.push(from)
+        }
+        this.constructQueue(from,sources)
+        if(this.directChildrenRefs.length == 0){
+            return "ok"
+        }
+        else{
+            let resReceived = 0
+            return new Promise((resolve)=>{
+                this.directChildrenRefs.forEach((childRef : FarRef)=>{
+                    childRef.updateSources(this.ownType,sourceMap).then(()=>{
+                        resReceived++
+                        if(resReceived == this.directChildrenRefs.length){
+                            resolve("ok")
+                        }
+                    })
+                })
+            })
+        }
+    }
+
+    getSourceMap(){
+        return this.getAllSources()
     }
 
     getSignal(signal){
@@ -385,7 +517,7 @@ export class QPROPNode implements DPropAlgorithm{
                 })
             }
         }
-        if(this.startsReceived == this.directChildren.length){
+        if(this.startsReceived == this.directChildren.length || this.dynamic){
            sendToAll()
         }
         else{
