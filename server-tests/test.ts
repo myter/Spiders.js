@@ -23,6 +23,14 @@ class Actor2 extends spiderLib.Actor{
     }
 }
 
-let a1 = app.spawnActor(Actor1)
+/*let a1 = app.spawnActor(Actor1)
 let a2 = app.spawnActor(Actor2)
-a1.tryIt(a2)
+a1.tryIt(a2)*/
+type Primitive  = boolean | number | string | null | undefined
+type Mergeablee = Primitive
+type Mergeable  = Mergeablee | Mergeablee[]
+function mergeAny<T extends Mergeable>(replicaOne: T, replicaTwo: T): T {
+    if (typeof replicaOne === 'number') {
+        return Math.max(replicaOne, replicaTwo as number) as T // error
+    }
+}

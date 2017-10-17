@@ -5,6 +5,7 @@ const SubClient_1 = require("./PubSub/SubClient");
 const SubTag_1 = require("./PubSub/SubTag");
 const SubServer_1 = require("./PubSub/SubServer");
 const QPROP_1 = require("./Reactivivity/QPROP");
+const SIDUP_1 = require("./Reactivivity/SIDUP");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -201,6 +202,21 @@ function installSTDLib(appActor, parentRef, behaviourObject, environment) {
         return behaviourObject["lift"]((qSignal) => {
             return qSignal.parentVals;
         })(qNodeSignal);
+    };
+    behaviourObject["SIDUP"] = (ownType, parents, admitterType, isSink = false) => {
+        let sidupNode = new SIDUP_1.SIDUPNode(ownType, parents, behaviourObject, admitterType, isSink);
+        environment.signalPool.installDPropAlgorithm(sidupNode);
+        let sidupSignal = sidupNode.ownSignal;
+        let signal = new signal_1.Signal(sidupSignal);
+        sidupSignal.setHolder(signal);
+        sidupSignal.instantiateMeta(environment);
+        signalPool.newSource(signal);
+        return behaviourObject["lift"]((qSignal) => {
+            return sidupSignal.parentVals;
+        })(sidupSignal);
+    };
+    behaviourObject["SIDUPAdmitter"] = (admitterType, sinks) => {
+        new SIDUP_1.SIDUPAdmitter(admitterType, sinks, behaviourObject);
     };
     //Instruct QPROP instance to publish the given signal
     behaviourObject["publishSignal"] = (signal) => {

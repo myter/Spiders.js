@@ -4,6 +4,7 @@ import {ActorEnvironment} from "../ActorEnvironment";
 import {DPropAlgorithm} from "./DPropAlgorithm";
 import {NoGlitchFreedom} from "./NoGlitchFreedom";
 import {PropagationValue} from "./QPROP";
+import {NodePulse} from "./SIDUP";
 /**
  * Created by flo on 22/06/2017.
  */
@@ -21,6 +22,7 @@ export class SignalPool{
     //Algorithm used for distributed glitch freedom
     distAlgo            : DPropAlgorithm
     lastPropMessage     : PropagationValue
+    lastPulse           : NodePulse
 
     constructor(environment : ActorEnvironment){
         this.environment            = environment
@@ -42,6 +44,10 @@ export class SignalPool{
 
     setLastPropMessage(propMessage : PropagationValue){
         this.lastPropMessage = propMessage
+    }
+
+    setLastPulse(pulse : NodePulse){
+        this.lastPulse = pulse
     }
 
     addMutator(className : string, methodName : string){

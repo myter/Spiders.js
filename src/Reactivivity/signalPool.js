@@ -24,6 +24,9 @@ class SignalPool {
     setLastPropMessage(propMessage) {
         this.lastPropMessage = propMessage;
     }
+    setLastPulse(pulse) {
+        this.lastPulse = pulse;
+    }
     addMutator(className, methodName) {
         if (!this.mutators.has(className)) {
             this.mutators.set(className, []);
