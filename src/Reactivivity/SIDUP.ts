@@ -338,6 +338,10 @@ export class SIDUPNode implements DPropAlgorithm{
                 this.signalPool.setLastPulse(pulse)
                 this.ownSignal.holder.change(Signal.NO_CHANGE)
             }
+            this.reset()
+            if(this.childrenRefs.length == 0){
+                this.termination.nodeTerminated()
+            }
         }
     }
 
@@ -429,10 +433,6 @@ export class SIDUPNode implements DPropAlgorithm{
                 this.termination.newChildMessage()
                 childRef.newPulse(this.ownType,this,newPulse)
             })
-            this.reset()
-            if(this.childrenRefs.length == 0){
-                this.termination.nodeTerminated()
-            }
         }
         //Check whether this node is at the start of the distributed dependency graph
         //In which case it first needs to ask "permission" to propagate from the admitter

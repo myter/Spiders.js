@@ -8,6 +8,7 @@ import {SpiderLib} from "../src/spiders";
 var spiders : SpiderLib = require("../src/spiders")
 let admitterTag = new PubSubTag("admitter")
 let sourceTag   = new PubSubTag("source")
+let source2Tag  = new PubSubTag("source2")
 let sinkTag     = new PubSubTag("sink")
 let aTag        = new PubSubTag("a")
 let bTag        = new PubSubTag("b")
@@ -24,6 +25,19 @@ class TestSignal extends spiders.Signal{
     @spiders.mutator
     inc(){
         ++this.value
+    }
+}
+
+class Test2Signal extends spiders.Signal{
+    bool
+    constructor(){
+        super()
+        this.bool = false
+    }
+
+    @spiders.mutator
+    change(){
+        this.bool = !this.bool
     }
 }
 
@@ -74,8 +88,42 @@ class SourceService extends MicroService{
     }
 }
 
+class Source2Service extends  MicroService{
+    sourceTag
+    sinkTag
+    aTag
+    bTag
+    admitter
+    TestSignal
+
+    constructor(){
+        super()
+        this.sourceTag  = source2Tag
+        this.aTag       = aTag
+        this.bTag       = bTag
+        this.TestSignal = Test2Signal
+        this.sinkTag    = sinkTag
+        this.admitter   = admitterTag
+    }
+
+    init(){
+        this.SIDUP(this.sourceTag,[],this.admitter)
+        let t : any = this.newSignal(this.TestSignal)
+        this.publishSignal(t)
+        this.update(t)
+    }
+
+    update(t){
+        setTimeout(()=>{
+            t.change()
+            this.update(t)
+        },3000)
+    }
+}
+
 class ServiceA extends MicroService{
     sourceTag
+    source2Tag
     sinkTag
     aTag
     admitter
@@ -83,15 +131,21 @@ class ServiceA extends MicroService{
     constructor(){
         super()
         this.sourceTag  = sourceTag
+        this.source2Tag = source2Tag
         this.sinkTag    = sinkTag
         this.aTag       = aTag
         this.admitter   = admitterTag
     }
 
     init(){
-        let s = this.SIDUP(this.aTag,[this.sourceTag],this.admitter)
+        let s = this.SIDUP(this.aTag,[this.sourceTag,this.source2Tag],this.admitter)
         let ss = this.lift((sa)=>{
-            console.log("Got change in A: " + sa[0].value)
+            if(sa[1]){
+                console.log("Got change in A: " + sa[0].value + " : " + sa[1].bool)
+            }
+            else{
+                console.log("Got change in A: " + sa[0].value)
+            }
             return sa[0].value + 1
         })(s)
         this.publishSignal(ss)
@@ -147,6 +201,7 @@ class SinkService extends MicroService{
 }
 let adm     = monitor.spawnActor(Admitter)
 let source  = monitor.spawnActor(SourceService)
+let source2 = monitor.spawnActor(Source2Service)
 let sink    = monitor.spawnActor(SinkService)
 let a       = monitor.spawnActor(ServiceA)
 let b       = monitor.spawnActor(ServiceB)
