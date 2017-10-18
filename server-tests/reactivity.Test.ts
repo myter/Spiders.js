@@ -5,6 +5,7 @@
 import {SpiderLib} from "../src/spiders";
 import {ServiceMonitor} from "../src/MicroService/ServiceMonitor";
 import {MicroService} from "../src/MicroService/MicroService";
+import {PubSubTag} from "../src/PubSub/SubTag";
 var chai                        = require('chai')
 var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
@@ -318,14 +319,279 @@ describe("Glitch Freedom",() => {
         }
     })
 
-    /*it("QPROP simple glitch freedom",function(done){
+    it("QPROP simple glitch freedom",function(done){
+        this.timeout(10000)
         let monitor = new ServiceMonitor()
-        class SourceService extends MicroService{
+        let sourceTag   = new PubSubTag("source")
+        let sinkTag     = new PubSubTag("sink")
+        let aTag        = new PubSubTag("a")
+        let bTag        = new PubSubTag("b")
 
+        class TestSignal extends spider.Signal{
+            value
+
+            constructor(){
+                super()
+                this.value = 1
+            }
+
+            @spider.mutator
+            inc(){
+                ++this.value
+            }
+        }
+
+        class SourceService extends MicroService{
+            sourceTag
+            sinkTag
+            aTag
+            bTag
+            TestSignal
+
+            constructor(){
+                super()
+                this.sourceTag  = sourceTag
+                this.aTag       = aTag
+                this.bTag       = bTag
+                this.TestSignal = TestSignal
+                this.sinkTag    = sinkTag
+            }
+
+            init(){
+                let t : any = this.newSignal(this.TestSignal)
+                this.QPROP(this.sourceTag,[],[this.aTag,this.bTag],t)
+                this.publishSignal(t)
+                t.inc()
+            }
         }
 
         class ServiceA extends MicroService{
+            sourceTag
+            sinkTag
+            aTag
 
+            constructor(){
+                super()
+                this.sourceTag  = sourceTag
+                this.sinkTag    = sinkTag
+                this.aTag       = aTag
+            }
+
+            init(){
+                let s = this.QPROP(this.aTag,[this.sourceTag],[this.sinkTag],-1)
+                let ss = this.lift(([s1])=>{
+                    return (s1.value + 1)
+                })(s)
+                this.publishSignal(ss)
+            }
         }
-    })*/
+
+        class ServiceB extends  MicroService{
+            sourceTag
+            sinkTag
+            bTag
+
+            constructor(){
+                super()
+                this.sourceTag  = sourceTag
+                this.sinkTag    = sinkTag
+                this.bTag       = bTag
+            }
+
+            init(){
+                let s = this.QPROP(this.bTag,[this.sourceTag],[this.sinkTag],-1);
+                let ss = this.lift(([s1])=>{
+                    return (s1.value + 1)
+                })(s)
+                this.publishSignal(ss)
+            }
+        }
+
+        class SinkService extends MicroService{
+            aTag
+            bTag
+            sinkTag
+            resultVal
+
+            constructor(){
+                super()
+                this.aTag       = aTag
+                this.bTag       = bTag
+                this.sinkTag    = sinkTag
+            }
+
+            init(){
+                let s = this.QPROP(this.sinkTag,[this.aTag,this.bTag],[],null)
+                this.lift(([v1,v2])=>{
+                    this.resultVal = v1 + v2
+                })(s)
+            }
+        }
+        monitor.spawnActor(SourceService)
+        let sink = monitor.spawnActor(SinkService)
+        monitor.spawnActor(ServiceA)
+        monitor.spawnActor(ServiceB)
+        setTimeout(()=>{
+            sink.resultVal.then((v)=>{
+                try{
+                    expect(v).to.equal(6)
+                    monitor.kill()
+                    done()
+                }
+                catch(e){
+                    monitor.kill()
+                    done(e)
+                }
+            })
+        },2000)
+    })
+
+    it("SIDUP simple glitch freedom",function(done){
+        this.timeout(10000)
+        let admitterTag = new PubSubTag("admitter")
+        let monitor     = new ServiceMonitor()
+        let sourceTag   = new PubSubTag("source")
+        let sinkTag     = new PubSubTag("sink")
+        let aTag        = new PubSubTag("a")
+        let bTag        = new PubSubTag("b")
+
+        class TestSignal extends spider.Signal{
+            value
+
+            constructor(){
+                super()
+                this.value = 1
+            }
+
+            @spider.mutator
+            inc(){
+                ++this.value
+            }
+        }
+
+        class Admitter extends MicroService{
+            admitterTag
+
+            constructor(){
+                super()
+                this.admitterTag = admitterTag
+            }
+            init(){
+                this.SIDUPAdmitter(this.admitterTag,1,1)
+            }
+        }
+
+        class SourceService extends MicroService{
+            sourceTag
+            sinkTag
+            aTag
+            bTag
+            TestSignal
+            admitter
+
+            constructor(){
+                super()
+                this.sourceTag  = sourceTag
+                this.aTag       = aTag
+                this.bTag       = bTag
+                this.TestSignal = TestSignal
+                this.sinkTag    = sinkTag
+                this.admitter   = admitterTag
+            }
+
+            init(){
+                let t : any = this.newSignal(this.TestSignal)
+                this.SIDUP(this.sourceTag,[],this.admitter)
+                this.publishSignal(t)
+                t.inc()
+            }
+        }
+
+        class ServiceA extends MicroService{
+            sourceTag
+            sinkTag
+            aTag
+            admitter
+
+            constructor(){
+                super()
+                this.sourceTag  = sourceTag
+                this.sinkTag    = sinkTag
+                this.aTag       = aTag
+                this.admitter   = admitterTag
+            }
+
+            init(){
+                let s = this.SIDUP(this.aTag,[this.sourceTag],this.admitter)
+                let ss = this.lift(([s1])=>{
+                    return (s1.value + 1)
+                })(s)
+                this.publishSignal(ss)
+            }
+        }
+
+        class ServiceB extends  MicroService{
+            sourceTag
+            sinkTag
+            bTag
+            admitter
+
+            constructor(){
+                super()
+                this.sourceTag  = sourceTag
+                this.sinkTag    = sinkTag
+                this.bTag       = bTag
+                this.admitter   = admitterTag
+            }
+
+            init(){
+                let s = this.SIDUP(this.bTag,[this.sourceTag],this.admitter);
+                let ss = this.lift(([s1])=>{
+                    return (s1.value + 1)
+                })(s)
+                this.publishSignal(ss)
+            }
+        }
+
+        class SinkService extends MicroService{
+            aTag
+            bTag
+            sinkTag
+            resultVal
+            admitter
+
+            constructor(){
+                super()
+                this.aTag       = aTag
+                this.bTag       = bTag
+                this.sinkTag    = sinkTag
+                this.admitter   = admitterTag
+            }
+
+            init(){
+                let s = this.SIDUP(this.sinkTag,[this.aTag,this.bTag],this.admitter,true)
+                this.lift(([v1,v2])=>{
+                    this.resultVal = v1 + v2
+                })(s)
+            }
+        }
+        monitor.spawnActor(SourceService)
+        let sink = monitor.spawnActor(SinkService)
+        monitor.spawnActor(Admitter)
+        monitor.spawnActor(ServiceA)
+        monitor.spawnActor(ServiceB)
+        setTimeout(()=>{
+            sink.resultVal.then((v)=>{
+                try{
+                    expect(v).to.equal(6)
+                    monitor.kill()
+                    done()
+                }
+                catch(e){
+                    monitor.kill()
+                    done(e)
+                }
+            })
+        },2000)
+    })
 })

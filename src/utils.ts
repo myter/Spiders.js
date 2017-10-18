@@ -6,7 +6,7 @@ import {ActorEnvironment} from "./ActorEnvironment";
 import {PSClient} from "./PubSub/SubClient";
 import {PubSubTag} from "./PubSub/SubTag";
 import {PSServer} from "./PubSub/SubServer";
-import {DependencyAdditionTag, DependencyChange, QPROPNode, QPROPSourceSignal} from "./Reactivivity/QPROP";
+import { DependencyChange, QPROPNode, QPROPSourceSignal} from "./Reactivivity/QPROP";
 import {SIDUPAdmitter, SIDUPNode, SIDUPSourceSignal} from "./Reactivivity/SIDUP";
 /**
  * Created by flo on 05/12/2016.

@@ -7,6 +7,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const ServiceMonitor_1 = require("../src/MicroService/ServiceMonitor");
+const MicroService_1 = require("../src/MicroService/MicroService");
+const SubTag_1 = require("../src/PubSub/SubTag");
 var chai = require('chai');
 var expect = chai.expect;
 var spider = require('../src/spiders');
@@ -280,15 +283,214 @@ describe("Glitch Freedom", () => {
             done(e);
         }
     });
-    /*it("QPROP simple glitch freedom",function(done){
-        let monitor = new ServiceMonitor()
-        class SourceService extends MicroService{
-
+    it("QPROP simple glitch freedom", function (done) {
+        this.timeout(10000);
+        let monitor = new ServiceMonitor_1.ServiceMonitor();
+        let sourceTag = new SubTag_1.PubSubTag("source");
+        let sinkTag = new SubTag_1.PubSubTag("sink");
+        let aTag = new SubTag_1.PubSubTag("a");
+        let bTag = new SubTag_1.PubSubTag("b");
+        class TestSignal extends spider.Signal {
+            constructor() {
+                super();
+                this.value = 1;
+            }
+            inc() {
+                ++this.value;
+            }
         }
-
-        class ServiceA extends MicroService{
-
+        __decorate([
+            spider.mutator
+        ], TestSignal.prototype, "inc", null);
+        class SourceService extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.sourceTag = sourceTag;
+                this.aTag = aTag;
+                this.bTag = bTag;
+                this.TestSignal = TestSignal;
+                this.sinkTag = sinkTag;
+            }
+            init() {
+                let t = this.newSignal(this.TestSignal);
+                this.QPROP(this.sourceTag, [], [this.aTag, this.bTag], t);
+                this.publishSignal(t);
+                t.inc();
+            }
         }
-    })*/
+        class ServiceA extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.sourceTag = sourceTag;
+                this.sinkTag = sinkTag;
+                this.aTag = aTag;
+            }
+            init() {
+                let s = this.QPROP(this.aTag, [this.sourceTag], [this.sinkTag], -1);
+                let ss = this.lift(([s1]) => {
+                    return (s1.value + 1);
+                })(s);
+                this.publishSignal(ss);
+            }
+        }
+        class ServiceB extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.sourceTag = sourceTag;
+                this.sinkTag = sinkTag;
+                this.bTag = bTag;
+            }
+            init() {
+                let s = this.QPROP(this.bTag, [this.sourceTag], [this.sinkTag], -1);
+                let ss = this.lift(([s1]) => {
+                    return (s1.value + 1);
+                })(s);
+                this.publishSignal(ss);
+            }
+        }
+        class SinkService extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.aTag = aTag;
+                this.bTag = bTag;
+                this.sinkTag = sinkTag;
+            }
+            init() {
+                let s = this.QPROP(this.sinkTag, [this.aTag, this.bTag], [], null);
+                this.lift(([v1, v2]) => {
+                    this.resultVal = v1 + v2;
+                })(s);
+            }
+        }
+        monitor.spawnActor(SourceService);
+        let sink = monitor.spawnActor(SinkService);
+        monitor.spawnActor(ServiceA);
+        monitor.spawnActor(ServiceB);
+        setTimeout(() => {
+            sink.resultVal.then((v) => {
+                try {
+                    expect(v).to.equal(6);
+                    monitor.kill();
+                    done();
+                }
+                catch (e) {
+                    monitor.kill();
+                    done(e);
+                }
+            });
+        }, 2000);
+    });
+    it("SIDUP simple glitch freedom", function (done) {
+        this.timeout(10000);
+        let admitterTag = new SubTag_1.PubSubTag("admitter");
+        let monitor = new ServiceMonitor_1.ServiceMonitor();
+        let sourceTag = new SubTag_1.PubSubTag("source");
+        let sinkTag = new SubTag_1.PubSubTag("sink");
+        let aTag = new SubTag_1.PubSubTag("a");
+        let bTag = new SubTag_1.PubSubTag("b");
+        class TestSignal extends spider.Signal {
+            constructor() {
+                super();
+                this.value = 1;
+            }
+            inc() {
+                ++this.value;
+            }
+        }
+        __decorate([
+            spider.mutator
+        ], TestSignal.prototype, "inc", null);
+        class Admitter extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.admitterTag = admitterTag;
+            }
+            init() {
+                this.SIDUPAdmitter(this.admitterTag, 1, 1);
+            }
+        }
+        class SourceService extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.sourceTag = sourceTag;
+                this.aTag = aTag;
+                this.bTag = bTag;
+                this.TestSignal = TestSignal;
+                this.sinkTag = sinkTag;
+                this.admitter = admitterTag;
+            }
+            init() {
+                let t = this.newSignal(this.TestSignal);
+                this.SIDUP(this.sourceTag, [], this.admitter);
+                this.publishSignal(t);
+                t.inc();
+            }
+        }
+        class ServiceA extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.sourceTag = sourceTag;
+                this.sinkTag = sinkTag;
+                this.aTag = aTag;
+                this.admitter = admitterTag;
+            }
+            init() {
+                let s = this.SIDUP(this.aTag, [this.sourceTag], this.admitter);
+                let ss = this.lift(([s1]) => {
+                    return (s1.value + 1);
+                })(s);
+                this.publishSignal(ss);
+            }
+        }
+        class ServiceB extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.sourceTag = sourceTag;
+                this.sinkTag = sinkTag;
+                this.bTag = bTag;
+                this.admitter = admitterTag;
+            }
+            init() {
+                let s = this.SIDUP(this.bTag, [this.sourceTag], this.admitter);
+                let ss = this.lift(([s1]) => {
+                    return (s1.value + 1);
+                })(s);
+                this.publishSignal(ss);
+            }
+        }
+        class SinkService extends MicroService_1.MicroService {
+            constructor() {
+                super();
+                this.aTag = aTag;
+                this.bTag = bTag;
+                this.sinkTag = sinkTag;
+                this.admitter = admitterTag;
+            }
+            init() {
+                let s = this.SIDUP(this.sinkTag, [this.aTag, this.bTag], this.admitter, true);
+                this.lift(([v1, v2]) => {
+                    this.resultVal = v1 + v2;
+                })(s);
+            }
+        }
+        monitor.spawnActor(SourceService);
+        let sink = monitor.spawnActor(SinkService);
+        monitor.spawnActor(Admitter);
+        monitor.spawnActor(ServiceA);
+        monitor.spawnActor(ServiceB);
+        setTimeout(() => {
+            sink.resultVal.then((v) => {
+                try {
+                    expect(v).to.equal(6);
+                    monitor.kill();
+                    done();
+                }
+                catch (e) {
+                    monitor.kill();
+                    done(e);
+                }
+            });
+        }, 2000);
+    });
 });
 //# sourceMappingURL=reactivity.Test.js.map

@@ -214,7 +214,7 @@ export class QPROPNode implements DPropAlgorithm{
                     this.initRegular()
                 }
                 else{
-                    console.log("Init dynamic for: " + this.ownType.tagVal)
+                    //console.log("Init dynamic for: " + this.ownType.tagVal)
                     this.initDynamic()
                     this.dynamic = true
                 }
@@ -241,7 +241,7 @@ export class QPROPNode implements DPropAlgorithm{
                     this.directParentRefs.forEach((parentRef : FarRef)=>{
                         parentRef.receiveStart(this.ownType)
                     })
-                    console.log("Node : " + this.ownType.tagVal + " is ready !")
+                    //console.log("Node : " + this.ownType.tagVal + " is ready !")
                 }
             })
         })
