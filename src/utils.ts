@@ -6,7 +6,7 @@ import {ActorEnvironment} from "./ActorEnvironment";
 import {PSClient} from "./PubSub/SubClient";
 import {PubSubTag} from "./PubSub/SubTag";
 import {PSServer} from "./PubSub/SubServer";
-import {QPROPNode, QPROPSourceSignal} from "./Reactivivity/QPROP";
+import {DependencyAdditionTag, DependencyChange, QPROPNode, QPROPSourceSignal} from "./Reactivivity/QPROP";
 import {SIDUPAdmitter, SIDUPNode, SIDUPSourceSignal} from "./Reactivivity/SIDUP";
 /**
  * Created by flo on 05/12/2016.
@@ -208,10 +208,10 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
     ///////////////////
     //Reactivity   //
     //////////////////
-
+    let dependencyChangeTag = behaviourObject["newPSTag"]("DependencyChange")
     //Setup QPROP instance
     behaviourObject["QPROP"]        = (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) =>{
-        let qNode       = new QPROPNode(ownType,directParents,directChildren,behaviourObject,defaultValue)
+        let qNode       = new QPROPNode(ownType,directParents,directChildren,behaviourObject,defaultValue,dependencyChangeTag)
         environment.signalPool.installDPropAlgorithm(qNode)
         let qNodeSignal = qNode.ownSignal
         let signal      = new Signal(qNodeSignal)
@@ -223,6 +223,10 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
         })(qNodeSignal)
     }
 
+    behaviourObject["addDependency"] = (fromType : PubSubTag,toType : PubSubTag) => {
+        behaviourObject["publish"](new DependencyChange(fromType,toType),dependencyChangeTag)
+    }
+
     behaviourObject["SIDUP"] = (ownType : PubSubTag,parents : Array<PubSubTag>,admitterType : PubSubTag,isSink = false) =>{
         let sidupNode   = new SIDUPNode(ownType,parents,behaviourObject,admitterType,isSink)
         environment.signalPool.installDPropAlgorithm(sidupNode)
@@ -231,7 +235,7 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
         sidupSignal.setHolder(signal)
         sidupSignal.instantiateMeta(environment)
         signalPool.newSource(signal)
-        return behaviourObject["lift"]((qSignal : SIDUPSourceSignal)=>{
+        return behaviourObject["lift"]((sidupSignal : SIDUPSourceSignal)=>{
             return sidupSignal.parentVals
         })(sidupSignal)
     }

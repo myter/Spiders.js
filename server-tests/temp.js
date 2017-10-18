@@ -11,6 +11,7 @@ const SubTag_1 = require("../src/PubSub/SubTag");
 var spiders = require("../src/spiders");
 let monitor = new ServiceMonitor_1.ServiceMonitor();
 let sourceTag = new SubTag_1.PubSubTag("source");
+let source2Tag = new SubTag_1.PubSubTag("source2");
 let sinkTag = new SubTag_1.PubSubTag("sink");
 let aTag = new SubTag_1.PubSubTag("a");
 let bTag = new SubTag_1.PubSubTag("b");
@@ -27,6 +28,18 @@ class TestSignal extends spiders.Signal {
 __decorate([
     spiders.mutator
 ], TestSignal.prototype, "inc", null);
+class Test2Signal extends spiders.Signal {
+    constructor() {
+        super();
+        this.bool = true;
+    }
+    change() {
+        this.bool = !this.bool;
+    }
+}
+__decorate([
+    spiders.mutator
+], Test2Signal.prototype, "change", null);
 class SourceService extends MicroService_1.MicroService {
     constructor() {
         super();
@@ -37,8 +50,8 @@ class SourceService extends MicroService_1.MicroService {
         this.sinkTag = sinkTag;
     }
     init() {
-        this.QPROP(this.sourceTag, [], [this.aTag, this.bTag], null);
         let t = this.newSignal(this.TestSignal);
+        this.QPROP(this.sourceTag, [], [this.aTag, this.bTag], t);
         this.publishSignal(t);
         this.update(t);
     }
@@ -49,6 +62,31 @@ class SourceService extends MicroService_1.MicroService {
         }, 2000);
     }
 }
+class Source2Service extends MicroService_1.MicroService {
+    constructor() {
+        super();
+        this.source2Tag = source2Tag;
+        this.TestSignal = Test2Signal;
+        this.bTag = bTag;
+        this.aTag = aTag;
+    }
+    init() {
+        let t = this.newSignal(this.TestSignal);
+        this.QPROP(this.source2Tag, [], [this.bTag], t);
+        this.publishSignal(t);
+        this.update(t);
+        setTimeout(() => {
+            console.log("Adding dependency");
+            this.addDependency(this.source2Tag, this.aTag);
+        }, 7000);
+    }
+    update(t) {
+        setTimeout(() => {
+            t.change();
+            this.update(t);
+        }, 3000);
+    }
+}
 class ServiceA extends MicroService_1.MicroService {
     constructor() {
         super();
@@ -57,10 +95,15 @@ class ServiceA extends MicroService_1.MicroService {
         this.aTag = aTag;
     }
     init() {
-        let s = this.QPROP(this.aTag, [this.sourceTag], [this.sinkTag], null);
-        let ss = this.lift((sa) => {
-            console.log("Got change in A: " + sa[0].value);
-            return sa[0].value + 1;
+        let s = this.QPROP(this.aTag, [this.sourceTag], [this.sinkTag], -1);
+        let ss = this.lift(([s1, s2]) => {
+            if (s2) {
+                console.log("Got change in A: " + s1.value + " : " + s2.bool);
+            }
+            else {
+                console.log("Got change in A: " + s1.value);
+            }
+            return (s1.value + 1);
         })(s);
         this.publishSignal(ss);
     }
@@ -69,14 +112,20 @@ class ServiceB extends MicroService_1.MicroService {
     constructor() {
         super();
         this.sourceTag = sourceTag;
+        this.source2Tag = source2Tag;
         this.sinkTag = sinkTag;
         this.bTag = bTag;
     }
     init() {
-        let s = this.QPROP(this.bTag, [this.sourceTag], [this.sinkTag], null);
-        let ss = this.lift((sa) => {
-            console.log("Got change in B: " + sa[0].value);
-            return (sa[0].value + 1);
+        let s = this.QPROP(this.bTag, [this.sourceTag, this.source2Tag], [this.sinkTag], -1);
+        let ss = this.lift(([s1, s2]) => {
+            if (s2) {
+                console.log("Got change in B: " + s1.value + " : " + s2.bool);
+            }
+            else {
+                console.log("Got change in B: " + s1.value);
+            }
+            return (s1.value + 1);
         })(s);
         this.publishSignal(ss);
     }
@@ -115,10 +164,11 @@ class SinkService extends MicroService_1.MicroService {
     }
 }
 let source = monitor.spawnActor(SourceService);
+let source2 = monitor.spawnActor(Source2Service);
 let sink = monitor.spawnActor(SinkService);
 let a = monitor.spawnActor(ServiceA);
 let b = monitor.spawnActor(ServiceB);
-setTimeout(() => {
-    monitor.spawnActor(DynamicService);
-}, 3500);
+/*setTimeout(()=>{
+    monitor.spawnActor(DynamicService)
+},3500)*/ 
 //# sourceMappingURL=temp.js.map

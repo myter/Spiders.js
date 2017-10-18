@@ -280,6 +280,15 @@ describe("Glitch Freedom", () => {
             done(e);
         }
     });
-    //TODO distributed glitch freedom (obviously)
+    /*it("QPROP simple glitch freedom",function(done){
+        let monitor = new ServiceMonitor()
+        class SourceService extends MicroService{
+
+        }
+
+        class ServiceA extends MicroService{
+
+        }
+    })*/
 });
 //# sourceMappingURL=reactivity.Test.js.map

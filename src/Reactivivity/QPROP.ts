@@ -48,6 +48,17 @@ export class QPROPSourceSignal extends SignalObject{
     }
 }
 
+export class DependencyChange{
+    fromType    : PubSubTag
+    toType      : PubSubTag
+
+    constructor(fromType : PubSubTag,toType : PubSubTag){
+        this[IsolateContainer.checkIsolateFuncKey] = true
+        this.fromType   = fromType
+        this.toType     = toType
+    }
+}
+
 export class QPROPNode implements DPropAlgorithm{
 
     host
@@ -71,10 +82,12 @@ export class QPROPNode implements DPropAlgorithm{
     stampCounter                : number
     dynamic                     : boolean
     signalPool                  : SignalPool
+    parentSignals               : Map<string,Signal>
+    parentSignalResolver        : Function
 
 
 
-    constructor(ownType,directParents,directChildren,hostActor,defaultVal){
+    constructor(ownType,directParents,directChildren,hostActor,defaultVal,dependencyChangeType : PubSubTag){
         this.host                       = hostActor
         this.ownType                    = ownType
         this.ownSignal                  = new QPROPSourceSignal()
@@ -94,7 +107,14 @@ export class QPROPNode implements DPropAlgorithm{
         this.instabilitySet             = []
         this.stampCounter               = 0
         this.dynamic                    = false
+        this.parentSignals              = new Map()
         hostActor.publish(this,ownType)
+        hostActor.subscribe(dependencyChangeType).each((change : DependencyChange)=>{
+            console.log("Dependency addition detected")
+            if(change.toType.tagVal == this.ownType.tagVal){
+                this.dynamicDependencyAddition(change)
+            }
+        })
         this.pickInit()
     }
 
@@ -292,6 +312,37 @@ export class QPROPNode implements DPropAlgorithm{
         }
     }
 
+    dynamicDependencyAddition(change : DependencyChange){
+        this.inputQueues.set(change.fromType.tagVal,new Map())
+        this.directParents.push(change.fromType)
+        this.host.subscribe(change.fromType).each((fromRef : FarRef)=>{
+            this.directParentRefs.push(fromRef)
+            fromRef.getDefaultValue().then((defVal)=>{
+                this.directParentDefaultVals.set(change.fromType.tagVal,defVal)
+            })
+            fromRef.getSourceMap().then((sourceMap : SourceIsolate)=>{
+                let theseSources = this.getAllSources().sources
+                sourceMap.sources.forEach((source : PubSubTag)=>{
+                    let hasSource   = this.contains(theseSources,source)
+                    let hasInstable = this.contains(this.instabilitySet,source)
+                    if(hasSource && hasInstable){
+                        this.instabilitySet.push(source)
+                    }
+                })
+                this.constructQueue(change.fromType,sourceMap.sources)
+                let childrenUpdated = 0
+                this.directChildrenRefs.forEach((childRef : FarRef)=>{
+                    childRef.updateSources(this.ownType,this.getAllSources(),true,this.ownDefault).then(()=>{
+                        childrenUpdated++
+                        if(childrenUpdated == this.directChildren.length){
+                            fromRef.addChild(this)
+                        }
+                    })
+                })
+            })
+        })
+    }
+
     canPropagate(messageOrigin : PubSubTag){
         let propagate   = true
         let qs          = []
@@ -412,7 +463,6 @@ export class QPROPNode implements DPropAlgorithm{
             //This will start propagation of local change. The exported signal will invoke the propagate method (which will send
             this.signalPool.setLastPropMessage(message)
             this.ownSignal.change(args)
-
             //THIS IS DIFFERENT FROM AT VERSION
             /*this.directChildrenRefs.forEach((childRef : FarRef)=>{
                 childRef.receiveMessage(this.ownType,new PropagationValue(message.origin,this.ownSignal.v,message.timeStamp))
@@ -470,7 +520,7 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     getSignal(signal){
-        //Dummy method which is only used to install a dependency between services
+        //Dummy neeed to trigger underlying deserialisation of SpiderS.js
     }
 
     ////////////////////////////////////////

@@ -80,6 +80,7 @@ abstract class Actor{
     newRepliq       : (RepliqClass,... any) => Object
     //Reactivity
     QPROP           : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
+    addDependency   : (fromType : PubSubTag,toType : PubSubTag) => null
     SIDUP           : (ownType : PubSubTag,parents : Array<PubSubTag>, admitterType: PubSubTag,boolean?) => Signal
     SIDUPAdmitter   : (admitterType : PubSubTag,sources : number,sinks : number) => null
     publishSignal   : (signal) => null
@@ -271,6 +272,7 @@ interface AppType {
     newRepliq           : (RepliqClass,... any) => Object
     //Reactivity
     QPROP               : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
+    addDependency       : (fromType : PubSubTag,toType : PubSubTag) => null
     SIDUP               : (ownType : PubSubTag,parents : Array<PubSubTag>,admitterType : PubSubTag,boolean?) => Signal
     SIDUPAdmitter       : (admitterType : PubSubTag,sources : number,sinks : number) => null
     publishSignal       : (signal) => null

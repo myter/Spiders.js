@@ -42,8 +42,16 @@ __decorate([
     signal_1.mutator
 ], QPROPSourceSignal.prototype, "change", null);
 exports.QPROPSourceSignal = QPROPSourceSignal;
+class DependencyChange {
+    constructor(fromType, toType) {
+        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
+        this.fromType = fromType;
+        this.toType = toType;
+    }
+}
+exports.DependencyChange = DependencyChange;
 class QPROPNode {
-    constructor(ownType, directParents, directChildren, hostActor, defaultVal) {
+    constructor(ownType, directParents, directChildren, hostActor, defaultVal, dependencyChangeType) {
         this.host = hostActor;
         this.ownType = ownType;
         this.ownSignal = new QPROPSourceSignal();
@@ -63,7 +71,14 @@ class QPROPNode {
         this.instabilitySet = [];
         this.stampCounter = 0;
         this.dynamic = false;
+        this.parentSignals = new Map();
         hostActor.publish(this, ownType);
+        hostActor.subscribe(dependencyChangeType).each((change) => {
+            console.log("Dependency addition detected");
+            if (change.toType.tagVal == this.ownType.tagVal) {
+                this.dynamicDependencyAddition(change);
+            }
+        });
         this.pickInit();
     }
     ////////////////////////////////////////
@@ -245,6 +260,36 @@ class QPROPNode {
             updateChildren();
         }
     }
+    dynamicDependencyAddition(change) {
+        this.inputQueues.set(change.fromType.tagVal, new Map());
+        this.directParents.push(change.fromType);
+        this.host.subscribe(change.fromType).each((fromRef) => {
+            this.directParentRefs.push(fromRef);
+            fromRef.getDefaultValue().then((defVal) => {
+                this.directParentDefaultVals.set(change.fromType.tagVal, defVal);
+            });
+            fromRef.getSourceMap().then((sourceMap) => {
+                let theseSources = this.getAllSources().sources;
+                sourceMap.sources.forEach((source) => {
+                    let hasSource = this.contains(theseSources, source);
+                    let hasInstable = this.contains(this.instabilitySet, source);
+                    if (hasSource && hasInstable) {
+                        this.instabilitySet.push(source);
+                    }
+                });
+                this.constructQueue(change.fromType, sourceMap.sources);
+                let childrenUpdated = 0;
+                this.directChildrenRefs.forEach((childRef) => {
+                    childRef.updateSources(this.ownType, this.getAllSources(), true, this.ownDefault).then(() => {
+                        childrenUpdated++;
+                        if (childrenUpdated == this.directChildren.length) {
+                            fromRef.addChild(this);
+                        }
+                    });
+                });
+            });
+        });
+    }
     canPropagate(messageOrigin) {
         let propagate = true;
         let qs = [];
@@ -407,7 +452,7 @@ class QPROPNode {
         return this.getAllSources();
     }
     getSignal(signal) {
-        //Dummy method which is only used to install a dependency between services
+        //Dummy neeed to trigger underlying deserialisation of SpiderS.js
     }
     ////////////////////////////////////////
     // Calls made by Spiders.js          ///

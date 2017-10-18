@@ -190,9 +190,10 @@ function installSTDLib(appActor, parentRef, behaviourObject, environment) {
     ///////////////////
     //Reactivity   //
     //////////////////
+    let dependencyChangeTag = behaviourObject["newPSTag"]("DependencyChange");
     //Setup QPROP instance
     behaviourObject["QPROP"] = (ownType, directParents, directChildren, defaultValue) => {
-        let qNode = new QPROP_1.QPROPNode(ownType, directParents, directChildren, behaviourObject, defaultValue);
+        let qNode = new QPROP_1.QPROPNode(ownType, directParents, directChildren, behaviourObject, defaultValue, dependencyChangeTag);
         environment.signalPool.installDPropAlgorithm(qNode);
         let qNodeSignal = qNode.ownSignal;
         let signal = new signal_1.Signal(qNodeSignal);
@@ -203,6 +204,9 @@ function installSTDLib(appActor, parentRef, behaviourObject, environment) {
             return qSignal.parentVals;
         })(qNodeSignal);
     };
+    behaviourObject["addDependency"] = (fromType, toType) => {
+        behaviourObject["publish"](new QPROP_1.DependencyChange(fromType, toType), dependencyChangeTag);
+    };
     behaviourObject["SIDUP"] = (ownType, parents, admitterType, isSink = false) => {
         let sidupNode = new SIDUP_1.SIDUPNode(ownType, parents, behaviourObject, admitterType, isSink);
         environment.signalPool.installDPropAlgorithm(sidupNode);
@@ -211,7 +215,7 @@ function installSTDLib(appActor, parentRef, behaviourObject, environment) {
         sidupSignal.setHolder(signal);
         sidupSignal.instantiateMeta(environment);
         signalPool.newSource(signal);
-        return behaviourObject["lift"]((qSignal) => {
+        return behaviourObject["lift"]((sidupSignal) => {
             return sidupSignal.parentVals;
         })(sidupSignal);
     };

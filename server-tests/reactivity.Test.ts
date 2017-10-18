@@ -3,6 +3,8 @@
 
 
 import {SpiderLib} from "../src/spiders";
+import {ServiceMonitor} from "../src/MicroService/ServiceMonitor";
+import {MicroService} from "../src/MicroService/MicroService";
 var chai                        = require('chai')
 var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
@@ -316,5 +318,14 @@ describe("Glitch Freedom",() => {
         }
     })
 
-    //TODO distributed glitch freedom (obviously)
+    /*it("QPROP simple glitch freedom",function(done){
+        let monitor = new ServiceMonitor()
+        class SourceService extends MicroService{
+
+        }
+
+        class ServiceA extends MicroService{
+
+        }
+    })*/
 })
