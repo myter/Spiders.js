@@ -236,8 +236,9 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
         })(sidupSignal)
     }
 
-    behaviourObject["SIDUPAdmitter"]  = (admitterType : PubSubTag,sinks) => {
-        new SIDUPAdmitter(admitterType,sinks,behaviourObject)
+    behaviourObject["SIDUPAdmitter"]  = (admitterType : PubSubTag,sources,sinks) => {
+        let adm = new SIDUPAdmitter(admitterType,sources,sinks,behaviourObject)
+        behaviourObject["addDependency"] = adm.addDependency.bind(adm)
     }
 
     //Instruct QPROP instance to publish the given signal

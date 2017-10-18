@@ -81,7 +81,7 @@ abstract class Actor{
     //Reactivity
     QPROP           : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
     SIDUP           : (ownType : PubSubTag,parents : Array<PubSubTag>, admitterType: PubSubTag,boolean?) => Signal
-    SIDUPAdmitter   : (admitterType : PubSubTag,sinks : number) => null
+    SIDUPAdmitter   : (admitterType : PubSubTag,sources : number,sinks : number) => null
     publishSignal   : (signal) => null
     newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
     lift            : Function
@@ -272,7 +272,7 @@ interface AppType {
     //Reactivity
     QPROP               : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
     SIDUP               : (ownType : PubSubTag,parents : Array<PubSubTag>,admitterType : PubSubTag,boolean?) => Signal
-    SIDUPAdmitter       : (admitterType : PubSubTag,sinks : number) => null
+    SIDUPAdmitter       : (admitterType : PubSubTag,sources : number,sinks : number) => null
     publishSignal       : (signal) => null
     newSignal           : (signalClass : SignalObjectClass,... any) => Signal
     lift                : Function

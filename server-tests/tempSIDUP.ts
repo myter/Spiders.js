@@ -51,7 +51,7 @@ class Admitter extends MicroService{
         this.admitterTag = admitterTag
     }
     init(){
-        this.SIDUPAdmitter(this.admitterTag,1)
+        this.SIDUPAdmitter(this.admitterTag,2,1)
     }
 }
 
@@ -169,7 +169,12 @@ class ServiceB extends MicroService{
     init(){
         let s = this.SIDUP(this.bTag,[this.sourceTag],this.admitter)
         let ss = this.lift((sa)=>{
-            console.log("Got change in B: " + sa[0].value)
+            if(sa[1]){
+                console.log("Got change in B: " + sa[0].value + " : " + sa[1].bool)
+            }
+            else{
+                console.log("Got change in B: " + sa[0].value)
+            }
             return (sa[0].value + 1)
         })(s)
         this.publishSignal(ss)
@@ -205,6 +210,11 @@ let source2 = monitor.spawnActor(Source2Service)
 let sink    = monitor.spawnActor(SinkService)
 let a       = monitor.spawnActor(ServiceA)
 let b       = monitor.spawnActor(ServiceB)
+
+setTimeout(()=>{
+    console.log("Adding dependency")
+    adm.addDependency(source2Tag,bTag)
+},7000)
 
 /*class DynamicService extends MicroService{
     sinkTag

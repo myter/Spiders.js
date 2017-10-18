@@ -133,6 +133,17 @@ export class NodePulse{
     }
 }
 
+class DependencyChangePulse{
+    fromType    : PubSubTag
+    toType      : PubSubTag
+
+    constructor(fromType : PubSubTag,toType : PubSubTag){
+        this[IsolateContainer.checkIsolateFuncKey]  = true
+        this.fromType                               = fromType
+        this.toType                                 = toType
+    }
+}
+
 class ReachableIsolate{
     reachables : Array<string>
     constructor(reachables : Array<string>){
@@ -145,15 +156,21 @@ export class SIDUPAdmitter{
     termination     : DijkstraScholten
     waitingChanges  : Array<Function>
     sinks           : number
+    sources         : number
+    sourceRefs      : Array<FarRef>
     sinksReady      : number
     readyResolvers  : Array<Function>
+    sourceResolvers : Array<Function>
 
-    constructor(ownType : PubSubTag,sinks : number,hostActor){
-        this.termination    = new DijkstraScholten(()=>{this.returnedToIdle()})
-        this.waitingChanges = []
-        this.sinks          = sinks
-        this.sinksReady     = 0
-        this.readyResolvers = []
+    constructor(ownType : PubSubTag,sources: number,sinks : number,hostActor){
+        this.termination        = new DijkstraScholten(()=>{this.returnedToIdle()})
+        this.waitingChanges     = []
+        this.sinks              = sinks
+        this.sources            = sources
+        this.sourceRefs         = []
+        this.sinksReady         = 0
+        this.readyResolvers     = []
+        this.sourceResolvers    = []
         hostActor.publish(this,ownType)
     }
 
@@ -196,6 +213,15 @@ export class SIDUPAdmitter{
         }
     }
 
+    sourceRegister(sourceRef : FarRef){
+        this.sourceRefs.push(sourceRef)
+        if(this.sourceRefs.length == this.sources){
+            this.sourceResolvers.forEach((resolver : Function)=>{
+                resolver()
+            })
+        }
+    }
+
     graphReady(){
         if(this.sinksReady == this.sinks){
             return "ok"
@@ -204,6 +230,22 @@ export class SIDUPAdmitter{
             return new Promise((resolve)=>{
                 this.readyResolvers.push(resolve)
             })
+        }
+    }
+
+    addDependency(fromType : PubSubTag,toType : PubSubTag){
+        let initiateChange = () => {
+            console.log("Initiating change. Source refs: " + this.sourceRefs.length + " total : " + this.sources )
+            this.sourceRefs.forEach((sourceRef : FarRef)=>{
+                this.termination.newChildMessage()
+                sourceRef.addDependency(this,new DependencyChangePulse(fromType,toType))
+            })
+        }
+        if(this.sourceRefs.length == this.sources){
+            initiateChange()
+        }
+        else{
+            this.sourceResolvers.push(initiateChange)
         }
     }
 }
@@ -223,6 +265,7 @@ export class SIDUPNode implements DPropAlgorithm{
     parents             : Array<PubSubTag>
     parentRefs          : Array<FarRef>
     childrenRefs        : Array<FarRef>
+    childrenTypes       : Array<PubSubTag>
     ownSignal           : SIDUPSourceSignal
     ownType             : PubSubTag
     pulseState          : PulseState
@@ -235,6 +278,7 @@ export class SIDUPNode implements DPropAlgorithm{
     admitterRef         : FarRef
     admitterListeners   : Array<Function>
     isSink              : boolean
+    inChange            : boolean
 
     constructor(ownType,parents,hostActor,admitterType : PubSubTag,isSink = false){
         this.host               = hostActor
@@ -249,12 +293,17 @@ export class SIDUPNode implements DPropAlgorithm{
         this.waiting            = []
         this.parentRefs         = []
         this.childrenRefs       = []
-        this.termination        = new DijkstraScholten()
+        this.childrenTypes      = []
+        this.termination        = new DijkstraScholten(() => {this.inChange = false})
         this.admitterListeners  = []
         this.isSink             = isSink
+        this.inChange           = false
         hostActor.publish(this,ownType)
         hostActor.subscribe(admitterType).each((admitterRef : FarRef)=>{
             this.admitterRef = admitterRef
+            if(this.parents.length == 0){
+                admitterRef.sourceRegister(this)
+            }
             this.admitterListeners.forEach((admitListener : Function)=>{
                 admitListener()
             })
@@ -275,7 +324,7 @@ export class SIDUPNode implements DPropAlgorithm{
             this.mirrors.set(parentType.tagVal,new Mirror(parentType))
             this.host.subscribe(parentType).each((parentRef : FarRef)=>{
                 this.parentRefs.push(parentRef)
-                parentRef.getReachable(this).then((parentReachables : ReachableIsolate)=>{
+                parentRef.getReachable(this,this.ownType).then((parentReachables : ReachableIsolate)=>{
                     //console.log("Inside: " + this.ownType.tagVal + " reachables for: " + parentType.tagVal + " = " + parentReachables.reachables)
                     this.setsReceived++
                     parentReachables.reachables.forEach((reachable : string)=>{
@@ -362,8 +411,9 @@ export class SIDUPNode implements DPropAlgorithm{
         this.termination.newAckMessage()
     }
 
-    getReachable(childRef : FarRef){
+    getReachable(childRef : FarRef,childType : PubSubTag){
         this.childrenRefs.push(childRef)
+        this.childrenTypes.push(childType)
         if(this.setsReceived == this.parents.length){
             return new ReachableIsolate(this.reachable)
         }
@@ -371,6 +421,74 @@ export class SIDUPNode implements DPropAlgorithm{
             return new Promise((resolve)=>{
                 this.waiting.push(resolve)
             })
+        }
+    }
+
+    updateReachable(isNewParent : boolean,senderRef : FarRef,senderType : PubSubTag,reachables : ReachableIsolate){
+        this.termination.newParentMessage(senderRef)
+        if(isNewParent){
+            if(this.parentReachable.has(senderType.tagVal)){
+                throw new Error("New parent already exists")
+            }
+            else{
+                this.mirrors.set(senderType.tagVal,new Mirror(senderType))
+                this.parents.push(senderType)
+                this.parentRefs.push(senderRef)
+                this.parentReachable.set(senderType.tagVal,reachables.reachables)
+            }
+        }
+        else{
+            let previousReachables : any = this.parentReachable.get(senderType.tagVal)
+            reachables.reachables.forEach((reachable : string)=>{
+                if(!previousReachables.includes(reachable)){
+                    previousReachables.push(reachable)
+                }
+            })
+        }
+        reachables.reachables.forEach((reachable : string)=>{
+            if(!(this.reachable as any).includes(reachable)){
+                this.reachable.push(reachable)
+            }
+        })
+        this.childrenRefs.forEach((childRef : FarRef)=>{
+            this.termination.newChildMessage()
+            childRef.updateReachable(false,this,this.ownType,new ReachableIsolate(this.reachable))
+        })
+        if(this.childrenRefs.length == 0){
+            this.termination.nodeTerminated()
+        }
+    }
+
+    addDependency(sender : FarRef,changePulse : DependencyChangePulse){
+        this.termination.newParentMessage(sender)
+        let from    = changePulse.fromType.tagVal
+        let to      = changePulse.toType.tagVal
+        if(from == this.ownType.tagVal && !this.inChange){
+            let childTypes : any = this.childrenTypes.map((childType : PubSubTag)=>{
+                return childType.tagVal
+            })
+            if(childTypes.includes(to)){
+                throw new Error("Adding dependency which already exists")
+            }
+            else{
+                this.childrenTypes.push(changePulse.toType)
+                this.inChange = true
+                this.host.subscribe(changePulse.toType).once((newChildRef : FarRef)=>{
+                    this.childrenRefs.push(newChildRef)
+                    this.termination.newChildMessage()
+                    newChildRef.updateReachable(true,this,this.ownType,new ReachableIsolate(this.reachable))
+                })
+            }
+        }
+        else if(!this.inChange){
+            this.inChange = true
+            this.childrenRefs.forEach((childRef : FarRef)=>{
+                this.termination.newChildMessage()
+                childRef.addDependency(this,changePulse)
+            })
+        }
+        if(this.childrenRefs.length == 0 && !(to == this.ownType.tagVal)){
+            this.termination.nodeTerminated()
         }
     }
 
