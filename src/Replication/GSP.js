@@ -1,14 +1,36 @@
-"use strict";
 /**
  * Created by flo on 16/03/2017.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var messages_1 = require("../messages");
-var Repliq_1 = require("./Repliq");
-var Round_1 = require("./Round");
+const messages_1 = require("../messages");
+const Repliq_1 = require("./Repliq");
+const Round_1 = require("./Round");
 var utils = require("../utils");
-var GSP = (function () {
-    function GSP(thisActorId, environment) {
+class GSP {
+    //Checks whether this instance is master of a given gsp object (using the gsp object's owner id)
+    isMaster(anId) {
+        return anId == this.thisActorId;
+    }
+    playRound(round) {
+        //Replay changes for top-level Repliq
+        let object = this.repliqs.get(Round_1.roundMasterObjectId(round));
+        let fields = object[Repliq_1.Repliq.getRepliqFields];
+        Reflect.ownKeys(Round_1.roundUpdates(round)).forEach((fieldName) => {
+            fields.get(fieldName).update(Reflect.get(Round_1.roundUpdates(round), fieldName));
+        });
+        //Replay changes for inner Repliqs
+        /*let innerObjectIds = Reflect.ownKeys(round.innerUpdates)
+        innerObjectIds.forEach((repId)=>{
+            if(this.repliqs.has(repId.toString())){
+                let rep         = this.repliqs.get(repId.toString())
+                let repFields   = rep[Repliq.getRepliqFields]
+                Reflect.ownKeys(round.innerUpdates[repId]).forEach((fieldName)=>{
+                    repFields.get(fieldName).update(Reflect.get(round.innerUpdates[repId],fieldName))
+                })
+            }
+        })*/
+    }
+    constructor(thisActorId, environment) {
         this.thisActorId = thisActorId;
         this.environment = environment;
         //TODO Initialisisation of fields will be refactored together with communication
@@ -25,79 +47,55 @@ var GSP = (function () {
         this.forwardingM = new Map();
         this.forwardingS = new Map();
     }
-    //Checks whether this instance is master of a given gsp object (using the gsp object's owner id)
-    GSP.prototype.isMaster = function (anId) {
-        return anId == this.thisActorId;
-    };
-    GSP.prototype.playRound = function (round) {
-        //Replay changes for top-level Repliq
-        var object = this.repliqs.get(Round_1.roundMasterObjectId(round));
-        var fields = object[Repliq_1.Repliq.getRepliqFields];
-        Reflect.ownKeys(Round_1.roundUpdates(round)).forEach(function (fieldName) {
-            fields.get(fieldName).update(Reflect.get(Round_1.roundUpdates(round), fieldName));
-        });
-        //Replay changes for inner Repliqs
-        /*let innerObjectIds = Reflect.ownKeys(round.innerUpdates)
-        innerObjectIds.forEach((repId)=>{
-            if(this.repliqs.has(repId.toString())){
-                let rep         = this.repliqs.get(repId.toString())
-                let repFields   = rep[Repliq.getRepliqFields]
-                Reflect.ownKeys(round.innerUpdates[repId]).forEach((fieldName)=>{
-                    repFields.get(fieldName).update(Reflect.get(round.innerUpdates[repId],fieldName))
-                })
-            }
-        })*/
-    };
     //////////////////////////////////
     //Methods invoked by Repliqs    //
     //////////////////////////////////
-    GSP.prototype.newMasterRepliq = function (repliqProxy, repliqId) {
+    newMasterRepliq(repliqProxy, repliqId) {
         this.repliqs.set(repliqId, repliqProxy);
-    };
-    GSP.prototype.inReplay = function (objectId) {
+    }
+    inReplay(objectId) {
         return this.replay.includes(objectId);
-    };
-    GSP.prototype.newRound = function (objectId, ownerId, methodName, args) {
+    }
+    newRound(objectId, ownerId, methodName, args) {
         //Round number will be determined upon Yield by the master
-        var roundNumber = -1;
-        var listenerID = utils.generateId();
-        var round = Round_1.newRound(objectId, ownerId, roundNumber, methodName, args, listenerID);
+        let roundNumber = -1;
+        let listenerID = utils.generateId();
+        let round = Round_1.newRound(objectId, ownerId, roundNumber, methodName, args, listenerID);
         this.current.set(objectId, round);
         return round;
-    };
-    GSP.prototype.registerRoundListener = function (callback, listenerID) {
+    }
+    registerRoundListener(callback, listenerID) {
         if (!this.roundCommitListeners.has(listenerID)) {
             this.roundCommitListeners.set(listenerID, []);
         }
         this.roundCommitListeners.get(listenerID).push(callback);
-    };
+    }
     //Called at the end of a method invocation on a gsp object
-    GSP.prototype.yield = function (objectId, ownerId) {
+    yield(objectId, ownerId) {
         if (this.isMaster(ownerId)) {
             this.yieldMasterRound(this.current.get(objectId));
         }
         else {
             this.yieldReplicaRound(this.current.get(objectId));
         }
-    };
-    GSP.prototype.yieldMasterRound = function (round) {
-        var _this = this;
+    }
+    yieldMasterRound(round) {
         //Commit round on the master
         if (!this.roundNumbers.has(Round_1.roundMasterObjectId(round))) {
             this.roundNumbers.set(Round_1.roundMasterObjectId(round), 0);
         }
-        var prevRoundNumber = this.roundNumbers.get(Round_1.roundMasterObjectId(round));
+        let prevRoundNumber = this.roundNumbers.get(Round_1.roundMasterObjectId(round));
         Round_1.setRoundNumber(round, prevRoundNumber + 1);
         this.roundNumbers.set(Round_1.roundMasterObjectId(round), prevRoundNumber + 1);
         this.commitRound(round);
         //Broadcast round to all holders of replicaOwners
         if (this.replicaOwners.has(Round_1.roundMasterObjectId(round))) {
-            this.replicaOwners.get(Round_1.roundMasterObjectId(round)).forEach(function (replicaHolderId) {
-                _this.environment.commMedium.sendMessage(replicaHolderId, new messages_1.GSPRoundMessage(_this.environment.thisRef, round));
+            this.replicaOwners.get(Round_1.roundMasterObjectId(round)).forEach((replicaHolderId) => {
+                this.environment.commMedium.sendMessage(replicaHolderId, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
             });
         }
-    };
-    GSP.prototype.yieldReplicaRound = function (round) {
+    }
+    yieldReplicaRound(round) {
         //A replica just finished performing updates.
         //Add these updates to the pending map and sent the round to the master
         if (!this.pending.has(Round_1.roundMasterObjectId(round))) {
@@ -105,8 +103,8 @@ var GSP = (function () {
         }
         this.pending.get(Round_1.roundMasterObjectId(round)).push(round);
         this.environment.commMedium.sendMessage(Round_1.roundMasterOwnerId(round), new messages_1.GSPRoundMessage(this.environment.thisRef, round));
-    };
-    GSP.prototype.confirmMasterRound = function (round) {
+    }
+    confirmMasterRound(round) {
         if (!this.roundNumbers.has(Round_1.roundMasterObjectId(round))) {
             this.roundNumbers.set(Round_1.roundMasterObjectId(round), 0);
         }
@@ -115,7 +113,7 @@ var GSP = (function () {
         if (Round_1.roundNumber(round) == this.roundNumbers.get(Round_1.roundMasterObjectId(round)) + 1) {
             //Remove all older pending rounds
             if (this.pending.has(Round_1.roundMasterObjectId(round))) {
-                var res = this.pending.get(Round_1.roundMasterObjectId(round)).filter(function (pendingRound) {
+                let res = this.pending.get(Round_1.roundMasterObjectId(round)).filter((pendingRound) => {
                     return Round_1.roundNumber(pendingRound) > Round_1.roundNumber(round);
                 });
                 this.pending.set(Round_1.roundMasterObjectId(round), res);
@@ -129,12 +127,11 @@ var GSP = (function () {
             //We missed a number of rounds, request owner of master object to sync with us
             this.environment.commMedium.sendMessage(Round_1.roundMasterOwnerId(round), new messages_1.GSPSyncMessage(this.environment.thisRef, this.thisActorId, Round_1.roundMasterObjectId(round)));
         }
-    };
-    GSP.prototype.commitRound = function (round) {
-        var _this = this;
+    }
+    commitRound(round) {
         //1) Set concerned object on replay modus (i.e. reset concerned fields to commited values)
         this.replay.push(Round_1.roundMasterObjectId(round));
-        var object = this.repliqs.get(Round_1.roundMasterObjectId(round));
+        let object = this.repliqs.get(Round_1.roundMasterObjectId(round));
         object[Repliq_1.Repliq.resetRepliqCommit](Round_1.roundUpdates(round));
         //reset to commit for inner repliqs
         /*Reflect.ownKeys(round.innerUpdates).forEach((innerId)=>{
@@ -158,8 +155,8 @@ var GSP = (function () {
         })*/
         //4) Play pending rounds
         if (this.pending.has(Round_1.roundMasterObjectId(round))) {
-            this.pending.get(Round_1.roundMasterObjectId(round)).forEach(function (round) {
-                _this.playRound(round);
+            this.pending.get(Round_1.roundMasterObjectId(round)).forEach((round) => {
+                this.playRound(round);
             });
         }
         //5) Add round to commit
@@ -167,28 +164,27 @@ var GSP = (function () {
             this.committed.set(Round_1.roundMasterObjectId(round), []);
         }
         this.committed.get(Round_1.roundMasterObjectId(round)).push(round);
-        this.replay = this.replay.filter(function (oId) {
+        this.replay = this.replay.filter((oId) => {
             oId != Round_1.roundMasterObjectId(round);
         });
         //6) trigger all onceCommited listeners for this round
         this.triggerCommitListeners(Round_1.roundListenerId(round));
-    };
-    GSP.prototype.triggerCommitListeners = function (listenerID) {
+    }
+    triggerCommitListeners(listenerID) {
         if (this.roundCommitListeners.has(listenerID)) {
-            this.roundCommitListeners.get(listenerID).forEach(function (callback) {
+            this.roundCommitListeners.get(listenerID).forEach((callback) => {
                 callback();
             });
         }
-    };
+    }
     /////////////////////////////////////////////
     //Methods invoked by the network interface //
     /////////////////////////////////////////////
-    GSP.prototype.registerReplica = function (replicaId, replica) {
+    registerReplica(replicaId, replica) {
         this.repliqs.set(replicaId, replica);
         this.environment.commMedium.sendMessage(replica[Repliq_1.Repliq.getRepliqOwnerID], new messages_1.GSPRegisterMessage(this.environment.thisRef, this.thisActorId, replicaId, this.thisActorAddress, this.thisActorPort, this.roundNumbers.get(replicaId)));
-    };
-    GSP.prototype.registerReplicaHolder = function (replicaId, holderId, roundNr) {
-        var _this = this;
+    }
+    registerReplicaHolder(replicaId, holderId, roundNr) {
         if (!this.replicaOwners.has(replicaId)) {
             this.replicaOwners.set(replicaId, []);
         }
@@ -202,13 +198,12 @@ var GSP = (function () {
         }
         //
         if (this.committed.has(replicaId) && roundNr < this.roundNumbers.get(replicaId)) {
-            this.committed.get(replicaId).forEach(function (round) {
-                _this.environment.commMedium.sendMessage(holderId, new messages_1.GSPRoundMessage(_this.environment.thisRef, round));
+            this.committed.get(replicaId).forEach((round) => {
+                this.environment.commMedium.sendMessage(holderId, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
             });
         }
-    };
-    GSP.prototype.roundReceived = function (round, senderId) {
-        var _this = this;
+    }
+    roundReceived(round, senderId) {
         if (this.isMaster(Round_1.roundMasterOwnerId(round))) {
             //added for p2p
             if (this.forwardingM.has(Round_1.roundMasterObjectId(round))) {
@@ -226,12 +221,12 @@ var GSP = (function () {
                 //Original master has confirmed a round
                 if (senderId == this.forwardingM.get(Round_1.roundMasterObjectId(round))) {
                     this.confirmMasterRound(round);
-                    this.forwardingS.get(Round_1.roundMasterObjectId(round)).forEach(function (slaveId) {
-                        _this.environment.commMedium.sendMessage(slaveId, new messages_1.GSPRoundMessage(_this.environment.thisRef, round));
+                    this.forwardingS.get(Round_1.roundMasterObjectId(round)).forEach((slaveId) => {
+                        this.environment.commMedium.sendMessage(slaveId, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
                     });
                 }
                 else {
-                    var originalOwner = this.forwardingM.get(Round_1.roundMasterObjectId(round));
+                    let originalOwner = this.forwardingM.get(Round_1.roundMasterObjectId(round));
                     this.environment.commMedium.sendMessage(originalOwner, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
                 }
             }
@@ -239,16 +234,15 @@ var GSP = (function () {
                 this.confirmMasterRound(round);
             }
         }
-    };
-    GSP.prototype.receiveSync = function (sender, masterObjectId) {
-        var _this = this;
-        this.committed.get(masterObjectId).forEach(function (round) {
-            _this.environment.commMedium.sendMessage(sender, new messages_1.GSPRoundMessage(_this.environment.thisRef, round));
+    }
+    receiveSync(sender, masterObjectId) {
+        this.committed.get(masterObjectId).forEach((round) => {
+            this.environment.commMedium.sendMessage(sender, new messages_1.GSPRoundMessage(this.environment.thisRef, round));
         });
-    };
-    GSP.prototype.addForward = function (replicaId, ownerId) {
+    }
+    addForward(replicaId, ownerId) {
         this.forwardingM.set(replicaId, ownerId);
-    };
-    return GSP;
-}());
+    }
+}
 exports.GSP = GSP;
+//# sourceMappingURL=GSP.js.map

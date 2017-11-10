@@ -16,6 +16,7 @@
     "server-tests/**/*",
     "PerformanceTest(temp)/**/*",
     "ReactiveMicroserviceExample/**/*",
+    "ChristopheExample/**/*",
     "FullRepTest/**/*",
     "typings/**/*" // <-- don't forget this line!
   ],

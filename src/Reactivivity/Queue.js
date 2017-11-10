@@ -1,4 +1,3 @@
-"use strict";
 /*
 
 Queue.js
@@ -12,21 +11,21 @@ http://creativecommons.org/publicdomain/zero/1.0/legalcode
 
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-var Queue = (function () {
-    function Queue() {
+class Queue {
+    constructor() {
         this.queue = [];
         this.offset = 0;
     }
-    Queue.prototype.getLength = function () {
+    getLength() {
         return (this.queue.length - this.offset);
-    };
-    Queue.prototype.isEmpty = function () {
+    }
+    isEmpty() {
         return this.getLength() == 0;
-    };
-    Queue.prototype.enQueue = function (item) {
+    }
+    enQueue(item) {
         this.queue.push(item);
-    };
-    Queue.prototype.deQueue = function () {
+    }
+    deQueue() {
         // if the queue is empty, return immediately
         if (this.queue.length == 0)
             return undefined;
@@ -39,40 +38,37 @@ var Queue = (function () {
         }
         // return the dequeued item
         return item;
-    };
-    Queue.prototype.peek = function () {
+    }
+    peek() {
         return this.queue.length > 0 ? this.queue[this.offset] : undefined;
-    };
-    Queue.prototype.peekAll = function (callback) {
-        var _this = this;
-        this.queue.forEach(function (el, index) {
-            if (index > _this.offset) {
+    }
+    peekAll(callback) {
+        this.queue.forEach((el, index) => {
+            if (index > this.offset) {
                 callback(el);
             }
         });
-    };
-    Queue.prototype.contains = function (comp) {
-        var _this = this;
-        var has = false;
-        this.queue.forEach(function (el, index) {
-            if (index > _this.offset && comp(el)) {
+    }
+    contains(comp) {
+        let has = false;
+        this.queue.forEach((el, index) => {
+            if (index > this.offset && comp(el)) {
                 has = true;
             }
         });
         return has;
-    };
-    Queue.prototype.remove = function (comp) {
-        var _this = this;
-        var newValues = [];
-        var newOffset = 0;
-        this.queue.forEach(function (el, index) {
-            if (index > _this.offset && comp(el)) {
+    }
+    remove(comp) {
+        let newValues = [];
+        let newOffset = 0;
+        this.queue.forEach((el, index) => {
+            if (index > this.offset && comp(el)) {
                 newValues.push(el);
             }
         });
         this.queue = newValues;
         this.offset = newOffset;
-    };
-    return Queue;
-}());
+    }
+}
 exports.Queue = Queue;
+//# sourceMappingURL=Queue.js.map

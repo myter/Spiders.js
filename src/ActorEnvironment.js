@@ -1,9 +1,8 @@
-"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var ActorEnvironment = (function () {
-    function ActorEnvironment() {
+class ActorEnvironment {
+    constructor() {
         this.thisRef = null;
     }
-    return ActorEnvironment;
-}());
+}
 exports.ActorEnvironment = ActorEnvironment;
+//# sourceMappingURL=ActorEnvironment.js.map

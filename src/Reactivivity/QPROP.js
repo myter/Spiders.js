@@ -1,14 +1,3 @@
-"use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -16,24 +5,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var serialisation_1 = require("../serialisation");
-var Queue_1 = require("./Queue");
-var signal_1 = require("./signal");
-var SourceIsolate = (function () {
-    function SourceIsolate(sources) {
+const serialisation_1 = require("../serialisation");
+const Queue_1 = require("./Queue");
+const signal_1 = require("./signal");
+class SourceIsolate {
+    constructor(sources) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.sources = sources;
     }
-    return SourceIsolate;
-}());
-var PropagationValue = (function () {
-    function PropagationValue(origin, value, timeStamp) {
+}
+class PropagationValue {
+    constructor(origin, value, timeStamp) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.origin = origin;
         this.value = value;
         this.timeStamp = timeStamp;
     }
-    PropagationValue.prototype.asString = function () {
+    asString() {
         for (var i in this) {
             if (i == "origin") {
                 console.log(i);
@@ -42,36 +30,28 @@ var PropagationValue = (function () {
         }
         console.log("Value check2: " + this["origin"]);
         return (this.origin.asString()) + " , " + this.value + " , " + this.timeStamp;
-    };
-    return PropagationValue;
-}());
-exports.PropagationValue = PropagationValue;
-var QPROPSourceSignal = (function (_super) {
-    __extends(QPROPSourceSignal, _super);
-    function QPROPSourceSignal() {
-        return _super !== null && _super.apply(this, arguments) || this;
     }
-    QPROPSourceSignal.prototype.change = function (parentVals) {
+}
+exports.PropagationValue = PropagationValue;
+class QPROPSourceSignal extends signal_1.SignalObject {
+    change(parentVals) {
         this.parentVals = parentVals;
-    };
-    __decorate([
-        signal_1.mutator
-    ], QPROPSourceSignal.prototype, "change", null);
-    return QPROPSourceSignal;
-}(signal_1.SignalObject));
+    }
+}
+__decorate([
+    signal_1.mutator
+], QPROPSourceSignal.prototype, "change", null);
 exports.QPROPSourceSignal = QPROPSourceSignal;
-var DependencyChange = (function () {
-    function DependencyChange(fromType, toType) {
+class DependencyChange {
+    constructor(fromType, toType) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.fromType = fromType;
         this.toType = toType;
     }
-    return DependencyChange;
-}());
+}
 exports.DependencyChange = DependencyChange;
-var QPROPNode = (function () {
-    function QPROPNode(ownType, directParents, directChildren, hostActor, defaultVal, dependencyChangeType) {
-        var _this = this;
+class QPROPNode {
+    constructor(ownType, directParents, directChildren, hostActor, defaultVal, dependencyChangeType) {
         this.host = hostActor;
         this.ownType = ownType;
         this.ownSignal = new QPROPSourceSignal();
@@ -93,10 +73,10 @@ var QPROPNode = (function () {
         this.dynamic = false;
         this.parentSignals = new Map();
         hostActor.publish(this, ownType);
-        hostActor.subscribe(dependencyChangeType).each(function (change) {
+        hostActor.subscribe(dependencyChangeType).each((change) => {
             console.log("Dependency addition detected");
-            if (change.toType.tagVal == _this.ownType.tagVal) {
-                _this.dynamicDependencyAddition(change);
+            if (change.toType.tagVal == this.ownType.tagVal) {
+                this.dynamicDependencyAddition(change);
             }
         });
         this.pickInit();
@@ -104,7 +84,7 @@ var QPROPNode = (function () {
     ////////////////////////////////////////
     // Helping function                 ///
     ///////////////////////////////////////
-    QPROPNode.prototype.printInfo = function () {
+    printInfo() {
         console.log("Info for: " + this.ownType.tagVal);
         /*console.log("Direct Parents: " + this.directParents.length)
         this.directParents.forEach((parent : PubSubTag)=>{
@@ -115,48 +95,45 @@ var QPROPNode = (function () {
             console.log(child.tagVal)
         })*/
         console.log("Queue info:");
-        this.inputQueues.forEach(function (qs, parent) {
+        this.inputQueues.forEach((qs, parent) => {
             console.log("Queues for : " + parent);
-            qs.forEach(function (_, source) {
+            qs.forEach((_, source) => {
                 console.log("Source: " + source);
             });
         });
-    };
-    QPROPNode.prototype.receivedAllParents = function () {
+    }
+    receivedAllParents() {
         return (this.parentsReceived == this.directParents.length) && (this.directParentRefs.length == this.directParents.length);
-    };
-    QPROPNode.prototype.sendReady = function () {
-        var _this = this;
+    }
+    sendReady() {
         if ((this.startsReceived == this.directChildren.length) && (this.directParentRefs.length == this.directParents.length) && (this.directChildren.length != 0)) {
-            this.directParentRefs.forEach(function (parentRef) {
-                parentRef.receiveStart(_this.ownType);
+            this.directParentRefs.forEach((parentRef) => {
+                parentRef.receiveStart(this.ownType);
             });
-            this.readyListeners.forEach(function (readyListener) {
+            this.readyListeners.forEach((readyListener) => {
                 readyListener();
             });
             console.log("Node : " + this.ownType.tagVal + " is ready !");
         }
-    };
-    QPROPNode.prototype.sendParents = function () {
-        var _this = this;
+    }
+    sendParents() {
         if (this.receivedAllParents() && (this.directChildrenRefs.length == this.directChildren.length)) {
-            this.directChildrenRefs.forEach(function (childRef) {
-                childRef.receiveParents(_this.ownType, _this.getAllSources(), _this.ownDefault);
+            this.directChildrenRefs.forEach((childRef) => {
+                childRef.receiveParents(this.ownType, this.getAllSources(), this.ownDefault);
             });
             if (this.directChildrenRefs.length == 0 && (this.directParentRefs.length == this.directParents.length)) {
-                this.directParentRefs.forEach(function (parentRef) {
-                    parentRef.receiveStart(_this.ownType);
+                this.directParentRefs.forEach((parentRef) => {
+                    parentRef.receiveStart(this.ownType);
                 });
                 console.log("Node : " + this.ownType.tagVal + " is ready !");
             }
         }
-    };
-    QPROPNode.prototype.getAllSources = function () {
-        var _this = this;
-        var all = [];
-        this.sourceMap.forEach(function (sources) {
-            sources.forEach(function (source) {
-                if (!_this.contains(all, source)) {
+    }
+    getAllSources() {
+        let all = [];
+        this.sourceMap.forEach((sources) => {
+            sources.forEach((source) => {
+                if (!this.contains(all, source)) {
                     all.push(source);
                 }
             });
@@ -165,118 +142,115 @@ var QPROPNode = (function () {
             all.push(this.ownType);
         }
         return new SourceIsolate(all);
-    };
-    QPROPNode.prototype.constructQueue = function (from, sources) {
+    }
+    constructQueue(from, sources) {
         this.sourceMap.set(from.tagVal, sources);
-        var allQs = this.inputQueues.get(from.tagVal);
-        sources.forEach(function (source) {
+        let allQs = this.inputQueues.get(from.tagVal);
+        sources.forEach((source) => {
             allQs.set(source.tagVal, new Queue_1.Queue());
         });
-    };
-    QPROPNode.prototype.contains = function (typeArray, targettype) {
-        return typeArray.filter(function (type) {
+    }
+    contains(typeArray, targettype) {
+        return typeArray.filter((type) => {
             return type.tagVal == targettype.tagVal;
         }).length > 0;
-    };
+    }
     ////////////////////////////////////////
     // Algorithm                        ///
     ///////////////////////////////////////
-    QPROPNode.prototype.pickInit = function () {
-        var _this = this;
-        this.directParents.forEach(function (parentType) {
-            _this.inputQueues.set(parentType.tagVal, new Map());
+    pickInit() {
+        this.directParents.forEach((parentType) => {
+            this.inputQueues.set(parentType.tagVal, new Map());
         });
-        var check = function (ref) {
-            ref.isReferenced(_this.ownType).then(function (b) {
+        let check = (ref) => {
+            ref.isReferenced(this.ownType).then((b) => {
                 if (b) {
-                    _this.initRegular();
+                    this.initRegular();
                 }
                 else {
                     //console.log("Init dynamic for: " + this.ownType.tagVal)
-                    _this.initDynamic();
-                    _this.dynamic = true;
+                    this.initDynamic();
+                    this.dynamic = true;
                 }
             });
         };
         if (this.directParents.length == 0) {
-            this.host.subscribe(this.directChildren[0]).once(function (childRef) {
+            this.host.subscribe(this.directChildren[0]).once((childRef) => {
                 check(childRef);
             });
         }
         else {
-            this.host.subscribe(this.directParents[0]).once(function (parentRef) {
+            this.host.subscribe(this.directParents[0]).once((parentRef) => {
                 check(parentRef);
             });
         }
-    };
-    QPROPNode.prototype.initRegular = function () {
-        var _this = this;
-        this.directParents.forEach(function (parenType) {
-            _this.host.subscribe(parenType).each(function (parentRef) {
-                _this.directParentRefs.push(parentRef);
-                _this.sendReady();
-                if (_this.receivedAllParents() && _this.directChildren.length == 0) {
-                    _this.directParentRefs.forEach(function (parentRef) {
-                        parentRef.receiveStart(_this.ownType);
+    }
+    initRegular() {
+        this.directParents.forEach((parenType) => {
+            this.host.subscribe(parenType).each((parentRef) => {
+                this.directParentRefs.push(parentRef);
+                this.sendReady();
+                if (this.receivedAllParents() && this.directChildren.length == 0) {
+                    this.directParentRefs.forEach((parentRef) => {
+                        parentRef.receiveStart(this.ownType);
                     });
                     //console.log("Node : " + this.ownType.tagVal + " is ready !")
                 }
             });
         });
-        this.directChildren.forEach(function (childType) {
-            _this.host.subscribe(childType).each(function (childRef) {
-                _this.directChildrenRefs.push(childRef);
-                if ((_this.directChildrenRefs.length == _this.directChildren.length) && _this.directParents.length == 0) {
-                    _this.directChildrenRefs.forEach(function (childRef) {
-                        childRef.receiveParents(_this.ownType, _this.getAllSources(), _this.ownDefault);
+        this.directChildren.forEach((childType) => {
+            this.host.subscribe(childType).each((childRef) => {
+                this.directChildrenRefs.push(childRef);
+                if ((this.directChildrenRefs.length == this.directChildren.length) && this.directParents.length == 0) {
+                    this.directChildrenRefs.forEach((childRef) => {
+                        childRef.receiveParents(this.ownType, this.getAllSources(), this.ownDefault);
                     });
                 }
                 else {
-                    _this.sendParents();
+                    this.sendParents();
                 }
             });
         });
-    };
-    QPROPNode.prototype.initDynamic = function () {
-        var _this = this;
-        var updateParents = function () {
-            _this.directParentRefs.forEach(function (parentRef) {
-                parentRef.addChild(_this);
+    }
+    initDynamic() {
+        let updateParents = () => {
+            this.directParentRefs.forEach((parentRef) => {
+                parentRef.addChild(this);
             });
         };
-        var updateChildren = function () {
-            var childrenUpdated = 0;
-            _this.directChildren.forEach(function (childType) {
-                _this.host.subscribe(childType).each(function (childRef) {
-                    _this.directChildrenRefs.push(childRef);
-                    childRef.updateSources(_this.ownType, _this.getAllSources(), true, _this.ownDefault).then(function () {
+        let updateChildren = () => {
+            let childrenUpdated = 0;
+            this.directChildren.forEach((childType) => {
+                this.host.subscribe(childType).each((childRef) => {
+                    this.directChildrenRefs.push(childRef);
+                    childRef.updateSources(this.ownType, this.getAllSources(), true, this.ownDefault).then(() => {
                         childrenUpdated++;
-                        if (childrenUpdated == _this.directChildren.length) {
+                        if (childrenUpdated == this.directChildren.length) {
                             updateParents();
                         }
                     });
                 });
             });
         };
-        var queuesConstructed = 0;
-        this.directParents.forEach(function (parentType) {
-            _this.host.subscribe(parentType).each(function (parentRef) {
-                _this.directParentRefs.push(parentRef);
-                parentRef.getDefaultValue().then(function (defVal) {
-                    _this.directParentDefaultVals.set(parentType.tagVal, defVal);
+        let queuesConstructed = 0;
+        this.directParents.forEach((parentType) => {
+            this.host.subscribe(parentType).each((parentRef) => {
+                this.directParentRefs.push(parentRef);
+                parentRef.getDefaultValue().then((defVal) => {
+                    this.directParentDefaultVals.set(parentType.tagVal, defVal);
                 });
-                parentRef.getSourceMap().then(function (sourceMap) {
-                    var theseSources = _this.getAllSources().sources;
-                    sourceMap.sources.forEach(function (source) {
-                        var hasSource = _this.contains(theseSources, source);
-                        var hasInstable = _this.contains(_this.instabilitySet, source);
+                parentRef.getSourceMap().then((sourceMap) => {
+                    let theseSources = this.getAllSources().sources;
+                    sourceMap.sources.forEach((source) => {
+                        let hasSource = this.contains(theseSources, source);
+                        let hasInstable = this.contains(this.instabilitySet, source);
                         if (hasSource && hasInstable) {
-                            _this.instabilitySet.push(source);
+                            this.instabilitySet.push(source);
                         }
                     });
-                    _this.constructQueue(parentType, sourceMap.sources);
+                    this.constructQueue(parentType, sourceMap.sources);
                     queuesConstructed++;
-                    if (queuesConstructed == _this.directParents.length) {
+                    if (queuesConstructed == this.directParents.length) {
                         updateChildren();
                     }
                 });
@@ -285,44 +259,43 @@ var QPROPNode = (function () {
         if (this.directParents.length == 0) {
             updateChildren();
         }
-    };
-    QPROPNode.prototype.dynamicDependencyAddition = function (change) {
-        var _this = this;
+    }
+    dynamicDependencyAddition(change) {
         this.inputQueues.set(change.fromType.tagVal, new Map());
         this.directParents.push(change.fromType);
-        this.host.subscribe(change.fromType).each(function (fromRef) {
-            _this.directParentRefs.push(fromRef);
-            fromRef.getDefaultValue().then(function (defVal) {
-                _this.directParentDefaultVals.set(change.fromType.tagVal, defVal);
+        this.host.subscribe(change.fromType).each((fromRef) => {
+            this.directParentRefs.push(fromRef);
+            fromRef.getDefaultValue().then((defVal) => {
+                this.directParentDefaultVals.set(change.fromType.tagVal, defVal);
             });
-            fromRef.getSourceMap().then(function (sourceMap) {
-                var theseSources = _this.getAllSources().sources;
-                sourceMap.sources.forEach(function (source) {
-                    var hasSource = _this.contains(theseSources, source);
-                    var hasInstable = _this.contains(_this.instabilitySet, source);
+            fromRef.getSourceMap().then((sourceMap) => {
+                let theseSources = this.getAllSources().sources;
+                sourceMap.sources.forEach((source) => {
+                    let hasSource = this.contains(theseSources, source);
+                    let hasInstable = this.contains(this.instabilitySet, source);
                     if (hasSource && hasInstable) {
-                        _this.instabilitySet.push(source);
+                        this.instabilitySet.push(source);
                     }
                 });
-                _this.constructQueue(change.fromType, sourceMap.sources);
-                var childrenUpdated = 0;
-                _this.directChildrenRefs.forEach(function (childRef) {
-                    childRef.updateSources(_this.ownType, _this.getAllSources(), true, _this.ownDefault).then(function () {
+                this.constructQueue(change.fromType, sourceMap.sources);
+                let childrenUpdated = 0;
+                this.directChildrenRefs.forEach((childRef) => {
+                    childRef.updateSources(this.ownType, this.getAllSources(), true, this.ownDefault).then(() => {
                         childrenUpdated++;
-                        if (childrenUpdated == _this.directChildren.length) {
-                            fromRef.addChild(_this);
+                        if (childrenUpdated == this.directChildren.length) {
+                            fromRef.addChild(this);
                         }
                     });
                 });
             });
         });
-    };
-    QPROPNode.prototype.canPropagate = function (messageOrigin) {
-        var propagate = true;
-        var qs = [];
-        this.inputQueues.forEach(function (qSet, parentType) {
+    }
+    canPropagate(messageOrigin) {
+        let propagate = true;
+        let qs = [];
+        this.inputQueues.forEach((qSet, parentType) => {
             if (qSet.has(messageOrigin.tagVal)) {
-                var q = qSet.get(messageOrigin.tagVal);
+                let q = qSet.get(messageOrigin.tagVal);
                 qs.push(q);
                 if (q.isEmpty()) {
                     propagate = false;
@@ -335,18 +308,18 @@ var QPROPNode = (function () {
         else {
             return propagate;
         }
-    };
-    QPROPNode.prototype.canStabilise = function (qs, messageOrigin) {
-        var commonStamps = [];
-        var allStamps = [];
-        var commonTimeStamp = false;
-        qs.forEach(function (outerQ) {
-            outerQ.peekAll(function (v) {
-                var found = true;
+    }
+    canStabilise(qs, messageOrigin) {
+        let commonStamps = [];
+        let allStamps = [];
+        let commonTimeStamp = false;
+        qs.forEach((outerQ) => {
+            outerQ.peekAll((v) => {
+                let found = true;
                 allStamps.push(v.timeStamp);
-                qs.forEach(function (innerQ) {
+                qs.forEach((innerQ) => {
                     if (outerQ != innerQ) {
-                        found = found && (innerQ.contains(function (el) { return el.timeStamp == v.timeStamp; }));
+                        found = found && (innerQ.contains((el) => { return el.timeStamp == v.timeStamp; }));
                     }
                 });
                 if (found && (!commonStamps.includes(v.timeStamp))) {
@@ -356,26 +329,26 @@ var QPROPNode = (function () {
             });
         });
         if (commonTimeStamp) {
-            var lowest_1 = -1;
-            commonStamps.forEach(function (stamp) {
-                if (stamp < lowest_1 || lowest_1 < 0) {
-                    lowest_1 = stamp;
+            let lowest = -1;
+            commonStamps.forEach((stamp) => {
+                if (stamp < lowest || lowest < 0) {
+                    lowest = stamp;
                 }
             });
-            qs.forEach(function (q) {
-                q.remove(function (val) {
-                    return val.timeStamp >= lowest_1;
+            qs.forEach((q) => {
+                q.remove((val) => {
+                    return val.timeStamp >= lowest;
                 });
             });
-            this.instabilitySet = this.instabilitySet.filter(function (source) {
+            this.instabilitySet = this.instabilitySet.filter((source) => {
                 return source.tagVal != messageOrigin.tagVal;
             });
         }
         return commonTimeStamp;
-    };
-    QPROPNode.prototype.getArgumentPosition = function (parentType) {
-        var index = -1;
-        this.directParents.forEach(function (parent, i) {
+    }
+    getArgumentPosition(parentType) {
+        let index = -1;
+        this.directParents.forEach((parent, i) => {
             if (parent.tagVal == parentType) {
                 index = i;
             }
@@ -386,47 +359,46 @@ var QPROPNode = (function () {
         else {
             return index;
         }
-    };
-    QPROPNode.prototype.getPropagationArguments = function (messageOrigin) {
-        var _this = this;
-        var args = new Array(this.directParents.length);
-        this.inputQueues.forEach(function (qSet, parentType) {
+    }
+    getPropagationArguments(messageOrigin) {
+        let args = new Array(this.directParents.length);
+        this.inputQueues.forEach((qSet, parentType) => {
             if (qSet.has(messageOrigin.tagVal)) {
-                var q = qSet.get(messageOrigin.tagVal);
-                args[_this.getArgumentPosition(parentType)] = q.deQueue().value;
+                let q = qSet.get(messageOrigin.tagVal);
+                args[this.getArgumentPosition(parentType)] = q.deQueue().value;
             }
             else {
-                if (_this.directParentLastKnownVals.has(parentType)) {
-                    args[_this.getArgumentPosition(parentType)] = _this.directParentLastKnownVals.get(parentType);
+                if (this.directParentLastKnownVals.has(parentType)) {
+                    args[this.getArgumentPosition(parentType)] = this.directParentLastKnownVals.get(parentType);
                 }
                 else {
-                    args[_this.getArgumentPosition(parentType)] = _this.directParentDefaultVals.get(parentType);
+                    args[this.getArgumentPosition(parentType)] = this.directParentDefaultVals.get(parentType);
                 }
             }
         });
         return args;
-    };
+    }
     ////////////////////////////////////////
     // Calls made by other QPROP nodes  ///
     ///////////////////////////////////////
-    QPROPNode.prototype.receiveStart = function (from) {
+    receiveStart(from) {
         this.startsReceived++;
         this.sendReady();
-    };
-    QPROPNode.prototype.receiveParents = function (from, sources, defaultValue) {
+    }
+    receiveParents(from, sources, defaultValue) {
         this.parentsReceived++;
         this.directParentDefaultVals.set(from.tagVal, defaultValue);
         this.constructQueue(from, sources.sources);
         this.sendParents();
-    };
-    QPROPNode.prototype.receiveMessage = function (from, message) {
-        var qSet = this.inputQueues.get(from.tagVal);
-        var originQueue = qSet.get(message.origin.tagVal);
+    }
+    receiveMessage(from, message) {
+        let qSet = this.inputQueues.get(from.tagVal);
+        let originQueue = qSet.get(message.origin.tagVal);
         originQueue.enQueue(message);
         this.directParentLastKnownVals.set(from.tagVal, message.value);
-        var canPropagate = this.canPropagate(message.origin);
+        let canPropagate = this.canPropagate(message.origin);
         if (canPropagate) {
-            var args = this.getPropagationArguments(message.origin);
+            let args = this.getPropagationArguments(message.origin);
             //This will start propagation of local change. The exported signal will invoke the propagate method (which will send
             this.signalPool.setLastPropMessage(message);
             this.ownSignal.change(args);
@@ -435,25 +407,22 @@ var QPROPNode = (function () {
                 childRef.receiveMessage(this.ownType,new PropagationValue(message.origin,this.ownSignal.v,message.timeStamp))
             })*/
         }
-    };
-    QPROPNode.prototype.isReferenced = function (someType) {
+    }
+    isReferenced(someType) {
         return (this.contains(this.directParents, someType)) || (this.contains(this.directChildren, someType));
-    };
-    QPROPNode.prototype.addChild = function (childRef) {
+    }
+    addChild(childRef) {
         this.directChildrenRefs.push(childRef);
-    };
-    QPROPNode.prototype.getDefaultValue = function () {
+    }
+    getDefaultValue() {
         return this.ownDefault;
-    };
-    QPROPNode.prototype.updateSources = function (from, sourceMap, updateDef, defVal) {
-        var _this = this;
-        if (updateDef === void 0) { updateDef = false; }
-        if (defVal === void 0) { defVal = null; }
-        var sources = sourceMap.sources;
-        var mySources = this.getAllSources().sources;
-        sources.forEach(function (source) {
-            if (_this.contains(mySources, source) && (!_this.contains(_this.instabilitySet, source))) {
-                _this.instabilitySet.push(source);
+    }
+    updateSources(from, sourceMap, updateDef = false, defVal = null) {
+        let sources = sourceMap.sources;
+        let mySources = this.getAllSources().sources;
+        sources.forEach((source) => {
+            if (this.contains(mySources, source) && (!this.contains(this.instabilitySet, source))) {
+                this.instabilitySet.push(source);
             }
         });
         if (updateDef) {
@@ -466,35 +435,34 @@ var QPROPNode = (function () {
             return "ok";
         }
         else {
-            var resReceived_1 = 0;
-            return new Promise(function (resolve) {
-                _this.directChildrenRefs.forEach(function (childRef) {
-                    childRef.updateSources(_this.ownType, sourceMap).then(function () {
-                        resReceived_1++;
-                        if (resReceived_1 == _this.directChildrenRefs.length) {
+            let resReceived = 0;
+            return new Promise((resolve) => {
+                this.directChildrenRefs.forEach((childRef) => {
+                    childRef.updateSources(this.ownType, sourceMap).then(() => {
+                        resReceived++;
+                        if (resReceived == this.directChildrenRefs.length) {
                             resolve("ok");
                         }
                     });
                 });
             });
         }
-    };
-    QPROPNode.prototype.getSourceMap = function () {
+    }
+    getSourceMap() {
         return this.getAllSources();
-    };
-    QPROPNode.prototype.getSignal = function (signal) {
+    }
+    getSignal(signal) {
         //Dummy neeed to trigger underlying deserialisation of SpiderS.js
-    };
+    }
     ////////////////////////////////////////
     // Calls made by Spiders.js          ///
     ///////////////////////////////////////
-    QPROPNode.prototype.setSignalPool = function (signalPool) {
+    setSignalPool(signalPool) {
         this.signalPool = signalPool;
-    };
-    QPROPNode.prototype.publishSignal = function (signal) {
-        var _this = this;
-        var publish = function () {
-            _this.directChildrenRefs.forEach(function (childRef) {
+    }
+    publishSignal(signal) {
+        let publish = () => {
+            this.directChildrenRefs.forEach((childRef) => {
                 childRef.getSignal(signal);
             });
         };
@@ -505,31 +473,30 @@ var QPROPNode = (function () {
             this.readyListeners.push(publish);
         }
         if (this.startsReceived != this.directChildren.length || !this.dynamic) {
-            signal.holder.onChangeListener = function () {
-                _this.propagate(signal.holder, []);
+            signal.holder.onChangeListener = () => {
+                this.propagate(signal.holder, []);
             };
         }
-    };
+    }
     //Called by spiders.js when exported signal must propagate
-    QPROPNode.prototype.propagate = function (signal, toIds) {
-        var _this = this;
+    propagate(signal, toIds) {
         var that = this;
-        var newVal = signal.value;
+        let newVal = signal.value;
         if (newVal instanceof signal_1.SignalFunction) {
             newVal = newVal.lastVal;
         }
-        var sendToAll = function () {
+        let sendToAll = () => {
             if (signal.isSource) {
-                _this.directChildrenRefs.forEach(function (childRef) {
+                this.directChildrenRefs.forEach((childRef) => {
                     childRef.receiveMessage(that.ownType, new PropagationValue(that.ownType, newVal, that.stampCounter));
                 });
-                _this.stampCounter++;
+                this.stampCounter++;
             }
             else {
                 //Get the message which originally triggered the local propagation
-                var propMessage_1 = _this.signalPool.lastPropMessage;
-                _this.directChildrenRefs.forEach(function (childRef) {
-                    childRef.receiveMessage(_this.ownType, new PropagationValue(propMessage_1.origin, newVal, propMessage_1.timeStamp));
+                let propMessage = this.signalPool.lastPropMessage;
+                this.directChildrenRefs.forEach((childRef) => {
+                    childRef.receiveMessage(this.ownType, new PropagationValue(propMessage.origin, newVal, propMessage.timeStamp));
                 });
             }
         };
@@ -539,11 +506,11 @@ var QPROPNode = (function () {
         else {
             this.readyListeners.push(sendToAll);
         }
-    };
+    }
     //No need to implement this, QPROP overrides this behaviour
-    QPROPNode.prototype.propagationReceived = function (fromId, signalId, value) {
+    propagationReceived(fromId, signalId, value) {
         //Not needed
-    };
-    return QPROPNode;
-}());
+    }
+}
 exports.QPROPNode = QPROPNode;
+//# sourceMappingURL=QPROP.js.map

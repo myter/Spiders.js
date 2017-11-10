@@ -1,14 +1,3 @@
-"use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -16,11 +5,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var signal_1 = require("./signal");
-var serialisation_1 = require("../serialisation");
-var DijkstraScholten = (function () {
-    function DijkstraScholten(listener) {
-        if (listener === void 0) { listener = function () { }; }
+const signal_1 = require("./signal");
+const serialisation_1 = require("../serialisation");
+class DijkstraScholten {
+    constructor(listener = () => { }) {
         this.c = 0;
         this.d = 0;
         this.incoming = [];
@@ -29,28 +17,27 @@ var DijkstraScholten = (function () {
         this.state = this.idle;
         this.listener = listener;
     }
-    DijkstraScholten.prototype.newParentMessage = function (parentRef) {
+    newParentMessage(parentRef) {
         this.state = this.processing;
         this.d++;
         this.incoming.push(parentRef);
-    };
-    DijkstraScholten.prototype.newChildMessage = function () {
+    }
+    newChildMessage() {
         this.state = this.processing;
         this.c++;
-    };
-    DijkstraScholten.prototype.newAckMessage = function () {
+    }
+    newAckMessage() {
         this.c--;
         if (this.c == 0) {
             this.sendAcks();
         }
-    };
-    DijkstraScholten.prototype.nodeTerminated = function () {
+    }
+    nodeTerminated() {
         this.sendAcks();
-    };
-    DijkstraScholten.prototype.sendAcks = function () {
-        var _this = this;
-        this.incoming.forEach(function (parentRef) {
-            _this.d--;
+    }
+    sendAcks() {
+        this.incoming.forEach((parentRef) => {
+            this.d--;
             parentRef.ack();
         });
         if (this.d == 0) {
@@ -58,77 +45,70 @@ var DijkstraScholten = (function () {
             this.incoming = [];
             this.listener();
         }
-    };
-    DijkstraScholten.prototype.isIdle = function () {
+    }
+    isIdle() {
         return this.state == this.idle;
-    };
-    return DijkstraScholten;
-}());
-var PulseState = (function () {
-    function PulseState() {
+    }
+}
+class PulseState {
+    constructor() {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.pending = 0;
         this.unchanged = 1;
         this.changed = 2;
         this.state = this.pending;
     }
-    PulseState.prototype.isPending = function () {
+    isPending() {
         return this.state == this.pending;
-    };
-    PulseState.prototype.isUnchanged = function () {
+    }
+    isUnchanged() {
         return this.state == this.unchanged;
-    };
-    PulseState.prototype.isChanged = function () {
+    }
+    isChanged() {
         return this.state == this.changed;
-    };
-    PulseState.prototype.setPending = function () {
+    }
+    setPending() {
         this.state = this.pending;
-    };
-    PulseState.prototype.setUnchanged = function () {
+    }
+    setUnchanged() {
         this.state = this.unchanged;
-    };
-    PulseState.prototype.setChanged = function () {
+    }
+    setChanged() {
         this.state = this.changed;
-    };
-    return PulseState;
-}());
-var Mirror = (function () {
-    function Mirror(ownerType) {
+    }
+}
+class Mirror {
+    constructor(ownerType) {
         //this[IsolateContainer.checkIsolateFuncKey]  = true
         this.ownerType = ownerType;
         this.pulseValue = new PulseState();
     }
-    return Mirror;
-}());
-var NodePulse = (function () {
-    function NodePulse(sourcesChanges, value, pulseState) {
+}
+class NodePulse {
+    constructor(sourcesChanges, value, pulseState) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.sourcesChanges = sourcesChanges;
         this.value = value;
         this.pulseState = pulseState;
     }
-    return NodePulse;
-}());
+}
 exports.NodePulse = NodePulse;
-var DependencyChangePulse = (function () {
-    function DependencyChangePulse(fromType, toType) {
+class DependencyChangePulse {
+    constructor(fromType, toType) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.fromType = fromType;
         this.toType = toType;
     }
-    return DependencyChangePulse;
-}());
-var ReachableIsolate = (function () {
-    function ReachableIsolate(reachables) {
+}
+class ReachableIsolate {
+    constructor(reachables) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.reachables = reachables;
     }
-    return ReachableIsolate;
-}());
-var SIDUPAdmitter = (function () {
-    function SIDUPAdmitter(ownType, sources, sinks, hostActor) {
-        var _this = this;
-        this.termination = new DijkstraScholten(function () { _this.returnedToIdle(); });
+}
+class SIDUPAdmitter {
+    constructor(ownType, sources, sinks, hostActor) {
+        this.termination = new DijkstraScholten(() => { this.returnedToIdle(); });
         this.waitingChanges = [];
         this.sinks = sinks;
         this.sources = sources;
@@ -138,67 +118,64 @@ var SIDUPAdmitter = (function () {
         this.sourceResolvers = [];
         hostActor.publish(this, ownType);
     }
-    SIDUPAdmitter.prototype.returnedToIdle = function () {
+    returnedToIdle() {
         if (this.waitingChanges.length > 0) {
-            var toResolve = this.waitingChanges[0];
+            let toResolve = this.waitingChanges[0];
             this.waitingChanges = this.waitingChanges.slice(1, this.waitingChanges.length);
             toResolve("ok");
             this.termination.newChildMessage();
         }
-    };
-    SIDUPAdmitter.prototype.sourceChanged = function () {
-        var _this = this;
+    }
+    sourceChanged() {
         if (this.termination.isIdle() && this.sinksReady == this.sinks) {
             this.termination.newChildMessage();
             return "ok";
         }
         else {
-            return new Promise(function (resolve) {
-                _this.waitingChanges.push(resolve);
+            return new Promise((resolve) => {
+                this.waitingChanges.push(resolve);
             });
         }
-    };
-    SIDUPAdmitter.prototype.ack = function () {
+    }
+    ack() {
         this.termination.newAckMessage();
-    };
-    SIDUPAdmitter.prototype.sinkReady = function () {
+    }
+    sinkReady() {
         this.sinksReady++;
         if (this.sinksReady == this.sinks) {
             console.log("graph has been constructed");
-            this.readyResolvers.forEach(function (resolver) {
+            this.readyResolvers.forEach((resolver) => {
                 resolver("ok");
             });
             this.readyResolvers = [];
             //There might already be changes buffered
             this.returnedToIdle();
         }
-    };
-    SIDUPAdmitter.prototype.sourceRegister = function (sourceRef) {
+    }
+    sourceRegister(sourceRef) {
         this.sourceRefs.push(sourceRef);
         if (this.sourceRefs.length == this.sources) {
-            this.sourceResolvers.forEach(function (resolver) {
+            this.sourceResolvers.forEach((resolver) => {
                 resolver();
             });
         }
-    };
-    SIDUPAdmitter.prototype.graphReady = function () {
-        var _this = this;
+    }
+    graphReady() {
         if (this.sinksReady == this.sinks) {
             return "ok";
         }
         else {
-            return new Promise(function (resolve) {
-                _this.readyResolvers.push(resolve);
+            return new Promise((resolve) => {
+                this.readyResolvers.push(resolve);
             });
         }
-    };
-    SIDUPAdmitter.prototype.addDependency = function (fromType, toType) {
-        var _this = this;
-        var initiateChange = function () {
-            console.log("Initiating change. Source refs: " + _this.sourceRefs.length + " total : " + _this.sources);
-            _this.sourceRefs.forEach(function (sourceRef) {
-                _this.termination.newChildMessage();
-                sourceRef.addDependency(_this, new DependencyChangePulse(fromType, toType));
+    }
+    addDependency(fromType, toType) {
+        let initiateChange = () => {
+            console.log("Initiating change. Source refs: " + this.sourceRefs.length + " total : " + this.sources);
+            this.sourceRefs.forEach((sourceRef) => {
+                this.termination.newChildMessage();
+                sourceRef.addDependency(this, new DependencyChangePulse(fromType, toType));
             });
         };
         if (this.sourceRefs.length == this.sources) {
@@ -207,28 +184,20 @@ var SIDUPAdmitter = (function () {
         else {
             this.sourceResolvers.push(initiateChange);
         }
-    };
-    return SIDUPAdmitter;
-}());
-exports.SIDUPAdmitter = SIDUPAdmitter;
-var SIDUPSourceSignal = (function (_super) {
-    __extends(SIDUPSourceSignal, _super);
-    function SIDUPSourceSignal() {
-        return _super !== null && _super.apply(this, arguments) || this;
     }
-    SIDUPSourceSignal.prototype.change = function (parentVals) {
+}
+exports.SIDUPAdmitter = SIDUPAdmitter;
+class SIDUPSourceSignal extends signal_1.SignalObject {
+    change(parentVals) {
         this.parentVals = parentVals;
-    };
-    __decorate([
-        signal_1.mutator
-    ], SIDUPSourceSignal.prototype, "change", null);
-    return SIDUPSourceSignal;
-}(signal_1.SignalObject));
+    }
+}
+__decorate([
+    signal_1.mutator
+], SIDUPSourceSignal.prototype, "change", null);
 exports.SIDUPSourceSignal = SIDUPSourceSignal;
-var SIDUPNode = (function () {
-    function SIDUPNode(ownType, parents, hostActor, admitterType, isSink) {
-        if (isSink === void 0) { isSink = false; }
-        var _this = this;
+class SIDUPNode {
+    constructor(ownType, parents, hostActor, admitterType, isSink = false) {
         this.host = hostActor;
         this.ownSignal = new SIDUPSourceSignal();
         this.parents = parents;
@@ -242,17 +211,17 @@ var SIDUPNode = (function () {
         this.parentRefs = [];
         this.childrenRefs = [];
         this.childrenTypes = [];
-        this.termination = new DijkstraScholten(function () { _this.inChange = false; });
+        this.termination = new DijkstraScholten(() => { this.inChange = false; });
         this.admitterListeners = [];
         this.isSink = isSink;
         this.inChange = false;
         hostActor.publish(this, ownType);
-        hostActor.subscribe(admitterType).each(function (admitterRef) {
-            _this.admitterRef = admitterRef;
-            if (_this.parents.length == 0) {
-                admitterRef.sourceRegister(_this);
+        hostActor.subscribe(admitterType).each((admitterRef) => {
+            this.admitterRef = admitterRef;
+            if (this.parents.length == 0) {
+                admitterRef.sourceRegister(this);
             }
-            _this.admitterListeners.forEach(function (admitListener) {
+            this.admitterListeners.forEach((admitListener) => {
                 admitListener();
             });
         });
@@ -264,47 +233,45 @@ var SIDUPNode = (function () {
     ////////////////////////////////////////
     // Algorithm                        ///
     ///////////////////////////////////////
-    SIDUPNode.prototype.initTopology = function () {
-        var _this = this;
-        this.parents.forEach(function (parentType) {
-            _this.mirrors.set(parentType.tagVal, new Mirror(parentType));
-            _this.host.subscribe(parentType).each(function (parentRef) {
-                _this.parentRefs.push(parentRef);
-                parentRef.getReachable(_this, _this.ownType).then(function (parentReachables) {
+    initTopology() {
+        this.parents.forEach((parentType) => {
+            this.mirrors.set(parentType.tagVal, new Mirror(parentType));
+            this.host.subscribe(parentType).each((parentRef) => {
+                this.parentRefs.push(parentRef);
+                parentRef.getReachable(this, this.ownType).then((parentReachables) => {
                     //console.log("Inside: " + this.ownType.tagVal + " reachables for: " + parentType.tagVal + " = " + parentReachables.reachables)
-                    _this.setsReceived++;
-                    parentReachables.reachables.forEach(function (reachable) {
-                        if (!_this.reachable.includes(reachable)) {
-                            _this.reachable.push(reachable);
+                    this.setsReceived++;
+                    parentReachables.reachables.forEach((reachable) => {
+                        if (!this.reachable.includes(reachable)) {
+                            this.reachable.push(reachable);
                         }
                     });
-                    _this.parentReachable.set(parentType.tagVal, parentReachables.reachables);
-                    if (_this.setsReceived == _this.parents.length) {
-                        _this.waiting.forEach(function (waitingResolver) {
-                            waitingResolver(new ReachableIsolate(_this.reachable));
+                    this.parentReachable.set(parentType.tagVal, parentReachables.reachables);
+                    if (this.setsReceived == this.parents.length) {
+                        this.waiting.forEach((waitingResolver) => {
+                            waitingResolver(new ReachableIsolate(this.reachable));
                         });
-                        if (_this.isSink) {
-                            _this.sendToAdmitter(function () {
-                                _this.admitterRef.sinkReady();
+                        if (this.isSink) {
+                            this.sendToAdmitter(() => {
+                                this.admitterRef.sinkReady();
                             });
                         }
                     }
                 });
             });
         });
-    };
-    SIDUPNode.prototype.newPulse = function (senderType, senderRef, pulse) {
-        var _this = this;
+    }
+    newPulse(senderType, senderRef, pulse) {
         this.termination.newParentMessage(senderRef);
-        var senderMirror = this.mirrors.get(senderType.tagVal);
+        let senderMirror = this.mirrors.get(senderType.tagVal);
         senderMirror.steadyValue = pulse.value;
         senderMirror.pulseValue = pulse.pulseState;
-        var propagate = true;
-        this.parents.forEach(function (parenType) {
-            var parentMirror = _this.mirrors.get(parenType.tagVal);
+        let propagate = true;
+        this.parents.forEach((parenType) => {
+            let parentMirror = this.mirrors.get(parenType.tagVal);
             if (parentMirror.pulseValue.isPending()) {
-                var parentReachables = _this.parentReachable.get(parenType.tagVal);
-                var commonSources = parentReachables.filter(function (parentReachable) {
+                let parentReachables = this.parentReachable.get(parenType.tagVal);
+                let commonSources = parentReachables.filter((parentReachable) => {
                     return pulse.sourcesChanges.includes(parentReachable);
                 });
                 if (commonSources.length > 0) {
@@ -313,20 +280,20 @@ var SIDUPNode = (function () {
             }
         });
         if (propagate) {
-            var anyChanged_1 = false;
-            var values_1 = [];
-            this.parents.forEach(function (parentType) {
-                var mirror = _this.mirrors.get(parentType.tagVal);
-                values_1.push(mirror.steadyValue);
+            let anyChanged = false;
+            let values = [];
+            this.parents.forEach((parentType) => {
+                let mirror = this.mirrors.get(parentType.tagVal);
+                values.push(mirror.steadyValue);
                 if (mirror.pulseValue.isChanged()) {
-                    anyChanged_1 = true;
+                    anyChanged = true;
                 }
             });
             //No need to send actual pulse here. By changing the internal signal the "propagate" method will eventually be triggered
-            if (anyChanged_1) {
+            if (anyChanged) {
                 this.pulseState.setChanged();
                 this.signalPool.setLastPulse(pulse);
-                this.ownSignal.change(values_1);
+                this.ownSignal.change(values);
             }
             else {
                 this.pulseState.setUnchanged();
@@ -338,36 +305,33 @@ var SIDUPNode = (function () {
                 this.termination.nodeTerminated();
             }
         }
-    };
-    SIDUPNode.prototype.reset = function () {
-        var _this = this;
+    }
+    reset() {
         this.pulseState.setPending();
-        this.parents.forEach(function (parentType) {
-            var mirror = _this.mirrors.get(parentType.tagVal);
+        this.parents.forEach((parentType) => {
+            let mirror = this.mirrors.get(parentType.tagVal);
             mirror.pulseValue.setPending();
         });
-    };
+    }
     ////////////////////////////////////////
     // Calls made by other SIDUP nodes  ///
     ///////////////////////////////////////
-    SIDUPNode.prototype.ack = function () {
+    ack() {
         this.termination.newAckMessage();
-    };
-    SIDUPNode.prototype.getReachable = function (childRef, childType) {
-        var _this = this;
+    }
+    getReachable(childRef, childType) {
         this.childrenRefs.push(childRef);
         this.childrenTypes.push(childType);
         if (this.setsReceived == this.parents.length) {
             return new ReachableIsolate(this.reachable);
         }
         else {
-            return new Promise(function (resolve) {
-                _this.waiting.push(resolve);
+            return new Promise((resolve) => {
+                this.waiting.push(resolve);
             });
         }
-    };
-    SIDUPNode.prototype.updateReachable = function (isNewParent, senderRef, senderType, reachables) {
-        var _this = this;
+    }
+    updateReachable(isNewParent, senderRef, senderType, reachables) {
         this.termination.newParentMessage(senderRef);
         if (isNewParent) {
             if (this.parentReachable.has(senderType.tagVal)) {
@@ -381,33 +345,32 @@ var SIDUPNode = (function () {
             }
         }
         else {
-            var previousReachables_1 = this.parentReachable.get(senderType.tagVal);
-            reachables.reachables.forEach(function (reachable) {
-                if (!previousReachables_1.includes(reachable)) {
-                    previousReachables_1.push(reachable);
+            let previousReachables = this.parentReachable.get(senderType.tagVal);
+            reachables.reachables.forEach((reachable) => {
+                if (!previousReachables.includes(reachable)) {
+                    previousReachables.push(reachable);
                 }
             });
         }
-        reachables.reachables.forEach(function (reachable) {
-            if (!_this.reachable.includes(reachable)) {
-                _this.reachable.push(reachable);
+        reachables.reachables.forEach((reachable) => {
+            if (!this.reachable.includes(reachable)) {
+                this.reachable.push(reachable);
             }
         });
-        this.childrenRefs.forEach(function (childRef) {
-            _this.termination.newChildMessage();
-            childRef.updateReachable(false, _this, _this.ownType, new ReachableIsolate(_this.reachable));
+        this.childrenRefs.forEach((childRef) => {
+            this.termination.newChildMessage();
+            childRef.updateReachable(false, this, this.ownType, new ReachableIsolate(this.reachable));
         });
         if (this.childrenRefs.length == 0) {
             this.termination.nodeTerminated();
         }
-    };
-    SIDUPNode.prototype.addDependency = function (sender, changePulse) {
-        var _this = this;
+    }
+    addDependency(sender, changePulse) {
         this.termination.newParentMessage(sender);
-        var from = changePulse.fromType.tagVal;
-        var to = changePulse.toType.tagVal;
+        let from = changePulse.fromType.tagVal;
+        let to = changePulse.toType.tagVal;
         if (from == this.ownType.tagVal && !this.inChange) {
-            var childTypes = this.childrenTypes.map(function (childType) {
+            let childTypes = this.childrenTypes.map((childType) => {
                 return childType.tagVal;
             });
             if (childTypes.includes(to)) {
@@ -416,87 +379,85 @@ var SIDUPNode = (function () {
             else {
                 this.childrenTypes.push(changePulse.toType);
                 this.inChange = true;
-                this.host.subscribe(changePulse.toType).once(function (newChildRef) {
-                    _this.childrenRefs.push(newChildRef);
-                    _this.termination.newChildMessage();
-                    newChildRef.updateReachable(true, _this, _this.ownType, new ReachableIsolate(_this.reachable));
+                this.host.subscribe(changePulse.toType).once((newChildRef) => {
+                    this.childrenRefs.push(newChildRef);
+                    this.termination.newChildMessage();
+                    newChildRef.updateReachable(true, this, this.ownType, new ReachableIsolate(this.reachable));
                 });
             }
         }
         else if (!this.inChange) {
             this.inChange = true;
-            this.childrenRefs.forEach(function (childRef) {
-                _this.termination.newChildMessage();
-                childRef.addDependency(_this, changePulse);
+            this.childrenRefs.forEach((childRef) => {
+                this.termination.newChildMessage();
+                childRef.addDependency(this, changePulse);
             });
         }
         if (this.childrenRefs.length == 0 && !(to == this.ownType.tagVal)) {
             this.termination.nodeTerminated();
         }
-    };
-    SIDUPNode.prototype.getSignal = function (signal) {
+    }
+    getSignal(signal) {
         //Dummy method created to exchange signal
-    };
+    }
     ////////////////////////////////////////
     // Calls made by Spiders.js          ///
     ///////////////////////////////////////
-    SIDUPNode.prototype.setSignalPool = function (signalPool) {
+    setSignalPool(signalPool) {
         this.signalPool = signalPool;
-    };
-    SIDUPNode.prototype.sendToAdmitter = function (sendFunction) {
+    }
+    sendToAdmitter(sendFunction) {
         if (this.admitterRef) {
             sendFunction();
         }
         else {
             this.admitterListeners.push(sendFunction);
         }
-    };
-    SIDUPNode.prototype.publishSignal = function (signal) {
-        var _this = this;
-        var publish = function () {
-            _this.childrenRefs.forEach(function (childRef) {
+    }
+    publishSignal(signal) {
+        let publish = () => {
+            this.childrenRefs.forEach((childRef) => {
                 childRef.getSignal(signal);
             });
         };
-        var checkAdmitter = function () {
-            _this.admitterRef.graphReady().then(function () {
+        let checkAdmitter = () => {
+            this.admitterRef.graphReady().then(() => {
                 publish();
             });
         };
         this.sendToAdmitter(checkAdmitter);
-        signal.holder.onChangeListener = function () {
-            _this.propagate(signal.holder, []);
+        signal.holder.onChangeListener = () => {
+            this.propagate(signal.holder, []);
         };
-    };
-    SIDUPNode.prototype.propagate = function (signal, toIds) {
-        var _this = this;
-        var propagateToChildren = function (distributedsource) {
-            var newPulse;
-            var newVal = signal.value;
+    }
+    propagate(signal, toIds) {
+        let propagateToChildren = (distributedsource) => {
+            let newPulse;
+            let newVal = signal.value;
             if (newVal instanceof signal_1.SignalFunction) {
                 newVal = newVal.lastVal;
             }
             if (distributedsource) {
-                _this.pulseState.setChanged();
+                this.pulseState.setChanged();
                 //console.log("Propagating to children in " + this.ownType.tagVal + " with state " + this.pulseState.state)
-                newPulse = new NodePulse([_this.ownType.tagVal], newVal, _this.pulseState);
+                newPulse = new NodePulse([this.ownType.tagVal], newVal, this.pulseState);
             }
             else {
-                var triggeringPulse = _this.signalPool.lastPulse;
-                newPulse = new NodePulse(triggeringPulse.sourcesChanges, newVal, _this.pulseState);
+                let triggeringPulse = this.signalPool.lastPulse;
+                newPulse = new NodePulse(triggeringPulse.sourcesChanges, newVal, this.pulseState);
             }
-            _this.childrenRefs.forEach(function (childRef) {
-                _this.termination.newChildMessage();
-                childRef.newPulse(_this.ownType, _this, newPulse);
+            this.childrenRefs.forEach((childRef) => {
+                this.termination.newChildMessage();
+                childRef.newPulse(this.ownType, this, newPulse);
             });
         };
         //Check whether this node is at the start of the distributed dependency graph
         //In which case it first needs to ask "permission" to propagate from the admitter
         if (this.parents.length == 0) {
-            var askAdmitter = function () {
-                _this.admitterRef.sourceChanged().then(function () {
+            let askAdmitter = () => {
+                this.admitterRef.sourceChanged().then(() => {
                     //This code is only triggered after accept from admitter
-                    _this.termination.newParentMessage(_this.admitterRef);
+                    this.termination.newParentMessage(this.admitterRef);
                     propagateToChildren(true);
                 });
             };
@@ -505,10 +466,10 @@ var SIDUPNode = (function () {
         else {
             propagateToChildren(false);
         }
-    };
-    SIDUPNode.prototype.propagationReceived = function (fromId, signalId, value) {
+    }
+    propagationReceived(fromId, signalId, value) {
         //Not needed
-    };
-    return SIDUPNode;
-}());
+    }
+}
 exports.SIDUPNode = SIDUPNode;
+//# sourceMappingURL=SIDUP.js.map
