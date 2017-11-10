@@ -1,38 +1,21 @@
-Object.defineProperty(exports, "__esModule", { value: true });
-const MicroService_1 = require("../src/MicroService/MicroService");
-const FleetData_1 = require("./FleetData");
 /**
  * Created by flo on 02/08/2017.
  */
-class FleetMember extends MicroService_1.MicroService {
-    getRandom() {
-        return Math.floor((Math.random() * 100) + 1);
+Object.defineProperty(exports, "__esModule", { value: true });
+//Simulates actual vehicles with beacons which communicate to data service over UDP
+class FleetMember {
+    constructor() {
+        this.serverPort = 33333;
+        this.serverAddress = '127.0.0.1';
+        var dgram = require('dgram');
+        this.LZString = require("lz-string");
+        this.clientSocket = dgram.createSocket('udp4');
     }
-    init() {
-        this.myId = this.getRandom();
-        this.curLat = this.getRandom();
-        this.curLong = this.getRandom();
-        this.curSpeed = this.getRandom();
-        this.dataSignal = this.newSignal(FleetData_1.FleetData, this.myId, this.curLat, this.curLong, this.curSpeed);
-        let serialise = this.lift((fleetData) => {
-            //Actual fleet data object is circular (which JSON can't handle)
-            return JSON.stringify([fleetData.currentLat, fleetData.currentLong, fleetData.currentSpeed, fleetData.memberId]);
-        });
-        let compressed = serialise(this.dataSignal);
-        let topic = this.newTopic("FleetData");
-        this.publish(compressed, topic);
-        this.update(10);
-    }
-    update(i) {
-        let newLat = this.getRandom();
-        let newLong = this.getRandom();
-        let newSpeed = this.getRandom();
-        this.dataSignal.actualise(newLat, newLong, newSpeed);
-        setTimeout(() => {
-            if (i > 0) {
-                this.update(--i);
-            }
-        }, 3000);
+    sendData(id, lat, long, speed) {
+        let packet = { id: id, lat: lat, long: long, speed: speed };
+        //TODO only compress the fields, not the object itself
+        let message = new Buffer(this.LZString.compress(JSON.stringify(packet)));
+        this.clientSocket.send(message, 0, message.length, this.serverPort, this.serverAddress);
     }
 }
 exports.FleetMember = FleetMember;

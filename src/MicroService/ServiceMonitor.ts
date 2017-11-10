@@ -1,12 +1,42 @@
 import {FarRef, SpiderLib} from "../spiders";
-import {ServiceGateway} from "./ServiceGateway";
-import {PubSubServer} from "../PubSub/SubServer";
+import {PubSubTag} from "../PubSub/SubTag";
+import {IsolateContainer} from "../serialisation";
 /**
  * Created by flo on 30/06/2017.
  */
 var spiders : SpiderLib = require("../spiders")
+class PreInstallInfo{
+    serviceClass
+    serviceTag      : PubSubTag
+    dependencies    : Array<PubSubTag>
+    dependants      : Array<PubSubTag>
+    initialVal      : any
+
+    constructor(serviceClass,serviceTag,dependencies,initialVal){
+        this.serviceClass   = serviceClass
+        this.serviceTag     = serviceTag
+        this.dependencies   = dependencies
+        this.dependants     = []
+        this.initialVal     = initialVal
+    }
+}
+
+export class GraphInfo{
+    ownType
+    directParents
+    directChildren
+    initialValue
+
+    constructor(ownType,directParents,directChildren,initialValue){
+        this[IsolateContainer.checkIsolateFuncKey]  = true
+        this.ownType                                = ownType
+        this.directParents                          = directParents
+        this.directChildren                         = directChildren
+    }
+}
 export class ServiceMonitor extends spiders.Application{
     services    : Map<string,FarRef>
+    toDeploy    : Map<string,PreInstallInfo>
 
     logInfo(msg : string){
         console.log("[INFO] " + msg)
@@ -16,6 +46,29 @@ export class ServiceMonitor extends spiders.Application{
         console.log("[WARNING] " + msg)
     }
 
+    //Register a service provided the service's class and the list of services it depends on
+    installRService(serviceClass,serviceTag : PubSubTag,dependencies : Array<PubSubTag>,initialVal){
+        this.toDeploy.set(serviceTag.tagVal,new PreInstallInfo(serviceClass,serviceTag,dependencies,initialVal))
+    }
+
+    //Deploys all services and wires together the dependency graph
+    deploy(){
+        //Add dependants information for each service
+        this.toDeploy.forEach((info : PreInstallInfo)=>{
+            info.dependencies.forEach((dependency : PubSubTag)=>{
+                this.toDeploy.get(dependency.tagVal).dependants.push(info.serviceTag)
+            })
+        })
+        //Spawn each service and make it setup QPROP using dependency information
+        this.toDeploy.forEach((info : PreInstallInfo)=>{
+            let service     = this.spawnActor(info.serviceClass)
+            let graphInfo   = new GraphInfo(info.serviceTag,info.dependencies,info.dependants,info.initialVal)
+            service.setupInfo(graphInfo)
+        })
+    }
+
+
+    //Used for command line interface
     private deployService(currentDir : string,serviceName : string, definitionPath : string,className : string){
         //TODO configuration arguments
         if(definitionPath.startsWith(".")){
@@ -37,6 +90,7 @@ export class ServiceMonitor extends spiders.Application{
         super()
         this.PSServer()
         this.services   = new Map()
+        this.toDeploy   = new Map()
         var stdin       = (process as any).openStdin();
         var that        = this
         stdin.addListener("data", function(d) {

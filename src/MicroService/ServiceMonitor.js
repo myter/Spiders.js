@@ -1,8 +1,27 @@
 Object.defineProperty(exports, "__esModule", { value: true });
+const serialisation_1 = require("../serialisation");
 /**
  * Created by flo on 30/06/2017.
  */
 var spiders = require("../spiders");
+class PreInstallInfo {
+    constructor(serviceClass, serviceTag, dependencies, initialVal) {
+        this.serviceClass = serviceClass;
+        this.serviceTag = serviceTag;
+        this.dependencies = dependencies;
+        this.dependants = [];
+        this.initialVal = initialVal;
+    }
+}
+class GraphInfo {
+    constructor(ownType, directParents, directChildren, initialValue) {
+        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
+        this.ownType = ownType;
+        this.directParents = directParents;
+        this.directChildren = directChildren;
+    }
+}
+exports.GraphInfo = GraphInfo;
 class ServiceMonitor extends spiders.Application {
     logInfo(msg) {
         console.log("[INFO] " + msg);
@@ -10,6 +29,26 @@ class ServiceMonitor extends spiders.Application {
     warnInfo(msg) {
         console.log("[WARNING] " + msg);
     }
+    //Register a service provided the service's class and the list of services it depends on
+    installRService(serviceClass, serviceTag, dependencies, initialVal) {
+        this.toDeploy.set(serviceTag.tagVal, new PreInstallInfo(serviceClass, serviceTag, dependencies, initialVal));
+    }
+    //Deploys all services and wires together the dependency graph
+    deploy() {
+        //Add dependants information for each service
+        this.toDeploy.forEach((info) => {
+            info.dependencies.forEach((dependency) => {
+                this.toDeploy.get(dependency.tagVal).dependants.push(info.serviceTag);
+            });
+        });
+        //Spawn each service and make it setup QPROP using dependency information
+        this.toDeploy.forEach((info) => {
+            let service = this.spawnActor(info.serviceClass);
+            let graphInfo = new GraphInfo(info.serviceTag, info.dependencies, info.dependants, info.initialVal);
+            service.setupInfo(graphInfo);
+        });
+    }
+    //Used for command line interface
     deployService(currentDir, serviceName, definitionPath, className) {
         //TODO configuration arguments
         if (definitionPath.startsWith(".")) {
@@ -29,6 +68,7 @@ class ServiceMonitor extends spiders.Application {
         super();
         this.PSServer();
         this.services = new Map();
+        this.toDeploy = new Map();
         var stdin = process.openStdin();
         var that = this;
         stdin.addListener("data", function (d) {

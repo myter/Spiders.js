@@ -4,8 +4,6 @@ import {SpiderLib} from "../src/spiders";
  */
 var spiders : SpiderLib = require("../src/spiders")
 
-@spiders.lease(3000)
-@spiders.weak
 export class FleetData extends spiders.Signal{
     memberId        : string
     currentLat      : number

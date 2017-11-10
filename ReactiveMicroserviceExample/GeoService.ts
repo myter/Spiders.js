@@ -4,7 +4,7 @@ import {FleetData} from "./FleetData";
  * Created by flo on 02/08/2017.
  */
 export class GeoService extends MicroService{
-    init(){
+    /*init(){
         let inTopic     = this.newTopic("ParsedData")
         let outTopic    = this.newTopic("GeoData")
         let reverseGeoCode = this.lift((fleetData : FleetData)=>{
@@ -15,5 +15,8 @@ export class GeoService extends MicroService{
             let address = reverseGeoCode(dataSignal)
             this.publish(address,outTopic)
         })
+    }*/
+    start(fleetDataSignal){
+        //TODO
     }
 }

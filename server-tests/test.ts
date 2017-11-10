@@ -1,7 +1,7 @@
-let foo = ([x,y,z]) => {
-    console.log(x)
-    console.log(y)
-    console.log(z)
-}
-
-foo([1,2,3])
+var LZString = require("lz-string")
+let t = "helloéefueizufhzieufhzeiufhzeiufhzeiufhzeiufhzeiufhzeiufhzeiufhzeiufh"
+let x = LZString.compress(t)
+console.log("t length= " + t.length)
+console.log("compress length= " + x.length)
+console.log(LZString.decompress(x))
+console.log("Decompress length = " + LZString.decompress(x).length)

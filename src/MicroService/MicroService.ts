@@ -1,6 +1,7 @@
 import {SignalValue} from "../Reactivivity/signal";
 import {PubSubTag} from "../PubSub/SubTag";
 import {SpiderLib} from "../spiders";
+import {GraphInfo} from "./ServiceMonitor";
 /**
  * Created by flo on 30/06/2017.
  */
@@ -50,6 +51,11 @@ export abstract class MicroService extends spiders.Actor{
             ret.newPublishedObject(sigVal)
         })
         return ret
+    }
+
+    //USED FOR QPROP
+    setupInfo(graphInfo : GraphInfo){
+        (this as any).start(this.QPROP(graphInfo.ownType,graphInfo.directParents,graphInfo.directChildren,graphInfo.initialValue))
     }
 }
 

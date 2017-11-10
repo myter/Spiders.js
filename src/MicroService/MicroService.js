@@ -43,6 +43,10 @@ class MicroService extends spiders.Actor {
         });
         return ret;
     }
+    //USED FOR QPROP
+    setupInfo(graphInfo) {
+        this.start(this.QPROP(graphInfo.ownType, graphInfo.directParents, graphInfo.directChildren, graphInfo.initialValue));
+    }
 }
 exports.MicroService = MicroService;
 //TODO need to refactor this

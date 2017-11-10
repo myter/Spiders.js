@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * Created by flo on 02/08/2017.
  */
 var spiders = require("../src/spiders");
-let FleetData = class FleetData extends spiders.Signal {
+class FleetData extends spiders.Signal {
     constructor(id, lat, long, speed) {
         super();
         this.memberId = id;
@@ -22,13 +22,9 @@ let FleetData = class FleetData extends spiders.Signal {
         this.currentLong = long;
         this.currentSpeed = speed;
     }
-};
+}
 __decorate([
     spiders.mutator
 ], FleetData.prototype, "actualise", null);
-FleetData = __decorate([
-    spiders.lease(3000),
-    spiders.weak
-], FleetData);
 exports.FleetData = FleetData;
 //# sourceMappingURL=FleetData.js.map
