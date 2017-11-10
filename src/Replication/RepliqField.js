@@ -1,38 +1,42 @@
+"use strict";
 /**
  * Created by flo on 30/03/2017.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-class FieldUpdate {
-    constructor(fieldName) {
+var FieldUpdate = (function () {
+    function FieldUpdate(fieldName) {
         this.fieldName = fieldName;
     }
-}
+    return FieldUpdate;
+}());
 exports.FieldUpdate = FieldUpdate;
-class RepliqField {
-    constructor(name) {
+var RepliqField = (function () {
+    function RepliqField(name) {
         this.commitListeners = [];
         this.tentativeListeners = [];
         this.name = name;
     }
-    resetToCommit() {
+    RepliqField.prototype.resetToCommit = function () {
         this.tentative = this.commited;
-    }
-    onCommit(callback) {
+    };
+    RepliqField.prototype.onCommit = function (callback) {
         this.commitListeners.push(callback);
-    }
-    triggerCommit() {
-        this.commitListeners.forEach((callback) => {
-            callback(this.commited);
+    };
+    RepliqField.prototype.triggerCommit = function () {
+        var _this = this;
+        this.commitListeners.forEach(function (callback) {
+            callback(_this.commited);
         });
-    }
-    onTentative(callback) {
+    };
+    RepliqField.prototype.onTentative = function (callback) {
         this.tentativeListeners.push(callback);
-    }
-    triggerTentative() {
-        this.tentativeListeners.forEach((callback) => {
-            callback(this.tentative);
+    };
+    RepliqField.prototype.triggerTentative = function () {
+        var _this = this;
+        this.tentativeListeners.forEach(function (callback) {
+            callback(_this.tentative);
         });
-    }
-}
+    };
+    return RepliqField;
+}());
 exports.RepliqField = RepliqField;
-//# sourceMappingURL=RepliqField.js.map

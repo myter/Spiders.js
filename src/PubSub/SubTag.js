@@ -1,20 +1,21 @@
+"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const serialisation_1 = require("../serialisation");
+var serialisation_1 = require("../serialisation");
 /**
  * Created by flo on 22/03/2017.
  */
 var spiders = require("../spiders");
-class PubSubTag {
-    constructor(tagVal) {
+var PubSubTag = (function () {
+    function PubSubTag(tagVal) {
         this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
         this.tagVal = tagVal;
     }
-    equals(otherTag) {
+    PubSubTag.prototype.equals = function (otherTag) {
         otherTag.tagVal == this.tagVal;
-    }
-    asString() {
+    };
+    PubSubTag.prototype.asString = function () {
         return this.tagVal;
-    }
-}
+    };
+    return PubSubTag;
+}());
 exports.PubSubTag = PubSubTag;
-//# sourceMappingURL=SubTag.js.map

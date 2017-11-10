@@ -1,42 +1,63 @@
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-const serialisation_1 = require("../serialisation");
+var serialisation_1 = require("../serialisation");
 /**
  * Created by flo on 21/06/2017.
  */
 var utils = require("../utils");
-class Dependency {
-    constructor(val, position) {
+var Dependency = (function () {
+    function Dependency(val, position) {
         this.value = val;
         this.position = position;
     }
-}
-class SignalDependency extends Dependency {
-    constructor(signal, val, position) {
-        super(val, position);
-        this.signal = signal;
+    return Dependency;
+}());
+var SignalDependency = (function (_super) {
+    __extends(SignalDependency, _super);
+    function SignalDependency(signal, val, position) {
+        var _this = _super.call(this, val, position) || this;
+        _this.signal = signal;
+        return _this;
     }
-}
+    return SignalDependency;
+}(Dependency));
 exports.SignalDependency = SignalDependency;
-class StaticDependency extends Dependency {
-}
+var StaticDependency = (function (_super) {
+    __extends(StaticDependency, _super);
+    function StaticDependency() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return StaticDependency;
+}(Dependency));
 //Used to represent the state of a signal, provided to the programmer as "Signal"
-class SignalValue {
-    constructor() {
+var SignalValue = (function () {
+    function SignalValue() {
         this[serialisation_1.SignalContainer.checkSignalFuncKey] = true;
     }
-    setHolder(holder) {
+    SignalValue.prototype.setHolder = function (holder) {
         this.holder = holder;
-    }
-}
-SignalValue.IS_MUTATOR = "_IS_MUTATOR_";
-SignalValue.GET_ORIGINAL = "_GET_ORIGINAL_";
-SignalValue.IS_WRAPPED = "_IS_WRAPPED_";
-SignalValue.LOWER_BOUND = "_LOWER_BOUND_";
-SignalValue.UPPER_BOUND = "_UPPER_BOUND_";
-SignalValue.WEAK_ANN = "_WEAK_ANN_";
+    };
+    SignalValue.IS_MUTATOR = "_IS_MUTATOR_";
+    SignalValue.GET_ORIGINAL = "_GET_ORIGINAL_";
+    SignalValue.IS_WRAPPED = "_IS_WRAPPED_";
+    SignalValue.LOWER_BOUND = "_LOWER_BOUND_";
+    SignalValue.UPPER_BOUND = "_UPPER_BOUND_";
+    SignalValue.WEAK_ANN = "_WEAK_ANN_";
+    return SignalValue;
+}());
 exports.SignalValue = SignalValue;
 function mutator(target, propertyKey, descriptor) {
-    let originalMethod = descriptor.value;
+    var originalMethod = descriptor.value;
     originalMethod[SignalValue.IS_MUTATOR] = true;
     return {
         value: originalMethod
@@ -45,8 +66,12 @@ function mutator(target, propertyKey, descriptor) {
 exports.mutator = mutator;
 function lease(timeOut) {
     return function boundsDecorator(constructor) {
-        return function NewAble(...args) {
-            let sigObject = new constructor(...args);
+        return function NewAble() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            var sigObject = new (constructor.bind.apply(constructor, [void 0].concat(args)))();
             sigObject[SignalValue.LOWER_BOUND] = timeOut;
             sigObject[SignalValue.UPPER_BOUND] = -1;
             return sigObject;
@@ -55,8 +80,12 @@ function lease(timeOut) {
 }
 exports.lease = lease;
 function weak(constructor) {
-    return function NewAble(...args) {
-        let sigObject = new constructor(...args);
+    return function NewAble() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var sigObject = new (constructor.bind.apply(constructor, [void 0].concat(args)))();
         sigObject[SignalValue.WEAK_ANN] = true;
         return sigObject;
     };
@@ -67,52 +96,74 @@ function strong(constructor) {
     return constructor;
 }
 exports.strong = strong;
-class SignalObject extends SignalValue {
-    instantiateMeta(environment) {
-        let methodKeys = Reflect.ownKeys(Object.getPrototypeOf(this));
-        methodKeys.forEach((methodName) => {
-            var property = Reflect.get(Object.getPrototypeOf(this), methodName);
-            if (property[SignalValue.IS_MUTATOR] || environment.signalPool.isMutator(this.constructor.name.toString(), methodName.toString())) {
+var SignalObject = (function (_super) {
+    __extends(SignalObject, _super);
+    function SignalObject() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    SignalObject.prototype.instantiateMeta = function (environment) {
+        var _this = this;
+        var methodKeys = Reflect.ownKeys(Object.getPrototypeOf(this));
+        methodKeys.forEach(function (methodName) {
+            var property = Reflect.get(Object.getPrototypeOf(_this), methodName);
+            if (property[SignalValue.IS_MUTATOR] || environment.signalPool.isMutator(_this.constructor.name.toString(), methodName.toString())) {
                 if (!property[SignalValue.IS_WRAPPED]) {
-                    let wrapped = (...args) => {
-                        property.apply(this, args, this);
-                        this.holder.change();
+                    var wrapped = function () {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i] = arguments[_i];
+                        }
+                        property.apply(_this, args, _this);
+                        _this.holder.change();
                     };
                     wrapped[SignalValue.IS_MUTATOR] = true;
                     wrapped[SignalValue.GET_ORIGINAL] = property;
                     wrapped[SignalValue.IS_WRAPPED] = true;
-                    Object.getPrototypeOf(this)[methodName] = wrapped;
+                    Object.getPrototypeOf(_this)[methodName] = wrapped;
                 }
                 else {
                     //Re-wrap (to have correct this pointer)
-                    let original = property[SignalValue.GET_ORIGINAL];
-                    let wrapped = (...args) => {
-                        original.apply(this, args, this);
-                        this.holder.change();
+                    var original_1 = property[SignalValue.GET_ORIGINAL];
+                    var wrapped = function () {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i] = arguments[_i];
+                        }
+                        original_1.apply(_this, args, _this);
+                        _this.holder.change();
                     };
                     wrapped[SignalValue.IS_MUTATOR] = true;
-                    wrapped[SignalValue.GET_ORIGINAL] = original;
+                    wrapped[SignalValue.GET_ORIGINAL] = original_1;
                     wrapped[SignalValue.IS_WRAPPED] = true;
-                    Object.getPrototypeOf(this)[methodName] = wrapped;
+                    Object.getPrototypeOf(_this)[methodName] = wrapped;
                 }
             }
         });
-    }
-}
+    };
+    return SignalObject;
+}(SignalValue));
 exports.SignalObject = SignalObject;
-class SignalFunction extends SignalValue {
-    constructor(f) {
-        super();
-        this.f = f;
+var SignalFunction = (function (_super) {
+    __extends(SignalFunction, _super);
+    function SignalFunction(f) {
+        var _this = _super.call(this) || this;
+        _this.f = f;
+        return _this;
     }
-    reeval(...args) {
-        this.lastVal = this.f(...args);
+    SignalFunction.prototype.reeval = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        this.lastVal = this.f.apply(this, args);
         return this.lastVal;
-    }
-}
+    };
+    return SignalFunction;
+}(SignalValue));
 exports.SignalFunction = SignalFunction;
-class Signal {
-    constructor(signalObject, isGarbage = false) {
+var Signal = (function () {
+    function Signal(signalObject, isGarbage) {
+        if (isGarbage === void 0) { isGarbage = false; }
         //this[SignalContainer.checkSignalFuncKey]    = true
         this.id = utils.generateId();
         this.value = signalObject;
@@ -149,43 +200,44 @@ class Signal {
             this.tempStrong = false;
         }
     }
-    addChild(signal) {
+    Signal.prototype.addChild = function (signal) {
         this.children.set(signal.id, signal);
-    }
-    addGarbageChild(signal) {
+    };
+    Signal.prototype.addGarbageChild = function (signal) {
         this.garbageChildren.set(signal.id, signal);
-    }
-    removeChild(signalId) {
+    };
+    Signal.prototype.removeChild = function (signalId) {
         this.children.delete(signalId);
-    }
-    removeGarbageChild(signalId) {
+    };
+    Signal.prototype.removeGarbageChild = function (signalId) {
         this.children.delete(signalId);
-    }
-    addSignalDependency(signal, position) {
+    };
+    Signal.prototype.addSignalDependency = function (signal, position) {
         this.signalDependencies.set(signal.id, new SignalDependency(signal, signal.value, position));
         this.isSource = false;
-    }
-    addStaticDependency(value, position) {
+    };
+    Signal.prototype.addStaticDependency = function (value, position) {
         this.staticDependencies.push(new StaticDependency(value, position));
         this.isSource = false;
-    }
-    addGarbageSignalDependency(signal, position) {
+    };
+    Signal.prototype.addGarbageSignalDependency = function (signal, position) {
         this.garbageSignalDependencies.set(signal.id, new SignalDependency(signal, signal.value, position));
-    }
-    addGarbageStaticDependency(value, position) {
+    };
+    Signal.prototype.addGarbageStaticDependency = function (value, position) {
         this.garbageStaticDependencies.push(new StaticDependency(value, position));
-    }
+    };
     //Signals is made weak by current actor. In case it is published it must be weak as well (hence tempStrong = false)
-    makeWeak() {
+    Signal.prototype.makeWeak = function () {
         this.strong = false;
         this.tempStrong = false;
-    }
+    };
     //Used to indicate that signal should be transferred weakly, but must remain strong for sender
-    makeTempWeak() {
+    Signal.prototype.makeTempWeak = function () {
         this.tempStrong = false;
-    }
+    };
     //Called on source nodes by "external" code
-    change(val = null) {
+    Signal.prototype.change = function (val) {
+        if (val === void 0) { val = null; }
         if (val == Signal.NO_CHANGE) {
             this.propagate(val);
         }
@@ -206,27 +258,30 @@ class Signal {
             this.propagate(this.value);
             this.triggerExternal();
         }
-    }
-    propagate(val) {
-        this.children.forEach((child) => {
-            child.parentChanged(this.id, val);
+    };
+    Signal.prototype.propagate = function (val) {
+        var _this = this;
+        this.children.forEach(function (child) {
+            child.parentChanged(_this.id, val);
         });
-    }
-    propagateGarbage(val = undefined) {
-        let ret = true;
-        this.garbageChildren.forEach((child) => {
-            ret = ret && child.parentGarbageCollected(this.id, val);
+    };
+    Signal.prototype.propagateGarbage = function (val) {
+        var _this = this;
+        if (val === void 0) { val = undefined; }
+        var ret = true;
+        this.garbageChildren.forEach(function (child) {
+            ret = ret && child.parentGarbageCollected(_this.id, val);
         });
         return ret;
-    }
-    triggerExternal() {
+    };
+    Signal.prototype.triggerExternal = function () {
         if (this.onChangeListener) {
             this.onChangeListener();
         }
-    }
-    parentChanged(parentId, val) {
+    };
+    Signal.prototype.parentChanged = function (parentId, val) {
         this.changesReceived += 1;
-        let dependency = this.signalDependencies.get(parentId);
+        var dependency = this.signalDependencies.get(parentId);
         if (val == Signal.NO_CHANGE) {
             this.noChangesReceived += 1;
         }
@@ -234,15 +289,15 @@ class Signal {
             dependency.value = val;
         }
         if (this.changesReceived == this.signalDependencies.size && this.noChangesReceived != this.signalDependencies.size) {
-            let args = [];
-            this.signalDependencies.forEach((dep) => {
-                args[dep.position] = dep.value;
+            var args_1 = [];
+            this.signalDependencies.forEach(function (dep) {
+                args_1[dep.position] = dep.value;
             });
-            this.staticDependencies.forEach((dep) => {
-                args[dep.position] = dep.value;
+            this.staticDependencies.forEach(function (dep) {
+                args_1[dep.position] = dep.value;
             });
             //If the signal has parents it cannot be source and must therefore have a function as value object
-            let ret = this.value.reeval(...args);
+            var ret = (_a = this.value).reeval.apply(_a, args_1);
             this.changesReceived = 0;
             this.noChangesReceived = 0;
             this.clock++;
@@ -254,51 +309,59 @@ class Signal {
             this.changesReceived = 0;
             this.propagate(Signal.NO_CHANGE);
         }
-    }
+        var _a;
+    };
     //Return indicates whether propagation happened fully, in which case signal pool will collect all garbage nodes as well
-    parentGarbageCollected(parentId, val = undefined) {
+    Signal.prototype.parentGarbageCollected = function (parentId, val) {
+        if (val === void 0) { val = undefined; }
         this.changesReceived++;
         if (this.changesReceived == this.garbageSignalDependencies.size) {
-            let args = [];
-            let dependency = this.garbageSignalDependencies.get(parentId);
+            var args_2 = [];
+            var dependency = this.garbageSignalDependencies.get(parentId);
             dependency.value = val;
-            this.garbageSignalDependencies.forEach((dep) => {
+            this.garbageSignalDependencies.forEach(function (dep) {
                 //Garbage dependencies do not propagate values (simply propagate the "undefined" event)
-                args[dep.position] = dep.value;
+                args_2[dep.position] = dep.value;
             });
-            this.garbageStaticDependencies.forEach((dep) => {
-                args[dep.position] = dep.value;
+            this.garbageStaticDependencies.forEach(function (dep) {
+                args_2[dep.position] = dep.value;
             });
-            let ret = this.value.reeval(...args);
+            var ret = (_a = this.value).reeval.apply(_a, args_2);
             return this.propagateGarbage(ret);
         }
         else {
             return false;
         }
-    }
+        var _a;
+    };
     //Used by Spiders.js to notify remote signals of a change
-    registerOnChangeListener(callback) {
+    Signal.prototype.registerOnChangeListener = function (callback) {
         this.onChangeListener = callback;
-    }
+    };
     //Used by spiders.js to notify remote signal of garbage collection
-    registerOnDeleteListener(callback) {
+    Signal.prototype.registerOnDeleteListener = function (callback) {
         this.onDeleteListeners.push(callback);
-    }
+    };
     //Trigger garbage collection propagation (notify remote signal of destruction, not garbage value propagation)
-    triggerOnDelete() {
-        this.onDeleteListeners.forEach((callback) => {
+    Signal.prototype.triggerOnDelete = function () {
+        this.onDeleteListeners.forEach(function (callback) {
             callback();
         });
-    }
-}
-Signal.NO_CHANGE = "_NO_CHANGE_";
+    };
+    Signal.NO_CHANGE = "_NO_CHANGE_";
+    return Signal;
+}());
 exports.Signal = Signal;
 function lift(func) {
-    return (...args) => {
-        let sig = new Signal(new SignalFunction(func));
-        let lowerBound = Infinity;
-        let upperBound = -Infinity;
-        args.forEach((a, i) => {
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var sig = new Signal(new SignalFunction(func));
+        var lowerBound = Infinity;
+        var upperBound = -Infinity;
+        args.forEach(function (a, i) {
             if (a instanceof SignalValue) {
                 a.holder.addChild(sig);
                 sig.addSignalDependency(a.holder, i);
@@ -318,11 +381,15 @@ function lift(func) {
 }
 exports.lift = lift;
 function liftGarbage(func) {
-    return (...args) => {
-        let sig = new Signal(new SignalFunction(func), true);
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        var sig = new Signal(new SignalFunction(func), true);
         sig.rateLowerBound = -1;
         sig.rateUpperBound = -1;
-        args.forEach((a, i) => {
+        args.forEach(function (a, i) {
             if (a instanceof SignalValue) {
                 a.holder.addGarbageChild(sig);
                 sig.addGarbageSignalDependency(a.holder, i);
@@ -335,4 +402,3 @@ function liftGarbage(func) {
     };
 }
 exports.liftGarbage = liftGarbage;
-//# sourceMappingURL=signal.js.map

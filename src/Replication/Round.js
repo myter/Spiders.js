@@ -1,17 +1,18 @@
+"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const spiders_1 = require("../spiders");
+var spiders_1 = require("../spiders");
 /**
  * Created by flo on 09/03/2017.
  */
-let gspObjectIdIndex = 0;
-let masterOwnerIdIndex = 1;
-let roundNumberIndex = 2;
-let methodNameIndex = 3;
-let argsIndex = 4;
-let listenerIdIndex = 5;
-let updatesIndex = 6;
+var gspObjectIdIndex = 0;
+var masterOwnerIdIndex = 1;
+var roundNumberIndex = 2;
+var methodNameIndex = 3;
+var argsIndex = 4;
+var listenerIdIndex = 5;
+var updatesIndex = 6;
 function newRound(gspObjectId, masterOwnerId, roundNumber, methodName, args, listenerID) {
-    let round = [];
+    var round = [];
     round[gspObjectIdIndex] = gspObjectId;
     round[masterOwnerIdIndex] = masterOwnerId;
     round[roundNumberIndex] = roundNumber;
@@ -106,4 +107,3 @@ exports.roundUpdates = roundUpdates;
         }
     }
 }*/ 
-//# sourceMappingURL=Round.js.map

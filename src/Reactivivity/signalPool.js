@@ -1,11 +1,12 @@
+"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const messages_1 = require("../messages");
-const NoGlitchFreedom_1 = require("./NoGlitchFreedom");
+var messages_1 = require("../messages");
+var NoGlitchFreedom_1 = require("./NoGlitchFreedom");
 /**
  * Created by flo on 22/06/2017.
  */
-class SignalPool {
-    constructor(environment) {
+var SignalPool = (function () {
+    function SignalPool(environment) {
         this.environment = environment;
         this.signals = new Map();
         this.garbageSignals = new Map();
@@ -17,64 +18,66 @@ class SignalPool {
         this.distAlgo = new NoGlitchFreedom_1.NoGlitchFreedom();
         this.distAlgo.setSignalPool(this);
     }
-    installDPropAlgorithm(algoInstance) {
+    SignalPool.prototype.installDPropAlgorithm = function (algoInstance) {
         this.distAlgo = algoInstance;
         this.distAlgo.setSignalPool(this);
-    }
-    setLastPropMessage(propMessage) {
+    };
+    SignalPool.prototype.setLastPropMessage = function (propMessage) {
         this.lastPropMessage = propMessage;
-    }
-    setLastPulse(pulse) {
+    };
+    SignalPool.prototype.setLastPulse = function (pulse) {
         this.lastPulse = pulse;
-    }
-    addMutator(className, methodName) {
+    };
+    SignalPool.prototype.addMutator = function (className, methodName) {
         if (!this.mutators.has(className)) {
             this.mutators.set(className, []);
         }
         this.mutators.get(className).push(methodName);
-    }
-    isMutator(className, methodName) {
+    };
+    SignalPool.prototype.isMutator = function (className, methodName) {
         return this.mutators.has(className) && this.mutators.get(className).includes(methodName);
-    }
-    newSource(signal) {
+    };
+    SignalPool.prototype.newSource = function (signal) {
         this.sources.set(signal.id, signal);
         if (signal.rateLowerBound > 0) {
             this.trackLease(signal.id, signal.rateLowerBound);
         }
-    }
-    knownSignal(signalId) {
+    };
+    SignalPool.prototype.knownSignal = function (signalId) {
         return this.sources.has(signalId) || this.signals.has(signalId);
-    }
-    trackLease(signalId, bound) {
-        let signal;
+    };
+    SignalPool.prototype.trackLease = function (signalId, bound) {
+        var _this = this;
+        var signal;
         if (this.sources.has(signalId)) {
             signal = this.sources.get(signalId);
         }
         else {
             signal = this.signals.get(signalId);
         }
-        let clockBefore = signal.clock;
-        setTimeout(() => {
-            let clockAfter = signal.clock;
+        var clockBefore = signal.clock;
+        setTimeout(function () {
+            var clockAfter = signal.clock;
             if (clockBefore == clockAfter) {
                 if (!signal.strong) {
                     //console.log("Garbage collecting")
-                    this.garbageCollect(signal.id);
+                    _this.garbageCollect(signal.id);
                 }
                 else {
                     //console.log("Lease failed but signal is strong so its ok ! ")
                 }
             }
-            else if (!this.garbageCollected.includes(signalId)) {
-                this.trackLease(signalId, bound);
+            else if (!_this.garbageCollected.includes(signalId)) {
+                _this.trackLease(signalId, bound);
             }
         }, bound);
-    }
+    };
     //Recursively delete all children of the specified head node
-    garbageCollect(headId) {
+    SignalPool.prototype.garbageCollect = function (headId) {
+        var _this = this;
         //Node might have been removed by common ancestor
         if (this.signals.has(headId) || this.sources.has(headId)) {
-            let head;
+            var head = void 0;
             if (this.sources.has(headId)) {
                 head = this.sources.get(headId);
             }
@@ -83,58 +86,61 @@ class SignalPool {
             }
             this.initiateGarbagePropagation(head);
             this.deleteSignal(head);
-            head.children.forEach((child) => {
-                this.garbageCollect(child.id);
+            head.children.forEach(function (child) {
+                _this.garbageCollect(child.id);
             });
         }
-    }
+    };
     //Garbage collect the garbage dependency graph (i.e. signals triggered by garbage collection of "regular" value signals)
-    garbageCollectGarbage(headId) {
-        let sig = this.garbageSignals.get(headId);
+    SignalPool.prototype.garbageCollectGarbage = function (headId) {
+        var _this = this;
+        var sig = this.garbageSignals.get(headId);
         this.garbageSignals.delete(headId);
-        sig.garbageSignalDependencies.forEach((dependency) => {
+        sig.garbageSignalDependencies.forEach(function (dependency) {
             dependency.signal.removeGarbageChild(headId);
         });
-        sig.garbageChildren.forEach((child) => {
-            this.garbageCollectGarbage(child.id);
+        sig.garbageChildren.forEach(function (child) {
+            _this.garbageCollectGarbage(child.id);
         });
-    }
-    initiateGarbagePropagation(signal) {
+    };
+    SignalPool.prototype.initiateGarbagePropagation = function (signal) {
+        var _this = this;
         if (this.garbageDependencies.has(signal.id)) {
-            this.garbageDependencies.get(signal.id).forEach((garbageId) => {
-                let destroy = this.garbageSignals.get(garbageId).parentGarbageCollected(signal.id);
+            this.garbageDependencies.get(signal.id).forEach(function (garbageId) {
+                var destroy = _this.garbageSignals.get(garbageId).parentGarbageCollected(signal.id);
                 if (destroy) {
-                    this.garbageCollectGarbage(garbageId);
+                    _this.garbageCollectGarbage(garbageId);
                 }
             });
         }
-    }
-    deleteSignal(signal) {
+    };
+    SignalPool.prototype.deleteSignal = function (signal) {
         this.signals.delete(signal.id);
         this.sources.delete(signal.id);
         this.garbageCollected.push(signal.id);
-        signal.signalDependencies.forEach((dependency) => {
+        signal.signalDependencies.forEach(function (dependency) {
             dependency.signal.removeChild(signal.id);
         });
         signal.triggerOnDelete();
-    }
-    newSignal(signal) {
+    };
+    SignalPool.prototype.newSignal = function (signal) {
         this.signals.set(signal.id, signal);
         if (signal.rateLowerBound > 0) {
             this.trackLease(signal.id, signal.rateLowerBound);
         }
-    }
-    newGarbageSignal(signal) {
+    };
+    SignalPool.prototype.newGarbageSignal = function (signal) {
         this.garbageSignals.set(signal.id, signal);
-    }
-    addGarbageDependency(regularNodeId, garbageNodeId) {
+    };
+    SignalPool.prototype.addGarbageDependency = function (regularNodeId, garbageNodeId) {
         if (!this.garbageDependencies.has(regularNodeId)) {
             this.garbageDependencies.set(regularNodeId, new Array());
         }
         this.garbageDependencies.get(regularNodeId).push(garbageNodeId);
-    }
-    registerExternalListener(signalId, holderId) {
-        let signal;
+    };
+    SignalPool.prototype.registerExternalListener = function (signalId, holderId) {
+        var _this = this;
+        var signal;
         if (this.signals.has(signalId)) {
             signal = this.signals.get(signalId);
         }
@@ -149,18 +155,18 @@ class SignalPool {
         }
         else {
             this.externalHolders.set(signalId, [holderId]);
-            signal.registerOnChangeListener(() => {
-                this.distAlgo.propagate(signal, this.externalHolders.get(signalId));
+            signal.registerOnChangeListener(function () {
+                _this.distAlgo.propagate(signal, _this.externalHolders.get(signalId));
                 //this.environment.commMedium.sendMessage(holderId,new ExternalSignalChangeMessage(this.environment.thisRef,signal.id,serialise(signal.value,holderId,this.environment)))
             });
         }
-        signal.registerOnDeleteListener(() => {
-            this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalDeleteMessage(this.environment.thisRef, signal.id));
+        signal.registerOnDeleteListener(function () {
+            _this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalDeleteMessage(_this.environment.thisRef, signal.id));
         });
-    }
-    externalChangeReceived(fromId, signalId, val) {
+    };
+    SignalPool.prototype.externalChangeReceived = function (fromId, signalId, val) {
         this.distAlgo.propagationReceived(fromId, signalId, val);
-    }
-}
+    };
+    return SignalPool;
+}());
 exports.SignalPool = SignalPool;
-//# sourceMappingURL=signalPool.js.map
