@@ -3,6 +3,36 @@
  */
 
 //Simulates actual vehicles with beacons which communicate to data service over UDP
+var LZString = require("lz-string")
+
+export class DataPacket{
+    id
+    lat
+    lon
+    speed
+
+    constructor(id,lat,lon,speed){
+        this.id     = id
+        this.lat    = lat
+        this.lon    = lon
+        this.speed  = speed
+    }
+
+    compress(){
+        this.id     = LZString.compress((JSON.stringify(this.id)))
+        this.lat    = LZString.compress((JSON.stringify(this.lat)))
+        this.lon    = LZString.compress((JSON.stringify(this.lon)))
+        this.speed  = LZString.compress((JSON.stringify(this.speed)))
+    }
+
+    decompress(){
+        this.id     = LZString.decompress(this.id)
+        this.lat    = LZString.decompress(this.lat)
+        this.lon    = LZString.decompress(this.lon)
+        this.speed  = LZString.decompress(this.speed)
+    }
+}
+
 export class FleetMember{
     clientSocket
     LZString
@@ -18,9 +48,9 @@ export class FleetMember{
     }
 
     sendData(id,lat,long,speed){
-        let packet = {id: id,lat: lat,long: long,speed: speed}
-        //TODO only compress the fields, not the object itself
-        let message = new Buffer(this.LZString.compress(JSON.stringify(packet)))
+        let packet  = new DataPacket(id,lat,long,speed)
+        packet.compress()
+        let message = new Buffer(JSON.stringify(packet))
         this.clientSocket.send(message, 0, message.length, this.serverPort, this.serverAddress);
     }
 }

@@ -72,6 +72,7 @@ class QPROPNode {
         this.stampCounter = 0;
         this.dynamic = false;
         this.parentSignals = new Map();
+        //this.printInfo()
         hostActor.publish(this, ownType);
         hostActor.subscribe(dependencyChangeType).each((change) => {
             console.log("Dependency addition detected");
@@ -86,14 +87,14 @@ class QPROPNode {
     ///////////////////////////////////////
     printInfo() {
         console.log("Info for: " + this.ownType.tagVal);
-        /*console.log("Direct Parents: " + this.directParents.length)
-        this.directParents.forEach((parent : PubSubTag)=>{
-            console.log(parent.tagVal)
-        })
-        console.log("Direct Children: " + this.directChildren.length)
-        this.directChildren.forEach((child : PubSubTag)=>{
-            console.log(child.tagVal)
-        })*/
+        console.log("Direct Parents: " + this.directParents.length);
+        this.directParents.forEach((parent) => {
+            console.log(parent.tagVal);
+        });
+        console.log("Direct Children: " + this.directChildren.length);
+        this.directChildren.forEach((child) => {
+            console.log(child.tagVal);
+        });
         console.log("Queue info:");
         this.inputQueues.forEach((qs, parent) => {
             console.log("Queues for : " + parent);
@@ -486,7 +487,7 @@ class QPROPNode {
             newVal = newVal.lastVal;
         }
         let sendToAll = () => {
-            if (signal.isSource) {
+            if (this.directParents.length == 0) {
                 this.directChildrenRefs.forEach((childRef) => {
                     childRef.receiveMessage(that.ownType, new PropagationValue(that.ownType, newVal, that.stampCounter));
                 });

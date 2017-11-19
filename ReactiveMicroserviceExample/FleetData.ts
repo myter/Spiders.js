@@ -5,23 +5,23 @@ import {SpiderLib} from "../src/spiders";
 var spiders : SpiderLib = require("../src/spiders")
 
 export class FleetData extends spiders.Signal{
-    memberId        : string
-    currentLat      : number
-    currentLong     : number
-    currentSpeed    : number
+    id:     string
+    lat:    string
+    lon:    string
+    speed:  string
 
-    constructor(id,lat,long,speed){
+    constructor(id,lat,lon,speed){
         super()
-        this.memberId = id
-        this.currentLat = lat
-        this.currentLong = long
-        this.currentSpeed = speed
+        this.id     = id
+        this.lat    = lat
+        this.lon    = lon
+        this.speed  = speed
     }
 
     @spiders.mutator
-    actualise(lat,long,speed){
-        this.currentLat     = lat
-        this.currentLong    = long
-        this.currentSpeed   = speed
+    actualise(newLat,newLon,newSpeed){
+        this.lat    = newLat
+        this.lon    = newLon
+        this.speed  = newSpeed
     }
 }

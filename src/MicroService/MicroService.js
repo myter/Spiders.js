@@ -51,9 +51,9 @@ class MicroService extends spiders.Actor {
 exports.MicroService = MicroService;
 //TODO need to refactor this
 class MicroServiceApp extends spiders.Application {
-    constructor() {
-        super();
-        this.PSClient();
+    constructor(ownAddress = "127.0.0.1", ownPort = 8001, serverAddress = "127.0.0.1", serverPort = 8000) {
+        super(ownAddress, ownPort);
+        this.PSClient(serverAddress, serverPort);
     }
     newTopic(topicName) {
         return this.newPSTag(topicName);

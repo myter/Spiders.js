@@ -10,17 +10,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var spiders = require("../src/spiders");
 class FleetData extends spiders.Signal {
-    constructor(id, lat, long, speed) {
+    constructor(id, lat, lon, speed) {
         super();
-        this.memberId = id;
-        this.currentLat = lat;
-        this.currentLong = long;
-        this.currentSpeed = speed;
+        this.id = id;
+        this.lat = lat;
+        this.lon = lon;
+        this.speed = speed;
     }
-    actualise(lat, long, speed) {
-        this.currentLat = lat;
-        this.currentLong = long;
-        this.currentSpeed = speed;
+    actualise(newLat, newLon, newSpeed) {
+        this.lat = newLat;
+        this.lon = newLon;
+        this.speed = newSpeed;
     }
 }
 __decorate([
