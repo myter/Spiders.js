@@ -219,8 +219,8 @@ function installSTDLib(appActor, parentRef, behaviourObject, environment) {
             return sidupSignal.parentVals;
         })(sidupSignal);
     };
-    behaviourObject["SIDUPAdmitter"] = (admitterType, sources, sinks) => {
-        let adm = new SIDUP_1.SIDUPAdmitter(admitterType, sources, sinks, behaviourObject);
+    behaviourObject["SIDUPAdmitter"] = (admitterType, sources, sinks, idleListener = () => { }, changeListener = () => { }) => {
+        let adm = new SIDUP_1.SIDUPAdmitter(admitterType, sources, sinks, idleListener, changeListener, behaviourObject);
         behaviourObject["addDependency"] = adm.addDependency.bind(adm);
     };
     //Instruct QPROP instance to publish the given signal

@@ -107,7 +107,7 @@ class ReachableIsolate {
     }
 }
 class SIDUPAdmitter {
-    constructor(ownType, sources, sinks, hostActor) {
+    constructor(ownType, sources, sinks, idleListener, changeListener, hostActor) {
         this.termination = new DijkstraScholten(() => { this.returnedToIdle(); });
         this.waitingChanges = [];
         this.sinks = sinks;
@@ -116,9 +116,12 @@ class SIDUPAdmitter {
         this.sinksReady = 0;
         this.readyResolvers = [];
         this.sourceResolvers = [];
+        this.idleListener = idleListener;
+        this.changeListener = changeListener;
         hostActor.publish(this, ownType);
     }
     returnedToIdle() {
+        this.idleListener();
         if (this.waitingChanges.length > 0) {
             let toResolve = this.waitingChanges[0];
             this.waitingChanges = this.waitingChanges.slice(1, this.waitingChanges.length);
@@ -127,6 +130,7 @@ class SIDUPAdmitter {
         }
     }
     sourceChanged() {
+        this.changeListener();
         if (this.termination.isIdle() && this.sinksReady == this.sinks) {
             this.termination.newChildMessage();
             return "ok";

@@ -81,8 +81,8 @@ abstract class Actor{
     //Reactivity
     QPROP           : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
     addDependency   : (fromType : PubSubTag,toType : PubSubTag) => null
-    SIDUP           : (ownType : PubSubTag,parents : Array<PubSubTag>, admitterType: PubSubTag,boolean?) => Signal
-    SIDUPAdmitter   : (admitterType : PubSubTag,sources : number,sinks : number) => null
+    SIDUP           : (ownType : PubSubTag,parents : Array<PubSubTag>, admitterType: PubSubTag,isSink?:boolean) => Signal
+    SIDUPAdmitter   : (admitterType : PubSubTag,sources : number,sinks : number,idleListener?:Function,changeListener?:Function) => null
     publishSignal   : (signal) => null
     newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
     lift            : Function
@@ -273,8 +273,8 @@ interface AppType {
     //Reactivity
     QPROP               : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
     addDependency       : (fromType : PubSubTag,toType : PubSubTag) => null
-    SIDUP               : (ownType : PubSubTag,parents : Array<PubSubTag>,admitterType : PubSubTag,boolean?) => Signal
-    SIDUPAdmitter       : (admitterType : PubSubTag,sources : number,sinks : number) => null
+    SIDUP               : (ownType : PubSubTag,parents : Array<PubSubTag>,admitterType : PubSubTag,isSink?:boolean) => Signal
+    SIDUPAdmitter       : (admitterType : PubSubTag,sources : number,sinks : number,idleListener?:Function,changeListener?:Function) => null
     publishSignal       : (signal) => null
     newSignal           : (signalClass : SignalObjectClass,... any) => Signal
     lift                : Function

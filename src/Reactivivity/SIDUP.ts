@@ -161,8 +161,10 @@ export class SIDUPAdmitter{
     sinksReady      : number
     readyResolvers  : Array<Function>
     sourceResolvers : Array<Function>
+    idleListener    : Function
+    changeListener  : Function
 
-    constructor(ownType : PubSubTag,sources: number,sinks : number,hostActor){
+    constructor(ownType : PubSubTag,sources: number,sinks : number,idleListener : Function,changeListener : Function,hostActor){
         this.termination        = new DijkstraScholten(()=>{this.returnedToIdle()})
         this.waitingChanges     = []
         this.sinks              = sinks
@@ -171,10 +173,13 @@ export class SIDUPAdmitter{
         this.sinksReady         = 0
         this.readyResolvers     = []
         this.sourceResolvers    = []
+        this.idleListener       = idleListener
+        this.changeListener     = changeListener
         hostActor.publish(this,ownType)
     }
 
     returnedToIdle(){
+        this.idleListener()
         if(this.waitingChanges.length > 0){
             let toResolve = this.waitingChanges[0]
             this.waitingChanges = this.waitingChanges.slice(1,this.waitingChanges.length)
@@ -185,6 +190,7 @@ export class SIDUPAdmitter{
     }
 
     sourceChanged(){
+        this.changeListener()
         if(this.termination.isIdle() && this.sinksReady == this.sinks){
             this.termination.newChildMessage()
             return "ok"
