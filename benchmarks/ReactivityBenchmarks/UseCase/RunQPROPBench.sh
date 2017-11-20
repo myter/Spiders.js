@@ -1,11 +1,10 @@
-#!/usr/bin/env bash
 for i in {1..30}
 do
-	node RunUseCase.js true monitor 1 qprop &
-	node RunUseCase.js true data 1 qprop &
-	node RunUseCase.js true driving 1 qprop &
-	node RunUseCase.js true geo 1 qprop &
-	node RunUseCase.js true dash 1 qprop
+	node RunUseCase.js true monitor 2 qprop &
+	node RunUseCase.js true data 2 qprop &
+	node RunUseCase.js true driving 2 qprop &
+	node RunUseCase.js true geo 2 qprop &
+	node RunUseCase.js true dash 2 qprop
 done
 for i in {1..30}
 do

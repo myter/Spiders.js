@@ -1,12 +1,11 @@
-#!/usr/bin/env bash
 for i in {1..30}
 do
-	node RunUseCase.js false admitter 1 sidup &
-	node RunUseCase.js false monitor 1 sidup &
-	node RunUseCase.js false data 1 sidup &
-	node RunUseCase.js false driving 1 sidup &
-	node RunUseCase.js false geo 1 sidup &
-	node RunUseCase.js false dash 1 sidup
+	node RunUseCase.js false admitter 2 sidup &
+	node RunUseCase.js false monitor 2 sidup &
+	node RunUseCase.js false data 2 sidup &
+	node RunUseCase.js false driving 2 sidup &
+	node RunUseCase.js false geo 2 sidup &
+	node RunUseCase.js false dash 2 sidup
 done
 for i in {1..30}
 do

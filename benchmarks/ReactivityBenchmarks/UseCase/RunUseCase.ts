@@ -1,5 +1,5 @@
 import {ServiceMonitor} from "../../../src/MicroService/ServiceMonitor";
-import {Admitter, DashboardService, DataAccessService, DrivingService, GeoService} from "./UseCase";
+import {Admitter, ConfigService, DashboardService, DataAccessService, DrivingService, GeoService} from "./UseCase";
 let isQPROP     = process.argv[2] == "true"
 let toSpawn     = process.argv[3]
 let dataRate    = parseInt(process.argv[4])
@@ -14,6 +14,9 @@ switch (toSpawn){
         break
     case "data":
         new DataAccessService(isQPROP,dataRate,totalVals,csvFile)
+        break
+    case "config":
+        new ConfigService(isQPROP,dataRate,totalVals,csvFile)
         break
     case "driving":
         new DrivingService(isQPROP,dataRate,totalVals,csvFile)

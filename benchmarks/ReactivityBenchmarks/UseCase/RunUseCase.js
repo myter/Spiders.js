@@ -16,6 +16,9 @@ switch (toSpawn) {
     case "data":
         new UseCase_1.DataAccessService(isQPROP, dataRate, totalVals, csvFile);
         break;
+    case "config":
+        new UseCase_1.ConfigService(isQPROP, dataRate, totalVals, csvFile);
+        break;
     case "driving":
         new UseCase_1.DrivingService(isQPROP, dataRate, totalVals, csvFile);
         break;
