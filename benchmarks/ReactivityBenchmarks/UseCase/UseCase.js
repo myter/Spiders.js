@@ -45,7 +45,7 @@ function averageResults(writeTo, dataRate) {
         .on("end", function () {
         let avg = total / length;
         let writer = csvWriter({ sendHeaders: false });
-        writer.pipe(fs.createWriteStream("Responsiveness/" + writeTo + dataRate + ".csv", { flags: 'a' }));
+        writer.pipe(fs.createWriteStream("Latency/" + writeTo + dataRate + ".csv", { flags: 'a' }));
         writer.write({ avg: avg });
         writer.end();
     });
@@ -91,32 +91,16 @@ class MemoryWriter {
 class Admitter extends MicroService_1.MicroServiceApp {
     constructor(totalVals, csvFileName, dataRate) {
         super("127.0.0.1", 8005);
-        let valsReceived = -1;
         let writer = csvWriter({ headers: ["TTP"] });
         writer.pipe(fs.createWriteStream('temp.csv'));
         let memWriter = new MemoryWriter("Admitter");
-        let lastStart;
-        let returnToIdle = () => {
-            //Ignore first return to idle, which is the one used to signal graph construction
-            let stopTime = Date.now();
-            let timeToPropagate = stopTime - lastStart;
-            valsReceived++;
-            if (valsReceived > 0) {
-                writer.write([timeToPropagate]);
-                if (valsReceived == totalVals) {
-                    console.log("Benchmark finished");
-                    averageResults(csvFileName, dataRate);
-                    averageMem(csvFileName, dataRate, "Admitter", true);
-                    writer.end();
-                    memWriter.end();
-                }
-            }
-        };
-        let change = () => {
+        let change = (newValue) => {
             memWriter.snapshot();
-            lastStart = Date.now();
+            let propagationTime = Date.now();
+            newValue.constructionTime = propagationTime;
+            return newValue;
         };
-        this.SIDUPAdmitter(admitterTag, 2, 1, returnToIdle, change);
+        this.SIDUPAdmitter(admitterTag, 2, 1, () => { }, change);
     }
 }
 exports.Admitter = Admitter;
@@ -250,11 +234,12 @@ class DashboardService extends MicroService_1.MicroServiceApp {
     constructor(isQPROP, rate, totalVals, csvFileName) {
         super("127.0.0.1", 8004);
         let valsReceived = 0;
-        let writer;
+        let writer = csvWriter({ headers: ["TTP"] });
+        let tWriter = csvWriter({ sendHeaders: false });
+        writer.pipe(fs.createWriteStream('temp.csv'));
+        tWriter.pipe(fs.createWriteStream("Throughput/" + csvFileName + rate + ".csv", { flags: 'a' }));
         let imp;
         if (isQPROP) {
-            writer = csvWriter({ headers: ["TTP"] });
-            writer.pipe(fs.createWriteStream('temp.csv'));
             imp = this.QPROP(dashTag, [drivingTag, geoTag, configTag], [], null);
         }
         else {
@@ -263,7 +248,13 @@ class DashboardService extends MicroService_1.MicroServiceApp {
         let memWriter = new MemoryWriter("Dashboard");
         let lastDriving;
         let lastConfig;
-        let exp = this.lift(([driving, geo, config]) => {
+        let firstPropagation = true;
+        let benchStart;
+        this.lift(([driving, geo, config]) => {
+            if (firstPropagation) {
+                benchStart = Date.now();
+                firstPropagation = false;
+            }
             let timeToPropagate;
             if (lastDriving != driving) {
                 timeToPropagate = Date.now() - driving.constructionTime;
@@ -276,21 +267,16 @@ class DashboardService extends MicroService_1.MicroServiceApp {
             valsReceived++;
             memWriter.snapshot();
             console.log("Values propagated: " + valsReceived);
-            if (isQPROP) {
-                writer.write([timeToPropagate]);
-                if (valsReceived == totalVals) {
-                    console.log("Benchmark Finished");
-                    writer.end();
-                    memWriter.end();
-                    averageResults(csvFileName, rate);
-                    averageMem(csvFileName, rate, "Dashboard", true);
-                }
-            }
-            else {
-                if (valsReceived == totalVals) {
-                    averageMem(csvFileName, rate, "Dashboard", false);
-                    memWriter.end();
-                }
+            writer.write([timeToPropagate]);
+            if (valsReceived == totalVals) {
+                console.log("Benchmark Finished");
+                writer.end();
+                memWriter.end();
+                let benchStop = Date.now();
+                tWriter.write({ time: (benchStop - benchStart), values: totalVals });
+                tWriter.end();
+                averageResults(csvFileName, rate);
+                averageMem(csvFileName, rate, "Dashboard", true);
             }
         })(imp);
     }

@@ -4,7 +4,7 @@ const UseCase_1 = require("./UseCase");
 let isQPROP = process.argv[2] == "true";
 let toSpawn = process.argv[3];
 let dataRate = parseInt(process.argv[4]);
-let totalVals = dataRate * 60;
+let totalVals = dataRate * 30;
 let csvFile = process.argv[5];
 switch (toSpawn) {
     case "admitter":

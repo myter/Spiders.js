@@ -3,23 +3,24 @@ var fss = require('fs')
 var csv = require('fast-csv')
 var Stats = require('fast-stats').Stats;
 
-var xVals = []
+var xVals : string[] = []
 for(var i = 0;i < 310;i+=10){
     if(i == 0){
-        xVals.push(1)
+        xVals.push("1")
     }
     else{
-        xVals.push(i)
+        xVals.push(i.toString())
     }
 }
 var qpropYVals = new Array(30)
 var qpropError = new Array(30)
 let getAllData = (prefix,arrayIndex,fileIndex,resolver) =>{
     return new Promise((resolve)=>{
+        //TODO this will need to change when running for real
         if(fileIndex == 0){
             fileIndex++
         }
-        var stream          = fss.createReadStream("../UseCase/"+prefix+fileIndex+".csv");
+        var stream          = fss.createReadStream("../UseCase/TestBackup/Responsiveness/"+prefix+fileIndex+".csv");
         let allData         = []
         var csvStream = csv()
             .on("data", function(data){
@@ -108,7 +109,7 @@ getAllData("qprop",0,0,null).then(()=>{
     plotly.getImage(figure, imgOpts, function (error, imageStream) {
         if (error) return console.log (error);
 
-        var fileStream = fss.createWriteStream('1.pdf');
+        var fileStream = fss.createWriteStream('responsiveness.pdf');
         imageStream.pipe(fileStream);
     });
 })

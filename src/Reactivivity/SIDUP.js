@@ -129,15 +129,27 @@ class SIDUPAdmitter {
             this.termination.newChildMessage();
         }
     }
-    sourceChanged() {
-        this.changeListener();
+    sourceChanged(withValue) {
         if (this.termination.isIdle() && this.sinksReady == this.sinks) {
             this.termination.newChildMessage();
-            return "ok";
+            if (this.changeListener) {
+                return this.changeListener(withValue);
+            }
+            else {
+                return "ok";
+            }
         }
         else {
             return new Promise((resolve) => {
-                this.waitingChanges.push(resolve);
+                let f = () => {
+                    if (this.changeListener) {
+                        resolve(this.changeListener(withValue));
+                    }
+                    else {
+                        resolve("ok");
+                    }
+                };
+                this.waitingChanges.push(f);
             });
         }
     }
@@ -435,9 +447,9 @@ class SIDUPNode {
         };
     }
     propagate(signal, toIds) {
-        let propagateToChildren = (distributedsource) => {
+        let propagateToChildren = (distributedsource, newVal = signal.value) => {
             let newPulse;
-            let newVal = signal.value;
+            //let newVal = signal.value
             if (newVal instanceof signal_1.SignalFunction) {
                 newVal = newVal.lastVal;
             }
@@ -459,10 +471,15 @@ class SIDUPNode {
         //In which case it first needs to ask "permission" to propagate from the admitter
         if (this.parents.length == 0) {
             let askAdmitter = () => {
-                this.admitterRef.sourceChanged().then(() => {
+                this.admitterRef.sourceChanged(signal.value).then((ret) => {
                     //This code is only triggered after accept from admitter
                     this.termination.newParentMessage(this.admitterRef);
-                    propagateToChildren(true);
+                    if (ret == "ok") {
+                        propagateToChildren(true);
+                    }
+                    else {
+                        propagateToChildren(true, ret);
+                    }
                 });
             };
             this.sendToAdmitter(askAdmitter);
