@@ -1,6 +1,6 @@
-const fs = require('fs');
-const qpropScript = fs.createWriteStream('RunQPROPBench.sh')
-const sidupScript = fs.createWriteStream('RunSIDUPBench.sh')
+var fs = require('fs');
+var qpropScript = fs.createWriteStream('RunQPROPBench.sh')
+var sidupScript = fs.createWriteStream('RunSIDUPBench.sh')
 for(var i =0;i < 310;i+=10){
     if(i == 0){
         qpropScript.write("for i in {1..30}\n" +

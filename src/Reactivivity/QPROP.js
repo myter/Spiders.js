@@ -51,7 +51,7 @@ class DependencyChange {
 }
 exports.DependencyChange = DependencyChange;
 class QPROPNode {
-    constructor(ownType, directParents, directChildren, hostActor, defaultVal, dependencyChangeType) {
+    constructor(ownType, directParents, directChildren, hostActor, defaultVal, dependencyChangeType, isDynamic) {
         this.host = hostActor;
         this.ownType = ownType;
         this.ownSignal = new QPROPSourceSignal();
@@ -70,7 +70,7 @@ class QPROPNode {
         this.readyListeners = [];
         this.instabilitySet = [];
         this.stampCounter = 0;
-        this.dynamic = false;
+        this.dynamic = isDynamic;
         this.parentSignals = new Map();
         //this.printInfo()
         hostActor.publish(this, ownType);
@@ -163,28 +163,35 @@ class QPROPNode {
         this.directParents.forEach((parentType) => {
             this.inputQueues.set(parentType.tagVal, new Map());
         });
-        let check = (ref) => {
-            ref.isReferenced(this.ownType).then((b) => {
-                if (b) {
-                    this.initRegular();
-                }
-                else {
-                    //console.log("Init dynamic for: " + this.ownType.tagVal)
-                    this.initDynamic();
-                    this.dynamic = true;
-                }
-            });
-        };
-        if (this.directParents.length == 0) {
-            this.host.subscribe(this.directChildren[0]).once((childRef) => {
-                check(childRef);
-            });
+        if (this.dynamic) {
+            this.initDynamic();
         }
         else {
-            this.host.subscribe(this.directParents[0]).once((parentRef) => {
-                check(parentRef);
-            });
+            this.initRegular();
         }
+        //Spiders.js sometimes fails to deliver the isReferences message (not a QPROP issue) TODO need to check this
+        /*let check = (ref)=>{
+            ref.isReferenced(this.ownType).then((b)=>{
+                if(b){
+                    this.initRegular()
+                }
+                else{
+                    //console.log("Init dynamic for: " + this.ownType.tagVal)
+                    this.initDynamic()
+                    this.dynamic = true
+                }
+            })
+        }
+        if(this.directParents.length == 0){
+            this.host.subscribe(this.directChildren[0]).once((childRef  : FarRef)=>{
+                check(childRef)
+            })
+        }
+        else{
+            this.host.subscribe(this.directParents[0]).once((parentRef : FarRef)=>{
+                check(parentRef)
+            })
+        }*/
     }
     initRegular() {
         this.directParents.forEach((parenType) => {

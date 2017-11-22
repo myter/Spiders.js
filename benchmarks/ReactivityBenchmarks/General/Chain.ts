@@ -15,177 +15,77 @@ import {
     ServiceInfo, SinkService, SourceService
 } from "./Services";
 import {ServiceMonitor} from "../../../src/MicroService/ServiceMonitor";
+var pi2 = new ServiceInfo(pi2Tag,[],[pi3Tag],piAddresses[0],piPorts[0])
+var pi3 = new ServiceInfo(pi3Tag,[pi2Tag],[pi4Tag],piAddresses[1],piPorts[1])
+var pi4 = new ServiceInfo(pi4Tag,[pi3Tag],[pi5Tag],piAddresses[2],piPorts[2])
+var pi5 = new ServiceInfo(pi5Tag,[pi4Tag],[pi6Tag],piAddresses[3],piPorts[3])
+var pi6 = new ServiceInfo(pi6Tag,[pi5Tag],[pi7Tag],piAddresses[4],piPorts[4])
+var pi7 = new ServiceInfo(pi7Tag,[pi6Tag],[pi8Tag],piAddresses[5],piPorts[5])
+var pi8 = new ServiceInfo(pi8Tag,[pi7Tag],[pi9Tag],piAddresses[6],piPorts[6])
+var pi9 = new ServiceInfo(pi9Tag,[pi8Tag],[pi10Tag],piAddresses[7],piPorts[7])
+var pi10 = new ServiceInfo(pi10Tag,[pi9Tag],[pi11Tag],piAddresses[8],piPorts[8])
+var pi11 = new ServiceInfo(pi11Tag,[pi10Tag],[pi12Tag],piAddresses[9],piPorts[9])
+var pi12 = new ServiceInfo(pi12Tag,[pi11Tag],[pi13Tag],piAddresses[10],piPorts[10])
+var pi13 = new ServiceInfo(pi13Tag,[pi12Tag],[pi14Tag],piAddresses[11],piPorts[11])
+var pi14 = new ServiceInfo(pi14Tag,[pi13Tag],[pi15Tag],piAddresses[12],piPorts[12])
+var pi15 = new ServiceInfo(pi15Tag,[pi14Tag],[pi16Tag],piAddresses[13],piPorts[13])
+var pi16 = new ServiceInfo(pi16Tag,[pi15Tag],[pi17Tag],piAddresses[14],piPorts[14])
+var pi17 = new ServiceInfo(pi17Tag,[pi16Tag],[pi18Tag],piAddresses[15],piPorts[15])
+var pi18 = new ServiceInfo(pi18Tag,[pi17Tag],[pi19Tag],piAddresses[16],piPorts[16])
+var pi19 = new ServiceInfo(pi19Tag,[pi18Tag],[pi20Tag],piAddresses[17],piPorts[17])
+var pi20 = new ServiceInfo(pi20Tag,[pi19Tag],[pi21Tag],piAddresses[18],piPorts[18])
+var pi21 = new ServiceInfo(pi21Tag,[pi20Tag],[pi22Tag],piAddresses[19],piPorts[19])
+var pi22 = new ServiceInfo(pi22Tag,[pi21Tag],[pi23Tag],piAddresses[20],piPorts[20])
+var pi23 = new ServiceInfo(pi23Tag,[pi22Tag],[pi24Tag],piAddresses[21],piPorts[21])
+var pi24 = new ServiceInfo(pi24Tag,[pi23Tag],[pi25Tag],piAddresses[22],piPorts[22])
+var pi25 = new ServiceInfo(pi25Tag,[pi24Tag],[pi26Tag],piAddresses[23],piPorts[23])
+var pi26 = new ServiceInfo(pi26Tag,[pi25Tag],[pi27Tag],piAddresses[24],piPorts[24])
+var pi27 = new ServiceInfo(pi27Tag,[pi26Tag],[pi28Tag],piAddresses[25],piPorts[25])
+var pi28 = new ServiceInfo(pi28Tag,[pi27Tag],[pi29Tag],piAddresses[26],piPorts[26])
+var pi29 = new ServiceInfo(pi29Tag,[pi28Tag],[pi30Tag],piAddresses[27],piPorts[27])
+var pi30 = new ServiceInfo(pi30Tag,[pi29Tag],[pi31Tag],piAddresses[28],piPorts[28])
+var pi31 = new ServiceInfo(pi31Tag,[pi30Tag],[pi32Tag],piAddresses[29],piPorts[29])
+var pi32 = new ServiceInfo(pi32Tag,[pi31Tag],[pi33Tag],piAddresses[30],piPorts[30])
+var pi33 = new ServiceInfo(pi33Tag,[pi32Tag],[pi34Tag],piAddresses[31],piPorts[31])
+var pi34 = new ServiceInfo(pi34Tag,[pi33Tag],[pi35Tag],piAddresses[32],piPorts[32])
+var pi35 = new ServiceInfo(pi35Tag,[pi34Tag],[pi36Tag],piAddresses[33],piPorts[33])
+var pi36 = new ServiceInfo(pi36Tag,[pi35Tag],[pi37Tag],piAddresses[34],piPorts[34])
+var pi37 = new ServiceInfo(pi37Tag,[pi36Tag],[pi38Tag],piAddresses[35],piPorts[35])
+var pi38 = new ServiceInfo(pi38Tag,[pi37Tag],[pi39Tag],piAddresses[36],piPorts[36])
+var pi39 = new ServiceInfo(pi39Tag,[pi38Tag],[pi40Tag],piAddresses[37],piPorts[37])
+var pi40 = new ServiceInfo(pi40Tag,[pi39Tag],[pi41Tag],piAddresses[38],piPorts[38])
+var pi41 = new ServiceInfo(pi41Tag,[pi40Tag],[pi42Tag],piAddresses[39],piPorts[39])
+var pi42 = new ServiceInfo(pi42Tag,[pi41Tag],[pi43Tag],piAddresses[40],piPorts[40])
+var pi43 = new ServiceInfo(pi43Tag,[pi42Tag],[pi44Tag],piAddresses[41],piPorts[41])
+var pi44 = new ServiceInfo(pi44Tag,[pi43Tag],[pi45Tag],piAddresses[42],piPorts[42])
+var pi45 = new ServiceInfo(pi45Tag,[pi44Tag],[pi46Tag],piAddresses[43],piPorts[43])
+var pi46 = new ServiceInfo(pi46Tag,[pi45Tag],[pi47Tag],piAddresses[44],piPorts[44])
+var pi47 = new ServiceInfo(pi47Tag,[pi46Tag],[pi48Tag],piAddresses[45],piPorts[45])
+var pi48 = new ServiceInfo(pi48Tag,[pi47Tag],[pi49Tag],piAddresses[46],piPorts[46])
+var pi49 = new ServiceInfo(pi49Tag,[pi48Tag],[pi50Tag],piAddresses[47],piPorts[47])
+var pi50 = new ServiceInfo(pi50Tag,[pi49Tag],[pi51Tag],piAddresses[48],piPorts[48])
+var pi51 = new ServiceInfo(pi51Tag,[pi50Tag],[pi52Tag],piAddresses[49],piPorts[49])
+var pi52 = new ServiceInfo(pi52Tag,[pi51Tag],[pi53Tag],piAddresses[50],piPorts[50])
+var pi53 = new ServiceInfo(pi53Tag,[pi52Tag],[pi54Tag],piAddresses[51],piPorts[51])
+var pi54 = new ServiceInfo(pi54Tag,[pi53Tag],[pi55Tag],piAddresses[52],piPorts[52])
+var pi55 = new ServiceInfo(pi55Tag,[pi54Tag],[pi56Tag],piAddresses[53],piPorts[53])
+var pi56 = new ServiceInfo(pi56Tag,[pi55Tag],[pi57Tag],piAddresses[54],piPorts[54])
+var pi57 = new ServiceInfo(pi57Tag,[pi56Tag],[pi58Tag],piAddresses[55],piPorts[55])
+var pi58 = new ServiceInfo(pi58Tag,[pi57Tag],[pi59Tag],piAddresses[56],piPorts[56])
+var pi59 = new ServiceInfo(pi59Tag,[pi58Tag],[],piAddresses[57],piPorts[57])
 
-var pi2 = new ServiceInfo(pi2Tag,[],[
-    pi3Tag,
-    pi4Tag,
-    pi5Tag,
-    pi6Tag,
-    pi7Tag,
-    pi8Tag,
-    pi9Tag,
-    pi10Tag,
-    pi11Tag,
-    pi12Tag,
-    pi13Tag,
-    pi14Tag,
-    pi15Tag,
-    pi16Tag,
-    pi17Tag,
-    pi18Tag,
-    pi19Tag,
-    pi20Tag,
-    pi21Tag,
-    pi22Tag,
-    pi23Tag,
-    pi24Tag,
-    pi25Tag,
-    pi26Tag,
-    pi27Tag,
-    pi28Tag,
-    pi29Tag,
-    pi30Tag,
-    pi31Tag,
-    pi32Tag,
-    pi33Tag,
-    pi34Tag,
-    pi35Tag,
-    pi36Tag,
-    pi37Tag,
-    pi38Tag,
-    pi39Tag,
-    pi40Tag,
-    pi41Tag,
-    pi42Tag,
-    pi43Tag,
-    pi44Tag,
-    pi45Tag,
-    pi46Tag,
-    pi47Tag,
-    pi48Tag,
-    pi49Tag,
-    pi50Tag,
-    pi51Tag,
-    pi52Tag,
-    pi53Tag,
-    pi54Tag,
-    pi55Tag,
-    pi56Tag,
-    pi57Tag,
-    pi58Tag
-],piAddresses[0],piPorts[0])
-var pi3 = new ServiceInfo(pi3Tag,[pi2Tag],[pi59Tag],piAddresses[1],piPorts[1])
-var pi4 = new ServiceInfo(pi4Tag,[pi2Tag],[pi59Tag],piAddresses[2],piPorts[2])
-var pi5 = new ServiceInfo(pi5Tag,[pi2Tag],[pi59Tag],piAddresses[3],piPorts[3])
-var pi6 = new ServiceInfo(pi6Tag,[pi2Tag],[pi59Tag],piAddresses[4],piPorts[4])
-var pi7 = new ServiceInfo(pi7Tag,[pi2Tag],[pi59Tag],piAddresses[5],piPorts[5])
-var pi8 = new ServiceInfo(pi8Tag,[pi2Tag],[pi59Tag],piAddresses[6],piPorts[6])
-var pi9 = new ServiceInfo(pi9Tag,[pi2Tag],[pi59Tag],piAddresses[7],piPorts[7])
-var pi10 = new ServiceInfo(pi10Tag,[pi2Tag],[pi59Tag],piAddresses[8],piPorts[8])
-var pi11 = new ServiceInfo(pi11Tag,[pi2Tag],[pi59Tag],piAddresses[9],piPorts[9])
-var pi12 = new ServiceInfo(pi12Tag,[pi2Tag],[pi59Tag],piAddresses[10],piPorts[10])
-var pi13 = new ServiceInfo(pi13Tag,[pi2Tag],[pi59Tag],piAddresses[11],piPorts[11])
-var pi14 = new ServiceInfo(pi14Tag,[pi2Tag],[pi59Tag],piAddresses[12],piPorts[12])
-var pi15 = new ServiceInfo(pi15Tag,[pi2Tag],[pi59Tag],piAddresses[13],piPorts[13])
-var pi16 = new ServiceInfo(pi16Tag,[pi2Tag],[pi59Tag],piAddresses[14],piPorts[14])
-var pi17 = new ServiceInfo(pi17Tag,[pi2Tag],[pi59Tag],piAddresses[15],piPorts[15])
-var pi18 = new ServiceInfo(pi18Tag,[pi2Tag],[pi59Tag],piAddresses[16],piPorts[16])
-var pi19 = new ServiceInfo(pi19Tag,[pi2Tag],[pi59Tag],piAddresses[17],piPorts[17])
-var pi20 = new ServiceInfo(pi20Tag,[pi2Tag],[pi59Tag],piAddresses[18],piPorts[18])
-var pi21 = new ServiceInfo(pi21Tag,[pi2Tag],[pi59Tag],piAddresses[19],piPorts[19])
-var pi22 = new ServiceInfo(pi22Tag,[pi2Tag],[pi59Tag],piAddresses[20],piPorts[20])
-var pi23 = new ServiceInfo(pi23Tag,[pi2Tag],[pi59Tag],piAddresses[21],piPorts[21])
-var pi24 = new ServiceInfo(pi24Tag,[pi2Tag],[pi59Tag],piAddresses[22],piPorts[22])
-var pi25 = new ServiceInfo(pi25Tag,[pi2Tag],[pi59Tag],piAddresses[23],piPorts[23])
-var pi26 = new ServiceInfo(pi26Tag,[pi2Tag],[pi59Tag],piAddresses[24],piPorts[24])
-var pi27 = new ServiceInfo(pi27Tag,[pi2Tag],[pi59Tag],piAddresses[25],piPorts[25])
-var pi28 = new ServiceInfo(pi28Tag,[pi2Tag],[pi59Tag],piAddresses[26],piPorts[26])
-var pi29 = new ServiceInfo(pi29Tag,[pi2Tag],[pi59Tag],piAddresses[27],piPorts[27])
-var pi30 = new ServiceInfo(pi30Tag,[pi2Tag],[pi59Tag],piAddresses[28],piPorts[28])
-var pi31 = new ServiceInfo(pi31Tag,[pi2Tag],[pi59Tag],piAddresses[29],piPorts[29])
-var pi32 = new ServiceInfo(pi32Tag,[pi2Tag],[pi59Tag],piAddresses[30],piPorts[30])
-var pi33 = new ServiceInfo(pi33Tag,[pi2Tag],[pi59Tag],piAddresses[31],piPorts[31])
-var pi34 = new ServiceInfo(pi34Tag,[pi2Tag],[pi59Tag],piAddresses[32],piPorts[32])
-var pi35 = new ServiceInfo(pi35Tag,[pi2Tag],[pi59Tag],piAddresses[33],piPorts[33])
-var pi36 = new ServiceInfo(pi36Tag,[pi2Tag],[pi59Tag],piAddresses[34],piPorts[34])
-var pi37 = new ServiceInfo(pi37Tag,[pi2Tag],[pi59Tag],piAddresses[35],piPorts[35])
-var pi38 = new ServiceInfo(pi38Tag,[pi2Tag],[pi59Tag],piAddresses[36],piPorts[36])
-var pi39 = new ServiceInfo(pi39Tag,[pi2Tag],[pi59Tag],piAddresses[37],piPorts[37])
-var pi40 = new ServiceInfo(pi40Tag,[pi2Tag],[pi59Tag],piAddresses[38],piPorts[38])
-var pi41 = new ServiceInfo(pi41Tag,[pi2Tag],[pi59Tag],piAddresses[39],piPorts[39])
-var pi42 = new ServiceInfo(pi42Tag,[pi2Tag],[pi59Tag],piAddresses[40],piPorts[40])
-var pi43 = new ServiceInfo(pi43Tag,[pi2Tag],[pi59Tag],piAddresses[41],piPorts[41])
-var pi44 = new ServiceInfo(pi44Tag,[pi2Tag],[pi59Tag],piAddresses[42],piPorts[42])
-var pi45 = new ServiceInfo(pi45Tag,[pi2Tag],[pi59Tag],piAddresses[43],piPorts[43])
-var pi46 = new ServiceInfo(pi46Tag,[pi2Tag],[pi59Tag],piAddresses[44],piPorts[44])
-var pi47 = new ServiceInfo(pi47Tag,[pi2Tag],[pi59Tag],piAddresses[45],piPorts[45])
-var pi48 = new ServiceInfo(pi48Tag,[pi2Tag],[pi59Tag],piAddresses[46],piPorts[46])
-var pi49 = new ServiceInfo(pi49Tag,[pi2Tag],[pi59Tag],piAddresses[47],piPorts[47])
-var pi50 = new ServiceInfo(pi50Tag,[pi2Tag],[pi59Tag],piAddresses[48],piPorts[48])
-var pi51 = new ServiceInfo(pi51Tag,[pi2Tag],[pi59Tag],piAddresses[49],piPorts[49])
-var pi52 = new ServiceInfo(pi52Tag,[pi2Tag],[pi59Tag],piAddresses[50],piPorts[50])
-var pi53 = new ServiceInfo(pi53Tag,[pi2Tag],[pi59Tag],piAddresses[51],piPorts[51])
-var pi54 = new ServiceInfo(pi54Tag,[pi2Tag],[pi59Tag],piAddresses[52],piPorts[52])
-var pi55 = new ServiceInfo(pi55Tag,[pi2Tag],[pi59Tag],piAddresses[53],piPorts[53])
-var pi56 = new ServiceInfo(pi56Tag,[pi2Tag],[pi59Tag],piAddresses[54],piPorts[54])
-var pi57 = new ServiceInfo(pi57Tag,[pi2Tag],[pi59Tag],piAddresses[55],piPorts[55])
-var pi58 = new ServiceInfo(pi58Tag,[pi2Tag],[pi59Tag],piAddresses[56],piPorts[56])
-var pi59 = new ServiceInfo(pi59Tag,[pi3Tag,
-    pi4Tag,
-    pi5Tag,
-    pi6Tag,
-    pi7Tag,
-    pi8Tag,
-    pi9Tag,
-    pi10Tag,
-    pi11Tag,
-    pi12Tag,
-    pi13Tag,
-    pi14Tag,
-    pi15Tag,
-    pi16Tag,
-    pi17Tag,
-    pi18Tag,
-    pi19Tag,
-    pi20Tag,
-    pi21Tag,
-    pi22Tag,
-    pi23Tag,
-    pi24Tag,
-    pi25Tag,
-    pi26Tag,
-    pi27Tag,
-    pi28Tag,
-    pi29Tag,
-    pi30Tag,
-    pi31Tag,
-    pi32Tag,
-    pi33Tag,
-    pi34Tag,
-    pi35Tag,
-    pi36Tag,
-    pi37Tag,
-    pi38Tag,
-    pi39Tag,
-    pi40Tag,
-    pi41Tag,
-    pi42Tag,
-    pi43Tag,
-    pi44Tag,
-    pi45Tag,
-    pi46Tag,
-    pi47Tag,
-    pi48Tag,
-    pi49Tag,
-    pi50Tag,
-    pi51Tag,
-    pi52Tag,
-    pi53Tag,
-    pi54Tag,
-    pi55Tag,
-    pi56Tag,
-    pi57Tag,
-    pi58Tag],[],piAddresses[57],piPorts[57])
+
+/*for(var i =2;i<60;i++){
+    if(i == 2){
+        console.log("var pi2 = new ServiceInfo(pi2Tag,[],[pi3Tag],piAddresses[0],piPorts[0])")
+    }
+    else if(i == 59){
+        console.log("var pi59 = new ServiceInfo(pi59Tag,[pi58Tag],[],piAddresses[57],piPorts[57])")
+    }
+    else{
+        console.log("var pi"+i+" = new ServiceInfo(pi"+i+"Tag,[pi"+(i-1)+"Tag],[pi"+(i+1)+"Tag],piAddresses["+(i-2)+"],piPorts["+(i-2)+"])")
+    }
+}*/
 
 let isQPROP     = process.argv[2] == "true"
 let toSpawn     = mapToName(process.argv[3])

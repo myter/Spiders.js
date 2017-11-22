@@ -5,6 +5,7 @@ import {Queue} from "./Queue";
 import {DPropAlgorithm} from "./DPropAlgorithm";
 import {SignalPool} from "./signalPool";
 import {mutator, Signal, SignalFunction, SignalObject} from "./signal";
+import {FarReference} from "../farRef";
 
 class SourceIsolate{
     sources
@@ -87,7 +88,7 @@ export class QPROPNode implements DPropAlgorithm{
 
 
 
-    constructor(ownType,directParents,directChildren,hostActor,defaultVal,dependencyChangeType : PubSubTag){
+    constructor(ownType,directParents,directChildren,hostActor,defaultVal,dependencyChangeType : PubSubTag,isDynamic){
         this.host                       = hostActor
         this.ownType                    = ownType
         this.ownSignal                  = new QPROPSourceSignal()
@@ -106,7 +107,7 @@ export class QPROPNode implements DPropAlgorithm{
         this.readyListeners             = []
         this.instabilitySet             = []
         this.stampCounter               = 0
-        this.dynamic                    = false
+        this.dynamic                    = isDynamic
         this.parentSignals              = new Map()
         //this.printInfo()
         hostActor.publish(this,ownType)
@@ -209,7 +210,14 @@ export class QPROPNode implements DPropAlgorithm{
         this.directParents.forEach((parentType : PubSubTag)=>{
             this.inputQueues.set(parentType.tagVal,new Map())
         })
-        let check = (ref)=>{
+        if(this.dynamic){
+            this.initDynamic()
+        }
+        else{
+            this.initRegular()
+        }
+        //Spiders.js sometimes fails to deliver the isReferences message (not a QPROP issue) TODO need to check this
+        /*let check = (ref)=>{
             ref.isReferenced(this.ownType).then((b)=>{
                 if(b){
                     this.initRegular()
@@ -230,7 +238,7 @@ export class QPROPNode implements DPropAlgorithm{
             this.host.subscribe(this.directParents[0]).once((parentRef : FarRef)=>{
                 check(parentRef)
             })
-        }
+        }*/
     }
 
     initRegular(){
@@ -246,7 +254,6 @@ export class QPROPNode implements DPropAlgorithm{
                 }
             })
         })
-
         this.directChildren.forEach((childType : PubSubTag)=>{
             this.host.subscribe(childType).each((childRef : FarRef)=>{
                 this.directChildrenRefs.push(childRef)
