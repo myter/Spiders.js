@@ -91,16 +91,39 @@ class MemoryWriter {
 class Admitter extends MicroService_1.MicroServiceApp {
     constructor(totalVals, csvFileName, dataRate) {
         super("127.0.0.1", 8005);
-        let writer = csvWriter({ headers: ["TTP"] });
-        writer.pipe(fs.createWriteStream('temp.csv'));
+        let writer = csvWriter({ sendHeaders: false });
+        writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
         let memWriter = new MemoryWriter("Admitter");
+        let valsReceived = -1;
         let change = (newValue) => {
             memWriter.snapshot();
             let propagationTime = Date.now();
             newValue.constructionTime = propagationTime;
             return newValue;
         };
-        this.SIDUPAdmitter(admitterTag, 2, 1, () => { }, change);
+        let admitTimes = [];
+        let processTimes = [];
+        let idle = () => {
+            valsReceived++;
+            if (valsReceived > 0) {
+                let processTime = Date.now() - (admitTimes.splice(0, 1)[0]);
+                processTimes.push(processTime);
+                if (valsReceived == totalVals) {
+                    let total = 0;
+                    processTimes.forEach((pTime) => {
+                        total += pTime;
+                    });
+                    let avg = total / processTimes.length;
+                    writer.write({ pTime: avg });
+                    writer.end();
+                    require('child_process').exec("killall node");
+                }
+            }
+        };
+        let admit = () => {
+            admitTimes.push(Date.now());
+        };
+        this.SIDUPAdmitter(admitterTag, 2, 1, idle, change, admit);
     }
 }
 exports.Admitter = Admitter;
@@ -236,8 +259,10 @@ class DashboardService extends MicroService_1.MicroServiceApp {
         let valsReceived = 0;
         let writer = csvWriter({ headers: ["TTP"] });
         let tWriter = csvWriter({ sendHeaders: false });
+        let pWriter = csvWriter({ sendHeaders: false });
         writer.pipe(fs.createWriteStream('temp.csv'));
         tWriter.pipe(fs.createWriteStream("Throughput/" + csvFileName + rate + ".csv", { flags: 'a' }));
+        pWriter.pipe(fs.createWriteStream("Processing/" + csvFileName + rate + ".csv", { flags: 'a' }));
         let imp;
         if (isQPROP) {
             imp = this.QPROP(dashTag, [drivingTag, geoTag, configTag], [], null);
@@ -250,6 +275,7 @@ class DashboardService extends MicroService_1.MicroServiceApp {
         let lastConfig;
         let firstPropagation = true;
         let benchStart;
+        let processingTimes = [];
         this.lift(([driving, geo, config]) => {
             if (firstPropagation) {
                 benchStart = Date.now();
@@ -268,6 +294,7 @@ class DashboardService extends MicroService_1.MicroServiceApp {
             memWriter.snapshot();
             console.log("Values propagated: " + valsReceived);
             writer.write([timeToPropagate]);
+            processingTimes.push(timeToPropagate);
             if (valsReceived == totalVals) {
                 console.log("Benchmark Finished");
                 writer.end();
@@ -275,8 +302,17 @@ class DashboardService extends MicroService_1.MicroServiceApp {
                 let benchStop = Date.now();
                 tWriter.write({ time: (benchStop - benchStart), values: totalVals });
                 tWriter.end();
+                if (isQPROP) {
+                    let total = 0;
+                    processingTimes.forEach((pTime) => {
+                        total += pTime;
+                    });
+                    let avg = total / processingTimes.length;
+                    pWriter.write({ pTime: avg });
+                    pWriter.end();
+                }
                 averageResults(csvFileName, rate);
-                averageMem(csvFileName, rate, "Dashboard", true);
+                averageMem(csvFileName, rate, "Dashboard", isQPROP);
             }
         })(imp);
     }

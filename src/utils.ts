@@ -240,8 +240,8 @@ export function installSTDLib(appActor : boolean,parentRef : FarReference,behavi
         })(sidupSignal)
     }
 
-    behaviourObject["SIDUPAdmitter"]  = (admitterType : PubSubTag,sources,sinks,idleListener : Function = () => {},changeListener: Function = () => {}) => {
-        let adm = new SIDUPAdmitter(admitterType,sources,sinks,idleListener,changeListener,behaviourObject)
+    behaviourObject["SIDUPAdmitter"]  = (admitterType : PubSubTag,sources,sinks,idleListener : Function = () => {},changeListener: Function = () => {},admitListener : Function = () => {}) => {
+        let adm = new SIDUPAdmitter(admitterType,sources,sinks,idleListener,changeListener,admitListener,behaviourObject)
         behaviourObject["addDependency"] = adm.addDependency.bind(adm)
     }
 
