@@ -30,6 +30,9 @@ class SocketHandler {
     openConnection(actorId, actorAddress, actorPort) {
         var that = this;
         var connection = require('socket.io-client')('http://' + actorAddress + ":" + actorPort);
+        connection.on('error', (error) => {
+            console.log("Error: " + error);
+        });
         this.addDisconnected(actorId);
         connection.on('connect', () => {
             that.removeFromDisconnected(actorId, connection);

@@ -150,7 +150,7 @@ export class DrivingService extends MicroServiceApp{
             if(data.val != geo.val){
                 console.log("GLITCH IN DRIVING!!!!!")
                 console.log("Data: " + data.val + " geo: " + geo.val)
-                //process.exit()
+                process.exit()
             }
             return data
         })(imp)
