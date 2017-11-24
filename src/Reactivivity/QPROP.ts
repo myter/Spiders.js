@@ -444,6 +444,7 @@ export class QPROPNode implements DPropAlgorithm{
         if(this.ownType.tagVal == "Driving"){
             let d = args[0]
             let g = args[1]
+            console.log("Pairing: " + d.val + " , " + g.val)
             if(d.val != g.val){
                 console.log("Went wrong. State of queues:")
                 console.log(this.inputQueues.get("Geo").get("Data").queue)
