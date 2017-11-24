@@ -26,7 +26,10 @@ let getAllData = (prefix,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =
         let allData         = []
         var csvStream = csv()
             .on("data", function(data){
-                allData.push(parseInt(data[0]))
+                //Convert to seconds
+                let timeTaken = parseInt(data[0]) / 1000
+                let rProcessed = parseInt(data[1])
+                allData.push(rProcessed / timeTaken)
             })
             .on("end", function(){
                 let s = new Stats()
@@ -73,7 +76,7 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
                 x: 0,
                 y: 1
             },
-            title: "Throughput",
+            title: "Throughput under Varying Load",
             xaxis: {
                 title: "Load (requests/s)",
                 /*titlefont: {
@@ -83,14 +86,14 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
                 }*/
             },
             yaxis: {
-                title: "Response Time(ms)",
+                title: "Throughput (requests/s)",
                 /*titlefont: {
                     family: "Courier New, monospace",
                     size: 18,
                     color: "#7f7f7f"
                 }*/
             },
-            /*annotations: [
+            annotations: [
                 {
                     x:45,
                     y:50,
@@ -101,8 +104,30 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
                     arrowhead: 1,
                     ax: 0,
                     ay: -40
+                },
+                {
+                    x:75,
+                    y:80,
+                    xref: "x",
+                    yref: "y",
+                    text: "Evening load",
+                    showarrow: true,
+                    arrowhead: 1,
+                    ax: 0,
+                    ay: -40
+                },
+                {
+                    x:300,
+                    y:310,
+                    xref: "x",
+                    yref: "y",
+                    text: "Daytime load",
+                    showarrow: true,
+                    arrowhead: 1,
+                    ax: 0,
+                    ay: -40
                 }
-            ]*/
+            ]
         }
         let figure = {
             data: [qpropData,sidupData],
@@ -110,7 +135,7 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
         }
         let imgOpts = {
             format: 'pdf',
-            width: 1000,
+            width: 500,
             height: 500
         }
         plotly.getImage(figure, imgOpts, function (error, imageStream) {

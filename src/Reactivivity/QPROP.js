@@ -98,8 +98,9 @@ class QPROPNode {
         console.log("Queue info:");
         this.inputQueues.forEach((qs, parent) => {
             console.log("Queues for : " + parent);
-            qs.forEach((_, source) => {
+            qs.forEach((q, source) => {
                 console.log("Source: " + source);
+                console.log("Length: " + q.getLength());
             });
         });
     }
@@ -370,12 +371,34 @@ class QPROPNode {
     }
     getPropagationArguments(messageOrigin) {
         let args = new Array(this.directParents.length);
+        /*this.directParents.forEach((parentType)=>{
+            let qs = this.inputQueues.get(parentType.tagVal)
+            if(qs.has(messageOrigin.tagVal)){
+                let q = qs.get(messageOrigin.tagVal)
+                args[this.getArgumentPosition(parentType.tagVal)]     = q.deQueue().value
+            }
+            else{
+                if(this.directParentLastKnownVals.has(parentType.tagVal)){
+                    args[this.getArgumentPosition(parentType.tagVal)] = this.directParentLastKnownVals.get(parentType.tagVal)
+                }
+                else{
+                    args[this.getArgumentPosition(parentType.tagVal)] = this.directParentDefaultVals.get(parentType.tagVal)
+                }
+            }
+        })*/
         this.inputQueues.forEach((qSet, parentType) => {
             if (qSet.has(messageOrigin.tagVal)) {
+                //TODO TEMP DEBUGGING
+                if (this.ownType.tagVal == "Driving") {
+                    console.log("Retrieving from queue for " + parentType + " for origin: " + messageOrigin.tagVal);
+                }
                 let q = qSet.get(messageOrigin.tagVal);
                 args[this.getArgumentPosition(parentType)] = q.deQueue().value;
             }
             else {
+                if (this.ownType.tagVal == "Driving") {
+                    console.log("THIS SHOULD NOT HAPPEN");
+                }
                 if (this.directParentLastKnownVals.has(parentType)) {
                     args[this.getArgumentPosition(parentType)] = this.directParentLastKnownVals.get(parentType);
                 }

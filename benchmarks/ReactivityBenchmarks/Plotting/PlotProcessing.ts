@@ -1,3 +1,4 @@
+export {}
 var plotly = require('plotly')("fmyter", "2vS7PnPW9rby030FBL2L");
 var fss = require('fs')
 var csv = require('fast-csv')
@@ -13,14 +14,14 @@ for(var i = 0;i < 310;i+=10){
     }
 }
 
-let getAllData = (prefix,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =>{
+let getAllData = (prefix,path,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =>{
     return new Promise((resolve)=>{
         let stream
         if(fileIndex == 0){
-            stream          = fss.createReadStream("../UseCase/BerthaResults/Latency/"+prefix+"2.csv");
+            stream          = fss.createReadStream("../UseCase/BerthaResults/"+path+prefix+"2.csv");
         }
         else{
-            stream          = fss.createReadStream("../UseCase/BerthaResults/Latency/"+prefix+fileIndex+".csv");
+            stream          = fss.createReadStream("../UseCase/BerthaResults/"+path+prefix+fileIndex+".csv");
         }
         let allData         = []
         var csvStream = csv()
@@ -36,17 +37,18 @@ let getAllData = (prefix,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =
                     resolver([valuesArray,errorArray])
                 }
                 else if(arrayIndex == 0){
-                    return getAllData(prefix,arrayIndex+1,fileIndex+10,resolve,valuesArray,errorArray)
+                    return getAllData(prefix,path,arrayIndex+1,fileIndex+10,resolve,valuesArray,errorArray)
                 }
                 else{
-                   return getAllData(prefix,arrayIndex+1,fileIndex+10,resolver,valuesArray,errorArray)
+                    return getAllData(prefix,path,arrayIndex+1,fileIndex+10,resolver,valuesArray,errorArray)
                 }
             });
         stream.pipe(csvStream)
     })
 }
-getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpropError])=>{
-    getAllData("sidup",0,0,null,new Array(30),new Array(30)).then(([sidupValues,sidupError])=>{
+//In the case of QPROP Latency = Processing time (given that values are immediately admitted to the dependency graph)
+getAllData("qprop","Latency/",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpropError])=>{
+    getAllData("sidup","Processing/",0,0,null,new Array(30),new Array(30)).then(([sidupValues,sidupError])=>{
         let qpropData = {
             x: xVals,
             y: qpropValues,
@@ -72,7 +74,7 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
                 x: 0,
                 y: 1
             },
-            title: "Latency under Varying Load",
+            title: "Processing Time under Varying Load",
             xaxis: {
                 title: "Load (requests/s)",
                 showline: true,
@@ -83,7 +85,10 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
                 }*/
             },
             yaxis: {
-                title: "Latency (ms)",
+                title: "Processing Time (ms)",
+                type: "log",
+                tickmode: "auto",
+                nticks: 5,
                 /*titlefont: {
                     family: "Courier New, monospace",
                     size: 18,
@@ -116,7 +121,7 @@ getAllData("qprop",0,0,null,new Array(30),new Array(30)).then(([qpropValues,qpro
         plotly.getImage(figure, imgOpts, function (error, imageStream) {
             if (error) return console.log (error);
 
-            var fileStream = fss.createWriteStream('latency.pdf');
+            var fileStream = fss.createWriteStream('processing.pdf');
             imageStream.pipe(fileStream);
         });
     })

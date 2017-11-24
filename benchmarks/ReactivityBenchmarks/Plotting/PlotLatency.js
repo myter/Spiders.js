@@ -73,6 +73,7 @@ getAllData("qprop", 0, 0, null, new Array(30), new Array(30)).then(([qpropValues
             title: "Latency under Varying Load",
             xaxis: {
                 title: "Load (requests/s)",
+                showline: true,
             },
             yaxis: {
                 title: "Latency (ms)",
@@ -84,7 +85,7 @@ getAllData("qprop", 0, 0, null, new Array(30), new Array(30)).then(([qpropValues
         };
         let imgOpts = {
             format: 'pdf',
-            width: 1000,
+            width: 500,
             height: 500
         };
         plotly.getImage(figure, imgOpts, function (error, imageStream) {
