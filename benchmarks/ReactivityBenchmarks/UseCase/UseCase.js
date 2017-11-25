@@ -161,6 +161,9 @@ class ConfigService extends MicroService_1.MicroServiceApp {
             this.memWriter.end();
             averageMem(this.csvFileName, this.rate * 2, "Config", false);
         }
+        else if (this.rate > 300 && this.produced == 2 * this.rate * 60) {
+            console.log("STOPPING CONFIG");
+        }
         else {
             setTimeout(() => {
                 this.update(signal);
@@ -201,6 +204,9 @@ class DataAccessService extends MicroService_1.MicroServiceApp {
         if (this.totalVals <= 0 && this.rate <= 300) {
             this.memWriter.end();
             averageMem(this.csvFileName, this.rate * 2, "Data", false);
+        }
+        else if (this.rate > 300 && this.produced == 2 * this.rate * 60) {
+            console.log("STOPPING DATA");
         }
         else {
             setTimeout(() => {
