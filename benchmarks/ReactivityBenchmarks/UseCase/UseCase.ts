@@ -321,6 +321,9 @@ export class DashboardService extends MicroServiceApp{
             valsReceived++
             memWriter.snapshot()
             //console.log("Values propagated: " + valsReceived)
+            if(valsReceived.toString().endsWith("000")){
+                console.log("Values propagated: " + valsReceived)
+            }
             writer.write([timeToPropagate])
             processingTimes.push(timeToPropagate)
             if(valsReceived == totalVals){

@@ -300,6 +300,9 @@ class DashboardService extends MicroService_1.MicroServiceApp {
             valsReceived++;
             memWriter.snapshot();
             //console.log("Values propagated: " + valsReceived)
+            if (valsReceived.toString().endsWith("000")) {
+                console.log("Values propagated: " + valsReceived);
+            }
             writer.write([timeToPropagate]);
             processingTimes.push(timeToPropagate);
             if (valsReceived == totalVals) {
