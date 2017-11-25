@@ -320,7 +320,7 @@ export class DashboardService extends MicroServiceApp{
             lastConfig  = config
             valsReceived++
             memWriter.snapshot()
-            console.log("Values propagated: " + valsReceived)
+            //console.log("Values propagated: " + valsReceived)
             writer.write([timeToPropagate])
             processingTimes.push(timeToPropagate)
             if(valsReceived == totalVals){
