@@ -6,6 +6,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 2 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 2 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 2 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -15,6 +16,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 1000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 1000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 1000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -24,6 +26,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 2000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 2000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 2000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -33,6 +36,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 3000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 3000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 3000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -42,6 +46,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 4000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 4000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 4000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -51,6 +56,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 5000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 5000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 5000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -60,6 +66,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 6000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 6000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 6000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -69,6 +76,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 7000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 7000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 7000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -78,6 +86,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 8000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 8000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 8000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -87,6 +96,7 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 9000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 9000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 9000 qprop
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -96,4 +106,5 @@ do
 	node --max_old_space_size=12000 MaxThroughput.js true driving 10000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true geo 10000 qprop &
 	node --max_old_space_size=12000 MaxThroughput.js true dash 10000 qprop
+	 sleep 5
 done

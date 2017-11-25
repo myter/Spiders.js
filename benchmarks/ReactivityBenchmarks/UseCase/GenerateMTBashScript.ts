@@ -10,6 +10,7 @@ for(var i =0;i <= 10000;i+=1000){
             "\tnode --max_old_space_size=12000 MaxThroughput.js true driving "+2+" qprop &\n" +
             "\tnode --max_old_space_size=12000 MaxThroughput.js true geo "+2+" qprop &\n" +
             "\tnode --max_old_space_size=12000 MaxThroughput.js true dash "+2+" qprop\n" +
+            "\t sleep 5\n" +
             "done\n")
     }
     else{
@@ -21,6 +22,7 @@ for(var i =0;i <= 10000;i+=1000){
             "\tnode --max_old_space_size=12000 MaxThroughput.js true driving "+i+" qprop &\n" +
             "\tnode --max_old_space_size=12000 MaxThroughput.js true geo "+i+" qprop &\n" +
             "\tnode --max_old_space_size=12000 MaxThroughput.js true dash "+i+" qprop\n" +
+            "\t sleep 5\n" +
             "done\n")
     }
 }
