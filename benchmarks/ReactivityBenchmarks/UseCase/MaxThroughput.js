@@ -71,15 +71,18 @@ class ConfigService extends MicroService_1.MicroServiceApp {
             this.produced++;
             signal.actualise();
         }
-        console.log("Produced by config : " + this.produced);
-        if (this.produced == 4 * this.totalVals) {
-            console.log("STOPPING CONFIG");
+        setTimeout(() => {
+            this.update(signal);
+        }, 1000);
+        /*console.log("Produced by config : " + this.produced)
+        if( this.produced == 4 * this.totalVals){
+            console.log("STOPPING CONFIG")
         }
-        else {
-            setTimeout(() => {
-                this.update(signal);
-            }, 1000);
-        }
+        else{
+            setTimeout(()=>{
+                this.update(signal)
+            },1000)
+        }*/
     }
 }
 exports.ConfigService = ConfigService;
@@ -103,15 +106,18 @@ class DataAccessService extends MicroService_1.MicroServiceApp {
             this.produced++;
             signal.actualise();
         }
-        console.log("Produced by data: " + this.produced);
-        if (this.produced == 4 * this.totalVals) {
-            console.log("STOPPING DATA");
+        setTimeout(() => {
+            this.update(signal);
+        }, 1000);
+        /*console.log("Produced by data: " + this.produced)
+        if(this.produced == 4 * this.totalVals){
+            console.log("STOPPING DATA")
         }
-        else {
-            setTimeout(() => {
-                this.update(signal);
-            }, 1000);
-        }
+        else{
+            setTimeout(()=>{
+                this.update(signal)
+            },1000)
+        }*/
     }
 }
 exports.DataAccessService = DataAccessService;

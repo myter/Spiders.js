@@ -77,7 +77,10 @@ export class ConfigService extends MicroServiceApp{
             this.produced++
             signal.actualise()
         }
-        console.log("Produced by config : " + this.produced)
+        setTimeout(()=>{
+            this.update(signal)
+        },1000)
+        /*console.log("Produced by config : " + this.produced)
         if( this.produced == 4 * this.totalVals){
             console.log("STOPPING CONFIG")
         }
@@ -85,7 +88,7 @@ export class ConfigService extends MicroServiceApp{
             setTimeout(()=>{
                 this.update(signal)
             },1000)
-        }
+        }*/
     }
 }
 
@@ -116,7 +119,10 @@ export class DataAccessService extends MicroServiceApp{
             this.produced++
             signal.actualise()
         }
-        console.log("Produced by data: " + this.produced)
+        setTimeout(()=>{
+            this.update(signal)
+        },1000)
+        /*console.log("Produced by data: " + this.produced)
         if(this.produced == 4 * this.totalVals){
             console.log("STOPPING DATA")
         }
@@ -124,7 +130,7 @@ export class DataAccessService extends MicroServiceApp{
             setTimeout(()=>{
                 this.update(signal)
             },1000)
-        }
+        }*/
     }
 }
 
