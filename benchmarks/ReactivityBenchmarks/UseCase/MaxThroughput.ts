@@ -80,15 +80,6 @@ export class ConfigService extends MicroServiceApp{
         setTimeout(()=>{
             this.update(signal)
         },1000)
-        /*console.log("Produced by config : " + this.produced)
-        if( this.produced == 4 * this.totalVals){
-            console.log("STOPPING CONFIG")
-        }
-        else{
-            setTimeout(()=>{
-                this.update(signal)
-            },1000)
-        }*/
     }
 }
 
@@ -122,15 +113,6 @@ export class DataAccessService extends MicroServiceApp{
         setTimeout(()=>{
             this.update(signal)
         },1000)
-        /*console.log("Produced by data: " + this.produced)
-        if(this.produced == 4 * this.totalVals){
-            console.log("STOPPING DATA")
-        }
-        else{
-            setTimeout(()=>{
-                this.update(signal)
-            },1000)
-        }*/
     }
 }
 
@@ -213,6 +195,7 @@ export class DashboardService extends MicroServiceApp{
                     pWriter.end()
                 }
                 averageResults(csvFileName,rate)
+                require('child_process').exec("killall node");
             }
         })(imp)
     }

@@ -1,8 +1,8 @@
 var fs = require('fs');
 var qpropScript = fs.createWriteStream('RunQPROPBench.sh');
 var sidupScript = fs.createWriteStream('RunSIDUPBench.sh');
-for (var i = 1; i <= 10000; i *= 10) {
-    if (i == 1) {
+for (var i = 0; i <= 300; i += 10) {
+    if (i == 2) {
         qpropScript.write("for i in {1..30}\n" +
             "do\n" +
             "\tnode RunUseCase.js true monitor " + 2 + " qprop &\n" +
