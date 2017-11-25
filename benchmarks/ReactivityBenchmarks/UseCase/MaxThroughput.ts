@@ -159,43 +159,45 @@ export class DashboardService extends MicroServiceApp{
         let benchStart
         let processingTimes = []
         this.lift(([driving,geo,config])=>{
-            if(firstPropagation){
-                benchStart = Date.now()
-                firstPropagation = false
-            }
-            let timeToPropagate
-            if(lastDriving != driving){
-                timeToPropagate = Date.now() - driving.constructionTime
-            }
-            else{
-                timeToPropagate = Date.now() - config.constructionTime
-            }
-            lastDriving = driving
-            lastConfig  = config
-            valsReceived++
-            //console.log("Values propagated: " + valsReceived)
-            if(valsReceived.toString().endsWith("000")){
-                console.log("Values propagated: " + valsReceived)
-            }
-            writer.write([timeToPropagate])
-            processingTimes.push(timeToPropagate)
-            if(valsReceived == totalVals){
-                console.log("Benchmark Finished")
-                writer.end()
-                let benchStop = Date.now()
-                tWriter.write({time: (benchStop - benchStart),values: totalVals})
-                tWriter.end()
-                if(isQPROP){
-                    let total = 0
-                    processingTimes.forEach((pTime)=>{
-                        total += pTime
-                    })
-                    let avg = total / processingTimes.length
-                    pWriter.write({pTime: avg})
-                    pWriter.end()
+            if(valsReceived <= totalVals){
+                if(firstPropagation){
+                    benchStart = Date.now()
+                    firstPropagation = false
                 }
-                averageResults(csvFileName,rate)
-                require('child_process').exec("killall node");
+                let timeToPropagate
+                if(lastDriving != driving){
+                    timeToPropagate = Date.now() - driving.constructionTime
+                }
+                else{
+                    timeToPropagate = Date.now() - config.constructionTime
+                }
+                lastDriving = driving
+                lastConfig  = config
+                valsReceived++
+                //console.log("Values propagated: " + valsReceived)
+                if(valsReceived.toString().endsWith("000")){
+                    console.log("Values propagated: " + valsReceived)
+                }
+                writer.write([timeToPropagate])
+                processingTimes.push(timeToPropagate)
+                if(valsReceived == totalVals){
+                    console.log("Benchmark Finished")
+                    writer.end()
+                    let benchStop = Date.now()
+                    tWriter.write({time: (benchStop - benchStart),values: totalVals})
+                    tWriter.end()
+                    if(isQPROP){
+                        let total = 0
+                        processingTimes.forEach((pTime)=>{
+                            total += pTime
+                        })
+                        let avg = total / processingTimes.length
+                        pWriter.write({pTime: avg})
+                        pWriter.end()
+                    }
+                    averageResults(csvFileName,rate)
+                    require('child_process').exec("killall node");
+                }
             }
         })(imp)
     }
