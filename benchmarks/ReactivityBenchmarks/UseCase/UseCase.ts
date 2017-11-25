@@ -137,6 +137,7 @@ export class ConfigService extends MicroServiceApp{
     totalVals
     memWriter
     csvFileName
+    produced
 
     constructor(isQPROP,rate,totalVals,csvFileName){
         super("127.0.0.1",8006)
@@ -144,6 +145,7 @@ export class ConfigService extends MicroServiceApp{
         this.totalVals = totalVals / 2
         this.memWriter = new MemoryWriter("Config")
         this.csvFileName = csvFileName
+        this.produced = 0
         if(isQPROP){
             this.QPROP(configTag,[],[dashTag],null)
         }
@@ -163,8 +165,10 @@ export class ConfigService extends MicroServiceApp{
         this.memWriter.snapshot()
         for(var i = 0;i < this.rate;i++){
             this.totalVals--
+            this.produced++
             signal.actualise()
         }
+        console.log("Produced by config : " + this.produced)
         //Memory not measured for max throughput benchmarks
         if(this.totalVals <= 0 && this.rate <= 300){
             this.memWriter.end()
@@ -183,6 +187,7 @@ export class DataAccessService extends MicroServiceApp{
     totalVals
     memWriter
     csvFileName
+    produced
 
     constructor(isQPROP,rate,totalVals,csvFileName){
         super("127.0.0.1",8001)
@@ -190,6 +195,7 @@ export class DataAccessService extends MicroServiceApp{
         this.totalVals = totalVals / 2
         this.memWriter = new MemoryWriter("Data")
         this.csvFileName = csvFileName
+        this.produced = 0
         if(isQPROP){
             this.QPROP(dataTag,[],[geoTag,drivingTag],null)
         }
@@ -209,8 +215,10 @@ export class DataAccessService extends MicroServiceApp{
         this.memWriter.snapshot()
         for(var i = 0;i < this.rate;i++){
             this.totalVals--
+            this.produced++
             signal.actualise()
         }
+        console.log("Produced by data: " + this.produced)
         if(this.totalVals <= 0 && this.rate <= 300){
             this.memWriter.end()
             averageMem(this.csvFileName,this.rate*2,"Data",false)
