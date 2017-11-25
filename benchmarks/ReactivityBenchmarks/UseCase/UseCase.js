@@ -153,7 +153,8 @@ class ConfigService extends MicroService_1.MicroServiceApp {
             this.totalVals--;
             signal.actualise();
         }
-        if (this.totalVals <= 0) {
+        //Memory not measured for max throughput benchmarks
+        if (this.totalVals <= 0 && this.rate <= 300) {
             this.memWriter.end();
             averageMem(this.csvFileName, this.rate * 2, "Config", false);
         }
@@ -191,7 +192,7 @@ class DataAccessService extends MicroService_1.MicroServiceApp {
             this.totalVals--;
             signal.actualise();
         }
-        if (this.totalVals <= 0) {
+        if (this.totalVals <= 0 && this.rate <= 300) {
             this.memWriter.end();
             averageMem(this.csvFileName, this.rate * 2, "Data", false);
         }
@@ -292,7 +293,7 @@ class DashboardService extends MicroService_1.MicroServiceApp {
             lastConfig = config;
             valsReceived++;
             memWriter.snapshot();
-            //console.log("Values propagated: " + valsReceived)
+            console.log("Values propagated: " + valsReceived);
             writer.write([timeToPropagate]);
             processingTimes.push(timeToPropagate);
             if (valsReceived == totalVals) {

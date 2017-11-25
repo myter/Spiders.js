@@ -11,61 +11,6 @@ http://creativecommons.org/publicdomain/zero/1.0/legalcode
 
 */
 
-/*export class Queue{
-    queue : Array<any>
-
-    constructor(){
-        this.queue = []
-    }
-
-    getLength(){
-        return this.queue.length
-    }
-
-    isEmpty(){
-        return this.getLength() == 0
-    }
-
-    enQueue(item){
-        this.queue.push(item)
-    }
-
-    deQueue(){
-        return this.queue.splice(0,1)[0]
-    }
-
-    contains(comp){
-        let has = false
-        this.queue.forEach((el,index)=>{
-            if( comp(el)){
-                has = true
-            }
-        })
-        return has
-    }
-
-    remove(comp){
-        let newValues   = []
-        let newOffset   = 0
-        this.queue.forEach((el,index)=>{
-            if(comp(el)){
-                newValues.push(el)
-            }
-        })
-        this.queue      = newValues
-    }
-
-    peek(){
-        return this.queue.length > 0 ? this.queue[this.queue.length -1] : undefined
-    }
-
-    peekAll(callback){
-        this.queue.forEach((el,index)=>{
-                callback(el)
-        })
-    }
-}*/
-
 export class Queue{
     queue   : Array<any>
     offset  : number
