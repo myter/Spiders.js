@@ -78,7 +78,7 @@ export class ConfigService extends MicroServiceApp{
             signal.actualise()
         }
         console.log("Produced by config : " + this.produced)
-        if( this.produced == 2 * this.totalVals){
+        if( this.produced == 4 * this.totalVals){
             console.log("STOPPING CONFIG")
         }
         else{
@@ -117,7 +117,7 @@ export class DataAccessService extends MicroServiceApp{
             signal.actualise()
         }
         console.log("Produced by data: " + this.produced)
-        if(this.produced == 2 * this.totalVals){
+        if(this.produced == 4 * this.totalVals){
             console.log("STOPPING DATA")
         }
         else{
