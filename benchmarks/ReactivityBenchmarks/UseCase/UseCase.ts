@@ -121,6 +121,7 @@ export class Admitter extends MicroServiceApp{
                     let avg = total / processTimes.length
                     writer.write({pTime: avg})
                     writer.end()
+                    memWriter.end()
                     require('child_process').exec("killall node");
                 }
             }

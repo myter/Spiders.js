@@ -2,8 +2,8 @@ var fs = require('fs');
 var qpropScript = fs.createWriteStream('RunQPROPBench.sh')
 var sidupScript = fs.createWriteStream('RunSIDUPBench.sh')
 for(var i =0;i <= 300;i+=10){
-    if(i == 2){
-        qpropScript.write("for i in {1..30}\n" +
+    if(i == 0){
+        qpropScript.write("for i in {1..10}\n" +
             "do\n" +
             "\tnode RunUseCase.js true monitor "+2+" qprop &\n" +
             "\tnode RunUseCase.js true data "+2+" qprop &\n" +
@@ -12,7 +12,7 @@ for(var i =0;i <= 300;i+=10){
             "\tnode RunUseCase.js true geo "+2+" qprop &\n" +
             "\tnode RunUseCase.js true dash "+2+" qprop\n" +
             "done\n")
-        sidupScript.write("for i in {1..30}\n" +
+        sidupScript.write("for i in {1..10}\n" +
             "do\n" +
             "\tnode RunUseCase.js false admitter "+2+" sidup &\n" +
             "\tnode RunUseCase.js false monitor "+2+" sidup &\n" +
@@ -24,7 +24,7 @@ for(var i =0;i <= 300;i+=10){
             "done\n")
     }
     else{
-        qpropScript.write("for i in {1..30}\n" +
+        qpropScript.write("for i in {1..10}\n" +
             "do\n" +
             "\tnode RunUseCase.js true monitor "+i+" qprop &\n" +
             "\tnode RunUseCase.js true data "+i+" qprop &\n" +
@@ -33,7 +33,7 @@ for(var i =0;i <= 300;i+=10){
             "\tnode RunUseCase.js true geo "+i+" qprop &\n" +
             "\tnode RunUseCase.js true dash "+i+" qprop\n" +
             "done\n")
-        sidupScript.write("for i in {1..30}\n" +
+        sidupScript.write("for i in {1..10}\n" +
             "do\n" +
             "\tnode RunUseCase.js false admitter "+i+" sidup &\n" +
             "\tnode RunUseCase.js false monitor "+i+" sidup &\n" +

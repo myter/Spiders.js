@@ -116,6 +116,7 @@ class Admitter extends MicroService_1.MicroServiceApp {
                     let avg = total / processTimes.length;
                     writer.write({ pTime: avg });
                     writer.end();
+                    memWriter.end();
                     require('child_process').exec("killall node");
                 }
             }
