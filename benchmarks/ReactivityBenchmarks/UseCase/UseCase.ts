@@ -169,14 +169,10 @@ export class ConfigService extends MicroServiceApp{
             this.produced++
             signal.actualise()
         }
-        console.log("Produced by config : " + this.produced)
         //Memory not measured for max throughput benchmarks
-        if(this.totalVals <= 0 && this.rate <= 300){
+        if(this.totalVals <= 0){
             this.memWriter.end()
             averageMem(this.csvFileName,this.rate*2,"Config",false)
-        }
-        else if(this.rate > 300 && this.produced == 2 * this.rate * 60){
-            console.log("STOPPING CONFIG")
         }
         else{
             setTimeout(()=>{
@@ -222,13 +218,9 @@ export class DataAccessService extends MicroServiceApp{
             this.produced++
             signal.actualise()
         }
-        console.log("Produced by data: " + this.produced)
-        if(this.totalVals <= 0 && this.rate <= 300){
+        if(this.totalVals <= 0){
             this.memWriter.end()
             averageMem(this.csvFileName,this.rate*2,"Data",false)
-        }
-        else if(this.rate > 300 && this.produced == 2 * this.rate * 60){
-            console.log("STOPPING DATA")
         }
         else{
             setTimeout(()=>{
