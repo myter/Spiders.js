@@ -122,8 +122,7 @@ export class Admitter extends MicroServiceApp{
                     writer.write({pTime: avg})
                     writer.end()
                     memWriter.end()
-                    averageMem(csvFileName,dataRate,"Admitter",false)
-                    require('child_process').exec("killall node");
+                    averageMem(csvFileName,dataRate,"Admitter",true)
                 }
             }
         }

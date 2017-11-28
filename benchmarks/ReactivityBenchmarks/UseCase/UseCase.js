@@ -117,8 +117,7 @@ class Admitter extends MicroService_1.MicroServiceApp {
                     writer.write({ pTime: avg });
                     writer.end();
                     memWriter.end();
-                    averageMem(csvFileName, dataRate, "Admitter", false);
-                    require('child_process').exec("killall node");
+                    averageMem(csvFileName, dataRate, "Admitter", true);
                 }
             }
         };
