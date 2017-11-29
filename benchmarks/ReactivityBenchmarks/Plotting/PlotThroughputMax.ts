@@ -5,10 +5,9 @@ var csv = require('fast-csv')
 var Stats = require('fast-stats').Stats;
 
 var xVals : string[] = []
-for(var i = 1;i < 11000;i+=1000){
+for(var i = 0;i < 11000;i+=1000){
     xVals.push(i.toString())
 }
-
 let getAllData = (prefix,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =>{
     return new Promise((resolve)=>{
         let stream
@@ -64,6 +63,7 @@ getAllData("qprop",0,0,null,new Array(10),new Array(10)).then(([qpropValues,qpro
         title: "Throughput under Varying Load",
         xaxis: {
             title: "Load (requests/s)",
+            range:[0,10000]
         },
         yaxis: {
             title: "Throughput (requests/s)",
