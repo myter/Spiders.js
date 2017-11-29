@@ -9,6 +9,7 @@ class PSServer {
         this.published = new Map();
     }
     addPublish(published, typeTag) {
+        console.log("Published " + typeTag.tagVal);
         if (!this.published.has(typeTag.tagVal)) {
             this.published.set(typeTag.tagVal, []);
         }
