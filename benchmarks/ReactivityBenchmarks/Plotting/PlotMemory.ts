@@ -17,11 +17,11 @@ let getMemoryData = (prefix,fileIndex) => {
     }
     let results = names.map((nodeName)=>{
         return new Promise((resolve)=>{
-            var stream          = fss.createReadStream("../UseCase/BerthaResults/Memory/"+prefix+fileIndex+nodeName+"Memory.csv");
+            var stream          = fss.createReadStream("../UseCase/MemoryComplete/"+prefix+fileIndex+nodeName+"Memory.csv");
             let allData         = []
             var csvStream = csv()
                 .on("data", function(data){
-                    allData.push((parseInt(data[0]) + parseInt(data[1])))
+                    allData.push((parseInt(data[0])))
                 })
                 .on("end", function(){
                     let s = new Stats()
@@ -35,6 +35,7 @@ let getMemoryData = (prefix,fileIndex) => {
 }
 getMemoryData("qprop",300).then((qpropResults)=>{
     getMemoryData("sidup",300).then((sidupResults)=>{
+        console.log(qpropResults.map(([res,error])=>{return res}))
         let qpropData = {
             x: xVals,
             y:qpropResults.map(([res,error])=>{return res}),

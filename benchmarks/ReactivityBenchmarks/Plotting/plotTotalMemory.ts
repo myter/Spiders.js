@@ -15,7 +15,7 @@ for(var i = 0;i < 310;i+=10){
 }
 
 let qpropNodeNames  = ["Data","Config","Driving","Geo","Dashboard"]
-let sidupNodeNames  = qpropNodeNames//.concat("Admitter")
+let sidupNodeNames  = qpropNodeNames.concat("Admitter")
 let getMemoryData = (prefix,fileIndex) => {
     let names
     if(prefix == "qprop"){
@@ -26,7 +26,7 @@ let getMemoryData = (prefix,fileIndex) => {
     }
     let results = names.map((nodeName)=>{
         return new Promise((resolve)=>{
-            var stream          = fss.createReadStream("../UseCase/BerthaResults/Memory/"+prefix+fileIndex+nodeName+"Memory.csv");
+            var stream          = fss.createReadStream("../UseCase/MemoryComplete/"+prefix+fileIndex+nodeName+"Memory.csv");
             let allData         = []
             var csvStream = csv()
                 .on("data", function(data){
@@ -116,44 +116,3 @@ Promise.all(allQPROPResults).then((qpropResults)=>{
         });
     })
 })
-/*getMemoryData("qprop",300).then((qpropResults)=>{
-    getMemoryData("sidup",300).then((sidupResults)=>{
-        let qpropData = {
-            x: xVals,
-            y:qpropResults.map(([res,error])=>{return res}),
-            error_y: {
-                type: "data",
-                array: qpropResults.map(([res,error])=>{return error}),
-                visible: true
-            },
-            name: "QPROP",
-            type: "bar"
-        }
-        let sidupData = {
-            x: xVals,
-            y:sidupResults.map(([res,error])=>{return res}),
-            error_y: {
-                type: "data",
-                array: sidupResults.map(([res,error])=>{return error}),
-                visible: true
-            },
-            name: "SID-UP",
-            type: "bar"
-        }
-        //let qpropErrors = results.map(([res,error])=>{return error})
-        let figure = {
-            data: [qpropData,sidupData]
-        }
-        let imgOpts = {
-            format: 'pdf',
-            width: 500,
-            height: 500
-        }
-        plotly.getImage(figure, imgOpts, function (error, imageStream) {
-            if (error) return console.log (error);
-
-            var fileStream = fss.createWriteStream('totalMemory.pdf');
-            imageStream.pipe(fileStream);
-        });
-    })
-})*/

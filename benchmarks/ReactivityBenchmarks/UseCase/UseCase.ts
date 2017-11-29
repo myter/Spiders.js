@@ -287,6 +287,7 @@ export class GeoService extends MicroServiceApp{
         }
         let propagated = 0
         this.memWriter = new MemoryWriter("Geo")
+        this.snapMem()
         let exp = this.lift(([fleetData])=>{
             propagated++
             if(propagated == totalVals / 2){
@@ -324,6 +325,7 @@ export class DrivingService extends MicroServiceApp{
         }
         let propagated = 0
         this.memWriter = new MemoryWriter("Driving")
+        this.snapMem()
         let exp = this.lift(([data,geo])=>{
             propagated++
             if(propagated == totalVals / 2){
@@ -367,6 +369,7 @@ export class DashboardService extends MicroServiceApp{
             imp = this.SIDUP(dashTag,[drivingTag,geoTag,configTag],admitterTag,true)
         }
         this.memWriter = new MemoryWriter("Dashboard")
+        this.snapMem()
         let lastDriving
         let lastConfig
         let firstPropagation = true
