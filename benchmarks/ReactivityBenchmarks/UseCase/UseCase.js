@@ -82,7 +82,11 @@ class MemoryWriter {
     }
     snapshot() {
         let mem = process.memoryUsage();
-        this.writer.write({ heap: mem.heapUsed, rss: mem.rss });
+        try {
+            this.writer.write({ heap: mem.heapUsed, rss: mem.rss });
+        }
+        catch (e) {
+        }
     }
     end() {
         this.writer.end();
