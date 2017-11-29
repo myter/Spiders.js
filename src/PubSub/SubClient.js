@@ -59,6 +59,7 @@ class PSClient {
         var that = this;
         this.bufferedMessages = [];
         hostActor.remote(this.serverAddress, this.serverPort).then((serverRef) => {
+            console.log("Connected to PS Server");
             that.serverRef = serverRef;
             that.connected = true;
             if (that.bufferedMessages.length > 0) {
