@@ -236,7 +236,7 @@ export class Admitter extends MicroServiceApp{
                 this.close = true
                 let processTime = Date.now() - (admitTimes.splice(0,1)[0])
                 processTimes.push(processTime)
-                if(valsReceived == totalVals){
+                if(valsReceived == totalVals * numSources){
                     let total = 0
                     processTimes.forEach((pTime)=>{
                         total += pTime
@@ -249,7 +249,10 @@ export class Admitter extends MicroServiceApp{
                 }
             }
         }
-        this.SIDUPAdmitter(admitterTag,numSources,1,idle,change)
+        let admit = ()=>{
+            admitTimes.push(Date.now())
+        }
+        this.SIDUPAdmitter(admitterTag,numSources,1,idle,change,admit)
     }
 
     snapMem(){
@@ -323,10 +326,16 @@ export class SourceService extends MicroServiceApp{
 
 export class DerivedService extends MicroServiceApp{
     close
-    memWriter
+    memWriter : PersistMemWriter
+    csvfileName
+    rate
+    myTag
     constructor(isQPROP,rate,totalVals,csvFileName,myAddress,myPort,myTag,directParentsTag,directChildrenTags){
         super(myAddress,myPort,monitorIP,monitorPort)
         this.close = false
+        this.rate = rate
+        this.csvfileName = csvFileName
+        this.myTag = myTag
         this.memWriter = new PersistMemWriter()
         this.snapMem()
         let imp
@@ -368,7 +377,7 @@ export class DerivedService extends MicroServiceApp{
     snapMem(){
         if(!this.close){
             setTimeout(()=>{
-                this.memWriter.snapshot()
+                this.memWriter.snapshot(this.csvfileName,this.rate,this.myTag.tagVal)
                 this.snapMem()
             },500)
         }
@@ -387,8 +396,10 @@ export class SinkService extends MicroServiceApp{
         let valsReceived = 0
         let writer = csvWriter({headers: ["TTP"]})
         let tWriter = csvWriter({sendHeaders: false})
+        let pWriter = csvWriter({sendHeaders: false})
         writer.pipe(fs.createWriteStream('temp.csv'))
         tWriter.pipe(fs.createWriteStream("Throughput/"+csvFileName+rate+".csv",{flags: 'a'}))
+        pWriter.pipe(fs.createWriteStream("Processing/"+csvFileName+rate+".csv",{flags: 'a'}))
         let imp
         if(isQPROP){
             imp = this.QPROP(myTag,directParentTags,directChildrenTags,null)
@@ -399,6 +410,7 @@ export class SinkService extends MicroServiceApp{
         let lastArgs
         let firstPropagation = true
         let benchStart
+        let processingTimes = []
         this.lift((args)=>{
             let timeToPropagate
             if(firstPropagation){
@@ -425,6 +437,7 @@ export class SinkService extends MicroServiceApp{
             valsReceived++
             console.log("Values propagated: " + valsReceived)
             writer.write([timeToPropagate])
+            processingTimes.push(timeToPropagate)
             if(valsReceived == totalVals * numSources){
                 console.log("Benchmark Finished")
                 writer.end()
@@ -432,6 +445,15 @@ export class SinkService extends MicroServiceApp{
                 tWriter.write({time: (benchStop - benchStart),values: totalVals})
                 tWriter.end()
                 this.memWriter.end()
+                if(isQPROP){
+                    let total = 0
+                    processingTimes.forEach((pTime)=>{
+                        total += pTime
+                    })
+                    let avg = total / processingTimes.length
+                    pWriter.write({pTime: avg})
+                    pWriter.end()
+                }
                 averageResults(csvFileName,rate)
                 averageMem(csvFileName,rate,myTag.tagVal,isQPROP)
             }
