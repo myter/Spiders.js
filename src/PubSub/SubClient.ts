@@ -79,6 +79,7 @@ export class PSClient{
         this.serverPort     = serverPort
         var that                = this
         this.bufferedMessages   = []
+        console.log("Connecting to server on: " + serverAddress+":" +serverPort)
         hostActor.remote(this.serverAddress,this.serverPort).then((serverRef : FarRef)=>{
             console.log("Connected to PS Server")
             that.serverRef = serverRef
