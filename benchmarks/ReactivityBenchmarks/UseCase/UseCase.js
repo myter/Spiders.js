@@ -93,10 +93,10 @@ class Admitter extends MicroService_1.MicroServiceApp {
         super("127.0.0.1", 8005);
         let writer = csvWriter({ sendHeaders: false });
         writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
-        let memWriter = new MemoryWriter("Admitter");
+        this.memWriter = new MemoryWriter("Admitter");
+        this.snapMem();
         let valsReceived = -1;
         let change = (newValue) => {
-            memWriter.snapshot();
             let propagationTime = Date.now();
             newValue.constructionTime = propagationTime;
             return newValue;
@@ -116,7 +116,7 @@ class Admitter extends MicroService_1.MicroServiceApp {
                     let avg = total / processTimes.length;
                     writer.write({ pTime: avg });
                     writer.end();
-                    memWriter.end();
+                    this.memWriter.end();
                     averageMem(csvFileName, dataRate, "Admitter", true);
                 }
             }
@@ -126,6 +126,12 @@ class Admitter extends MicroService_1.MicroServiceApp {
         };
         this.SIDUPAdmitter(admitterTag, 2, 1, idle, change, admit);
     }
+    snapMem() {
+        setTimeout(() => {
+            this.memWriter.snapshot();
+            this.snapMem();
+        }, 500);
+    }
 }
 exports.Admitter = Admitter;
 class ConfigService extends MicroService_1.MicroServiceApp {
@@ -134,6 +140,7 @@ class ConfigService extends MicroService_1.MicroServiceApp {
         this.rate = rate / 2;
         this.totalVals = totalVals / 2;
         this.memWriter = new MemoryWriter("Config");
+        this.snapMem();
         this.csvFileName = csvFileName;
         this.produced = 0;
         if (isQPROP) {
@@ -150,7 +157,6 @@ class ConfigService extends MicroService_1.MicroServiceApp {
         }, 2000);
     }
     update(signal) {
-        this.memWriter.snapshot();
         for (var i = 0; i < this.rate; i++) {
             this.totalVals--;
             this.produced++;
@@ -167,6 +173,12 @@ class ConfigService extends MicroService_1.MicroServiceApp {
             }, 1000);
         }
     }
+    snapMem() {
+        setTimeout(() => {
+            this.memWriter.snapshot();
+            this.snapMem();
+        }, 500);
+    }
 }
 exports.ConfigService = ConfigService;
 class DataAccessService extends MicroService_1.MicroServiceApp {
@@ -175,6 +187,7 @@ class DataAccessService extends MicroService_1.MicroServiceApp {
         this.rate = rate / 2;
         this.totalVals = totalVals / 2;
         this.memWriter = new MemoryWriter("Data");
+        this.snapMem();
         this.csvFileName = csvFileName;
         this.produced = 0;
         if (isQPROP) {
@@ -191,7 +204,6 @@ class DataAccessService extends MicroService_1.MicroServiceApp {
         }, 2000);
     }
     update(signal) {
-        this.memWriter.snapshot();
         for (var i = 0; i < this.rate; i++) {
             this.totalVals--;
             this.produced++;
@@ -207,6 +219,12 @@ class DataAccessService extends MicroService_1.MicroServiceApp {
             }, 1000);
         }
     }
+    snapMem() {
+        setTimeout(() => {
+            this.memWriter.snapshot();
+            this.snapMem();
+        }, 500);
+    }
 }
 exports.DataAccessService = DataAccessService;
 class GeoService extends MicroService_1.MicroServiceApp {
@@ -220,17 +238,22 @@ class GeoService extends MicroService_1.MicroServiceApp {
             imp = this.SIDUP(geoTag, [dataTag], admitterTag);
         }
         let propagated = 0;
-        let memWriter = new MemoryWriter("Geo");
+        this.memWriter = new MemoryWriter("Geo");
         let exp = this.lift(([fleetData]) => {
             propagated++;
-            memWriter.snapshot();
             if (propagated == totalVals / 2) {
-                memWriter.end();
+                this.memWriter.end();
                 averageMem(csvFileName, rate, "Geo", false);
             }
             return fleetData;
         })(imp);
         this.publishSignal(exp);
+    }
+    snapMem() {
+        setTimeout(() => {
+            this.memWriter.snapshot();
+            this.snapMem();
+        }, 500);
     }
 }
 exports.GeoService = GeoService;
@@ -245,17 +268,22 @@ class DrivingService extends MicroService_1.MicroServiceApp {
             imp = this.SIDUP(drivingTag, [dataTag, geoTag], admitterTag);
         }
         let propagated = 0;
-        let memWriter = new MemoryWriter("Driving");
+        this.memWriter = new MemoryWriter("Driving");
         let exp = this.lift(([data, geo]) => {
             propagated++;
-            memWriter.snapshot();
             if (propagated == totalVals / 2) {
-                memWriter.end();
+                this.memWriter.end();
                 averageMem(csvFileName, rate, "Driving", false);
             }
             return data;
         })(imp);
         this.publishSignal(exp);
+    }
+    snapMem() {
+        setTimeout(() => {
+            this.memWriter.snapshot();
+            this.snapMem();
+        }, 500);
     }
 }
 exports.DrivingService = DrivingService;
@@ -276,7 +304,7 @@ class DashboardService extends MicroService_1.MicroServiceApp {
         else {
             imp = this.SIDUP(dashTag, [drivingTag, geoTag, configTag], admitterTag, true);
         }
-        let memWriter = new MemoryWriter("Dashboard");
+        this.memWriter = new MemoryWriter("Dashboard");
         let lastDriving;
         let lastConfig;
         let firstPropagation = true;
@@ -297,7 +325,6 @@ class DashboardService extends MicroService_1.MicroServiceApp {
             lastDriving = driving;
             lastConfig = config;
             valsReceived++;
-            memWriter.snapshot();
             //console.log("Values propagated: " + valsReceived)
             if (valsReceived.toString().endsWith("000")) {
                 console.log("Values propagated: " + valsReceived);
@@ -307,7 +334,7 @@ class DashboardService extends MicroService_1.MicroServiceApp {
             if (valsReceived == totalVals) {
                 console.log("Benchmark Finished");
                 writer.end();
-                memWriter.end();
+                this.memWriter.end();
                 let benchStop = Date.now();
                 tWriter.write({ time: (benchStop - benchStart), values: totalVals });
                 tWriter.end();
@@ -324,6 +351,12 @@ class DashboardService extends MicroService_1.MicroServiceApp {
                 averageMem(csvFileName, rate, "Dashboard", isQPROP);
             }
         })(imp);
+    }
+    snapMem() {
+        setTimeout(() => {
+            this.memWriter.snapshot();
+            this.snapMem();
+        }, 500);
     }
 }
 exports.DashboardService = DashboardService;

@@ -94,14 +94,15 @@ class MemoryWriter{
 }
 
 export class Admitter extends MicroServiceApp{
+    memWriter
     constructor(totalVals,csvFileName,dataRate){
         super("127.0.0.1",8005)
         let writer = csvWriter({ sendHeaders: false})
         writer.pipe(fs.createWriteStream("Processing/"+csvFileName+dataRate+".csv",{flags: 'a'}))
-        let memWriter = new MemoryWriter("Admitter")
+        this.memWriter = new MemoryWriter("Admitter")
+        this.snapMem()
         let valsReceived = -1
         let change = (newValue) => {
-            memWriter.snapshot()
             let propagationTime = Date.now()
             newValue.constructionTime = propagationTime
             return newValue
@@ -121,7 +122,7 @@ export class Admitter extends MicroServiceApp{
                     let avg = total / processTimes.length
                     writer.write({pTime: avg})
                     writer.end()
-                    memWriter.end()
+                    this.memWriter.end()
                     averageMem(csvFileName,dataRate,"Admitter",true)
                 }
             }
@@ -130,6 +131,13 @@ export class Admitter extends MicroServiceApp{
             admitTimes.push(Date.now())
         }
         this.SIDUPAdmitter(admitterTag,2,1,idle,change,admit)
+    }
+
+    snapMem(){
+        setTimeout(()=>{
+            this.memWriter.snapshot()
+            this.snapMem()
+        },500)
     }
 }
 
@@ -145,6 +153,7 @@ export class ConfigService extends MicroServiceApp{
         this.rate = rate / 2
         this.totalVals = totalVals / 2
         this.memWriter = new MemoryWriter("Config")
+        this.snapMem()
         this.csvFileName = csvFileName
         this.produced = 0
         if(isQPROP){
@@ -163,7 +172,6 @@ export class ConfigService extends MicroServiceApp{
     }
 
     update(signal){
-        this.memWriter.snapshot()
         for(var i = 0;i < this.rate;i++){
             this.totalVals--
             this.produced++
@@ -180,6 +188,13 @@ export class ConfigService extends MicroServiceApp{
             },1000)
         }
     }
+
+    snapMem(){
+        setTimeout(()=>{
+            this.memWriter.snapshot()
+            this.snapMem()
+        },500)
+    }
 }
 
 export class DataAccessService extends MicroServiceApp{
@@ -194,6 +209,7 @@ export class DataAccessService extends MicroServiceApp{
         this.rate = rate / 2
         this.totalVals = totalVals / 2
         this.memWriter = new MemoryWriter("Data")
+        this.snapMem()
         this.csvFileName = csvFileName
         this.produced = 0
         if(isQPROP){
@@ -212,7 +228,6 @@ export class DataAccessService extends MicroServiceApp{
     }
 
     update(signal){
-        this.memWriter.snapshot()
         for(var i = 0;i < this.rate;i++){
             this.totalVals--
             this.produced++
@@ -228,9 +243,17 @@ export class DataAccessService extends MicroServiceApp{
             },1000)
         }
     }
+
+    snapMem(){
+        setTimeout(()=>{
+            this.memWriter.snapshot()
+            this.snapMem()
+        },500)
+    }
 }
 
 export class GeoService extends MicroServiceApp{
+    memWriter
     constructor(isQPROP,rate,totalVals,csvFileName){
         super("127.0.0.1",8002)
         let imp
@@ -241,21 +264,28 @@ export class GeoService extends MicroServiceApp{
            imp = this.SIDUP(geoTag,[dataTag],admitterTag)
         }
         let propagated = 0
-        let memWriter = new MemoryWriter("Geo")
+        this.memWriter = new MemoryWriter("Geo")
         let exp = this.lift(([fleetData])=>{
             propagated++
-            memWriter.snapshot()
             if(propagated == totalVals / 2){
-                memWriter.end()
+                this.memWriter.end()
                 averageMem(csvFileName,rate,"Geo",false)
             }
             return fleetData
         })(imp)
         this.publishSignal(exp)
     }
+
+    snapMem(){
+        setTimeout(()=>{
+            this.memWriter.snapshot()
+            this.snapMem()
+        },500)
+    }
 }
 
 export class DrivingService extends MicroServiceApp{
+    memWriter
     constructor(isQPROP,rate,totalVals,csvFileName){
         super("127.0.0.1",8003)
         let imp
@@ -266,21 +296,28 @@ export class DrivingService extends MicroServiceApp{
             imp = this.SIDUP(drivingTag,[dataTag,geoTag],admitterTag)
         }
         let propagated = 0
-        let memWriter = new MemoryWriter("Driving")
+        this.memWriter = new MemoryWriter("Driving")
         let exp = this.lift(([data,geo])=>{
             propagated++
-            memWriter.snapshot()
             if(propagated == totalVals / 2){
-                memWriter.end()
+                this.memWriter.end()
                 averageMem(csvFileName,rate,"Driving",false)
             }
             return data
         })(imp)
         this.publishSignal(exp)
     }
+
+    snapMem(){
+        setTimeout(()=>{
+            this.memWriter.snapshot()
+            this.snapMem()
+        },500)
+    }
 }
 
 export class DashboardService extends MicroServiceApp{
+    memWriter
     constructor(isQPROP,rate,totalVals,csvFileName){
         super("127.0.0.1",8004)
         let valsReceived = 0
@@ -297,7 +334,7 @@ export class DashboardService extends MicroServiceApp{
         else{
             imp = this.SIDUP(dashTag,[drivingTag,geoTag,configTag],admitterTag,true)
         }
-        let memWriter = new MemoryWriter("Dashboard")
+        this.memWriter = new MemoryWriter("Dashboard")
         let lastDriving
         let lastConfig
         let firstPropagation = true
@@ -318,7 +355,6 @@ export class DashboardService extends MicroServiceApp{
             lastDriving = driving
             lastConfig  = config
             valsReceived++
-            memWriter.snapshot()
             //console.log("Values propagated: " + valsReceived)
             if(valsReceived.toString().endsWith("000")){
                 console.log("Values propagated: " + valsReceived)
@@ -328,7 +364,7 @@ export class DashboardService extends MicroServiceApp{
             if(valsReceived == totalVals){
                 console.log("Benchmark Finished")
                 writer.end()
-                memWriter.end()
+                this.memWriter.end()
                 let benchStop = Date.now()
                 tWriter.write({time: (benchStop - benchStart),values: totalVals})
                 tWriter.end()
@@ -345,5 +381,12 @@ export class DashboardService extends MicroServiceApp{
                 averageMem(csvFileName,rate,"Dashboard",isQPROP)
             }
         })(imp)
+    }
+
+    snapMem(){
+        setTimeout(()=>{
+            this.memWriter.snapshot()
+            this.snapMem()
+        },500)
     }
 }

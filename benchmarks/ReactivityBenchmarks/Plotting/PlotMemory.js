@@ -19,7 +19,7 @@ let getMemoryData = (prefix, fileIndex) => {
             let allData = [];
             var csvStream = csv()
                 .on("data", function (data) {
-                allData.push(parseInt(data[0]));
+                allData.push((parseInt(data[0]) + parseInt(data[1])));
             })
                 .on("end", function () {
                 let s = new Stats();
@@ -31,17 +31,27 @@ let getMemoryData = (prefix, fileIndex) => {
     });
     return Promise.all(results);
 };
-getMemoryData("qprop", 280).then((qpropResults) => {
-    getMemoryData("sidup", 280).then((sidupResults) => {
+getMemoryData("qprop", 300).then((qpropResults) => {
+    getMemoryData("sidup", 300).then((sidupResults) => {
         let qpropData = {
             x: xVals,
             y: qpropResults.map(([res, error]) => { return res; }),
+            error_y: {
+                type: "data",
+                array: qpropResults.map(([res, error]) => { return error; }),
+                visible: true
+            },
             name: "QPROP",
             type: "bar"
         };
         let sidupData = {
             x: xVals,
             y: sidupResults.map(([res, error]) => { return res; }),
+            error_y: {
+                type: "data",
+                array: sidupResults.map(([res, error]) => { return error; }),
+                visible: true
+            },
             name: "SID-UP",
             type: "bar"
         };
@@ -51,7 +61,7 @@ getMemoryData("qprop", 280).then((qpropResults) => {
         };
         let imgOpts = {
             format: 'pdf',
-            width: 1000,
+            width: 500,
             height: 500
         };
         plotly.getImage(figure, imgOpts, function (error, imageStream) {

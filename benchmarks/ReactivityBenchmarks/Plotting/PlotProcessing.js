@@ -59,7 +59,8 @@ getAllData("qprop", "Latency/", 0, 0, null, new Array(30), new Array(30)).then((
         };
         let sidupData = {
             x: xVals,
-            y: sidupValues, error_y: {
+            y: sidupValues,
+            error_y: {
                 type: "data",
                 array: sidupError,
                 visible: true
