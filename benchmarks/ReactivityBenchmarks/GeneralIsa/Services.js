@@ -222,6 +222,7 @@ class Admitter extends MicroService_1.MicroServiceApp {
         let admitTimes = [];
         let processTimes = [];
         let idle = () => {
+            console.log("Returned to idle");
             valsReceived++;
             if (valsReceived > 0) {
                 this.close = true;

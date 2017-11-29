@@ -240,6 +240,7 @@ export class Admitter extends MicroServiceApp{
         let admitTimes = []
         let processTimes = []
         let idle = ()=>{
+            console.log("Returned to idle")
             valsReceived++
             if(valsReceived > 0){
                 this.close = true
