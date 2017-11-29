@@ -72,10 +72,10 @@ export var admitterTag = new PubSubTag("Admitter")
 
 export var monitorId     = 0
 export var monitorIP     = "10.0.0.10"
-export var monitorPort   = 8000
+export var monitorPort   = 8001
 export var admitterId   = 1
 export var admitterIP   = "10.0.0.10"
-export var admitterPort = 8001
+export var admitterPort = 8002
 export var piIds        = []
 for(var i = 2;i < 60;i++){
     piIds.push(i)
@@ -96,7 +96,7 @@ export var piAddresses = piIds.map((id,index)=>{
 })
 
 //TODO temp, this is to be removed when benchmark are run for real
-let base = 8002
+let base = 8003
 export var piPorts      = piIds.map((id,index)=>{
     return base + index
 })

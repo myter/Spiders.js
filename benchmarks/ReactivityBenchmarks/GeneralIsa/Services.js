@@ -74,10 +74,10 @@ exports.admitterTag = new SubTag_1.PubSubTag("Admitter");
 //PI tags
 exports.monitorId = 0;
 exports.monitorIP = "10.0.0.10";
-exports.monitorPort = 8000;
+exports.monitorPort = 8001;
 exports.admitterId = 1;
 exports.admitterIP = "10.0.0.10";
-exports.admitterPort = 8001;
+exports.admitterPort = 8002;
 exports.piIds = [];
 for (var i = 2; i < 60; i++) {
     exports.piIds.push(i);
@@ -97,7 +97,7 @@ exports.piAddresses = exports.piIds.map((id, index) => {
     }
 });
 //TODO temp, this is to be removed when benchmark are run for real
-let base = 8002;
+let base = 8003;
 exports.piPorts = exports.piIds.map((id, index) => {
     return base + index;
 });
