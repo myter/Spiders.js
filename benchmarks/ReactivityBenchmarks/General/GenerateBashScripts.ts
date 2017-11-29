@@ -6,7 +6,7 @@ var chainSIDUP = fs.createWriteStream('RunChainSIDUPBench.sh')
 var regularQPROP = fs.createWriteStream('RunRegularQPROPBench.sh')
 var regularSIDUP = fs.createWriteStream('RunRegularSIDUPBench.sh')
 
-fanQPROP.write("for i in {1..1}\n" +
+fanQPROP.write("for i in {1..10}\n" +
     "do\n" +
     "\tnode Fan.js true monitor 2 qpropFan &\n" +
     "\tnode Fan.js true pi2 2 qpropFan &\n" +
@@ -67,8 +67,9 @@ fanQPROP.write("for i in {1..1}\n" +
     "\tnode Fan.js true pi57 2 qpropFan &\n" +
     "\tnode Fan.js true pi58 2 qpropFan &\n" +
     "\tnode Fan.js true pi59 2 qpropFan \n" +
+    "\t sleep 5\n" +
     "done\n")
-fanSIDUP.write("for i in {1..1}\n" +
+fanSIDUP.write("for i in {1..10}\n" +
     "do\n" +
     "\tnode Fan.js false admitter 2 sidupFan &\n" +
     "\tnode Fan.js false monitor 2 sidupFan &\n" +
@@ -130,11 +131,12 @@ fanSIDUP.write("for i in {1..1}\n" +
     "\tnode Fan.js false pi57 2 sidupFan &\n" +
     "\tnode Fan.js false pi58 2 sidupFan &\n" +
     "\tnode Fan.js false pi59 2 sidupFan \n" +
+    "\t sleep 5\n" +
     "done\n")
 fanQPROP.end()
 fanSIDUP.end()
 
-chainQPROP.write("for i in {1..1}\n" +
+chainQPROP.write("for i in {1..10}\n" +
     "do\n" +
     "\tnode Chain.js true monitor 2 qpropChain &\n" +
     "\tnode Chain.js true pi2 2 qpropChain &\n" +
@@ -195,8 +197,9 @@ chainQPROP.write("for i in {1..1}\n" +
     "\tnode Chain.js true pi57 2 qpropChain &\n" +
     "\tnode Chain.js true pi58 2 qpropChain &\n" +
     "\tnode Chain.js true pi59 2 qpropChain \n" +
+    "\t sleep 5\n" +
     "done\n")
-chainSIDUP.write("for i in {1..1}\n" +
+chainSIDUP.write("for i in {1..10}\n" +
     "do\n" +
     "\tnode Chain.js false admitter 2 sidupChain &\n" +
     "\tnode Chain.js false monitor 2 sidupChain &\n" +
@@ -258,11 +261,12 @@ chainSIDUP.write("for i in {1..1}\n" +
     "\tnode Chain.js false pi57 2 sidupChain &\n" +
     "\tnode Chain.js false pi58 2 sidupChain &\n" +
     "\tnode Chain.js false pi59 2 sidupChain \n" +
+    "\t sleep 5\n" +
     "done\n")
 chainQPROP.end()
 chainSIDUP.end()
 
-regularQPROP.write("for i in {1..1}\n" +
+regularQPROP.write("for i in {1..10}\n" +
     "do\n" +
     "\tnode Regular.js true monitor 2 qpropRegular &\n" +
     "\tnode Regular.js true pi2 2 qpropRegular &\n" +
@@ -323,8 +327,9 @@ regularQPROP.write("for i in {1..1}\n" +
     "\tnode Regular.js true pi57 2 qpropRegular &\n" +
     "\tnode Regular.js true pi58 2 qpropRegular &\n" +
     "\tnode Regular.js true pi59 2 qpropRegular \n" +
+    "\t sleep 5\n" +
     "done\n")
-regularSIDUP.write("for i in {1..1}\n" +
+regularSIDUP.write("for i in {1..10}\n" +
     "do\n" +
     "\tnode Regular.js false admitter 2 sidupRegular &\n" +
     "\tnode Regular.js false monitor 2 sidupRegular &\n" +
@@ -386,6 +391,7 @@ regularSIDUP.write("for i in {1..1}\n" +
     "\tnode Regular.js false pi57 2 sidupRegular &\n" +
     "\tnode Regular.js false pi58 2 sidupRegular &\n" +
     "\tnode Regular.js false pi59 2 sidupRegular \n" +
+    "\t sleep 5\n" +
     "done\n")
 regularQPROP.end()
 regularSIDUP.end()

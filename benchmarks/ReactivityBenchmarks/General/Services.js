@@ -130,11 +130,65 @@ function averageResults(writeTo, dataRate) {
         .on("end", function () {
         let avg = total / length;
         let writer = csvWriter({ sendHeaders: false });
-        writer.pipe(fs.createWriteStream(writeTo + dataRate + ".csv", { flags: 'a' }));
+        writer.pipe(fs.createWriteStream("Latency/" + writeTo + dataRate + ".csv", { flags: 'a' }));
         writer.write({ avg: avg });
         writer.end();
     });
     stream.pipe(csvStream);
+}
+function averageMem(writeTo, dataRate, node, kill) {
+    var stream = fs.createReadStream('temp' + node + "Memory.csv");
+    let length = 0;
+    let totalHeap = 0;
+    let totalRss = 0;
+    var csvStream = csv()
+        .on("data", function (data) {
+        length++;
+        totalHeap += parseInt(data[0]);
+        totalRss += parseInt(data[1]);
+    })
+        .on("end", function () {
+        let avgHeap = totalHeap / length;
+        let avgRss = totalRss / length;
+        let writer = csvWriter({ sendHeaders: false });
+        writer.pipe(fs.createWriteStream("Memory/" + writeTo + dataRate + node + "Memory.csv", { flags: 'a' }));
+        writer.write({ heap: avgHeap, rss: avgRss });
+        writer.end();
+        if (kill) {
+            require('child_process').exec("killall node");
+        }
+    });
+    stream.pipe(csvStream);
+}
+class MemoryWriter {
+    constructor(node) {
+        this.writer = csvWriter({ sendHeaders: false });
+        this.writer.pipe(fs.createWriteStream("temp" + node + "Memory.csv"));
+    }
+    snapshot() {
+        let mem = process.memoryUsage();
+        try {
+            this.writer.write({ heap: mem.heapUsed, rss: mem.rss });
+        }
+        catch (e) {
+        }
+    }
+    end() {
+        this.writer.end();
+    }
+}
+class PersistMemWriter {
+    snapshot(writeTo, dataRate, node) {
+        let mem = process.memoryUsage();
+        let writer = csvWriter({ sendHeaders: false });
+        writer.pipe(fs.createWriteStream("Memory/" + writeTo + dataRate + node + "Memory.csv", { flags: 'a' }));
+        try {
+            writer.write({ heap: mem.heapUsed, rss: mem.rss });
+            writer.end();
+        }
+        catch (e) {
+        }
+    }
 }
 function mapToName(piHostName) {
     //TODO map names
@@ -145,12 +199,47 @@ exports.mapToName = mapToName;
 class Admitter extends MicroService_1.MicroServiceApp {
     constructor(totalVals, csvFileName, dataRate, numSources) {
         super(exports.admitterIP, exports.admitterPort, exports.monitorIP, exports.monitorPort);
+        this.close = false;
+        this.memWriter = new MemoryWriter("Admitter");
+        let writer = csvWriter({ sendHeaders: false });
+        writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
+        this.snapMem();
         let change = (newValue) => {
             let propagationTime = Date.now();
             newValue.constructionTime = propagationTime;
             return newValue;
         };
-        this.SIDUPAdmitter(exports.admitterTag, numSources, 1, () => { }, change);
+        let valsReceived = -1;
+        let admitTimes = [];
+        let processTimes = [];
+        let idle = () => {
+            valsReceived++;
+            if (valsReceived > 0) {
+                this.close = true;
+                let processTime = Date.now() - (admitTimes.splice(0, 1)[0]);
+                processTimes.push(processTime);
+                if (valsReceived == totalVals) {
+                    let total = 0;
+                    processTimes.forEach((pTime) => {
+                        total += pTime;
+                    });
+                    let avg = total / processTimes.length;
+                    writer.write({ pTime: avg });
+                    writer.end();
+                    this.memWriter.end();
+                    averageMem(csvFileName, dataRate, "Admitter", true);
+                }
+            }
+        };
+        this.SIDUPAdmitter(exports.admitterTag, numSources, 1, idle, change);
+    }
+    snapMem() {
+        if (!this.close) {
+            setTimeout(() => {
+                this.memWriter.snapshot();
+                this.snapMem();
+            }, 500);
+        }
     }
 }
 exports.Admitter = Admitter;
@@ -158,6 +247,10 @@ class SourceService extends MicroService_1.MicroServiceApp {
     constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTags, directChildrenTags) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
         this.rate = rate;
+        this.close = false;
+        this.myTag = myTag;
+        this.memWriter = new MemoryWriter(myTag.tagVal);
+        this.snapMem();
         this.totalVals = totalVals;
         this.csvFileName = csvFileName;
         if (isQPROP) {
@@ -183,12 +276,28 @@ class SourceService extends MicroService_1.MicroServiceApp {
                 this.update(signal);
             }, 1000);
         }
+        else {
+            this.close = true;
+            this.memWriter.end();
+            averageMem(this.csvFileName, this.rate, this.myTag.tagVal, false);
+        }
+    }
+    snapMem() {
+        if (!this.close) {
+            setTimeout(() => {
+                this.memWriter.snapshot();
+                this.snapMem();
+            }, 500);
+        }
     }
 }
 exports.SourceService = SourceService;
 class DerivedService extends MicroService_1.MicroServiceApp {
     constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTag, directChildrenTags) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
+        this.close = false;
+        this.memWriter = new PersistMemWriter();
+        this.snapMem();
         let imp;
         if (isQPROP) {
             imp = this.QPROP(myTag, directParentsTag, directChildrenTags, null);
@@ -224,16 +333,27 @@ class DerivedService extends MicroService_1.MicroServiceApp {
         })(imp);
         this.publishSignal(exp);
     }
+    snapMem() {
+        if (!this.close) {
+            setTimeout(() => {
+                this.memWriter.snapshot();
+                this.snapMem();
+            }, 500);
+        }
+    }
 }
 exports.DerivedService = DerivedService;
 class SinkService extends MicroService_1.MicroServiceApp {
     constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentTags, directChildrenTags, numSources) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
+        this.close = false;
+        this.memWriter = new MemoryWriter(myTag.tagVal);
+        this.snapMem();
         let valsReceived = 0;
         let writer = csvWriter({ headers: ["TTP"] });
         let tWriter = csvWriter({ sendHeaders: false });
         writer.pipe(fs.createWriteStream('temp.csv'));
-        tWriter.pipe(fs.createWriteStream("Throughput" + csvFileName + rate + ".csv", { flags: 'a' }));
+        tWriter.pipe(fs.createWriteStream("Throughput/" + csvFileName + rate + ".csv", { flags: 'a' }));
         let imp;
         if (isQPROP) {
             imp = this.QPROP(myTag, directParentTags, directChildrenTags, null);
@@ -276,9 +396,19 @@ class SinkService extends MicroService_1.MicroServiceApp {
                 let benchStop = Date.now();
                 tWriter.write({ time: (benchStop - benchStart), values: totalVals });
                 tWriter.end();
+                this.memWriter.end();
                 averageResults(csvFileName, rate);
+                averageMem(csvFileName, rate, myTag.tagVal, isQPROP);
             }
         })(imp);
+    }
+    snapMem() {
+        if (!this.close) {
+            setTimeout(() => {
+                this.memWriter.snapshot();
+                this.snapMem();
+            }, 500);
+        }
     }
 }
 exports.SinkService = SinkService;

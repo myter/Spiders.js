@@ -1,4 +1,4 @@
-for i in {1..1}
+for i in {1..10}
 do
 	node Chain.js true monitor 2 qpropChain &
 	node Chain.js true pi2 2 qpropChain &
@@ -59,4 +59,5 @@ do
 	node Chain.js true pi57 2 qpropChain &
 	node Chain.js true pi58 2 qpropChain &
 	node Chain.js true pi59 2 qpropChain 
+	 sleep 5
 done

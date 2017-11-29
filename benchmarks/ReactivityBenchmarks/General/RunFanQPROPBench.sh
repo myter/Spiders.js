@@ -1,4 +1,4 @@
-for i in {1..1}
+for i in {1..10}
 do
 	node Fan.js true monitor 2 qpropFan &
 	node Fan.js true pi2 2 qpropFan &
@@ -59,4 +59,5 @@ do
 	node Fan.js true pi57 2 qpropFan &
 	node Fan.js true pi58 2 qpropFan &
 	node Fan.js true pi59 2 qpropFan 
+	 sleep 5
 done

@@ -1,4 +1,4 @@
-for i in {1..1}
+for i in {1..10}
 do
 	node Regular.js false admitter 2 sidupRegular &
 	node Regular.js false monitor 2 sidupRegular &
@@ -60,4 +60,5 @@ do
 	node Regular.js false pi57 2 sidupRegular &
 	node Regular.js false pi58 2 sidupRegular &
 	node Regular.js false pi59 2 sidupRegular 
+	 sleep 5
 done

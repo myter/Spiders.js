@@ -1,4 +1,4 @@
-for i in {1..1}
+for i in {1..10}
 do
 	node Regular.js true monitor 2 qpropRegular &
 	node Regular.js true pi2 2 qpropRegular &
@@ -59,4 +59,5 @@ do
 	node Regular.js true pi57 2 qpropRegular &
 	node Regular.js true pi58 2 qpropRegular &
 	node Regular.js true pi59 2 qpropRegular 
+	 sleep 5
 done

@@ -1,4 +1,4 @@
-for i in {1..1}
+for i in {1..10}
 do
 	node Fan.js false admitter 2 sidupFan &
 	node Fan.js false monitor 2 sidupFan &
@@ -60,4 +60,5 @@ do
 	node Fan.js false pi57 2 sidupFan &
 	node Fan.js false pi58 2 sidupFan &
 	node Fan.js false pi59 2 sidupFan 
+	 sleep 5
 done

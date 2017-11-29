@@ -1,4 +1,4 @@
-for i in {1..1}
+for i in {1..10}
 do
 	node Chain.js false admitter 2 sidupChain &
 	node Chain.js false monitor 2 sidupChain &
@@ -60,4 +60,5 @@ do
 	node Chain.js false pi57 2 sidupChain &
 	node Chain.js false pi58 2 sidupChain &
 	node Chain.js false pi59 2 sidupChain 
+	 sleep 5
 done
