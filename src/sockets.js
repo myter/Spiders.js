@@ -81,8 +81,10 @@ class ServerSocketManager extends commMedium_1.CommMedium {
         /*let http = require('http')
         let server = http.createServer();
         server.listen(socketPort, ip);
-        //this.socket                 = io(socketPort)
-        this.socket = io.listen(server);*/
+        this.socket = io.listen(server);
+        */
+        console.log("listening for " + ip + " : " + socketPort);
+        this.socket = io(socketPort);
         this.connectedClients = new Map();
     }
     init(messageHandler) {
