@@ -112,7 +112,7 @@ export class QPROPNode implements DPropAlgorithm{
         //this.printInfo()
         hostActor.publish(this,ownType)
         hostActor.subscribe(dependencyChangeType).each((change : DependencyChange)=>{
-            console.log("Dependency addition detected")
+            //console.log("Dependency addition detected")
             if(change.toType.tagVal == this.ownType.tagVal){
                 this.dynamicDependencyAddition(change)
             }

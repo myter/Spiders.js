@@ -71,10 +71,10 @@ export var admitterTag = new PubSubTag("Admitter")
 
 
 export var monitorId     = 0
-export var monitorIP     = "127.0.0.1"
+export var monitorIP     = "10.0.0.10"
 export var monitorPort   = 8000
 export var admitterId   = 1
-export var admitterIP   = "127.0.0.1"
+export var admitterIP   = "10.0.0.10"
 export var admitterPort = 8001
 export var piIds        = []
 for(var i = 2;i < 60;i++){
@@ -111,19 +111,12 @@ export class ServiceInfo{
     address
     port
     tag
-    dynamicLinks
-
     constructor(tag,parents,children,address,port){
         this.tag = tag
         this.parents = parents
         this.children = children
         this.address = address
         this.port = port
-        this.dynamicLinks = []
-    }
-
-    addDynamicLink(to : ServiceInfo){
-        this.dynamicLinks.push(to.tag)
     }
 }
 
@@ -222,11 +215,9 @@ export function mapToName(piHostName){
 export class Admitter extends MicroServiceApp{
     memWriter
     close
-    dynamicLinks
-    constructor(totalVals,csvFileName,dataRate,numSources,dynamicLinks){
+    constructor(totalVals,csvFileName,dataRate,numSources){
         super(admitterIP,admitterPort,monitorIP,monitorPort)
         this.close = false
-        this.dynamicLinks = dynamicLinks
         this.memWriter = new MemoryWriter("Admitter")
         let writer = csvWriter({ sendHeaders: false})
         writer.pipe(fs.createWriteStream("Processing/"+csvFileName+dataRate+".csv",{flags: 'a'}))
@@ -257,9 +248,6 @@ export class Admitter extends MicroServiceApp{
                     averageMem(csvFileName,dataRate,"Admitter",true)
                 }
             }
-            else{
-                this.checkDynamicLinks()
-            }
         }
         let admit = ()=>{
             admitTimes.push(Date.now())
@@ -275,19 +263,6 @@ export class Admitter extends MicroServiceApp{
             },500)
         }
     }
-
-    checkDynamicLinks(){
-        if(this.dynamicLinks.length > 0){
-            setTimeout(()=>{
-                let link = this.dynamicLinks.splice(0,1)
-                let from = link.from
-                let to  = link.to
-                console.log("ADDING DYNAMIC DEPENDENCY")
-                this.addDependency(from,to)
-                this.checkDynamicLinks()
-            },Math.floor(Math.random() * 10000) + 1000)
-        }
-    }
 }
 
 export class SourceService extends MicroServiceApp{
@@ -297,25 +272,18 @@ export class SourceService extends MicroServiceApp{
     memWriter
     close
     myTag
-    dynamicLinks
-    isQPROP
 
-    constructor(isQPROP,rate,totalVals,csvFileName,myAddress,myPort,myTag,directParentsTags,directChildrenTags,dynamicLinkTags){
+    constructor(isQPROP,rate,totalVals,csvFileName,myAddress,myPort,myTag,directParentsTags,directChildrenTags){
         super(myAddress,myPort,monitorIP,monitorPort)
         this.rate = rate
-        this.isQPROP = isQPROP
         this.close = false
         this.myTag = myTag
-        this.dynamicLinks = dynamicLinkTags
         this.memWriter = new PersistMemWriter()
         this.snapMem()
         this.totalVals = totalVals
         this.csvFileName = csvFileName
         if(isQPROP){
             this.QPROP(myTag,directParentsTags,directChildrenTags,null)
-            setTimeout(()=>{
-                this.checkDynamicLinks()
-            },10000)
         }
         else{
             this.SIDUP(myTag,directParentsTags,admitterTag)
@@ -347,24 +315,6 @@ export class SourceService extends MicroServiceApp{
             },500)
         }
     }
-
-    checkDynamicLinks(){
-        if(this.dynamicLinks.length > 0){
-            setTimeout(()=>{
-                let link = this.dynamicLinks.splice(0,1)[0]
-                /*console.log("Link: " + link["from"])
-                for(var i in link){
-                    console.log(i + " , " + console.log(link[i]))
-                }*/
-                let from = link.from
-                let to  = link.to
-                console.log("ADDING DYNAMIC DEPENDENCY")
-                console.log("From: " + from.tagVal + " to: " + to.tagVal)
-                this.addDependency(from,to)
-                this.checkDynamicLinks()
-            },Math.floor(Math.random() * 5000) + 1000)
-        }
-    }
 }
 
 export class DerivedService extends MicroServiceApp{
@@ -373,12 +323,10 @@ export class DerivedService extends MicroServiceApp{
     csvfileName
     rate
     myTag
-    dynamicLinks
-    constructor(isQPROP,rate,totalVals,csvFileName,myAddress,myPort,myTag,directParentsTag,directChildrenTags,dynamicLinkTags){
+    constructor(isQPROP,rate,totalVals,csvFileName,myAddress,myPort,myTag,directParentsTag,directChildrenTags){
         super(myAddress,myPort,monitorIP,monitorPort)
         this.close = false
         this.rate = rate
-        this.dynamicLinks = dynamicLinkTags
         this.csvfileName = csvFileName
         this.myTag = myTag
         this.memWriter = new PersistMemWriter()
@@ -480,7 +428,7 @@ export class SinkService extends MicroServiceApp{
             }
             lastArgs = args
             valsReceived++
-            //console.log("Values propagated: " + valsReceived)
+            console.log("Values propagated: " + valsReceived)
             writer.write([timeToPropagate])
             processingTimes.push(timeToPropagate)
             if(valsReceived == totalVals * numSources){

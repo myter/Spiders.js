@@ -75,7 +75,7 @@ class QPROPNode {
         //this.printInfo()
         hostActor.publish(this, ownType);
         hostActor.subscribe(dependencyChangeType).each((change) => {
-            console.log("Dependency addition detected");
+            //console.log("Dependency addition detected")
             if (change.toType.tagVal == this.ownType.tagVal) {
                 this.dynamicDependencyAddition(change);
             }
