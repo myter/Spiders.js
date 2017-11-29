@@ -15,7 +15,6 @@ export class PSServer{
     }
 
     addPublish(published,typeTag : PubSubTag){
-        console.log("Published " + typeTag.tagVal)
         if(!this.published.has(typeTag.tagVal)){
             this.published.set(typeTag.tagVal,[])
         }
