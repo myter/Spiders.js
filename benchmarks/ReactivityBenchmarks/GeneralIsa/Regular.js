@@ -72,7 +72,7 @@ switch (toSpawn) {
         new Services_1.Admitter(totalVals, csvFile, dataRate, 10);
         break;
     case "monitor":
-        new ServiceMonitor_1.ServiceMonitor();
+        new ServiceMonitor_1.ServiceMonitor(Services_1.monitorIP, Services_1.monitorPort);
         break;
     case "pi2":
         new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi2.address, pi2.port, pi2.tag, pi2.parents, pi2.children);

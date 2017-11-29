@@ -64,9 +64,9 @@ class ServiceMonitor extends spiders.Application {
             this.logInfo("- " + serviceName);
         });
     }
-    constructor() {
-        super();
-        this.PSServer();
+    constructor(ip, port) {
+        super(ip, port);
+        this.PSServer(ip, port);
         this.services = new Map();
         this.toDeploy = new Map();
         var stdin = process.openStdin();

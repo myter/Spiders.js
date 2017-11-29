@@ -86,9 +86,9 @@ export class ServiceMonitor extends spiders.Application{
         })
     }
 
-    constructor(){
-        super()
-        this.PSServer()
+    constructor(ip,port){
+        super(ip,port)
+        this.PSServer(ip,port)
         this.services   = new Map()
         this.toDeploy   = new Map()
         var stdin       = (process as any).openStdin();

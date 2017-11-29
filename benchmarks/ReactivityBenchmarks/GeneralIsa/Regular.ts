@@ -1,5 +1,5 @@
 import {
-    Admitter, DerivedService, mapToName,
+    Admitter, DerivedService, mapToName, monitorIP, monitorPort,
     pi10Tag, pi11Tag, pi12Tag, pi13Tag, pi14Tag, pi15Tag, pi16Tag, pi17Tag, pi18Tag, pi19Tag, pi20Tag, pi21Tag, pi22Tag,
     pi23Tag, pi24Tag, pi25Tag, pi26Tag, pi27Tag, pi28Tag, pi29Tag,
     pi2Tag, pi30Tag, pi31Tag, pi32Tag, pi33Tag, pi34Tag, pi35Tag, pi36Tag, pi37Tag, pi38Tag, pi39Tag, pi3Tag, pi40Tag,
@@ -91,7 +91,7 @@ switch (toSpawn){
         new Admitter(totalVals,csvFile,dataRate,10)
         break
     case "monitor":
-        new ServiceMonitor()
+        new ServiceMonitor(monitorIP,monitorPort)
         break
     case "pi2":
         new SourceService(isQPROP,dataRate,totalVals,csvFile,pi2.address,pi2.port,pi2.tag,pi2.parents,pi2.children)
