@@ -278,7 +278,7 @@ export class SourceService extends MicroServiceApp{
         this.rate = rate
         this.close = false
         this.myTag = myTag
-        this.memWriter = new PersistMemWriter()
+        this.memWriter = new MemoryWriter(myTag.tagVal)
         this.snapMem()
         this.totalVals = totalVals
         this.csvFileName = csvFileName
@@ -302,15 +302,22 @@ export class SourceService extends MicroServiceApp{
             this.totalVals--
             signal.actualise()
         }
-        setTimeout(()=>{
-            this.update(signal)
-        },1000)
+        if(this.totalVals > 0){
+            setTimeout(()=>{
+                this.update(signal)
+            },1000)
+        }
+        else{
+            this.close = true
+            this.memWriter.end()
+            averageMem(this.csvFileName,this.rate,this.myTag.tagVal,false)
+        }
     }
 
     snapMem(){
         if(!this.close){
             setTimeout(()=>{
-                this.memWriter.snapshot(this.csvFileName,this.rate,this.myTag.tagVal)
+                this.memWriter.snapshot()
                 this.snapMem()
             },500)
         }

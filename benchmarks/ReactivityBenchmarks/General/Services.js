@@ -252,7 +252,7 @@ class SourceService extends MicroService_1.MicroServiceApp {
         this.rate = rate;
         this.close = false;
         this.myTag = myTag;
-        this.memWriter = new MemoryWriter(myTag.tagVal);
+        this.memWriter = new PersistMemWriter();
         this.snapMem();
         this.totalVals = totalVals;
         this.csvFileName = csvFileName;
@@ -274,21 +274,14 @@ class SourceService extends MicroService_1.MicroServiceApp {
             this.totalVals--;
             signal.actualise();
         }
-        if (this.totalVals > 0) {
-            setTimeout(() => {
-                this.update(signal);
-            }, 1000);
-        }
-        else {
-            this.close = true;
-            this.memWriter.end();
-            averageMem(this.csvFileName, this.rate, this.myTag.tagVal, false);
-        }
+        setTimeout(() => {
+            this.update(signal);
+        }, 1000);
     }
     snapMem() {
         if (!this.close) {
             setTimeout(() => {
-                this.memWriter.snapshot();
+                this.memWriter.snapshot(this.csvFileName, this.rate, this.myTag.tagVal);
                 this.snapMem();
             }, 500);
         }
