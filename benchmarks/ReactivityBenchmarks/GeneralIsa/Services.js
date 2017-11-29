@@ -201,11 +201,9 @@ class PersistMemWriter {
     }
 }
 function mapToName(piHostName) {
-    //TODO map names
     return piHostName;
 }
 exports.mapToName = mapToName;
-//TODO FOR ALL !!! NEED to explicitly connect to PS server this time (construction argument)
 class Admitter extends MicroService_1.MicroServiceApp {
     constructor(totalVals, csvFileName, dataRate, numSources) {
         super(exports.admitterIP, exports.admitterPort, exports.monitorIP, exports.monitorPort);
@@ -215,6 +213,7 @@ class Admitter extends MicroService_1.MicroServiceApp {
         writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
         this.snapMem();
         let change = (newValue) => {
+            console.log("Admitter got change !");
             let propagationTime = Date.now();
             newValue.constructionTime = propagationTime;
             return newValue;

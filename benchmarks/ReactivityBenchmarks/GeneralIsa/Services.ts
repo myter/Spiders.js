@@ -217,10 +217,9 @@ class PersistMemWriter{
 }
 
 export function mapToName(piHostName){
-    //TODO map names
     return piHostName
 }
-//TODO FOR ALL !!! NEED to explicitly connect to PS server this time (construction argument)
+
 export class Admitter extends MicroServiceApp{
     memWriter
     close
@@ -232,6 +231,7 @@ export class Admitter extends MicroServiceApp{
         writer.pipe(fs.createWriteStream("Processing/"+csvFileName+dataRate+".csv",{flags: 'a'}))
         this.snapMem()
         let change = (newValue) => {
+            console.log("Admitter got change !")
             let propagationTime = Date.now()
             newValue.constructionTime = propagationTime
             return newValue
