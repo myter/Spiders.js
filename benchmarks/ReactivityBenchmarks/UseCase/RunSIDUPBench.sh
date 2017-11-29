@@ -7,6 +7,7 @@ do
 	node RunUseCase.js false driving 2 sidup &
 	node RunUseCase.js false geo 2 sidup &
 	node RunUseCase.js false dash 2 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -17,6 +18,7 @@ do
 	node RunUseCase.js false driving 10 sidup &
 	node RunUseCase.js false geo 10 sidup &
 	node RunUseCase.js false dash 10 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -27,6 +29,7 @@ do
 	node RunUseCase.js false driving 20 sidup &
 	node RunUseCase.js false geo 20 sidup &
 	node RunUseCase.js false dash 20 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -37,6 +40,7 @@ do
 	node RunUseCase.js false driving 30 sidup &
 	node RunUseCase.js false geo 30 sidup &
 	node RunUseCase.js false dash 30 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -47,6 +51,7 @@ do
 	node RunUseCase.js false driving 40 sidup &
 	node RunUseCase.js false geo 40 sidup &
 	node RunUseCase.js false dash 40 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -57,6 +62,7 @@ do
 	node RunUseCase.js false driving 50 sidup &
 	node RunUseCase.js false geo 50 sidup &
 	node RunUseCase.js false dash 50 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -67,6 +73,7 @@ do
 	node RunUseCase.js false driving 60 sidup &
 	node RunUseCase.js false geo 60 sidup &
 	node RunUseCase.js false dash 60 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -77,6 +84,7 @@ do
 	node RunUseCase.js false driving 70 sidup &
 	node RunUseCase.js false geo 70 sidup &
 	node RunUseCase.js false dash 70 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -87,6 +95,7 @@ do
 	node RunUseCase.js false driving 80 sidup &
 	node RunUseCase.js false geo 80 sidup &
 	node RunUseCase.js false dash 80 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -97,6 +106,7 @@ do
 	node RunUseCase.js false driving 90 sidup &
 	node RunUseCase.js false geo 90 sidup &
 	node RunUseCase.js false dash 90 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -107,6 +117,7 @@ do
 	node RunUseCase.js false driving 100 sidup &
 	node RunUseCase.js false geo 100 sidup &
 	node RunUseCase.js false dash 100 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -117,6 +128,7 @@ do
 	node RunUseCase.js false driving 110 sidup &
 	node RunUseCase.js false geo 110 sidup &
 	node RunUseCase.js false dash 110 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -127,6 +139,7 @@ do
 	node RunUseCase.js false driving 120 sidup &
 	node RunUseCase.js false geo 120 sidup &
 	node RunUseCase.js false dash 120 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -137,6 +150,7 @@ do
 	node RunUseCase.js false driving 130 sidup &
 	node RunUseCase.js false geo 130 sidup &
 	node RunUseCase.js false dash 130 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -147,6 +161,7 @@ do
 	node RunUseCase.js false driving 140 sidup &
 	node RunUseCase.js false geo 140 sidup &
 	node RunUseCase.js false dash 140 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -157,6 +172,7 @@ do
 	node RunUseCase.js false driving 150 sidup &
 	node RunUseCase.js false geo 150 sidup &
 	node RunUseCase.js false dash 150 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -167,6 +183,7 @@ do
 	node RunUseCase.js false driving 160 sidup &
 	node RunUseCase.js false geo 160 sidup &
 	node RunUseCase.js false dash 160 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -177,6 +194,7 @@ do
 	node RunUseCase.js false driving 170 sidup &
 	node RunUseCase.js false geo 170 sidup &
 	node RunUseCase.js false dash 170 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -187,6 +205,7 @@ do
 	node RunUseCase.js false driving 180 sidup &
 	node RunUseCase.js false geo 180 sidup &
 	node RunUseCase.js false dash 180 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -197,6 +216,7 @@ do
 	node RunUseCase.js false driving 190 sidup &
 	node RunUseCase.js false geo 190 sidup &
 	node RunUseCase.js false dash 190 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -207,6 +227,7 @@ do
 	node RunUseCase.js false driving 200 sidup &
 	node RunUseCase.js false geo 200 sidup &
 	node RunUseCase.js false dash 200 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -217,6 +238,7 @@ do
 	node RunUseCase.js false driving 210 sidup &
 	node RunUseCase.js false geo 210 sidup &
 	node RunUseCase.js false dash 210 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -227,6 +249,7 @@ do
 	node RunUseCase.js false driving 220 sidup &
 	node RunUseCase.js false geo 220 sidup &
 	node RunUseCase.js false dash 220 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -237,6 +260,7 @@ do
 	node RunUseCase.js false driving 230 sidup &
 	node RunUseCase.js false geo 230 sidup &
 	node RunUseCase.js false dash 230 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -247,6 +271,7 @@ do
 	node RunUseCase.js false driving 240 sidup &
 	node RunUseCase.js false geo 240 sidup &
 	node RunUseCase.js false dash 240 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -257,6 +282,7 @@ do
 	node RunUseCase.js false driving 250 sidup &
 	node RunUseCase.js false geo 250 sidup &
 	node RunUseCase.js false dash 250 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -267,6 +293,7 @@ do
 	node RunUseCase.js false driving 260 sidup &
 	node RunUseCase.js false geo 260 sidup &
 	node RunUseCase.js false dash 260 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -277,6 +304,7 @@ do
 	node RunUseCase.js false driving 270 sidup &
 	node RunUseCase.js false geo 270 sidup &
 	node RunUseCase.js false dash 270 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -287,6 +315,7 @@ do
 	node RunUseCase.js false driving 280 sidup &
 	node RunUseCase.js false geo 280 sidup &
 	node RunUseCase.js false dash 280 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -297,6 +326,7 @@ do
 	node RunUseCase.js false driving 290 sidup &
 	node RunUseCase.js false geo 290 sidup &
 	node RunUseCase.js false dash 290 sidup
+	 sleep 5
 done
 for i in {1..10}
 do
@@ -307,4 +337,5 @@ do
 	node RunUseCase.js false driving 300 sidup &
 	node RunUseCase.js false geo 300 sidup &
 	node RunUseCase.js false dash 300 sidup
+	 sleep 5
 done

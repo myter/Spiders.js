@@ -11,6 +11,7 @@ for (var i = 0; i <= 300; i += 10) {
             "\tnode RunUseCase.js true driving " + 2 + " qprop &\n" +
             "\tnode RunUseCase.js true geo " + 2 + " qprop &\n" +
             "\tnode RunUseCase.js true dash " + 2 + " qprop\n" +
+            "\t sleep 5\n" +
             "done\n");
         sidupScript.write("for i in {1..10}\n" +
             "do\n" +
@@ -21,6 +22,7 @@ for (var i = 0; i <= 300; i += 10) {
             "\tnode RunUseCase.js false driving " + 2 + " sidup &\n" +
             "\tnode RunUseCase.js false geo " + 2 + " sidup &\n" +
             "\tnode RunUseCase.js false dash " + 2 + " sidup\n" +
+            "\t sleep 5\n" +
             "done\n");
     }
     else {
@@ -32,6 +34,7 @@ for (var i = 0; i <= 300; i += 10) {
             "\tnode RunUseCase.js true driving " + i + " qprop &\n" +
             "\tnode RunUseCase.js true geo " + i + " qprop &\n" +
             "\tnode RunUseCase.js true dash " + i + " qprop\n" +
+            "\t sleep 5\n" +
             "done\n");
         sidupScript.write("for i in {1..10}\n" +
             "do\n" +
@@ -42,6 +45,7 @@ for (var i = 0; i <= 300; i += 10) {
             "\tnode RunUseCase.js false driving " + i + " sidup &\n" +
             "\tnode RunUseCase.js false geo " + i + " sidup &\n" +
             "\tnode RunUseCase.js false dash " + i + " sidup\n" +
+            "\t sleep 5\n" +
             "done\n");
     }
 }
