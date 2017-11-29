@@ -81,20 +81,19 @@ for(var i = 2;i < 60;i++){
     piIds.push(i)
 }
 export var piAddresses = piIds.map((id,index)=>{
-    if(id >= 2 || id <= 14){
+    if(id >= 2 && id <= 14){
         return "10.0.0.10"
     }
-    else if(id > 14 || id <= 30){
+    else if(id > 14 && id <= 30){
         return "10.0.0.11"
     }
-    else if(id > 30 || id <= 45){
+    else if(id > 30 && id <= 45){
         return "10.0.0.12"
     }
     else {
         return "10.0.0.13"
     }
 })
-
 //TODO temp, this is to be removed when benchmark are run for real
 let base = 8003
 export var piPorts      = piIds.map((id,index)=>{
