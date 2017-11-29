@@ -231,7 +231,6 @@ export class Admitter extends MicroServiceApp{
         writer.pipe(fs.createWriteStream("Processing/"+csvFileName+dataRate+".csv",{flags: 'a'}))
         this.snapMem()
         let change = (newValue) => {
-            console.log("Admitter got change !")
             let propagationTime = Date.now()
             newValue.constructionTime = propagationTime
             return newValue
@@ -240,7 +239,6 @@ export class Admitter extends MicroServiceApp{
         let admitTimes = []
         let processTimes = []
         let idle = ()=>{
-            console.log("Returned to idle")
             valsReceived++
             if(valsReceived > 0){
                 this.close = true
@@ -441,7 +439,7 @@ export class SinkService extends MicroServiceApp{
             console.log("Values propagated: " + valsReceived)
             writer.write([timeToPropagate])
             processingTimes.push(timeToPropagate)
-            if(valsReceived == totalVals * numSources){
+            if(valsReceived == totalVals){
                 console.log("Benchmark Finished")
                 writer.end()
                 let benchStop = Date.now()

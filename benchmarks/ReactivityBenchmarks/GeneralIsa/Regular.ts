@@ -83,7 +83,7 @@ console.log("var pi"+i+" = new ServiceInfo(pi"+i+"Tag,[],[],piAddresses["+(i-2)+
 
 let isQPROP     = process.argv[2] == "true"
 let toSpawn     = mapToName(process.argv[3])
-let dataRate    = parseInt(process.argv[4])
+let dataRate    = parseInt(process.argv[4]) / 10
 let totalVals   = dataRate * 30
 let csvFile     = process.argv[5]
 switch (toSpawn){
