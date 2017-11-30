@@ -429,7 +429,9 @@ class QPROPNode {
             originQueue.enQueue(message);
         }
         catch (e) {
-            console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal + " in " + this.ownType.tagVal + " from parent: " + from.tagVal);
+            if (this.ownType.tagVal == "50") {
+                console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal + " in " + this.ownType.tagVal + " from parent: " + from.tagVal);
+            }
         }
         this.directParentLastKnownVals.set(from.tagVal, message.value);
         let canPropagate = this.canPropagate(message.origin);
@@ -467,7 +469,9 @@ class QPROPNode {
             this.directParents.push(from);
         }
         this.constructQueue(from, sources);
-        console.log("Constructing queue from: " + from.tagVal + " for sources: " + sources.map((t) => { return t.tagVal; }));
+        if (this.ownType.tagVal = "50") {
+            console.log("Constructing queue from: " + from.tagVal + " for sources: " + sources.map((t) => { return t.tagVal; }) + " in : " + this.ownType.tagVal);
+        }
         if (this.directChildren.length == 0) {
             return "ok";
         }
