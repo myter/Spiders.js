@@ -105,7 +105,16 @@ for(var i=0;i < changes;i++){
     let toIndex   = fromIndex + Math.floor(Math.random() * (59 - fromIndex)) + 1
     let from = eval("pi"+fromIndex)
     let to   = eval("pi"+toIndex)
-    dynLinks.push({from: from.tag,to: to.tag})
+    let retry = false
+    from.children.forEach((childTag)=>{
+        if(childTag.tagVal == to.tag.tagVal){
+            i--
+            retry = true
+        }
+    })
+    if(!retry){
+        dynLinks.push({from: from.tag,to: to.tag})
+    }
 }
 
 switch (toSpawn){
