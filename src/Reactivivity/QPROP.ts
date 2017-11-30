@@ -471,7 +471,7 @@ export class QPROPNode implements DPropAlgorithm{
             originQueue.enQueue(message)
         }
         catch(e){
-            console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal + " in " + this.ownType.tagVal)
+            console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal + " in " + this.ownType.tagVal + " from parent: " + from.tagVal)
         }
         this.directParentLastKnownVals.set(from.tagVal,message.value)
         let canPropagate    = this.canPropagate(message.origin)
