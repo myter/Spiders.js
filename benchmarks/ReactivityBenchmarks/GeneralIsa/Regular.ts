@@ -140,7 +140,7 @@ else if(changes == 15){
     dynLinks.push({from: pi31.tag,to: pi41.tag})
     dynLinks.push({from: pi47.tag,to: pi55.tag})
 }
-else{
+else if(changes == 20){
     dynLinks.push({from: pi4.tag,to: pi40.tag})
     dynLinks.push({from: pi20.tag,to: pi47.tag})
     dynLinks.push({from: pi35.tag,to: pi44.tag})
@@ -156,7 +156,11 @@ else{
     dynLinks.push({from: pi28.tag,to: pi38.tag})
     dynLinks.push({from: pi31.tag,to: pi41.tag})
     dynLinks.push({from: pi47.tag,to: pi55.tag})
-    //TODO
+    dynLinks.push({from: pi42.tag,to: pi51.tag})
+    dynLinks.push({from: pi14.tag,to: pi23.tag})
+    dynLinks.push({from: pi17.tag,to: pi25.tag})
+    dynLinks.push({from: pi12.tag,to: pi30.tag})
+    dynLinks.push({from: pi31.tag,to: pi44.tag})
 }
 
 
