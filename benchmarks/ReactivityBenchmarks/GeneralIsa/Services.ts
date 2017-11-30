@@ -335,7 +335,9 @@ export class SourceService extends MicroServiceApp{
         //Wait for construction to be completed (for both QPROP and SIDUP)
         setTimeout(()=>{
             this.update(sig)
-            this.checkDynamicLinks()
+            if(isQPROP){
+                this.checkDynamicLinks()
+            }
         },5000)
     }
 
