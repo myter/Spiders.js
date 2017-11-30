@@ -68,34 +68,59 @@ let dataRate = parseInt(process.argv[4]) / 10;
 let totalVals = dataRate * 30;
 let csvFile = process.argv[5];
 let changes = parseInt(process.argv[6]);
-function getRandomPi(lesserBound, upperbound) {
-    let index = Math.floor(Math.random() * Services_1.piIds.length) + 2;
+/*function getRandomPi(lesserBound,upperbound){
+    let index = Math.floor(Math.random() * piIds.length) + 2
     //return eval("pi"+index)
-    if (index <= lesserBound || index >= upperbound) {
-        return getRandomPi(lesserBound, upperbound);
+    if(index <= lesserBound || index >= upperbound){
+        return getRandomPi(lesserBound,upperbound)
     }
-    else {
-        return index;
+    else{
+        return index
     }
-}
+}*/
+//Avoid introducing cycles and double dependencies
 let dynLinks = [];
-for (var i = 0; i < changes; i++) {
-    let fromIndex = getRandomPi(11, 58);
-    //let toIndex   = fromIndex + Math.floor(Math.random() * (59 - fromIndex)) + 1
-    let toIndex = fromIndex + 1;
-    let from = eval("pi" + fromIndex);
-    let to = eval("pi" + toIndex);
-    let retry = false;
-    from.children.forEach((childTag) => {
-        if (childTag.tagVal == to.tag.tagVal) {
-            i--;
-            retry = true;
-        }
-    });
-    if (!retry) {
-        dynLinks.push({ from: from.tag, to: to.tag });
-    }
+if (changes == 1) {
+    dynLinks.push({ from: pi4.tag, to: pi40.tag });
 }
+else if (changes == 5) {
+    dynLinks.push({ from: pi4.tag, to: pi40.tag });
+    dynLinks.push({ from: pi20.tag, to: pi47.tag });
+    dynLinks.push({ from: pi35.tag, to: pi44.tag });
+    dynLinks.push({ from: pi42.tag, to: pi56.tag });
+    dynLinks.push({ from: pi50.tag, to: pi59.tag });
+}
+else if (changes == 10) {
+    dynLinks.push({ from: pi4.tag, to: pi40.tag });
+    dynLinks.push({ from: pi20.tag, to: pi47.tag });
+    dynLinks.push({ from: pi35.tag, to: pi44.tag });
+    dynLinks.push({ from: pi42.tag, to: pi56.tag });
+    dynLinks.push({ from: pi50.tag, to: pi59.tag });
+    dynLinks.push({ from: pi31.tag, to: pi40.tag });
+    dynLinks.push({ from: pi21.tag, to: pi32.tag });
+    dynLinks.push({ from: pi3.tag, to: pi13.tag });
+    dynLinks.push({ from: pi7.tag, to: pi15.tag });
+    dynLinks.push({ from: pi10.tag, to: pi18.tag });
+}
+else if (changes == 15) {
+}
+/*for(var i=0;i < changes;i++){
+    let fromIndex = getRandomPi(11,58)
+    //let toIndex   = fromIndex + Math.floor(Math.random() * (59 - fromIndex)) + 1
+    let toIndex = fromIndex + 1
+    let from = eval("pi"+fromIndex)
+    let to   = eval("pi"+toIndex)
+    let retry = false
+    from.children.forEach((childTag)=>{
+        if(childTag.tagVal == to.tag.tagVal){
+            i--
+            retry = true
+        }
+    })
+    if(!retry){
+        dynLinks.push({from: from.tag,to: to.tag})
+    }
+}*/
 switch (toSpawn) {
     case "admitter":
         new Services_1.Admitter(totalVals, csvFile, dataRate, 10, dynLinks, changes);
