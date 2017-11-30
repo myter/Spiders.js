@@ -407,7 +407,7 @@ class QPROPNode {
             originQueue.enQueue(message);
         }
         catch (e) {
-            console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal);
+            console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal + " in " + this.ownType.tagVal);
         }
         this.directParentLastKnownVals.set(from.tagVal, message.value);
         let canPropagate = this.canPropagate(message.origin);
