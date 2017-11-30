@@ -273,6 +273,7 @@ class Admitter extends MicroService_1.MicroServiceApp {
                 let from = link.from;
                 let to = link.to;
                 console.log("ADDING DYNAMIC DEPENDENCY");
+                console.log("From: " + from.tagVal + " to: " + to.tagVal);
                 this.addDependency(from, to);
                 this.checkDynamicLinks();
             }, Math.floor(Math.random() * 100) + 50);
