@@ -437,7 +437,7 @@ class QPROPNode {
         return this.ownDefault;
     }
     updateSources(from, sourceMap, updateDef = false, defVal = null) {
-        if (this.ownType.tagVal = "50") {
+        if (this.ownType.tagVal == "50") {
             console.log("BEFORE IF");
             console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal));
         }
@@ -455,7 +455,7 @@ class QPROPNode {
                 this.directParents.push(from);
             }
             this.constructQueue(from, sources);
-            if (this.ownType.tagVal = "50") {
+            if (this.ownType.tagVal == "50") {
                 console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal));
                 console.log("Constructing queue from: " + from.tagVal + " for sources: " + sources.map((t) => { return t.tagVal; }) + " in : " + this.ownType.tagVal);
             }
