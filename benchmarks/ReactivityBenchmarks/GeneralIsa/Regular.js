@@ -80,8 +80,9 @@ function getRandomPi(lesserBound, upperbound) {
 }
 let dynLinks = [];
 for (var i = 0; i < changes; i++) {
-    let fromIndex = getRandomPi(11, 59);
-    let toIndex = fromIndex + Math.floor(Math.random() * (59 - fromIndex)) + 1;
+    let fromIndex = getRandomPi(2, 58);
+    //let toIndex   = fromIndex + Math.floor(Math.random() * (59 - fromIndex)) + 1
+    let toIndex = 1;
     let from = eval("pi" + fromIndex);
     let to = eval("pi" + toIndex);
     let retry = false;
