@@ -5,7 +5,7 @@ var csv = require('fast-csv')
 var Stats = require('fast-stats').Stats;
 
 var xVals : string[] = []
-for(var i = 0;i < 310;i+=10){
+for(var i = 0;i <= 300;i+=50){
     if(i == 0){
         xVals.push("1")
     }
@@ -26,11 +26,11 @@ let getMemoryData = (prefix,fileIndex) => {
     }
     let results = names.map((nodeName)=>{
         return new Promise((resolve)=>{
-            var stream          = fss.createReadStream("../UseCase/MemoryComplete/"+prefix+fileIndex+nodeName+"Memory.csv");
+            var stream          = fss.createReadStream("../UseCase/BerthaMemory/Memory/"+prefix+fileIndex+nodeName+"Memory.csv");
             let allData         = []
             var csvStream = csv()
                 .on("data", function(data){
-                    allData.push((parseInt(data[0]) + parseInt(data[1])))
+                    allData.push((parseInt(data[1])))
                 })
                 .on("end", function(){
                     let s = new Stats()
@@ -51,7 +51,7 @@ let getMemoryData = (prefix,fileIndex) => {
     })
 }
 let allLoads = []
-for(var i = 0;i <= 300;i+=10){
+for(var i = 0;i <= 300;i+=50){
     if(i ==0){
         allLoads.push(2)
     }
@@ -67,6 +67,7 @@ let allSIDUPResults = allLoads.map((load)=>{
 })
 Promise.all(allQPROPResults).then((qpropResults)=>{
     Promise.all(allSIDUPResults).then((sidupResults)=>{
+        console.log(qpropResults.map(([res,error])=>{return res}))
         let qpropData = {
             x: xVals,
             y: qpropResults.map(([res,error])=>{return res}),
@@ -93,11 +94,14 @@ Promise.all(allQPROPResults).then((qpropResults)=>{
                 x: 0,
                 y: 1
             },
-            title: "Processing Time under Varying Load",
+            title: "RSS Memory Usage under Varying Load",
             xaxis: {
                 title: "Load (requests/s)",
                 showline: true,
             },
+            yaxis: {
+                title: "Memory Usage (bytes)"
+            }
         }
         let figure = {
             data: [qpropData,sidupData],
@@ -111,7 +115,7 @@ Promise.all(allQPROPResults).then((qpropResults)=>{
         plotly.getImage(figure, imgOpts, function (error, imageStream) {
             if (error) return console.log (error);
 
-            var fileStream = fss.createWriteStream('totalMemory.pdf');
+            var fileStream = fss.createWriteStream('rssTotalMemory.pdf');
             imageStream.pipe(fileStream);
         });
     })

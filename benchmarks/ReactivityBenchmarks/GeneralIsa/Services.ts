@@ -255,7 +255,7 @@ export class Admitter extends MicroServiceApp{
                 this.close = true
                 let processTime = Date.now() - (admitTimes.splice(0,1)[0])
                 processTimes.push(processTime)
-                if(valsReceived == totalVals * numSources){
+                if(valsReceived == totalVals){
                     let total = 0
                     processTimes.forEach((pTime)=>{
                         total += pTime

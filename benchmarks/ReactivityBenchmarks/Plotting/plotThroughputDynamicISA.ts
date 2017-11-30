@@ -73,13 +73,13 @@ getAllData("qprop",0,0,null,new Array(5),new Array(5)).then(([qpropValues,qpropE
         let layout = {
             showlegend: true,
             legend: {
-                x: 0,
+                x: 1,
                 y: 1
             },
-            title: "Throughput under Varying Load",
+            title: "Throughput under Varying Dynamic Topology Changes",
             xaxis: {
-                title: "Load (requests/s)",
-                range:[1,25]
+                title: "Topolgy Changes",
+                range:[0,22]
             },
             yaxis: {
                 title: "Throughput (requests/s)",

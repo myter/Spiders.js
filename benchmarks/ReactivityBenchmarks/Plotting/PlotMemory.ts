@@ -3,10 +3,10 @@ var fss = require('fs')
 var csv = require('fast-csv')
 var Stats = require('fast-stats').Stats;
 
-var xVals = ["Data","Config","Driving","Geo","Dash"]
+var xVals = ["Data","Config","Driving","Geo","Dash","Admitter"]
 
 let qpropNodeNames  = ["Data","Config","Driving","Geo","Dashboard"]
-let sidupNodeNames  = qpropNodeNames//.concat("Admitter")
+let sidupNodeNames  = qpropNodeNames.concat("Admitter")
 let getMemoryData = (prefix,fileIndex) => {
     let names
     if(prefix == "qprop"){
@@ -17,11 +17,11 @@ let getMemoryData = (prefix,fileIndex) => {
     }
     let results = names.map((nodeName)=>{
         return new Promise((resolve)=>{
-            var stream          = fss.createReadStream("../UseCase/MemoryComplete/"+prefix+fileIndex+nodeName+"Memory.csv");
+            var stream          = fss.createReadStream("../UseCase/BerthaMemory/Memory/"+prefix+fileIndex+nodeName+"Memory.csv");
             let allData         = []
             var csvStream = csv()
                 .on("data", function(data){
-                    allData.push((parseInt(data[0])))
+                    allData.push((parseInt(data[1])))
                 })
                 .on("end", function(){
                     let s = new Stats()
@@ -35,7 +35,6 @@ let getMemoryData = (prefix,fileIndex) => {
 }
 getMemoryData("qprop",300).then((qpropResults)=>{
     getMemoryData("sidup",300).then((sidupResults)=>{
-        console.log(qpropResults.map(([res,error])=>{return res}))
         let qpropData = {
             x: xVals,
             y:qpropResults.map(([res,error])=>{return res}),
@@ -58,9 +57,21 @@ getMemoryData("qprop",300).then((qpropResults)=>{
             name: "SID-UP",
             type: "bar"
         }
+        let layout = {
+            showlegend: true,
+            legend: {
+                x: 1,
+                y: 1
+            },
+            title: "RSS Memory Usage per Service",
+            yaxis: {
+                title: "Memory Usage (bytes)"
+            }
+        }
         //let qpropErrors = results.map(([res,error])=>{return error})
         let figure = {
-            data: [qpropData,sidupData]
+            data: [qpropData,sidupData],
+            layout : layout
         }
         let imgOpts = {
             format: 'pdf',
@@ -70,7 +81,7 @@ getMemoryData("qprop",300).then((qpropResults)=>{
         plotly.getImage(figure, imgOpts, function (error, imageStream) {
             if (error) return console.log (error);
 
-            var fileStream = fss.createWriteStream('memory.pdf');
+            var fileStream = fss.createWriteStream('rssMemory.pdf');
             imageStream.pipe(fileStream);
         });
     })
