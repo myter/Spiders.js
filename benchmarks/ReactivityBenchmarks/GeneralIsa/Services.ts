@@ -291,7 +291,7 @@ export class Admitter extends MicroServiceApp{
     checkDynamicLinks(){
         if(this.dynamicLinks.length > 0){
             setTimeout(()=>{
-                let link = this.dynamicLinks.splice(0,1)
+                let link = this.dynamicLinks.splice(0,1)[0]
                 let from = link.from
                 let to  = link.to
                 console.log("ADDING DYNAMIC DEPENDENCY")
