@@ -464,10 +464,13 @@ export class QPROPNode implements DPropAlgorithm{
     receiveMessage(from : PubSubTag,message : PropagationValue){
         let qSet            = this.inputQueues.get(from.tagVal)
         let originQueue     = qSet.get(message.origin.tagVal)
-        if(originQueue == undefined){
-            console.log("Unable to enqueueu for: " + message.origin.tagVal)
+        try{
+            originQueue.enQueue(message)
+
         }
-        originQueue.enQueue(message)
+        catch(e){
+            console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal)
+        }
         this.directParentLastKnownVals.set(from.tagVal,message.value)
         let canPropagate    = this.canPropagate(message.origin)
         if(canPropagate){
