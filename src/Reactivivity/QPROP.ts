@@ -256,9 +256,6 @@ export class QPROPNode implements DPropAlgorithm{
             })
         })
         this.directChildren.forEach((childType : PubSubTag)=>{
-            if(childType.tagVal == this.ownType.tagVal){
-                throw new Error("ADDING ONESELF AS CHILD NOT ALLOWED")
-            }
             this.host.subscribe(childType).each((childRef : FarRef)=>{
                 this.directChildrenRefs.push(childRef)
                 if((this.directChildrenRefs.length == this.directChildren.length) && this.directParents.length == 0){
@@ -506,6 +503,10 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     updateSources(from : PubSubTag,sourceMap : SourceIsolate,updateDef = false,defVal = null){
+        if(this.ownType.tagVal = "50"){
+            console.log("BEFORE IF")
+            console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal))
+        }
         if(from.tagVal != this.ownType.tagVal){
             let sources     = sourceMap.sources
             let mySources   = this.getAllSources().sources
