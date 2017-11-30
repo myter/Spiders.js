@@ -438,7 +438,6 @@ class QPROPNode {
     }
     updateSources(from, sourceMap, updateDef = false, defVal = null) {
         if (from.tagVal != this.ownType.tagVal) {
-            console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal));
             let sources = sourceMap.sources;
             let mySources = this.getAllSources().sources;
             sources.forEach((source) => {
@@ -453,6 +452,7 @@ class QPROPNode {
             }
             this.constructQueue(from, sources);
             if (this.ownType.tagVal = "50") {
+                console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal));
                 console.log("Constructing queue from: " + from.tagVal + " for sources: " + sources.map((t) => { return t.tagVal; }) + " in : " + this.ownType.tagVal);
             }
             if (this.directChildren.length == 0) {
