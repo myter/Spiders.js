@@ -9,7 +9,7 @@ const ServiceMonitor_1 = require("../src/MicroService/ServiceMonitor");
 const MicroService_1 = require("../src/MicroService/MicroService");
 const SubTag_1 = require("../src/PubSub/SubTag");
 var spiders = require("../src/spiders");
-let monitor = new ServiceMonitor_1.ServiceMonitor();
+let monitor = new ServiceMonitor_1.ServiceMonitor("127.0.0.1", 8000);
 class TestSignal extends spiders.Signal {
     constructor() {
         super();
@@ -30,11 +30,17 @@ class Source extends MicroService_1.MicroService {
     constructor() {
         super();
         this.TestSignal = TestSignal;
+        this.SourceTag = SourceTag;
+        this.SinkTag = SinkTag;
     }
     start(subSignal) {
         this.t = this.newSignal(this.TestSignal);
         this.publishSignal(this.t);
         this.update();
+        setTimeout(() => {
+            console.log("Adding dependency");
+            this.addDependency(this.SourceTag, this.SinkTag);
+        }, 5000);
     }
     update() {
         setTimeout(() => {
@@ -61,8 +67,8 @@ class B extends MicroService_1.MicroService {
 }
 class Sink extends MicroService_1.MicroService {
     start(subSignal) {
-        this.lift(([v1, v2]) => {
-            console.log("Got: " + v1 + " , " + v2);
+        this.lift((res) => {
+            console.log("Got: " + res);
         })(subSignal);
     }
 }

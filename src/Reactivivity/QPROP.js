@@ -296,6 +296,9 @@ class QPROPNode {
                         }
                     });
                 });
+                if (this.directChildren.length == 0) {
+                    fromRef.addChild(this);
+                }
             });
         });
     }

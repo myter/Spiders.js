@@ -348,6 +348,9 @@ export class QPROPNode implements DPropAlgorithm{
                         }
                     })
                 })
+                if(this.directChildren.length == 0){
+                    fromRef.addChild(this)
+                }
             })
         })
     }
@@ -466,7 +469,6 @@ export class QPROPNode implements DPropAlgorithm{
         let originQueue     = qSet.get(message.origin.tagVal)
         try{
             originQueue.enQueue(message)
-
         }
         catch(e){
             console.log("UNABLE TO ENQUEUE FOR ORIGIN: " + message.origin.tagVal + " in " + this.ownType.tagVal)

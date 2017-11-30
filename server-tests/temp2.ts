@@ -3,7 +3,7 @@ import {SpiderLib} from "../src/spiders";
 import {MicroService} from "../src/MicroService/MicroService";
 import {PubSubTag} from "../src/PubSub/SubTag";
 var spiders : SpiderLib = require("../src/spiders")
-let monitor = new ServiceMonitor()
+let monitor = new ServiceMonitor("127.0.0.1",8000)
 class TestSignal extends spiders.Signal{
     value
 
@@ -26,16 +26,24 @@ var SinkTag     = new PubSubTag("Sink")
 class Source extends MicroService{
     TestSignal
     t
+    SourceTag
+    SinkTag
 
     constructor(){
         super()
         this.TestSignal = TestSignal
+        this.SourceTag = SourceTag
+        this.SinkTag = SinkTag
     }
 
     start(subSignal){
         this.t = this.newSignal(this.TestSignal)
         this.publishSignal(this.t)
         this.update()
+        setTimeout(()=>{
+            console.log("Adding dependency")
+            this.addDependency(this.SourceTag,this.SinkTag)
+        },5000)
     }
 
     update(){
@@ -66,8 +74,8 @@ class B extends MicroService{
 
 class Sink extends MicroService{
     start(subSignal){
-        this.lift(([v1,v2])=>{
-            console.log("Got: " + v1 + " , " + v2)
+        this.lift((res)=>{
+            console.log("Got: "+res)
         })(subSignal)
     }
 }
