@@ -440,37 +440,39 @@ class QPROPNode {
         return this.ownDefault;
     }
     updateSources(from, sourceMap, updateDef = false, defVal = null) {
-        let sources = sourceMap.sources;
-        let mySources = this.getAllSources().sources;
-        sources.forEach((source) => {
-            if (this.contains(mySources, source) && (!this.contains(this.instabilitySet, source))) {
-                this.instabilitySet.push(source);
+        if (from.tagVal != this.ownType.tagVal) {
+            let sources = sourceMap.sources;
+            let mySources = this.getAllSources().sources;
+            sources.forEach((source) => {
+                if (this.contains(mySources, source) && (!this.contains(this.instabilitySet, source))) {
+                    this.instabilitySet.push(source);
+                }
+            });
+            if (updateDef) {
+                this.inputQueues.set(from.tagVal, new Map());
+                this.directParentDefaultVals.set(from.tagVal, defVal);
+                this.directParents.push(from);
             }
-        });
-        if (updateDef) {
-            this.inputQueues.set(from.tagVal, new Map());
-            this.directParentDefaultVals.set(from.tagVal, defVal);
-            this.directParents.push(from);
-        }
-        this.constructQueue(from, sources);
-        if (this.ownType.tagVal = "50") {
-            console.log("Constructing queue from: " + from.tagVal + " for sources: " + sources.map((t) => { return t.tagVal; }) + " in : " + this.ownType.tagVal);
-        }
-        if (this.directChildren.length == 0) {
-            return "ok";
-        }
-        else {
-            let resReceived = 0;
-            return new Promise((resolve) => {
-                this.directChildrenRefs.forEach((childRef) => {
-                    childRef.updateSources(this.ownType, sourceMap).then(() => {
-                        resReceived++;
-                        if (resReceived == this.directChildren.length) {
-                            resolve("ok");
-                        }
+            this.constructQueue(from, sources);
+            if (this.ownType.tagVal = "50") {
+                console.log("Constructing queue from: " + from.tagVal + " for sources: " + sources.map((t) => { return t.tagVal; }) + " in : " + this.ownType.tagVal);
+            }
+            if (this.directChildren.length == 0) {
+                return "ok";
+            }
+            else {
+                let resReceived = 0;
+                return new Promise((resolve) => {
+                    this.directChildrenRefs.forEach((childRef) => {
+                        childRef.updateSources(this.ownType, sourceMap).then(() => {
+                            resReceived++;
+                            if (resReceived == this.directChildren.length) {
+                                resolve("ok");
+                            }
+                        });
                     });
                 });
-            });
+            }
         }
     }
     getSourceMap() {
