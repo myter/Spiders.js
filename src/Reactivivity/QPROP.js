@@ -208,6 +208,9 @@ class QPROPNode {
             });
         });
         this.directChildren.forEach((childType) => {
+            if (childType.tagVal == this.ownType.tagVal) {
+                throw new Error("ADDING ONESELF AS CHILD NOT ALLOWED");
+            }
             this.host.subscribe(childType).each((childRef) => {
                 this.directChildrenRefs.push(childRef);
                 if ((this.directChildrenRefs.length == this.directChildren.length) && this.directParents.length == 0) {

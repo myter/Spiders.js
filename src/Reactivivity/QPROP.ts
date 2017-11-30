@@ -256,6 +256,9 @@ export class QPROPNode implements DPropAlgorithm{
             })
         })
         this.directChildren.forEach((childType : PubSubTag)=>{
+            if(childType.tagVal == this.ownType.tagVal){
+                throw new Error("ADDING ONESELF AS CHILD NOT ALLOWED")
+            }
             this.host.subscribe(childType).each((childRef : FarRef)=>{
                 this.directChildrenRefs.push(childRef)
                 if((this.directChildrenRefs.length == this.directChildren.length) && this.directParents.length == 0){
