@@ -124,6 +124,23 @@ else if(changes == 10){
     dynLinks.push({from: pi10.tag,to: pi18.tag})
 }
 else if(changes == 15){
+    dynLinks.push({from: pi4.tag,to: pi40.tag})
+    dynLinks.push({from: pi20.tag,to: pi47.tag})
+    dynLinks.push({from: pi35.tag,to: pi44.tag})
+    dynLinks.push({from: pi42.tag,to: pi56.tag})
+    dynLinks.push({from: pi50.tag,to: pi59.tag})
+    dynLinks.push({from: pi31.tag,to: pi40.tag})
+    dynLinks.push({from: pi21.tag,to: pi32.tag})
+    dynLinks.push({from: pi3.tag,to: pi13.tag})
+    dynLinks.push({from: pi7.tag,to: pi15.tag})
+    dynLinks.push({from: pi10.tag,to: pi18.tag})
+    dynLinks.push({from: pi2.tag,to: pi13.tag})
+    dynLinks.push({from: pi28.tag,to: pi36.tag})
+    dynLinks.push({from: pi28.tag,to: pi38.tag})
+    dynLinks.push({from: pi31.tag,to: pi41.tag})
+    dynLinks.push({from: pi47.tag,to: pi55.tag})
+}
+else{
 
 }
 
