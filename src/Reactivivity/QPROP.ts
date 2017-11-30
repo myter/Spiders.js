@@ -504,6 +504,7 @@ export class QPROPNode implements DPropAlgorithm{
 
     updateSources(from : PubSubTag,sourceMap : SourceIsolate,updateDef = false,defVal = null){
         if(from.tagVal != this.ownType.tagVal){
+            console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal))
             let sources     = sourceMap.sources
             let mySources   = this.getAllSources().sources
             sources.forEach((source : PubSubTag)=>{

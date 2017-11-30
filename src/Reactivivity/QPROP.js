@@ -438,6 +438,7 @@ class QPROPNode {
     }
     updateSources(from, sourceMap, updateDef = false, defVal = null) {
         if (from.tagVal != this.ownType.tagVal) {
+            console.log("Equals ? " + from.tagVal + " , " + this.ownType.tagVal + " = " + (from.tagVal != this.ownType.tagVal));
             let sources = sourceMap.sources;
             let mySources = this.getAllSources().sources;
             sources.forEach((source) => {
