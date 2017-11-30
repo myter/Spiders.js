@@ -88,184 +88,184 @@ for (var i = 0; i < changes; i++) {
 }
 switch (toSpawn) {
     case "admitter":
-        new Services_1.Admitter(totalVals, csvFile, dataRate, 10, dynLinks);
+        new Services_1.Admitter(totalVals, csvFile, dataRate, 10, dynLinks, changes);
         break;
     case "monitor":
         new ServiceMonitor_1.ServiceMonitor(Services_1.monitorIP, Services_1.monitorPort);
         break;
     case "pi2":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi2.address, pi2.port, pi2.tag, pi2.parents, pi2.children, dynLinks);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi2.address, pi2.port, pi2.tag, pi2.parents, pi2.children, dynLinks, changes);
         break;
     case "pi3":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi3.address, pi3.port, pi3.tag, pi3.parents, pi3.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi3.address, pi3.port, pi3.tag, pi3.parents, pi3.children, [], changes);
         break;
     case "pi4":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi4.address, pi4.port, pi4.tag, pi4.parents, pi4.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi4.address, pi4.port, pi4.tag, pi4.parents, pi4.children, [], changes);
         break;
     case "pi5":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi5.address, pi5.port, pi5.tag, pi5.parents, pi5.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi5.address, pi5.port, pi5.tag, pi5.parents, pi5.children, [], changes);
         break;
     case "pi6":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi6.address, pi6.port, pi6.tag, pi6.parents, pi6.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi6.address, pi6.port, pi6.tag, pi6.parents, pi6.children, [], changes);
         break;
     case "pi7":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi7.address, pi7.port, pi7.tag, pi7.parents, pi7.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi7.address, pi7.port, pi7.tag, pi7.parents, pi7.children, [], changes);
         break;
     case "pi8":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi8.address, pi8.port, pi8.tag, pi8.parents, pi8.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi8.address, pi8.port, pi8.tag, pi8.parents, pi8.children, [], changes);
         break;
     case "pi9":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi9.address, pi9.port, pi9.tag, pi9.parents, pi9.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi9.address, pi9.port, pi9.tag, pi9.parents, pi9.children, [], changes);
         break;
     case "pi10":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi10.address, pi10.port, pi10.tag, pi10.parents, pi10.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi10.address, pi10.port, pi10.tag, pi10.parents, pi10.children, [], changes);
         break;
     case "pi11":
-        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi11.address, pi11.port, pi11.tag, pi11.parents, pi11.children, []);
+        new Services_1.SourceService(isQPROP, dataRate, totalVals, csvFile, pi11.address, pi11.port, pi11.tag, pi11.parents, pi11.children, [], changes);
         break;
     case "pi12":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi12.address, pi12.port, pi12.tag, pi12.parents, pi12.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi12.address, pi12.port, pi12.tag, pi12.parents, pi12.children, changes);
         break;
     case "pi13":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi13.address, pi13.port, pi13.tag, pi13.parents, pi13.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi13.address, pi13.port, pi13.tag, pi13.parents, pi13.children, changes);
         break;
     case "pi14":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi14.address, pi14.port, pi14.tag, pi14.parents, pi14.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi14.address, pi14.port, pi14.tag, pi14.parents, pi14.children, changes);
         break;
     case "pi15":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi15.address, pi15.port, pi15.tag, pi15.parents, pi15.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi15.address, pi15.port, pi15.tag, pi15.parents, pi15.children, changes);
         break;
     case "pi16":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi16.address, pi16.port, pi16.tag, pi16.parents, pi16.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi16.address, pi16.port, pi16.tag, pi16.parents, pi16.children, changes);
         break;
     case "pi17":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi17.address, pi17.port, pi17.tag, pi17.parents, pi17.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi17.address, pi17.port, pi17.tag, pi17.parents, pi17.children, changes);
         break;
     case "pi18":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi18.address, pi18.port, pi18.tag, pi18.parents, pi18.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi18.address, pi18.port, pi18.tag, pi18.parents, pi18.children, changes);
         break;
     case "pi19":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi19.address, pi19.port, pi19.tag, pi19.parents, pi19.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi19.address, pi19.port, pi19.tag, pi19.parents, pi19.children, changes);
         break;
     case "pi20":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi20.address, pi20.port, pi20.tag, pi20.parents, pi20.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi20.address, pi20.port, pi20.tag, pi20.parents, pi20.children, changes);
         break;
     case "pi21":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi21.address, pi21.port, pi21.tag, pi21.parents, pi21.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi21.address, pi21.port, pi21.tag, pi21.parents, pi21.children, changes);
         break;
     case "pi22":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi22.address, pi22.port, pi22.tag, pi22.parents, pi22.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi22.address, pi22.port, pi22.tag, pi22.parents, pi22.children, changes);
         break;
     case "pi23":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi23.address, pi23.port, pi23.tag, pi23.parents, pi23.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi23.address, pi23.port, pi23.tag, pi23.parents, pi23.children, changes);
         break;
     case "pi24":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi24.address, pi24.port, pi24.tag, pi24.parents, pi24.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi24.address, pi24.port, pi24.tag, pi24.parents, pi24.children, changes);
         break;
     case "pi25":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi25.address, pi25.port, pi25.tag, pi25.parents, pi25.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi25.address, pi25.port, pi25.tag, pi25.parents, pi25.children, changes);
         break;
     case "pi26":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi26.address, pi26.port, pi26.tag, pi26.parents, pi26.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi26.address, pi26.port, pi26.tag, pi26.parents, pi26.children, changes);
         break;
     case "pi27":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi27.address, pi27.port, pi27.tag, pi27.parents, pi27.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi27.address, pi27.port, pi27.tag, pi27.parents, pi27.children, changes);
         break;
     case "pi28":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi28.address, pi28.port, pi28.tag, pi28.parents, pi28.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi28.address, pi28.port, pi28.tag, pi28.parents, pi28.children, changes);
         break;
     case "pi29":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi29.address, pi29.port, pi29.tag, pi29.parents, pi29.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi29.address, pi29.port, pi29.tag, pi29.parents, pi29.children, changes);
         break;
     case "pi30":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi30.address, pi30.port, pi30.tag, pi30.parents, pi30.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi30.address, pi30.port, pi30.tag, pi30.parents, pi30.children, changes);
         break;
     case "pi31":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi31.address, pi31.port, pi31.tag, pi31.parents, pi31.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi31.address, pi31.port, pi31.tag, pi31.parents, pi31.children, changes);
         break;
     case "pi32":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi32.address, pi32.port, pi32.tag, pi32.parents, pi32.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi32.address, pi32.port, pi32.tag, pi32.parents, pi32.children, changes);
         break;
     case "pi33":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi33.address, pi33.port, pi33.tag, pi33.parents, pi33.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi33.address, pi33.port, pi33.tag, pi33.parents, pi33.children, changes);
         break;
     case "pi34":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi34.address, pi34.port, pi34.tag, pi34.parents, pi34.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi34.address, pi34.port, pi34.tag, pi34.parents, pi34.children, changes);
         break;
     case "pi35":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi35.address, pi35.port, pi35.tag, pi35.parents, pi35.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi35.address, pi35.port, pi35.tag, pi35.parents, pi35.children, changes);
         break;
     case "pi36":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi36.address, pi36.port, pi36.tag, pi36.parents, pi36.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi36.address, pi36.port, pi36.tag, pi36.parents, pi36.children, changes);
         break;
     case "pi37":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi37.address, pi37.port, pi37.tag, pi37.parents, pi37.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi37.address, pi37.port, pi37.tag, pi37.parents, pi37.children, changes);
         break;
     case "pi38":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi38.address, pi38.port, pi38.tag, pi38.parents, pi38.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi38.address, pi38.port, pi38.tag, pi38.parents, pi38.children, changes);
         break;
     case "pi39":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi39.address, pi39.port, pi39.tag, pi39.parents, pi39.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi39.address, pi39.port, pi39.tag, pi39.parents, pi39.children, changes);
         break;
     case "pi40":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi40.address, pi40.port, pi40.tag, pi40.parents, pi40.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi40.address, pi40.port, pi40.tag, pi40.parents, pi40.children, changes);
         break;
     case "pi41":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi41.address, pi41.port, pi41.tag, pi41.parents, pi41.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi41.address, pi41.port, pi41.tag, pi41.parents, pi41.children, changes);
         break;
     case "pi42":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi42.address, pi42.port, pi42.tag, pi42.parents, pi42.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi42.address, pi42.port, pi42.tag, pi42.parents, pi42.children, changes);
         break;
     case "pi43":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi43.address, pi43.port, pi43.tag, pi43.parents, pi43.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi43.address, pi43.port, pi43.tag, pi43.parents, pi43.children, changes);
         break;
     case "pi44":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi44.address, pi44.port, pi44.tag, pi44.parents, pi44.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi44.address, pi44.port, pi44.tag, pi44.parents, pi44.children, changes);
         break;
     case "pi45":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi45.address, pi45.port, pi45.tag, pi45.parents, pi45.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi45.address, pi45.port, pi45.tag, pi45.parents, pi45.children, changes);
         break;
     case "pi46":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi46.address, pi46.port, pi46.tag, pi46.parents, pi46.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi46.address, pi46.port, pi46.tag, pi46.parents, pi46.children, changes);
         break;
     case "pi47":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi47.address, pi47.port, pi47.tag, pi47.parents, pi47.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi47.address, pi47.port, pi47.tag, pi47.parents, pi47.children, changes);
         break;
     case "pi48":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi48.address, pi48.port, pi48.tag, pi48.parents, pi48.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi48.address, pi48.port, pi48.tag, pi48.parents, pi48.children, changes);
         break;
     case "pi49":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi49.address, pi49.port, pi49.tag, pi49.parents, pi49.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi49.address, pi49.port, pi49.tag, pi49.parents, pi49.children, changes);
         break;
     case "pi50":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi50.address, pi50.port, pi50.tag, pi50.parents, pi50.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi50.address, pi50.port, pi50.tag, pi50.parents, pi50.children, changes);
         break;
     case "pi51":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi51.address, pi51.port, pi51.tag, pi51.parents, pi51.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi51.address, pi51.port, pi51.tag, pi51.parents, pi51.children, changes);
         break;
     case "pi52":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi52.address, pi52.port, pi52.tag, pi52.parents, pi52.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi52.address, pi52.port, pi52.tag, pi52.parents, pi52.children, changes);
         break;
     case "pi53":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi53.address, pi53.port, pi53.tag, pi53.parents, pi53.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi53.address, pi53.port, pi53.tag, pi53.parents, pi53.children, changes);
         break;
     case "pi54":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi54.address, pi54.port, pi54.tag, pi54.parents, pi54.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi54.address, pi54.port, pi54.tag, pi54.parents, pi54.children, changes);
         break;
     case "pi55":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi55.address, pi55.port, pi55.tag, pi55.parents, pi55.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi55.address, pi55.port, pi55.tag, pi55.parents, pi55.children, changes);
         break;
     case "pi56":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi56.address, pi56.port, pi56.tag, pi56.parents, pi56.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi56.address, pi56.port, pi56.tag, pi56.parents, pi56.children, changes);
         break;
     case "pi57":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi57.address, pi57.port, pi57.tag, pi57.parents, pi57.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi57.address, pi57.port, pi57.tag, pi57.parents, pi57.children, changes);
         break;
     case "pi58":
-        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi58.address, pi58.port, pi58.tag, pi58.parents, pi58.children);
+        new Services_1.DerivedService(isQPROP, dataRate, totalVals, csvFile, pi58.address, pi58.port, pi58.tag, pi58.parents, pi58.children, changes);
         break;
     case "pi59":
-        new Services_1.SinkService(isQPROP, dataRate, totalVals, csvFile, pi59.address, pi59.port, pi59.tag, pi59.parents, pi59.children, 10);
+        new Services_1.SinkService(isQPROP, dataRate, totalVals, csvFile, pi59.address, pi59.port, pi59.tag, pi59.parents, pi59.children, 10, changes);
         break;
     default:
         throw new Error("unknown spawning argument");

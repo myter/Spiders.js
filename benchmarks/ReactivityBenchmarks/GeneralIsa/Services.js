@@ -205,13 +205,18 @@ function mapToName(piHostName) {
 }
 exports.mapToName = mapToName;
 class Admitter extends MicroService_1.MicroServiceApp {
-    constructor(totalVals, csvFileName, dataRate, numSources, dynamicLinks) {
+    constructor(totalVals, csvFileName, dataRate, numSources, dynamicLinks, changes) {
         super(exports.admitterIP, exports.admitterPort, exports.monitorIP, exports.monitorPort);
         this.close = false;
         this.dynamicLinks = dynamicLinks;
         this.memWriter = new MemoryWriter("Admitter");
         let writer = csvWriter({ sendHeaders: false });
-        writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
+        if (changes > 0) {
+            writer.pipe(fs.createWriteStream("Processing/" + csvFileName + changes + ".csv", { flags: 'a' }));
+        }
+        else {
+            writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
+        }
         this.snapMem();
         let change = (newValue) => {
             let propagationTime = Date.now();
@@ -236,7 +241,12 @@ class Admitter extends MicroService_1.MicroServiceApp {
                     writer.write({ pTime: avg });
                     writer.end();
                     this.memWriter.end();
-                    averageMem(csvFileName, dataRate, "Admitter", true);
+                    if (changes > 0) {
+                        averageMem(csvFileName, changes, "Admitter", true);
+                    }
+                    else {
+                        averageMem(csvFileName, dataRate, "Admitter", true);
+                    }
                 }
             }
             else {
@@ -271,9 +281,10 @@ class Admitter extends MicroService_1.MicroServiceApp {
 }
 exports.Admitter = Admitter;
 class SourceService extends MicroService_1.MicroServiceApp {
-    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTags, directChildrenTags, dynamicLinkTags) {
+    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTags, directChildrenTags, dynamicLinkTags, changes) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
         this.rate = rate;
+        this.changes = changes;
         this.close = false;
         this.myTag = myTag;
         this.dynamicLinks = dynamicLinkTags;
@@ -307,7 +318,12 @@ class SourceService extends MicroService_1.MicroServiceApp {
     snapMem() {
         if (!this.close) {
             setTimeout(() => {
-                this.memWriter.snapshot(this.csvFileName, this.rate, this.myTag.tagVal);
+                if (this.changes > 0) {
+                    this.memWriter.snapshot(this.csvFileName, this.changes, this.myTag.tagVal);
+                }
+                else {
+                    this.memWriter.snapshot(this.csvFileName, this.rate, this.myTag.tagVal);
+                }
                 this.snapMem();
             }, 500);
         }
@@ -328,10 +344,11 @@ class SourceService extends MicroService_1.MicroServiceApp {
 }
 exports.SourceService = SourceService;
 class DerivedService extends MicroService_1.MicroServiceApp {
-    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTag, directChildrenTags) {
+    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTag, directChildrenTags, changes) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
         this.close = false;
         this.rate = rate;
+        this.changes = changes;
         this.csvfileName = csvFileName;
         this.myTag = myTag;
         this.memWriter = new PersistMemWriter();
@@ -374,7 +391,12 @@ class DerivedService extends MicroService_1.MicroServiceApp {
     snapMem() {
         if (!this.close) {
             setTimeout(() => {
-                this.memWriter.snapshot(this.csvfileName, this.rate, this.myTag.tagVal);
+                if (this.changes > 0) {
+                    this.memWriter.snapshot(this.csvfileName, this.changes, this.myTag.tagVal);
+                }
+                else {
+                    this.memWriter.snapshot(this.csvfileName, this.rate, this.myTag.tagVal);
+                }
                 this.snapMem();
             }, 500);
         }
@@ -382,9 +404,10 @@ class DerivedService extends MicroService_1.MicroServiceApp {
 }
 exports.DerivedService = DerivedService;
 class SinkService extends MicroService_1.MicroServiceApp {
-    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentTags, directChildrenTags, numSources) {
+    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentTags, directChildrenTags, numSources, changes) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
         this.close = false;
+        this.changes = changes;
         this.memWriter = new MemoryWriter(myTag.tagVal);
         this.snapMem();
         let valsReceived = 0;
@@ -392,8 +415,14 @@ class SinkService extends MicroService_1.MicroServiceApp {
         let tWriter = csvWriter({ sendHeaders: false });
         let pWriter = csvWriter({ sendHeaders: false });
         writer.pipe(fs.createWriteStream('temp.csv'));
-        tWriter.pipe(fs.createWriteStream("Throughput/" + csvFileName + rate + ".csv", { flags: 'a' }));
-        pWriter.pipe(fs.createWriteStream("Processing/" + csvFileName + rate + ".csv", { flags: 'a' }));
+        if (changes > 0) {
+            tWriter.pipe(fs.createWriteStream("Throughput/" + csvFileName + changes + ".csv", { flags: 'a' }));
+            pWriter.pipe(fs.createWriteStream("Processing/" + csvFileName + changes + ".csv", { flags: 'a' }));
+        }
+        else {
+            tWriter.pipe(fs.createWriteStream("Throughput/" + csvFileName + rate + ".csv", { flags: 'a' }));
+            pWriter.pipe(fs.createWriteStream("Processing/" + csvFileName + rate + ".csv", { flags: 'a' }));
+        }
         let imp;
         if (isQPROP) {
             imp = this.QPROP(myTag, directParentTags, directChildrenTags, null);
@@ -448,8 +477,14 @@ class SinkService extends MicroService_1.MicroServiceApp {
                     pWriter.write({ pTime: avg });
                     pWriter.end();
                 }
-                averageResults(csvFileName, rate);
-                averageMem(csvFileName, rate, myTag.tagVal, isQPROP);
+                if (changes > 0) {
+                    averageResults(csvFileName, changes);
+                    averageMem(csvFileName, changes, myTag.tagVal, isQPROP);
+                }
+                else {
+                    averageResults(csvFileName, rate);
+                    averageMem(csvFileName, rate, myTag.tagVal, isQPROP);
+                }
             }
         })(imp);
     }
