@@ -403,6 +403,9 @@ class QPROPNode {
     receiveMessage(from, message) {
         let qSet = this.inputQueues.get(from.tagVal);
         let originQueue = qSet.get(message.origin.tagVal);
+        if (originQueue == undefined) {
+            console.log("Unable to enqueueu for: " + message.origin.tagVal);
+        }
         originQueue.enQueue(message);
         this.directParentLastKnownVals.set(from.tagVal, message.value);
         let canPropagate = this.canPropagate(message.origin);
