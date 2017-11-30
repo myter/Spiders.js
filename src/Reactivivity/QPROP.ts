@@ -524,6 +524,9 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     updateSources(from : PubSubTag,sourceMap : SourceIsolate,updateDef = false,defVal = null){
+        if(!this.inputQueues.has(from.tagVal)){
+            this.inputQueues.set(from.tagVal,new Map())
+        }
         let sources     = sourceMap.sources
         let mySources   = this.getAllSources().sources
         sources.forEach((source : PubSubTag)=>{
