@@ -297,7 +297,7 @@ export class Admitter extends MicroServiceApp{
                 console.log("ADDING DYNAMIC DEPENDENCY")
                 this.addDependency(from,to)
                 this.checkDynamicLinks()
-            },Math.floor(Math.random() * 1000) + 500)
+            },Math.floor(Math.random() * 100) + 50)
         }
     }
 }
@@ -374,7 +374,7 @@ export class SourceService extends MicroServiceApp{
                 console.log("From: " + from.tagVal + " to: " + to.tagVal)
                 this.addDependency(from,to)
                 this.checkDynamicLinks()
-            },Math.floor(Math.random() * 1000) + 500)
+            },Math.floor(Math.random() * 100) + 50)
         }
     }
 }
