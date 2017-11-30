@@ -270,9 +270,6 @@ class QPROPNode {
         }
     }
     dynamicDependencyAddition(change) {
-        if (this.ownType.tagVal == "50") {
-            console.log("Creating new queue for : " + change.fromType.tagVal + " in " + this.ownType.tagVal);
-        }
         this.inputQueues.set(change.fromType.tagVal, new Map());
         this.directParents.push(change.fromType);
         this.host.subscribe(change.fromType).each((fromRef) => {
