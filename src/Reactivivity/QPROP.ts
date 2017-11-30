@@ -535,7 +535,7 @@ export class QPROPNode implements DPropAlgorithm{
             this.directParents.push(from)
         }
         this.constructQueue(from,sources)
-        console.log("Constructing queue from: " + from +" for sources: " + sources)
+        console.log("Constructing queue from: " + from.tagVal +" for sources: " + sources.map((t)=>{return t.tagVal}))
         if(this.directChildren.length == 0){
             return "ok"
         }
