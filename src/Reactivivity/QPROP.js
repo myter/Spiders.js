@@ -456,9 +456,9 @@ class QPROPNode {
         return this.ownDefault;
     }
     updateSources(from, sourceMap, updateDef = false, defVal = null) {
-        if (!this.inputQueues.has(from.tagVal)) {
-            this.inputQueues.set(from.tagVal, new Map());
-        }
+        /*if(!this.inputQueues.has(from.tagVal)){
+            this.inputQueues.set(from.tagVal,new Map())
+        }*/
         let sources = sourceMap.sources;
         let mySources = this.getAllSources().sources;
         sources.forEach((source) => {
