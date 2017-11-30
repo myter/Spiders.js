@@ -23,9 +23,11 @@ __decorate([
     spiders.mutator
 ], TestSignal.prototype, "inc", null);
 var SourceTag = new SubTag_1.PubSubTag("Source");
+var Source2Tag = new SubTag_1.PubSubTag("Source2");
 var ATag = new SubTag_1.PubSubTag("A");
 var BTag = new SubTag_1.PubSubTag("B");
 var SinkTag = new SubTag_1.PubSubTag("Sink");
+var SuperTag = new SubTag_1.PubSubTag("Super");
 class Source extends MicroService_1.MicroService {
     constructor() {
         super();
@@ -37,16 +39,31 @@ class Source extends MicroService_1.MicroService {
         this.t = this.newSignal(this.TestSignal);
         this.publishSignal(this.t);
         this.update();
-        setTimeout(() => {
-            console.log("Adding dependency");
-            this.addDependency(this.SourceTag, this.SinkTag);
-        }, 5000);
     }
     update() {
         setTimeout(() => {
             this.t.inc();
             this.update();
         }, 2000);
+    }
+}
+class Source2 extends MicroService_1.MicroService {
+    constructor() {
+        super();
+        this.TestSignal = TestSignal;
+        this.Source2Tag = Source2Tag;
+        this.SinkTag = BTag;
+    }
+    start(subSignal) {
+        this.t = this.newSignal(this.TestSignal);
+        this.publishSignal(this.t);
+        this.update();
+    }
+    update() {
+        setTimeout(() => {
+            this.t.inc();
+            this.update();
+        }, 3000);
     }
 }
 class A extends MicroService_1.MicroService {
@@ -67,12 +84,22 @@ class B extends MicroService_1.MicroService {
 }
 class Sink extends MicroService_1.MicroService {
     start(subSignal) {
-        this.lift((res) => {
+        let x = this.lift((res) => {
             console.log("Got: " + res);
+            return res;
+        })(subSignal);
+        this.publishSignal(x);
+    }
+}
+class SuperSink extends MicroService_1.MicroService {
+    start(subSignal) {
+        this.lift((res) => {
+            console.log("Got SUPER: " + res);
         })(subSignal);
     }
 }
-monitor.installRService(Sink, SinkTag, [ATag, BTag], null);
+monitor.installRService(SuperSink, SuperTag, [SinkTag], null);
+monitor.installRService(Sink, SinkTag, [ATag, BTag, Source2Tag], null);
 monitor.installRService(Source, SourceTag, [], null);
 monitor.installRService(A, ATag, [SourceTag], null);
 monitor.installRService(B, BTag, [SourceTag], null);

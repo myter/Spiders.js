@@ -249,6 +249,9 @@ export class Admitter extends MicroServiceApp{
         let idle = ()=>{
             valsReceived++
             if(valsReceived > 0){
+                if(valsReceived == 1){
+                    this.checkDynamicLinks()
+                }
                 this.close = true
                 let processTime = Date.now() - (admitTimes.splice(0,1)[0])
                 processTimes.push(processTime)
@@ -268,9 +271,6 @@ export class Admitter extends MicroServiceApp{
                         averageMem(csvFileName,dataRate,"Admitter",true)
                     }
                 }
-            }
-            else{
-                this.checkDynamicLinks()
             }
         }
         let admit = ()=>{

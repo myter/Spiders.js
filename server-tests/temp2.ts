@@ -19,9 +19,11 @@ class TestSignal extends spiders.Signal{
 }
 
 var SourceTag   = new PubSubTag("Source")
+var Source2Tag  = new PubSubTag("Source2")
 var ATag        = new PubSubTag("A")
 var BTag        = new PubSubTag("B")
 var SinkTag     = new PubSubTag("Sink")
+var SuperTag    = new PubSubTag("Super")
 
 class Source extends MicroService{
     TestSignal
@@ -40,10 +42,6 @@ class Source extends MicroService{
         this.t = this.newSignal(this.TestSignal)
         this.publishSignal(this.t)
         this.update()
-        setTimeout(()=>{
-            console.log("Adding dependency")
-            this.addDependency(this.SourceTag,this.SinkTag)
-        },5000)
     }
 
     update(){
@@ -51,6 +49,33 @@ class Source extends MicroService{
             this.t.inc()
             this.update()
         },2000)
+    }
+}
+
+class Source2 extends MicroService{
+    TestSignal
+    t
+    Source2Tag
+    SinkTag
+
+    constructor(){
+        super()
+        this.TestSignal = TestSignal
+        this.Source2Tag = Source2Tag
+        this.SinkTag = BTag
+    }
+
+    start(subSignal){
+        this.t = this.newSignal(this.TestSignal)
+        this.publishSignal(this.t)
+        this.update()
+    }
+
+    update(){
+        setTimeout(()=>{
+            this.t.inc()
+            this.update()
+        },3000)
     }
 }
 
@@ -74,13 +99,24 @@ class B extends MicroService{
 
 class Sink extends MicroService{
     start(subSignal){
-        this.lift((res)=>{
+        let x  =this.lift((res)=>{
             console.log("Got: "+res)
+            return res
+        })(subSignal)
+        this.publishSignal(x)
+    }
+}
+
+class SuperSink extends MicroService{
+    start(subSignal){
+        this.lift((res)=>{
+            console.log("Got SUPER: "+res)
         })(subSignal)
     }
 }
 
-monitor.installRService(Sink,SinkTag,[ATag,BTag],null)
+monitor.installRService(SuperSink,SuperTag,[SinkTag],null)
+monitor.installRService(Sink,SinkTag,[ATag,BTag,Source2Tag],null)
 monitor.installRService(Source,SourceTag,[],null)
 monitor.installRService(A,ATag,[SourceTag],null)
 monitor.installRService(B,BTag,[SourceTag],null)
