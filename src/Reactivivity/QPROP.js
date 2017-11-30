@@ -467,6 +467,7 @@ class QPROPNode {
             this.directParents.push(from);
         }
         this.constructQueue(from, sources);
+        console.log("Constructing queue from: " + from + " for sources: " + sources);
         if (this.directChildren.length == 0) {
             return "ok";
         }
