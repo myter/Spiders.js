@@ -85,6 +85,8 @@ export class QPROPNode implements DPropAlgorithm{
     signalPool                  : SignalPool
     parentSignals               : Map<string,Signal>
     parentSignalResolver        : Function
+    inChange                    : Boolean
+    changeDoneListener          : Array<Function>
 
 
 
@@ -109,12 +111,23 @@ export class QPROPNode implements DPropAlgorithm{
         this.stampCounter               = 0
         this.dynamic                    = isDynamic
         this.parentSignals              = new Map()
+        this.inChange                   = false
+        this.changeDoneListener         = []
         //this.printInfo()
         hostActor.publish(this,ownType)
         hostActor.subscribe(dependencyChangeType).each((change : DependencyChange)=>{
             //console.log("Dependency addition detected")
             if(change.toType.tagVal == this.ownType.tagVal){
-                this.dynamicDependencyAddition(change)
+                if(this.inChange){
+                    this.changeDoneListener.push(()=>{
+                        this.inChange = true
+                        this.dynamicDependencyAddition(change)
+                    })
+                }
+                else{
+                    this.inChange = true
+                    this.dynamicDependencyAddition(change)
+                }
             }
         })
         this.pickInit()
@@ -345,11 +358,19 @@ export class QPROPNode implements DPropAlgorithm{
                         childrenUpdated++
                         if(childrenUpdated == this.directChildren.length){
                             fromRef.addChild(this)
+                            this.inChange = false
+                            if(this.changeDoneListener.length > 0){
+                                this.changeDoneListener.splice(0,1)[0]()
+                            }
                         }
                     })
                 })
                 if(this.directChildren.length == 0){
                     fromRef.addChild(this)
+                    this.inChange = false
+                    if(this.changeDoneListener.length > 0){
+                        this.changeDoneListener.splice(0,1)[0]()
+                    }
                 }
             })
         })

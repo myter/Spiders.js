@@ -72,12 +72,23 @@ class QPROPNode {
         this.stampCounter = 0;
         this.dynamic = isDynamic;
         this.parentSignals = new Map();
+        this.inChange = false;
+        this.changeDoneListener = [];
         //this.printInfo()
         hostActor.publish(this, ownType);
         hostActor.subscribe(dependencyChangeType).each((change) => {
             //console.log("Dependency addition detected")
             if (change.toType.tagVal == this.ownType.tagVal) {
-                this.dynamicDependencyAddition(change);
+                if (this.inChange) {
+                    this.changeDoneListener.push(() => {
+                        this.inChange = true;
+                        this.dynamicDependencyAddition(change);
+                    });
+                }
+                else {
+                    this.inChange = true;
+                    this.dynamicDependencyAddition(change);
+                }
             }
         });
         this.pickInit();
@@ -293,11 +304,19 @@ class QPROPNode {
                         childrenUpdated++;
                         if (childrenUpdated == this.directChildren.length) {
                             fromRef.addChild(this);
+                            this.inChange = false;
+                            if (this.changeDoneListener.length > 0) {
+                                this.changeDoneListener.splice(0, 1)[0]();
+                            }
                         }
                     });
                 });
                 if (this.directChildren.length == 0) {
                     fromRef.addChild(this);
+                    this.inChange = false;
+                    if (this.changeDoneListener.length > 0) {
+                        this.changeDoneListener.splice(0, 1)[0]();
+                    }
                 }
             });
         });
