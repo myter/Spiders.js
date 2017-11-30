@@ -448,7 +448,7 @@ class QPROPNode {
             this.directParents.push(from);
         }
         this.constructQueue(from, sources);
-        if (this.directChildrenRefs.length == 0) {
+        if (this.directChildren.length == 0) {
             return "ok";
         }
         else {
@@ -457,7 +457,7 @@ class QPROPNode {
                 this.directChildrenRefs.forEach((childRef) => {
                     childRef.updateSources(this.ownType, sourceMap).then(() => {
                         resReceived++;
-                        if (resReceived == this.directChildrenRefs.length) {
+                        if (resReceived == this.directChildren.length) {
                             resolve("ok");
                         }
                     });

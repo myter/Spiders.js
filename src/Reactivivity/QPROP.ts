@@ -514,7 +514,7 @@ export class QPROPNode implements DPropAlgorithm{
             this.directParents.push(from)
         }
         this.constructQueue(from,sources)
-        if(this.directChildrenRefs.length == 0){
+        if(this.directChildren.length == 0){
             return "ok"
         }
         else{
@@ -523,7 +523,7 @@ export class QPROPNode implements DPropAlgorithm{
                 this.directChildrenRefs.forEach((childRef : FarRef)=>{
                     childRef.updateSources(this.ownType,sourceMap).then(()=>{
                         resReceived++
-                        if(resReceived == this.directChildrenRefs.length){
+                        if(resReceived == this.directChildren.length){
                             resolve("ok")
                         }
                     })
