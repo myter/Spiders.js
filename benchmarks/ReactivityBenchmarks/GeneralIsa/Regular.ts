@@ -10,7 +10,7 @@ import {
     pi7Tag,
     pi8Tag,
     pi9Tag,
-    piAddresses,
+    piAddresses, piIds,
     piPorts,
     ServiceInfo, SinkService, SourceService
 } from "./Services";
@@ -86,42 +86,64 @@ let toSpawn     = mapToName(process.argv[3])
 let dataRate    = parseInt(process.argv[4]) / 10
 let totalVals   = dataRate * 30
 let csvFile     = process.argv[5]
+let changes     = parseInt(process.argv[6])
+
+function getRandomPi(lesserBound,upperbound){
+    let index = Math.floor(Math.random() * piIds.length) + 2
+    //return eval("pi"+index)
+    if(index <= lesserBound || index >= upperbound){
+        return getRandomPi(lesserBound,upperbound)
+    }
+    else{
+        return index
+    }
+}
+
+let dynLinks = []
+for(var i=0;i < changes;i++){
+    let fromIndex = getRandomPi(2,59)
+    let toIndex   = fromIndex + Math.floor(Math.random() * (59 - fromIndex)) + 1
+    let from = eval("pi"+fromIndex)
+    let to   = eval("pi"+toIndex)
+    dynLinks.push({from: from.tag,to: to.tag})
+}
+
 switch (toSpawn){
     case "admitter":
-        new Admitter(totalVals,csvFile,dataRate,10)
+        new Admitter(totalVals,csvFile,dataRate,10,dynLinks)
         break
     case "monitor":
         new ServiceMonitor(monitorIP,monitorPort)
         break
     case "pi2":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi2.address,pi2.port,pi2.tag,pi2.parents,pi2.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi2.address,pi2.port,pi2.tag,pi2.parents,pi2.children,dynLinks)
         break;
     case "pi3":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi3.address,pi3.port,pi3.tag,pi3.parents,pi3.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi3.address,pi3.port,pi3.tag,pi3.parents,pi3.children,[])
         break;
     case "pi4":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi4.address,pi4.port,pi4.tag,pi4.parents,pi4.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi4.address,pi4.port,pi4.tag,pi4.parents,pi4.children,[])
         break;
     case "pi5":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi5.address,pi5.port,pi5.tag,pi5.parents,pi5.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi5.address,pi5.port,pi5.tag,pi5.parents,pi5.children,[])
         break;
     case "pi6":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi6.address,pi6.port,pi6.tag,pi6.parents,pi6.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi6.address,pi6.port,pi6.tag,pi6.parents,pi6.children,[])
         break;
     case "pi7":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi7.address,pi7.port,pi7.tag,pi7.parents,pi7.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi7.address,pi7.port,pi7.tag,pi7.parents,pi7.children,[])
         break;
     case "pi8":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi8.address,pi8.port,pi8.tag,pi8.parents,pi8.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi8.address,pi8.port,pi8.tag,pi8.parents,pi8.children,[])
         break;
     case "pi9":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi9.address,pi9.port,pi9.tag,pi9.parents,pi9.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi9.address,pi9.port,pi9.tag,pi9.parents,pi9.children,[])
         break;
     case "pi10":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi10.address,pi10.port,pi10.tag,pi10.parents,pi10.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi10.address,pi10.port,pi10.tag,pi10.parents,pi10.children,[])
         break;
     case "pi11":
-        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi11.address,pi11.port,pi11.tag,pi11.parents,pi11.children)
+        new SourceService(isQPROP,dataRate,totalVals,csvFile,pi11.address,pi11.port,pi11.tag,pi11.parents,pi11.children,[])
         break;
     case "pi12":
         new DerivedService(isQPROP,dataRate,totalVals,csvFile,pi12.address,pi12.port,pi12.tag,pi12.parents,pi12.children)

@@ -205,9 +205,10 @@ function mapToName(piHostName) {
 }
 exports.mapToName = mapToName;
 class Admitter extends MicroService_1.MicroServiceApp {
-    constructor(totalVals, csvFileName, dataRate, numSources) {
+    constructor(totalVals, csvFileName, dataRate, numSources, dynamicLinks) {
         super(exports.admitterIP, exports.admitterPort, exports.monitorIP, exports.monitorPort);
         this.close = false;
+        this.dynamicLinks = dynamicLinks;
         this.memWriter = new MemoryWriter("Admitter");
         let writer = csvWriter({ sendHeaders: false });
         writer.pipe(fs.createWriteStream("Processing/" + csvFileName + dataRate + ".csv", { flags: 'a' }));
@@ -238,6 +239,9 @@ class Admitter extends MicroService_1.MicroServiceApp {
                     averageMem(csvFileName, dataRate, "Admitter", true);
                 }
             }
+            else {
+                this.checkDynamicLinks();
+            }
         };
         let admit = () => {
             admitTimes.push(Date.now());
@@ -252,14 +256,27 @@ class Admitter extends MicroService_1.MicroServiceApp {
             }, 500);
         }
     }
+    checkDynamicLinks() {
+        if (this.dynamicLinks.length > 0) {
+            setTimeout(() => {
+                let link = this.dynamicLinks.splice(0, 1);
+                let from = link.from;
+                let to = link.to;
+                console.log("ADDING DYNAMIC DEPENDENCY");
+                this.addDependency(from, to);
+                this.checkDynamicLinks();
+            }, Math.floor(Math.random() * 10000) + 1000);
+        }
+    }
 }
 exports.Admitter = Admitter;
 class SourceService extends MicroService_1.MicroServiceApp {
-    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTags, directChildrenTags) {
+    constructor(isQPROP, rate, totalVals, csvFileName, myAddress, myPort, myTag, directParentsTags, directChildrenTags, dynamicLinkTags) {
         super(myAddress, myPort, exports.monitorIP, exports.monitorPort);
         this.rate = rate;
         this.close = false;
         this.myTag = myTag;
+        this.dynamicLinks = dynamicLinkTags;
         this.memWriter = new PersistMemWriter();
         this.snapMem();
         this.totalVals = totalVals;
@@ -275,6 +292,7 @@ class SourceService extends MicroService_1.MicroServiceApp {
         //Wait for construction to be completed (for both QPROP and SIDUP)
         setTimeout(() => {
             this.update(sig);
+            this.checkDynamicLinks();
         }, 5000);
     }
     update(signal) {
@@ -292,6 +310,19 @@ class SourceService extends MicroService_1.MicroServiceApp {
                 this.memWriter.snapshot(this.csvFileName, this.rate, this.myTag.tagVal);
                 this.snapMem();
             }, 500);
+        }
+    }
+    checkDynamicLinks() {
+        if (this.dynamicLinks.length > 0) {
+            setTimeout(() => {
+                let link = this.dynamicLinks.splice(0, 1)[0];
+                let from = link.from;
+                let to = link.to;
+                console.log("ADDING DYNAMIC DEPENDENCY");
+                console.log("From: " + from.tagVal + " to: " + to.tagVal);
+                this.addDependency(from, to);
+                this.checkDynamicLinks();
+            }, Math.floor(Math.random() * 5000) + 1000);
         }
     }
 }
