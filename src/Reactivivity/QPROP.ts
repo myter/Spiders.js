@@ -85,8 +85,6 @@ export class QPROPNode implements DPropAlgorithm{
     signalPool                  : SignalPool
     parentSignals               : Map<string,Signal>
     parentSignalResolver        : Function
-    inChange                    : Boolean
-    changeDoneListener          : Array<Function>
 
 
 
@@ -111,23 +109,12 @@ export class QPROPNode implements DPropAlgorithm{
         this.stampCounter               = 0
         this.dynamic                    = isDynamic
         this.parentSignals              = new Map()
-        this.inChange                   = false
-        this.changeDoneListener         = []
         //this.printInfo()
         hostActor.publish(this,ownType)
         hostActor.subscribe(dependencyChangeType).each((change : DependencyChange)=>{
             //console.log("Dependency addition detected")
             if(change.toType.tagVal == this.ownType.tagVal){
-                if(this.inChange){
-                    this.changeDoneListener.push(()=>{
-                        this.inChange = true
-                        this.dynamicDependencyAddition(change)
-                    })
-                }
-                else{
-                    this.inChange = true
-                    this.dynamicDependencyAddition(change)
-                }
+                this.dynamicDependencyAddition(change)
             }
         })
         this.pickInit()
@@ -335,6 +322,9 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     dynamicDependencyAddition(change : DependencyChange){
+        if(this.ownType.tagVal == "50"){
+            console.log("Creating new queue for : " + change.fromType.tagVal + " in " + this.ownType.tagVal)
+        }
         this.inputQueues.set(change.fromType.tagVal,new Map())
         this.directParents.push(change.fromType)
         this.host.subscribe(change.fromType).each((fromRef : FarRef)=>{
@@ -358,19 +348,11 @@ export class QPROPNode implements DPropAlgorithm{
                         childrenUpdated++
                         if(childrenUpdated == this.directChildren.length){
                             fromRef.addChild(this)
-                            this.inChange = false
-                            if(this.changeDoneListener.length > 0){
-                                this.changeDoneListener.splice(0,1)[0]()
-                            }
                         }
                     })
                 })
                 if(this.directChildren.length == 0){
                     fromRef.addChild(this)
-                    this.inChange = false
-                    if(this.changeDoneListener.length > 0){
-                        this.changeDoneListener.splice(0,1)[0]()
-                    }
                 }
             })
         })
@@ -524,9 +506,6 @@ export class QPROPNode implements DPropAlgorithm{
     }
 
     updateSources(from : PubSubTag,sourceMap : SourceIsolate,updateDef = false,defVal = null){
-        /*if(!this.inputQueues.has(from.tagVal)){
-            this.inputQueues.set(from.tagVal,new Map())
-        }*/
         let sources     = sourceMap.sources
         let mySources   = this.getAllSources().sources
         sources.forEach((source : PubSubTag)=>{
