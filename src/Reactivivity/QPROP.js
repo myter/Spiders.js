@@ -272,7 +272,7 @@ class QPROPNode {
     dynamicDependencyAddition(change) {
         this.inputQueues.set(change.fromType.tagVal, new Map());
         this.directParents.push(change.fromType);
-        this.host.subscribe(change.fromType).each((fromRef) => {
+        this.host.subscribe(change.fromType).once((fromRef) => {
             this.directParentRefs.push(fromRef);
             fromRef.getDefaultValue().then((defVal) => {
                 this.directParentDefaultVals.set(change.fromType.tagVal, defVal);

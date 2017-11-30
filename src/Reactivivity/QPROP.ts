@@ -324,7 +324,7 @@ export class QPROPNode implements DPropAlgorithm{
     dynamicDependencyAddition(change : DependencyChange){
         this.inputQueues.set(change.fromType.tagVal,new Map())
         this.directParents.push(change.fromType)
-        this.host.subscribe(change.fromType).each((fromRef : FarRef)=>{
+        this.host.subscribe(change.fromType).once((fromRef : FarRef)=>{
             this.directParentRefs.push(fromRef)
             fromRef.getDefaultValue().then((defVal)=>{
                 this.directParentDefaultVals.set(change.fromType.tagVal,defVal)
