@@ -1,11 +1,11 @@
-export {}
+export{}
 var plotly = require('plotly')("fmyter", "2vS7PnPW9rby030FBL2L");
 var fss = require('fs')
 var csv = require('fast-csv')
 var Stats = require('fast-stats').Stats;
 
 var xVals : string[] = []
-for(var i = 0;i < 1100;i+=100){
+for(var i = 0;i < 25;i+=5){
     if(i == 0){
         xVals.push("1")
     }
@@ -14,14 +14,14 @@ for(var i = 0;i < 1100;i+=100){
     }
 }
 
-let getAllData = (prefix,path,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =>{
+let getAllData = (prefix,arrayIndex,fileIndex,resolver,valuesArray,errorArray) =>{
     return new Promise((resolve)=>{
         let stream
         if(fileIndex == 0){
-            stream          = fss.createReadStream("../GeneralIsa/results/"+path+prefix+"Regular1.csv");
+            stream          = fss.createReadStream("../GeneralIsa/resultsDynamic/Latency/"+prefix+"Regular1.csv");
         }
         else{
-            stream          = fss.createReadStream("../GeneralIsa/results/"+path+prefix+"Regular"+fileIndex+".csv");
+            stream          = fss.createReadStream("../GeneralIsa/resultsDynamic/Latency/"+prefix+"Regular"+fileIndex+".csv");
         }
         let allData         = []
         var csvStream = csv()
@@ -33,22 +33,22 @@ let getAllData = (prefix,path,arrayIndex,fileIndex,resolver,valuesArray,errorArr
                 s.push(allData)
                 valuesArray[arrayIndex] = s.median()
                 errorArray[arrayIndex] = s.moe()
-                if(arrayIndex == 10){
+                if(arrayIndex == 4){
                     resolver([valuesArray,errorArray])
                 }
                 else if(arrayIndex == 0){
-                    return getAllData(prefix,path,arrayIndex+1,fileIndex+10,resolve,valuesArray,errorArray)
+                    return getAllData(prefix,arrayIndex+1,fileIndex+5,resolve,valuesArray,errorArray)
                 }
                 else{
-                    return getAllData(prefix,path,arrayIndex+1,fileIndex+10,resolver,valuesArray,errorArray)
+                    return getAllData(prefix,arrayIndex+1,fileIndex+5,resolver,valuesArray,errorArray)
                 }
             });
         stream.pipe(csvStream)
     })
 }
-//In the case of QPROP Latency = Processing time (given that values are immediately admitted to the dependency graph)
-getAllData("qprop","Processing/",0,0,null,new Array(11),new Array(11)).then(([qpropValues,qpropError])=>{
-    getAllData("sidup","Processing/",0,0,null,new Array(11),new Array(11)).then(([sidupValues,sidupError])=>{
+getAllData("qprop",0,0,null,new Array(5),new Array(5)).then(([qpropValues,qpropError])=>{
+    getAllData("sidup",0,0,null,new Array(5),new Array(5)).then(([sidupValues,sidupError])=>{
+        console.log(qpropValues)
         let qpropData = {
             x: xVals,
             y: qpropValues,
@@ -61,8 +61,7 @@ getAllData("qprop","Processing/",0,0,null,new Array(11),new Array(11)).then(([qp
         }
         let sidupData = {
             x: xVals,
-            y: sidupValues,
-            error_y: {
+            y: sidupValues,error_y: {
                 type: "data",
                 array: sidupError,
                 visible: true
@@ -72,21 +71,16 @@ getAllData("qprop","Processing/",0,0,null,new Array(11),new Array(11)).then(([qp
         let layout = {
             showlegend: true,
             legend: {
-                x: 0.1,
+                x: 1,
                 y: 1
             },
-            title: "Processing Time under Varying Load",
+            title: "Latency under Varying Dynamic Topology Changes",
             xaxis: {
-                title: "Load (requests/s)",
-                showline: true,
-                range:[-1,1010],
+                title: "Topolgy Changes",
+                range:[0,22]
             },
             yaxis: {
-                title: "Processing Time (ms)",
-                type: "log",
-                range:[1,5],
-                tickmode: "auto",
-                nticks: 4,
+                title: "Latency (ms)",
             },
         }
         let figure = {
@@ -101,7 +95,7 @@ getAllData("qprop","Processing/",0,0,null,new Array(11),new Array(11)).then(([qp
         plotly.getImage(figure, imgOpts, function (error, imageStream) {
             if (error) return console.log (error);
 
-            var fileStream = fss.createWriteStream('processingISA.pdf');
+            var fileStream = fss.createWriteStream('latencyISADynamic.pdf');
             imageStream.pipe(fileStream);
         });
     })
