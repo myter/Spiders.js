@@ -19,6 +19,7 @@ export class DataService extends MicroService{
     thisDirectory
     dataSignals : Map<string,FleetData>
     DataPacket
+    DB
 
     constructor(){
         super()
@@ -28,6 +29,7 @@ export class DataService extends MicroService{
     start(){
         let FleetData       = require(this.thisDirectory + "/FleetData").FleetData
         let DataPacket      = require(this.thisDirectory + "/FleetMember").DataPacket
+        this.DB             = new Map()
         this.dataSignals    = new Map()
         var PORT            = 33333;
         var HOST            = '127.0.0.1';
@@ -49,10 +51,10 @@ export class DataService extends MicroService{
                 let decompress = (compressedPacket : CompressedPacket) => {
                     let packet = new DataPacket(compressedPacket.id,compressedPacket.lat,compressedPacket.lon,compressedPacket.speed)
                     packet.decompress()
-                    return "ok"
+                    return packet
                 }
                 let persist = (packet : DataPacket) => {
-                    //Persist data in DB
+                    this.DB.set(dataPacket.id,packet)
                 }
                 let decompressed = this.lift(decompress)(signal)
                 this.publishSignal(decompressed)

@@ -13,6 +13,7 @@ class DataService extends MicroService_1.MicroService {
     start() {
         let FleetData = require(this.thisDirectory + "/FleetData").FleetData;
         let DataPacket = require(this.thisDirectory + "/FleetMember").DataPacket;
+        this.DB = new Map();
         this.dataSignals = new Map();
         var PORT = 33333;
         var HOST = '127.0.0.1';
@@ -34,10 +35,10 @@ class DataService extends MicroService_1.MicroService {
                 let decompress = (compressedPacket) => {
                     let packet = new DataPacket(compressedPacket.id, compressedPacket.lat, compressedPacket.lon, compressedPacket.speed);
                     packet.decompress();
-                    return "ok";
+                    return packet;
                 };
                 let persist = (packet) => {
-                    //Persist data in DB
+                    this.DB.set(dataPacket.id, packet);
                 };
                 let decompressed = this.lift(decompress)(signal);
                 this.publishSignal(decompressed);

@@ -86,7 +86,7 @@ export class ServiceMonitor extends spiders.Application{
         })
     }
 
-    constructor(ip,port){
+    constructor(ip = "127.0.0.1",port=8000){
         super(ip,port)
         this.PSServer(ip,port)
         this.services   = new Map()

@@ -1,17 +1,20 @@
 /**
  * Created by flo on 02/08/2017.
  */
+import {SpiderLib} from "../src/spiders";
 
 //Simulates actual vehicles with beacons which communicate to data service over UDP
 var LZString = require("lz-string")
+var spiders : SpiderLib  = require("../src/spiders")
 
-export class DataPacket{
+export class DataPacket extends spiders.Isolate{
     id
     lat
     lon
     speed
 
     constructor(id,lat,lon,speed){
+        super()
         this.id     = id
         this.lat    = lat
         this.lon    = lon

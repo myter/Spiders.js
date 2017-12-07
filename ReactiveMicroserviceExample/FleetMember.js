@@ -1,11 +1,10 @@
-/**
- * Created by flo on 02/08/2017.
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 //Simulates actual vehicles with beacons which communicate to data service over UDP
 var LZString = require("lz-string");
-class DataPacket {
+var spiders = require("../src/spiders");
+class DataPacket extends spiders.Isolate {
     constructor(id, lat, lon, speed) {
+        super();
         this.id = id;
         this.lat = lat;
         this.lon = lon;
