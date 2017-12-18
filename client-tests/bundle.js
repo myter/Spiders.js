@@ -8805,7 +8805,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var commMedium_1 = require("./commMedium");
+var commMedium_1 = require("../src/CommMedium");
 /**
  * Created by flo on 18/01/2017.
  */
@@ -10958,9 +10958,9 @@ exports.roundUpdates = roundUpdates;
 Object.defineProperty(exports, "__esModule", { value: true });
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 const messageHandler_1 = require("./messageHandler");
-const sockets_1 = require("./sockets");
-const objectPool_1 = require("./objectPool");
-const farRef_1 = require("./farRef");
+const sockets_1 = require("../src/Sockets");
+const objectPool_1 = require("../src/ObjectPool");
+const farRef_1 = require("../src/FarRef");
 const PromisePool_1 = require("./PromisePool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
@@ -11035,9 +11035,9 @@ else {
 },{"./ActorEnvironment":52,"./ChannelManager":53,"./PromisePool":54,"./Reactivivity/signalPool":62,"./Replication/GSP":63,"./farRef":71,"./messageHandler":72,"./objectPool":74,"./serialisation":75,"./sockets":76,"./utils":78,"_process":25}],70:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var messages_1 = require("./messages");
-var farRef_1 = require("./farRef");
-var sockets_1 = require("./sockets");
+var messages_1 = require("../src/Message");
+var farRef_1 = require("../src/FarRef");
+var sockets_1 = require("../src/Sockets");
 /**
  * Created by flo on 17/01/2017.
  */
@@ -11099,7 +11099,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var messages_1 = require("./messages");
+var messages_1 = require("../src/Message");
 var serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
@@ -11242,10 +11242,10 @@ exports.ServerFarReference = ServerFarReference;
 },{"./messages":73,"./serialisation":75}],72:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var messages_1 = require("./messages");
-var objectPool_1 = require("./objectPool");
+var messages_1 = require("../src/Message");
+var objectPool_1 = require("../src/ObjectPool");
 var serialisation_1 = require("./serialisation");
-var farRef_1 = require("./farRef");
+var farRef_1 = require("../src/FarRef");
 var GSP_1 = require("./Replication/GSP");
 var signalPool_1 = require("./Reactivivity/signalPool");
 /**
@@ -11510,7 +11510,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var farRef_1 = require("./farRef");
+var farRef_1 = require("../src/FarRef");
 var Message = (function () {
     function Message(typeTag, senderRef) {
         this.typeTag = typeTag;
@@ -11774,8 +11774,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var messages_1 = require("./messages");
-var farRef_1 = require("./farRef");
+var messages_1 = require("../src/Message");
+var farRef_1 = require("../src/FarRef");
 var spiders_1 = require("./spiders");
 var Repliq_1 = require("./Replication/Repliq");
 var RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
@@ -12610,7 +12610,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var commMedium_1 = require("./commMedium");
+var commMedium_1 = require("../src/CommMedium");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -12750,14 +12750,14 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var sockets_1 = require("./sockets");
+var sockets_1 = require("../src/Sockets");
 var messageHandler_1 = require("./messageHandler");
-var farRef_1 = require("./farRef");
+var farRef_1 = require("../src/FarRef");
 var PromisePool_1 = require("./PromisePool");
-var objectPool_1 = require("./objectPool");
+var objectPool_1 = require("../src/ObjectPool");
 var serialisation_1 = require("./serialisation");
 var ChannelManager_1 = require("./ChannelManager");
-var messages_1 = require("./messages");
+var messages_1 = require("../src/Message");
 var GSP_1 = require("./Replication/GSP");
 var Repliq_1 = require("./Replication/Repliq");
 var RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
@@ -12820,7 +12820,7 @@ var ClientActor = (function (_super) {
         var actorId = utils.generateId();
         var channelMappings = updateExistingChannels(app.mainEnvironment.thisRef, app.spawnedActors, actorId);
         var work = require('webworkify');
-        var webWorker = work(require('./actorProto'));
+        var webWorker = work(require('../src/ActorProto'));
         webWorker.addEventListener('message', function (event) {
             app.mainMessageHandler.dispatch(event);
         });

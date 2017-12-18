@@ -1,7 +1,6 @@
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 Object.defineProperty(exports, "__esModule", { value: true });
-const messages_1 = require("./messages");
-const farRef_1 = require("./farRef");
+const Message_1 = require("./Message");
+const FarRef_1 = require("./FarRef");
 const spiders_1 = require("./spiders");
 const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
@@ -371,16 +370,16 @@ function isSignalClass(func) {
 function serialisePromise(promise, receiverId, enviroment) {
     var wrapper = enviroment.promisePool.newPromise();
     promise.then((val) => {
-        enviroment.commMedium.sendMessage(receiverId, new messages_1.ResolvePromiseMessage(enviroment.thisRef, wrapper.promiseId, serialise(val, receiverId, enviroment), true));
+        enviroment.commMedium.sendMessage(receiverId, new Message_1.ResolvePromiseMessage(enviroment.thisRef, wrapper.promiseId, serialise(val, receiverId, enviroment), true));
     });
     promise.catch((reason) => {
-        enviroment.commMedium.sendMessage(receiverId, new messages_1.RejectPromiseMessage(enviroment.thisRef, wrapper.promiseId, serialise(reason, receiverId, enviroment), true));
+        enviroment.commMedium.sendMessage(receiverId, new Message_1.RejectPromiseMessage(enviroment.thisRef, wrapper.promiseId, serialise(reason, receiverId, enviroment), true));
     });
     return new PromiseContainer(wrapper.promiseId, enviroment.thisRef.ownerId);
 }
 function serialiseObject(object, thisRef, objectPool) {
     var oId = objectPool.allocateObject(object);
-    if (thisRef instanceof farRef_1.ServerFarReference) {
+    if (thisRef instanceof FarRef_1.ServerFarReference) {
         return new ServerFarRefContainer(oId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
     }
     else {
@@ -454,7 +453,7 @@ function serialiseRepliq(repliqProxy, receiverId, environment, innerName = "") {
         roundNr = 0;
     }
     let ret = new RepliqContainer(JSON.stringify(primitiveFields), JSON.stringify(objectFields), JSON.stringify(innerReps), JSON.stringify(methodArr), JSON.stringify(atomicArr), repliqId, repliqOwnerId, isClient, ownerAddress, ownerPort, roundNr, innerName);
-    if (environment.thisRef instanceof farRef_1.ServerFarReference) {
+    if (environment.thisRef instanceof FarRef_1.ServerFarReference) {
         if (ret.isClient) {
             environment.gspInstance.addForward(ret.repliqId, ret.masterOwnerId);
             ret.masterOwnerId = environment.thisRef.ownerId;
@@ -484,13 +483,13 @@ function serialise(value, receiverId, environment) {
         else if (value instanceof Error) {
             return new ErrorContainer(value);
         }
-        else if (value[farRef_1.FarReference.ServerProxyTypeKey]) {
-            var farRef = value[farRef_1.FarReference.farRefAccessorKey];
+        else if (value[FarRef_1.FarReference.ServerProxyTypeKey]) {
+            var farRef = value[FarRef_1.FarReference.farRefAccessorKey];
             return new ServerFarRefContainer(farRef.objectId, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
         }
-        else if (value[farRef_1.FarReference.ClientProxyTypeKey]) {
-            let farRef = value[farRef_1.FarReference.farRefAccessorKey];
-            if (environment.thisRef instanceof farRef_1.ServerFarReference && farRef.contactId == null) {
+        else if (value[FarRef_1.FarReference.ClientProxyTypeKey]) {
+            let farRef = value[FarRef_1.FarReference.farRefAccessorKey];
+            if (environment.thisRef instanceof FarRef_1.ServerFarReference && farRef.contactId == null) {
                 //Current actor is a server and is the first to obtain a reference to this client actor. conversation with this client should now be rooted through this actor given that it has a socket reference to it
                 return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, environment.thisRef.ownerId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort);
             }
@@ -551,7 +550,7 @@ function serialise(value, receiverId, environment) {
     }
     else if (typeof value == 'function') {
         //Value is actualy not a function but the result of a field access on a proxy (which is technically a function, see farRef)
-        if (value[farRef_1.FarReference.proxyWrapperAccessorKey]) {
+        if (value[FarRef_1.FarReference.proxyWrapperAccessorKey]) {
             return serialisePromise(value, receiverId, environment);
         }
         else if (isClass(value) && isIsolateClass(value)) {
@@ -594,8 +593,8 @@ function deserialise(value, enviroment) {
         return enviroment.promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
     }
     function deSerialiseServerFarRef(farRefContainer) {
-        var farRef = new farRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, enviroment);
-        if (enviroment.thisRef instanceof farRef_1.ServerFarReference) {
+        var farRef = new FarRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, enviroment);
+        if (enviroment.thisRef instanceof FarRef_1.ServerFarReference) {
             if (!(enviroment.commMedium.hasConnection(farRef.ownerId))) {
                 enviroment.commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
             }
@@ -609,12 +608,12 @@ function deserialise(value, enviroment) {
     }
     function deSerialiseClientFarRef(farRefContainer) {
         var farRef;
-        if ((enviroment.thisRef instanceof farRef_1.ServerFarReference) && farRefContainer.contactId == null) {
+        if ((enviroment.thisRef instanceof FarRef_1.ServerFarReference) && farRefContainer.contactId == null) {
             //This is the first server side actor to come into contact with this client-side far reference and will henceforth be the contact point for all messages sent to this far reference
-            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, enviroment.thisRef.ownerId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort);
+            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, enviroment.thisRef.ownerId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort);
         }
         else {
-            farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
         return farRef.proxyify();
     }
@@ -724,7 +723,7 @@ function deserialise(value, enviroment) {
         let known = enviroment.signalPool.knownSignal(signalId);
         if (!known) {
             enviroment.signalPool.newSource(signalProxy);
-            enviroment.commMedium.sendMessage(sigContainer.ownerId, new messages_1.RegisterExternalSignalMessage(enviroment.thisRef, enviroment.thisRef.ownerId, signalId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort));
+            enviroment.commMedium.sendMessage(sigContainer.ownerId, new Message_1.RegisterExternalSignalMessage(enviroment.thisRef, enviroment.thisRef.ownerId, signalId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort));
         }
         return signalProxy.value;
     }

@@ -1,7 +1,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const messages_1 = require("./messages");
-const farRef_1 = require("./farRef");
-const sockets_1 = require("./sockets");
+const Message_1 = require("./Message");
+const FarRef_1 = require("./FarRef");
+const Sockets_1 = require("./Sockets");
 /**
  * Created by flo on 17/01/2017.
  */
@@ -10,7 +10,7 @@ class CommMedium {
         this.pendingActors = new Map();
         this.connectedActors = new Map();
         this.pendingConnectionId = 0;
-        this.socketHandler = new sockets_1.SocketHandler(this);
+        this.socketHandler = new Sockets_1.SocketHandler(this);
     }
     init(messageHandler) {
         this.messageHandler = messageHandler;
@@ -28,10 +28,10 @@ class CommMedium {
         this.pendingActors.set(connectionId, connection);
         this.pendingConnectionId += 1;
         connection.on('connect', () => {
-            connection.emit('message', new messages_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
+            connection.emit('message', new Message_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
         });
         connection.on('message', (data) => {
-            if (sender instanceof farRef_1.ServerFarReference) {
+            if (sender instanceof FarRef_1.ServerFarReference) {
                 this.messageHandler.dispatch(data);
             }
             else {
@@ -47,4 +47,4 @@ class CommMedium {
     }
 }
 exports.CommMedium = CommMedium;
-//# sourceMappingURL=commMedium.js.map
+//# sourceMappingURL=CommMedium.js.map

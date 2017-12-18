@@ -2,7 +2,7 @@
  * Created by flo on 20/12/2016.
  */
 import {ValueContainer} from "./serialisation";
-import {FarReference, ServerFarReference, ClientFarReference} from "./farRef";
+import {FarReference, ServerFarReference, ClientFarReference} from "./FarRef";
 type MessageTypeTag = number
 
 

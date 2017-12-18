@@ -1,14 +1,10 @@
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 import {MessageHandler} from "./messageHandler";
-import {ServerSocketManager} from "./sockets";
-import {ObjectPool} from "./objectPool";
-import {FarReference, ServerFarReference} from "./farRef";
+import {ObjectPool} from "./ObjectPool";
+import {FarReference, ServerFarReference} from "./FarRef";
 import {PromisePool} from "./PromisePool";
-import {deserialise, reconstructBehaviour, reconstructStatic} from "./serialisation";
+import {deserialise, reconstructBehaviour} from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
-import {GSP} from "./Replication/GSP";
-import {SignalPool} from "./Reactivivity/signalPool";
-import {ActorEnvironment} from "./ActorEnvironment";
+import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -23,10 +19,7 @@ var thisId          : string
 if(utils.isBrowser()){
     module.exports = function (self) {
         //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
-        environment                     = new ActorEnvironment()
-        environment.commMedium          = new ChannelManager()
-        environment.promisePool         = new PromisePool()
-        environment.objectPool          = new ObjectPool()
+        environment                     = new ClientActorEnvironment()
         messageHandler                  = new MessageHandler(environment)
         environment.commMedium.init(messageHandler)
         self.addEventListener('message',function (ev : MessageEvent){
@@ -42,13 +35,7 @@ else{
     thisId                  = process.argv[5]
     var parentId : string   = process.argv[6]
     var parentPort : number = parseInt(process.argv[7])
-    environment             = new ActorEnvironment()
-    environment.commMedium  = new ServerSocketManager(address,port)
-    environment.promisePool = new PromisePool()
-    environment.objectPool  = new ObjectPool()
-    environment.thisRef     = new ServerFarReference(ObjectPool._BEH_OBJ_ID,thisId,address,port,environment)
-    environment.gspInstance = new GSP(thisId,environment)
-    environment.signalPool  = new SignalPool(environment)
+    environment             = new ServerActorEnvironment(thisId,address,port)
     var behaviourObject
     if(loadFromFile){
         var filePath        = process.argv[8]

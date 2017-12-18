@@ -1,5 +1,5 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const messages_1 = require("./messages");
+const Message_1 = require("./Message");
 const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
@@ -13,12 +13,12 @@ class FarReference {
     }
     sendFieldAccess(fieldName) {
         var promiseAlloc = this.environemnt.promisePool.newPromise();
-        this.environemnt.commMedium.sendMessage(this.ownerId, new messages_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId));
+        this.environemnt.commMedium.sendMessage(this.ownerId, new Message_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId));
         return promiseAlloc.promise;
     }
     sendMethodInvocation(methodName, args) {
         var promiseAlloc = this.environemnt.promisePool.newPromise();
-        this.environemnt.commMedium.sendMessage(this.ownerId, new messages_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId));
+        this.environemnt.commMedium.sendMessage(this.ownerId, new Message_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId));
         return promiseAlloc.promise;
     }
     proxyify() {
@@ -81,7 +81,7 @@ class ClientFarReference extends FarReference {
         msg.contactId = this.contactId;
         msg.contactAddress = this.contactAddress;
         msg.contactPort = this.contactPort;
-        this.environemnt.commMedium.sendMessage(this.contactId, new messages_1.RouteMessage(this, this.ownerId, msg));
+        this.environemnt.commMedium.sendMessage(this.contactId, new Message_1.RouteMessage(this, this.ownerId, msg));
     }
     send(toId, msg) {
         let holderRef = this.environemnt.thisRef;
@@ -104,13 +104,13 @@ class ClientFarReference extends FarReference {
     }
     sendFieldAccess(fieldName) {
         var promiseAlloc = this.environemnt.promisePool.newPromise();
-        var message = new messages_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId);
+        var message = new Message_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId);
         this.send(this.ownerId, message);
         return promiseAlloc.promise;
     }
     sendMethodInvocation(methodName, args) {
         var promiseAlloc = this.environemnt.promisePool.newPromise();
-        var message = new messages_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId);
+        var message = new Message_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId);
         this.send(this.ownerId, message);
         return promiseAlloc.promise;
     }
@@ -124,4 +124,4 @@ class ServerFarReference extends FarReference {
     }
 }
 exports.ServerFarReference = ServerFarReference;
-//# sourceMappingURL=farRef.js.map
+//# sourceMappingURL=FarRef.js.map

@@ -1,10 +1,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const farRef_1 = require("./farRef");
+const FarRef_1 = require("./FarRef");
 class Message {
     constructor(typeTag, senderRef) {
         this.typeTag = typeTag;
         this.senderId = senderRef.ownerId;
-        if (senderRef instanceof farRef_1.ServerFarReference) {
+        if (senderRef instanceof FarRef_1.ServerFarReference) {
             this.senderType = Message.serverSenderType;
             this.senderAddress = senderRef.ownerAddress;
             this.senderPort = senderRef.ownerPort;
@@ -170,4 +170,4 @@ class ExternalSignalDeleteMessage extends Message {
     }
 }
 exports.ExternalSignalDeleteMessage = ExternalSignalDeleteMessage;
-//# sourceMappingURL=messages.js.map
+//# sourceMappingURL=Message.js.map

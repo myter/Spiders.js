@@ -61,12 +61,11 @@ function cloneDR(o) {
             }
         });
     }
-    /*for (var prop in o)
+    for (var prop in o)
         if (prop != gdcc)
             result[prop] = cloneDR(o[prop]);
         else if (set)
             result[prop] = cloneDR(cache);
-}*/
     if (set) {
         o[gdcc] = cache; // reset
     }

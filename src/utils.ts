@@ -1,5 +1,4 @@
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
-import {FarReference} from "./farRef";
+import {FarReference} from "./FarRef";
 import {Isolate, ArrayIsolate, SignalObjectClass} from "./spiders";
 import {lift, liftGarbage, Signal, SignalDependency, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
@@ -65,12 +64,11 @@ export function cloneDR(o) {
                 result[k] = cloneDR(cache);
             }
         })}
-        /*for (var prop in o)
-            if (prop != gdcc)
-                result[prop] = cloneDR(o[prop]);
-            else if (set)
-                result[prop] = cloneDR(cache);
-    }*/
+    for (var prop in o)
+        if (prop != gdcc)
+            result[prop] = cloneDR(o[prop]);
+        else if (set)
+            result[prop] = cloneDR(cache);
     if (set) {
         o[gdcc] = cache; // reset
     } else {

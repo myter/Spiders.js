@@ -25288,8 +25288,8 @@ yeast.decode = decode;
 module.exports = yeast;
 
 },{}],109:[function(require,module,exports){
-const commMedium_1 = require("./commMedium");
-const sockets_1 = require("./sockets");
+const commMedium_1 = require("../../src/CommMedium");
+const sockets_1 = require("../../src/Sockets");
 /**
  * Created by flo on 18/01/2017.
  */
@@ -25419,9 +25419,9 @@ exports.PromisePool = PromisePool;
 (function (process){
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 const messageHandler_1 = require("./messageHandler");
-const sockets_1 = require("./sockets");
-const objectPool_1 = require("./objectPool");
-const farRef_1 = require("./farRef");
+const sockets_1 = require("../../src/Sockets");
+const objectPool_1 = require("../../src/ObjectPool");
+const farRef_1 = require("../../src/FarRef");
 const PromisePool_1 = require("./PromisePool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
@@ -25471,8 +25471,8 @@ else {
 
 }).call(this,require('_process'))
 },{"./ChannelManager":109,"./PromisePool":110,"./farRef":113,"./messageHandler":114,"./objectPool":116,"./serialisation":117,"./sockets":118,"./utils":120,"_process":338}],112:[function(require,module,exports){
-const messages_1 = require("./messages");
-const farRef_1 = require("./farRef");
+const messages_1 = require("../../src/Message");
+const farRef_1 = require("../../src/FarRef");
 /**
  * Created by flo on 17/01/2017.
  */
@@ -25512,7 +25512,7 @@ class CommMedium {
 exports.CommMedium = CommMedium;
 
 },{"./farRef":113,"./messages":115,"socket.io-client":67}],113:[function(require,module,exports){
-const messages_1 = require("./messages");
+const messages_1 = require("../../src/Message");
 const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
@@ -25641,10 +25641,10 @@ class ServerFarReference extends FarReference {
 exports.ServerFarReference = ServerFarReference;
 
 },{"./messages":115,"./serialisation":117}],114:[function(require,module,exports){
-const messages_1 = require("./messages");
-const objectPool_1 = require("./objectPool");
+const messages_1 = require("../../src/Message");
+const objectPool_1 = require("../../src/ObjectPool");
 const serialisation_1 = require("./serialisation");
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../src/FarRef");
 /**
  * Created by flo on 20/12/2016.
  */
@@ -25837,7 +25837,7 @@ class MessageHandler {
 exports.MessageHandler = MessageHandler;
 
 },{"./farRef":113,"./messages":115,"./objectPool":116,"./serialisation":117,"./utils":120}],115:[function(require,module,exports){
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../src/FarRef");
 class Message {
     constructor(typeTag, senderRef) {
         this.typeTag = typeTag;
@@ -25977,8 +25977,8 @@ ObjectPool._BEH_OBJ_ID = 0;
 exports.ObjectPool = ObjectPool;
 
 },{}],117:[function(require,module,exports){
-const messages_1 = require("./messages");
-const farRef_1 = require("./farRef");
+const messages_1 = require("../../src/Message");
+const farRef_1 = require("../../src/FarRef");
 const spiders_1 = require("./spiders");
 /**
  * Created by flo on 19/12/2016.
@@ -26436,7 +26436,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
 exports.deserialise = deserialise;
 
 },{"./farRef":113,"./messages":115,"./spiders":119}],118:[function(require,module,exports){
-const commMedium_1 = require("./commMedium");
+const commMedium_1 = require("../../src/CommMedium");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -26538,14 +26538,14 @@ exports.ServerSocketManager = ServerSocketManager;
 
 },{"./commMedium":112,"socket.io":81,"socket.io-client":67}],119:[function(require,module,exports){
 (function (__dirname){
-const sockets_1 = require("./sockets");
+const sockets_1 = require("../../src/Sockets");
 const messageHandler_1 = require("./messageHandler");
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../src/FarRef");
 const PromisePool_1 = require("./PromisePool");
-const objectPool_1 = require("./objectPool");
+const objectPool_1 = require("../../src/ObjectPool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
-const messages_1 = require("./messages");
+const messages_1 = require("../../src/Message");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -26582,7 +26582,7 @@ class ClientActor extends Actor {
         var actorId = utils.generateId();
         var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
-        var webWorker = work(require('./actorProto'));
+        var webWorker = work(require('../../src/ActorProto'));
         webWorker.addEventListener('message', (event) => {
             app.mainMessageHandler.dispatch(event);
         });
@@ -27348,7 +27348,7 @@ var utils   = require('../utils/common');
 var trees   = require('./trees');
 var adler32 = require('./adler32');
 var crc32   = require('./crc32');
-var msg   = require('./messages');
+var msg   = require('../../src/Message');
 
 /* Public constants ==========================================================*/
 /* ===========================================================================*/

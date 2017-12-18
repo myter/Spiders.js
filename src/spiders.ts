@@ -1,15 +1,15 @@
-import {ServerSocketManager} from "./sockets";
+import {ServerSocketManager} from "./Sockets";
 import {MessageHandler} from "./messageHandler";
-import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
+import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
 import {PromisePool} from "./PromisePool";
-import {ObjectPool} from "./objectPool";
+import {ObjectPool} from "./ObjectPool";
 import {
     deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic,
     serialise
 } from "./serialisation";
-import {CommMedium} from "./commMedium";
+import {CommMedium} from "./CommMedium";
 import {ChannelManager} from "./ChannelManager";
-import {InstallBehaviourMessage, OpenPortMessage} from "./messages";
+import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
 import {GSP} from "./Replication/GSP";
 import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
@@ -17,13 +17,13 @@ import {FieldUpdate} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
-import {ActorEnvironment} from "./ActorEnvironment";
+import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {PubSubTag} from "./PubSub/SubTag";
 import {Subscription} from "./PubSub/SubClient";
+import {generateId, installSTDLib, isBrowser} from "./utils";
 /**
  * Created by flo on 05/12/2016.
  */
-var utils         = require('./utils')
 
 export class Isolate{
     constructor(){
@@ -93,10 +93,10 @@ abstract class Actor{
 
 abstract class ClientActor extends Actor{
     spawn(app : ClientApplication,thisClass){
-        var actorId                                     = utils.generateId()
+        var actorId                                     = generateId()
         var channelMappings                             = updateExistingChannels(app.mainEnvironment.thisRef,app.spawnedActors,actorId)
         var work                                        = require('webworkify')
-        var webWorker                                   = work(require('./actorProto'))
+        var webWorker                                   = work(require('./ActorProto'))
         webWorker.addEventListener('message',(event) => {
             app.mainMessageHandler.dispatch(event)
         })
@@ -123,7 +123,7 @@ abstract class ServerActor extends Actor{
         var socketManager               = app.mainEnvironment.commMedium as ServerSocketManager
         //Really ugly hack to satisfy React-native's "static analyser"
         var fork		                = eval("req" + "uire('child_process')").fork
-        var actorId: string             = utils.generateId()
+        var actorId: string             = generateId()
         var decon                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment)
         var actorVariables              = decon[0]
         var actorMethods                = decon[1]
@@ -141,7 +141,7 @@ abstract class ServerActor extends Actor{
         var socketManager   = app.mainEnvironment.commMedium as ServerSocketManager
         //Really ugly hack to satisfy React-native's "static analyser"
         var fork            = eval("req" + "uire('child_process')").fork
-        var actorId         = utils.generateId()
+        var actorId         = generateId()
         let serialisedArgs  = []
         constructorArgs.forEach((constructorArg)=>{
             serialisedArgs.push(serialise(constructorArg,actorId,app.mainEnvironment))
@@ -161,10 +161,10 @@ abstract class Application {
 
     constructor(){
         if(this.appActors == 0){
-            this.mainId                         = utils.generateId()
-            this.mainEnvironment                = new ActorEnvironment()
+            this.mainId                         = generateId()
+            /*this.mainEnvironment                = new ActorEnvironment()
             this.mainEnvironment.promisePool    = new PromisePool()
-            this.mainEnvironment.objectPool     = new ObjectPool(this)
+            this.mainEnvironment.objectPool     = new ObjectPool(this)*/
         }
         else{
             throw new Error("Cannot create more than one application actor")
@@ -187,16 +187,14 @@ class ServerApplication extends Application{
         super()
         this.mainIp                         = mainIp
         this.mainPort                       = mainPort
+        this.mainEnvironment                = new ServerActorEnvironment(this.mainId,mainIp,mainPort)
+        this.mainEnvironment.objectPool.installBehaviourObject(this)
         this.portCounter                    = 8001
         this.spawnedActors                  = []
-        this.mainEnvironment.commMedium     = new ServerSocketManager(mainIp,mainPort)
         this.socketManager                  = this.mainEnvironment.commMedium as ServerSocketManager
-        this.mainEnvironment.thisRef        = new ServerFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainIp,this.mainPort,this.mainEnvironment)
-        this.mainEnvironment.gspInstance    = new GSP(this.mainId,this.mainEnvironment)
-        this.mainEnvironment.signalPool     = new SignalPool(this.mainEnvironment)
         let mainMessageHandler              = new MessageHandler(this.mainEnvironment)
         this.socketManager.init(mainMessageHandler)
-        utils.installSTDLib(true,null,this,this.mainEnvironment)
+        installSTDLib(true,null,this,this.mainEnvironment)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
@@ -223,21 +221,17 @@ class ServerApplication extends Application{
 }
 
 class ClientApplication extends Application{
-    channelManager      : ChannelManager
     spawnedActors       : Array<any>
     mainMessageHandler  : MessageHandler
 
     constructor(){
         super()
-        this.channelManager                 = new ChannelManager()
-        this.mainEnvironment.commMedium     = this.channelManager
+        this.mainEnvironment                = new ClientActorEnvironment();
+        (this.mainEnvironment as ClientActorEnvironment).initialise(this.mainId,this.mainId,this)
         this.spawnedActors                  = []
-        this.mainEnvironment.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,this.mainId,this.mainId,this.mainEnvironment)
-        this.mainEnvironment.gspInstance    = new GSP(this.mainId,this.mainEnvironment)
-        this.mainEnvironment.signalPool     = new SignalPool(this.mainEnvironment)
         this.mainMessageHandler             = new MessageHandler(this.mainEnvironment)
-        this.channelManager.init(this.mainMessageHandler)
-        utils.installSTDLib(true,null,this,this.mainEnvironment)
+        this.mainEnvironment.commMedium.init(this.mainMessageHandler)
+        installSTDLib(true,null,this,this.mainEnvironment)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){
@@ -330,7 +324,7 @@ exports.RepliqObjectField           = RepliqObjectField
 exports.makeAnnotation              = makeAnnotation
 exports.FieldUpdate                 = FieldUpdate
 exports.Isolate                     = Isolate
-if(utils.isBrowser()){
+if(isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor
 }

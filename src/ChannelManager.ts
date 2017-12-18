@@ -1,6 +1,6 @@
-import {CommMedium} from "./commMedium";
+import {CommMedium} from "./CommMedium";
 import {MessageHandler} from "./messageHandler";
-import {Message} from "./messages";
+import {Message} from "./Message";
 /**
  * Created by flo on 18/01/2017.
  */

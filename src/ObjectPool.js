@@ -23,4 +23,4 @@ class ObjectPool {
 }
 ObjectPool._BEH_OBJ_ID = 0;
 exports.ObjectPool = ObjectPool;
-//# sourceMappingURL=objectPool.js.map
+//# sourceMappingURL=ObjectPool.js.map

@@ -1,5 +1,5 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const commMedium_1 = require("./commMedium");
+const CommMedium_1 = require("./CommMedium");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -71,7 +71,7 @@ class SocketHandler {
     }
 }
 exports.SocketHandler = SocketHandler;
-class ServerSocketManager extends commMedium_1.CommMedium {
+class ServerSocketManager extends CommMedium_1.CommMedium {
     constructor(ip, socketPort) {
         super();
         //Again very dirty hack to satisfy react-native
@@ -119,4 +119,4 @@ class ServerSocketManager extends commMedium_1.CommMedium {
     }
 }
 exports.ServerSocketManager = ServerSocketManager;
-//# sourceMappingURL=sockets.js.map
+//# sourceMappingURL=Sockets.js.map

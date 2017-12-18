@@ -1,12 +1,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const messages_1 = require("../messages");
+const Message_1 = require("../Message");
 const NoGlitchFreedom_1 = require("./NoGlitchFreedom");
 /**
  * Created by flo on 22/06/2017.
  */
 class SignalPool {
-    constructor(environment) {
-        this.environment = environment;
+    constructor(actorEnvironment) {
+        this.environment = actorEnvironment;
         this.signals = new Map();
         this.garbageSignals = new Map();
         this.externalHolders = new Map();
@@ -155,7 +155,7 @@ class SignalPool {
             });
         }
         signal.registerOnDeleteListener(() => {
-            this.environment.commMedium.sendMessage(holderId, new messages_1.ExternalSignalDeleteMessage(this.environment.thisRef, signal.id));
+            this.environment.commMedium.sendMessage(holderId, new Message_1.ExternalSignalDeleteMessage(this.environment.thisRef, signal.id));
         });
     }
     externalChangeReceived(fromId, signalId, val) {

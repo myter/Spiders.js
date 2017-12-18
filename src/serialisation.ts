@@ -1,11 +1,10 @@
-///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 
 
 import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./messages";
-import {ObjectPool} from "./objectPool";
-import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
-import {CommMedium} from "./commMedium";
+import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./Message";
+import {ObjectPool} from "./ObjectPool";
+import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
+import {CommMedium} from "./CommMedium";
 import {ArrayIsolate, Isolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
 import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
@@ -482,7 +481,7 @@ function serialiseRepliqFields(fields : Map<string,RepliqField<any>>,receiverId 
         if(repliqField instanceof RepliqPrimitiveField){
             primitives.push(new RepliqFieldContainer(fieldName,repliqField.tentative,repliqField.commited,repliqField.read.toString(),repliqField.writeField.toString(),repliqField.resetToCommit.toString(),repliqField.commit.toString(),repliqField.update.toString()))
         }
-        else if(repliqField instanceof RepliqObjectField){
+        else if(repliqField as any instanceof RepliqObjectField){
             let field       = repliqField as RepliqObjectField
             let tentMethods
             let commMethods

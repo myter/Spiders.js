@@ -6,22 +6,17 @@ import {
     GSPRoundMessage, _GSP_SYNC_, GSPSyncMessage, _GSP_REGISTER_, GSPRegisterMessage, RegisterExternalSignalMessage,
     _REGISTER_EXTERNAL_SIGNAL_, ExternalSignalChangeMessage, _EXTERNAL_SIGNAL_CHANGE_, ExternalSignalDeleteMessage,
     _EXTERNAL_SIGNAL_DELETE_
-} from "./messages";
-import {ServerSocketManager} from "./sockets";
-import {PromisePool} from "./PromisePool";
-import {ObjectPool} from "./objectPool";
+} from "./Message";
+import {ServerSocketManager} from "./Sockets";
+import {ObjectPool} from "./ObjectPool";
 import {
-    ValueContainer, serialise, deserialise, reconstructObject, ClientFarRefContainer,
+    ValueContainer, serialise, deserialise, ClientFarRefContainer,
     reconstructBehaviour, reconstructStatic
 } from "./serialisation";
-import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
-import {CommMedium} from "./commMedium";
+import {ServerFarReference, ClientFarReference} from "./FarRef";
 import {ChannelManager} from "./ChannelManager";
 import {Socket} from "net";
-import {GSP} from "./Replication/GSP";
-import {Signal} from "./Reactivivity/signal";
-import {SignalPool} from "./Reactivivity/signalPool";
-import {ActorEnvironment} from "./ActorEnvironment";
+import {ActorEnvironment, ClientActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 20/12/2016.
  */
@@ -62,16 +57,13 @@ export class MessageHandler{
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
     private handleInstall(msg : InstallBehaviourMessage,ports : Array<MessagePort>){
         var thisId                      = msg.actorId
-        var mainId                      = msg.mainId
-        this.environment.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,this.environment)
-        this.environment.gspInstance    = new GSP(thisId,this.environment)
+        var mainId                      = msg.mainId;
         var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,this.environment)
-        reconstructStatic(behaviourObject,msg.staticProperties,this.environment)
+        reconstructStatic(behaviourObject,msg.staticProperties,this.environment);
+        (this.environment as ClientActorEnvironment).initialise(thisId,mainId,behaviourObject)
         var otherActorIds               = msg.otherActorIds
-        this.environment.objectPool     = new ObjectPool(behaviourObject)
         var parentRef                   = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.environment)
         let channelManag                = this.environment.commMedium as ChannelManager
-        this.environment.signalPool     = new SignalPool(this.environment)
         var mainPort                = ports[0]
         channelManag.newConnection(mainId,mainPort)
         otherActorIds.forEach((id,index)=>{

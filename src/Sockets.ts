@@ -1,7 +1,7 @@
 import {MessageHandler} from "./messageHandler";
-import {Message} from "./messages";
+import {Message} from "./Message";
 import {Socket} from "net";
-import {CommMedium} from "./commMedium";
+import {CommMedium} from "./CommMedium";
 /**
  * Created by flo on 19/12/2016.
  */

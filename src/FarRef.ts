@@ -1,8 +1,8 @@
 import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {FieldAccessMessage, MethodInvocationMessage, Message, RouteMessage} from "./messages";
+import {FieldAccessMessage, MethodInvocationMessage, Message, RouteMessage} from "./Message";
 import {serialise} from "./serialisation";
-import {ObjectPool} from "./objectPool";
-import {CommMedium} from "./commMedium";
+import {ObjectPool} from "./ObjectPool";
+import {CommMedium} from "./CommMedium";
 import {GSP} from "./Replication/GSP";
 import {ActorEnvironment} from "./ActorEnvironment";
 /**

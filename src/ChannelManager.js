@@ -1,10 +1,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const commMedium_1 = require("./commMedium");
+const CommMedium_1 = require("./CommMedium");
 /**
  * Created by flo on 18/01/2017.
  */
 var utils = require("./utils");
-class ChannelManager extends commMedium_1.CommMedium {
+class ChannelManager extends CommMedium_1.CommMedium {
     init(messageHandler) {
         super.init(messageHandler);
         this.connections = new Map();

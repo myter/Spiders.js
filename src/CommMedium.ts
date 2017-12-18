@@ -1,9 +1,9 @@
 import {MessageHandler} from "./messageHandler";
-import {Message, ConnectRemoteMessage} from "./messages";
-import {FarReference, ServerFarReference} from "./farRef";
+import {Message, ConnectRemoteMessage} from "./Message";
+import {FarReference, ServerFarReference} from "./FarRef";
 import {PromisePool} from "./PromisePool";
 import {Socket} from "net";
-import {SocketHandler} from "./sockets";
+import {SocketHandler} from "./Sockets";
 /**
  * Created by flo on 17/01/2017.
  */
