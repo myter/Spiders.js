@@ -1,4 +1,5 @@
 import {clone} from "./utils";
+import {ValueContainer} from "./serialisation";
 
 export class SpiderObjectMirror{
     base : SpiderObject
@@ -8,10 +9,12 @@ export class SpiderObjectMirror{
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
+        console.log("Invoked " + methodName.toString())
         return this.base[methodName](...args)
     }
 
     access(fieldName){
+        console.log("Accessed " + fieldName)
         return this.base[fieldName]
     }
 
@@ -19,7 +22,7 @@ export class SpiderObjectMirror{
         //TODO
     }
 
-    resolve(){
+    resolve(ValueContainer){
         //TODO
     }
 }

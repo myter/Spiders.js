@@ -1,9 +1,10 @@
 import {FarRef, SpiderLib} from "../src/spiders";
 import {SpiderActorMirror} from "../src/MAP";
+import {SpiderObject, SpiderObjectMirror} from "../src/MOP";
 
 var spiders : SpiderLib = require("../src/spiders")
 
-class TestAppliction extends spiders.Application{
+/*class TestAppliction extends spiders.Application{
     foo = 5
     pMethod(someVal){
         console.log("Parent method invoked : " + this.foo + " arg: " + someVal)
@@ -56,4 +57,32 @@ class TestActor2 extends spiders.Actor{
 
 let a = app.spawnActor(TestActor)
 let b = app.spawnActor(TestActor2)
-a.send(b)
+a.send(b)*/
+
+let app = new spiders.Application()
+
+class TestObject extends SpiderObject{
+    baseField = "baseField"
+    baseMethod(){
+        return "baseMethodResult"
+    }
+}
+
+class ActorA extends spiders.Actor{
+    TestObject
+    constructor(){
+        super()
+        this.TestObject = TestObject
+    }
+    init(){
+        let t = new this.TestObject()
+        console.log(t.baseField)
+        console.log(t.baseMethod())
+    }
+}
+
+class ActorB extends spiders.Actor{
+
+}
+
+app.spawnActor(ActorA)

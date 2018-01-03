@@ -138,7 +138,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if (typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val) || isSignalClass(val)) {
+        if (typeof val != 'function' || isIsolateClass(val) || isSpiderObjectClass(val) || isRepliqClass(val) || isSignalClass(val)) {
             var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
@@ -239,6 +239,7 @@ ValueContainer.repliqFieldType = 10;
 ValueContainer.repliqDefinition = 11;
 ValueContainer.signalType = 12;
 ValueContainer.signalDefinition = 13;
+ValueContainer.spiderObjectDef = 14;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -313,6 +314,13 @@ class IsolateDefinitionContainer extends ValueContainer {
     }
 }
 exports.IsolateDefinitionContainer = IsolateDefinitionContainer;
+class SpiderObjectDefinitionContainer extends ValueContainer {
+    constructor(definition) {
+        super(ValueContainer.spiderObjectDef);
+        this.definition = definition;
+    }
+}
+exports.SpiderObjectDefinitionContainer = SpiderObjectDefinitionContainer;
 class ArrayIsolateContainer extends ValueContainer {
     constructor(array) {
         super(ValueContainer.arrayIsolateType);
@@ -393,6 +401,9 @@ function isClass(func) {
 }
 function isIsolateClass(func) {
     return (func.toString().search(/extends.*?Isolate/) != -1);
+}
+function isSpiderObjectClass(func) {
+    return (func.toString().search(/extends.*?SpiderObject/) != -1);
 }
 function isRepliqClass(func) {
     return (func.toString().search(/extends.*?Repliq/) != -1);
@@ -590,6 +601,10 @@ function serialise(value, receiverId, environment) {
             var definition = utils_1.getSerialiableClassDefinition(value);
             return new IsolateDefinitionContainer(definition.replace("super()", ''));
         }
+        else if (isClass(value) && isSpiderObjectClass(value)) {
+            var definition = utils_1.getSerialiableClassDefinition(value);
+            return new SpiderObjectDefinitionContainer(definition);
+        }
         else if (isClass(value) && isRepliqClass(value)) {
             //TODO might need to extract annotations in same way that is done for signals
             var definition = utils_1.getSerialiableClassDefinition(value);
@@ -774,6 +789,14 @@ function deserialise(value, enviroment) {
         });
         return classObj;
     }
+    function deSerialiseSpiderObjectDefinition(def) {
+        let index = def.definition.indexOf("{");
+        let start = def.definition.substring(0, index);
+        let stop = def.definition.substring(index, def.definition.length);
+        let SpiderObject = require("./MOP").SpiderObject;
+        var classObj = eval(start + " extends SpiderObject" + stop);
+        return classObj;
+    }
     switch (value.type) {
         case ValueContainer.nativeType:
             return value.value;
@@ -801,6 +824,8 @@ function deserialise(value, enviroment) {
             return deSerialiseSignal(value);
         case ValueContainer.signalDefinition:
             return deSerialiseSignalDefinition(value);
+        case ValueContainer.spiderObjectDef:
+            return deSerialiseSpiderObjectDefinition(value);
         default:
             throw "Unknown value container type :  " + value.type;
     }

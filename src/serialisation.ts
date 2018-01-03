@@ -1,18 +1,15 @@
 
 
-import {PromisePool, PromiseAllocation} from "./PromisePool";
+import {PromiseAllocation} from "./PromisePool";
 import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./Message";
 import {ObjectPool} from "./ObjectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
-import {CommMedium} from "./CommMedium";
 import {ArrayIsolate, Isolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
 import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
-import {GSP} from "./Replication/GSP";
 import {RepliqField} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
-import {SignalPool} from "./Reactivivity/signalPool";
 import {ActorEnvironment} from "./ActorEnvironment";
 import {getSerialiableClassDefinition} from "./utils";
 
@@ -151,7 +148,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
-        if(typeof val != 'function' || isIsolateClass(val) || isRepliqClass(val) || isSignalClass(val)){
+        if(typeof val != 'function' || isIsolateClass(val) || isSpiderObjectClass(val) || isRepliqClass(val) || isSignalClass(val)){
             var serialisedval   = serialise(val,receiverId,environment)
             localAccumVars.push([key,serialisedval])
         }
@@ -250,6 +247,7 @@ export abstract class ValueContainer{
     static repliqDefinition     : number = 11
     static signalType           : number = 12
     static signalDefinition     : number = 13
+    static spiderObjectDef      : number = 14
     type                        : number
 
     constructor(type : number){
@@ -356,6 +354,14 @@ export class IsolateDefinitionContainer extends ValueContainer{
     }
 }
 
+export class SpiderObjectDefinitionContainer extends ValueContainer{
+    definition : string
+    constructor(definition : string){
+        super(ValueContainer.spiderObjectDef)
+        this.definition = definition
+    }
+}
+
 export class ArrayIsolateContainer extends ValueContainer{
     array                           : Array<any>
     static checkArrayIsolateFuncKey : string = "_INSTANCEOF_ARRAY_ISOLATE_"
@@ -364,8 +370,6 @@ export class ArrayIsolateContainer extends ValueContainer{
         this.array = array
     }
 }
-
-
 
 export class RepliqContainer extends ValueContainer{
     primitiveFields             : string
@@ -478,6 +482,10 @@ function isClass(func : Function) : boolean{
 
 function isIsolateClass(func : Function) : boolean {
     return (func.toString().search(/extends.*?Isolate/) != -1)
+}
+
+function isSpiderObjectClass(func : Function) : boolean {
+    return (func.toString().search(/extends.*?SpiderObject/) != -1)
 }
 
 function isRepliqClass(func : Function) : boolean{
@@ -684,6 +692,10 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             var definition = getSerialiableClassDefinition(value)
             return new IsolateDefinitionContainer(definition.replace("super()",''))
         }
+        else if(isClass(value) && isSpiderObjectClass(value)){
+            var definition = getSerialiableClassDefinition(value)
+            return new SpiderObjectDefinitionContainer(definition)
+        }
         else if(isClass(value) && isRepliqClass(value)){
             //TODO might need to extract annotations in same way that is done for signals
             var definition = getSerialiableClassDefinition(value)
@@ -881,6 +893,15 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         return classObj
     }
 
+    function deSerialiseSpiderObjectDefinition(def : SpiderObjectDefinitionContainer){
+        let index           = def.definition.indexOf("{")
+        let start           = def.definition.substring(0,index)
+        let stop            = def.definition.substring(index,def.definition.length)
+        let SpiderObject    = require("./MOP").SpiderObject
+        var classObj        = eval(start + " extends SpiderObject"+stop)
+        return classObj
+    }
+
     switch(value.type){
         case ValueContainer.nativeType :
             return (value as NativeContainer).value
@@ -908,6 +929,8 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deSerialiseSignal(value as SignalContainer)
         case ValueContainer.signalDefinition:
             return deSerialiseSignalDefinition(value as SignalDefinitionContainer)
+        case ValueContainer.spiderObjectDef:
+            return deSerialiseSpiderObjectDefinition(value as SpiderObjectDefinitionContainer)
         default :
             throw "Unknown value container type :  " + value.type
     }
