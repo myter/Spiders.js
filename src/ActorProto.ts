@@ -2,7 +2,7 @@ import {MessageHandler} from "./messageHandler";
 import {ObjectPool} from "./ObjectPool";
 import {FarReference, ServerFarReference} from "./FarRef";
 import {PromisePool} from "./PromisePool";
-import {deserialise, reconstructBehaviour} from "./serialisation";
+import {deserialise, getObjectFieldNames, getObjectMethodNames, reconstructBehaviour} from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {SpiderActorMirror} from "./MAP";
@@ -49,18 +49,19 @@ else{
         environment         = new ServerActorEnvironment(thisId,address,port,actorMirror)
     }
     else{
-        var variables   = JSON.parse(process.argv[8])
-        var methods     = JSON.parse(process.argv[9])
+        var variables           = JSON.parse(process.argv[8])
+        var methods             = JSON.parse(process.argv[9])
         let actorMirrVars       = JSON.parse(process.argv[11])
         let actorMirrMethods    = JSON.parse(process.argv[12])
         let actorMirror         = reconstructBehaviour({},actorMirrVars,actorMirrMethods,environment)
         //TODO need to get mirror args as well + need to do the same for client actors
         environment             = new ServerActorEnvironment(thisId,address,port,actorMirror)
-        behaviourObject = reconstructBehaviour({},variables,methods,environment)
+        behaviourObject         = reconstructBehaviour({},variables,methods,environment)
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject)
-    parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,parentId,address,parentPort,environment)
+    environment.thisRef     = new ServerFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(behaviourObject),getObjectMethodNames(behaviourObject),thisId,address,port,environment)
+    parentRef               = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],parentId,address,parentPort,environment)
     var parentServer        = parentRef as ServerFarReference
     environment.commMedium.openConnection(parentServer.ownerId,parentServer.ownerAddress,parentServer.ownerPort)
     environment.actorMirror.initialise(false,parentRef)

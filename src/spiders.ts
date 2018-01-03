@@ -3,7 +3,7 @@ import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
 import {ObjectPool} from "./ObjectPool";
 import {
     deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic,
-    serialise
+    serialise, getObjectFieldNames, getObjectMethodNames
 } from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
@@ -113,7 +113,7 @@ abstract class ClientActor extends Actor{
         webWorker.postMessage(JSON.stringify(installMessage),newActorChannels)
         var channelManager                              = (app.mainEnvironment.commMedium as ChannelManager)
         channelManager.newConnection(actorId,mainChannel.port2)
-        var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainId,app.mainEnvironment)
+        var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(this),getObjectMethodNames(this),actorId,app.mainId,app.mainEnvironment)
         app.spawnedActors.push([actorId,webWorker])
         return ref.proxyify()
     }
@@ -136,7 +136,7 @@ abstract class ServerActor extends Actor{
         var actorMirrorMethods          = deconActorMirror[1]
         var actor                       = fork(__dirname + '/actorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties),JSON.stringify(actorMirrorVariables),JSON.stringify(actorMirrorMethods)])
         app.spawnedActors.push(actor)
-        var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainIp,port,app.mainEnvironment)
+        var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(this),getObjectMethodNames(this),actorId,app.mainIp,port,app.mainEnvironment)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
         return ref.proxyify()
     }
@@ -152,7 +152,8 @@ abstract class ServerActor extends Actor{
         })
         var actor           = fork(__dirname + '/actorProto.js',[true,app.mainIp,port,actorId,app.mainId,app.mainPort,filePath,actorClassName,JSON.stringify(serialisedArgs)])
         app.spawnedActors.push(actor)
-        var ref             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainIp,port,app.mainEnvironment)
+        //Impossible to know the actor's fields and methods at this point
+        var ref             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],actorId,app.mainIp,port,app.mainEnvironment)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
         return ref.proxyify()
     }

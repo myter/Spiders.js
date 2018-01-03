@@ -5,8 +5,10 @@ const serialisation_1 = require("./serialisation");
  * Created by flo on 21/12/2016.
  */
 class FarReference {
-    constructor(objectId, ownerId, environment, isServer) {
+    constructor(objectId, objectFields, objectMethods, ownerId, environment, isServer) {
         this.ownerId = ownerId;
+        this.objectFields = objectFields;
+        this.objectMethods = objectMethods;
         this.objectId = objectId;
         this.environemnt = environment;
         this.isServer = isServer;
@@ -32,24 +34,45 @@ class FarReference {
                     return baseObject.isServer;
                 }
                 else {
-                    //Given that a proxified far reference is actually also a promise we need to make sure that JS does not accidentally pipeline the far reference in a chain of promises
-                    if (property.toString() != "then" && property.toString() != "catch") {
-                        //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
-                        var prom = baseObject.sendFieldAccess(property.toString());
+                    if (baseObject.objectFields.includes(property.toString())) {
+                        return baseObject.sendFieldAccess(property.toString());
+                    }
+                    else if (baseObject.objectMethods.includes(property.toString())) {
                         var ret = function (...args) {
                             var serialisedArgs = args.map((arg) => {
                                 return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
                             });
                             return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
                         };
-                        ret["then"] = function (onFull, onRej) {
-                            return prom.then(onFull, onRej);
-                        };
-                        ret["catch"] = function (onRej) {
-                            return prom.catch(onRej);
-                        };
+                        /*ret["then"] = function(onFull,onRej){
+                            return prom.then(onFull,onRej)
+                        }
+                        ret["catch"] = function(onRej){
+                            return prom.catch(onRej)
+                        }*/
                         ret[FarReference.proxyWrapperAccessorKey] = true;
                         return ret;
+                    }
+                    else {
+                        //Given that a proxified far reference is actually also a promise we need to make sure that JS does not accidentally pipeline the far reference in a chain of promises
+                        if (property.toString() != "then" && property.toString() != "catch") {
+                            //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
+                            var prom = baseObject.sendFieldAccess(property.toString());
+                            var ret = function (...args) {
+                                var serialisedArgs = args.map((arg) => {
+                                    return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
+                                });
+                                return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
+                            };
+                            ret["then"] = function (onFull, onRej) {
+                                return prom.then(onFull, onRej);
+                            };
+                            ret["catch"] = function (onRej) {
+                                return prom.catch(onRej);
+                            };
+                            ret[FarReference.proxyWrapperAccessorKey] = true;
+                            return ret;
+                        }
                     }
                 }
             }
@@ -62,8 +85,8 @@ FarReference.ServerProxyTypeKey = "SPIDER_SERVER_TYPE";
 FarReference.ClientProxyTypeKey = "SPIDER_CLIENT_TYPE";
 exports.FarReference = FarReference;
 class ClientFarReference extends FarReference {
-    constructor(objectId, ownerId, mainId, environment, contactId = null, contactAddress = null, contactPort = null) {
-        super(objectId, ownerId, environment, false);
+    constructor(objectId, objectFields, objectMethods, ownerId, mainId, environment, contactId = null, contactAddress = null, contactPort = null) {
+        super(objectId, objectFields, objectMethods, ownerId, environment, false);
         this.mainId = mainId;
         this.contactId = contactId;
         this.contactAddress = contactAddress;
@@ -113,8 +136,8 @@ class ClientFarReference extends FarReference {
 }
 exports.ClientFarReference = ClientFarReference;
 class ServerFarReference extends FarReference {
-    constructor(objectId, ownerId, ownerAddress, ownerPort, environment) {
-        super(objectId, ownerId, environment, true);
+    constructor(objectId, objectFields, objectMethods, ownerId, ownerAddress, ownerPort, environment) {
+        super(objectId, objectFields, objectMethods, ownerId, environment, true);
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
     }

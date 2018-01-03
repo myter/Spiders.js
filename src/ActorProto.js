@@ -54,7 +54,8 @@ else {
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject);
-    parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, parentId, address, parentPort, environment);
+    environment.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, serialisation_1.getObjectFieldNames(behaviourObject), serialisation_1.getObjectMethodNames(behaviourObject), thisId, address, port, environment);
+    parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], parentId, address, parentPort, environment);
     var parentServer = parentRef;
     environment.commMedium.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
     environment.actorMirror.initialise(false, parentRef);

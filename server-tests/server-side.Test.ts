@@ -3,7 +3,6 @@
  */
 
 import {SpiderLib} from "../src/spiders";
-import Base = Mocha.reporters.Base;
 /**
  * Created by flo on 10/01/2017.
  */
@@ -11,7 +10,6 @@ var assert                      = require('assert')
 var chai                        = require('chai')
 var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
-var serialisation               = require('../src/serialisation')
 
 describe("Behaviour serialisation",() => {
 

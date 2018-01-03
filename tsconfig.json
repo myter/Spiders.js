@@ -18,7 +18,7 @@
     "ReactiveMicroserviceExample/**/*",
     "ChristopheExample/**/*",
     "FullRepTest/**/*",
-    "typings/**/*" // <-- don't forget this line!
+    "typings/**/*"
   ],
   "exclude": [
     "node_modules"

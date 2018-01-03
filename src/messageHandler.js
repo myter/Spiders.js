@@ -42,7 +42,7 @@ class MessageHandler {
         serialisation_1.reconstructStatic(behaviourObject, msg.staticProperties, this.environment);
         this.environment.initialise(thisId, mainId, behaviourObject);
         var otherActorIds = msg.otherActorIds;
-        var parentRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, mainId, mainId, this.environment);
+        var parentRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectFields, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectMethods, mainId, mainId, this.environment);
         let channelManag = this.environment.commMedium;
         var mainPort = ports[0];
         channelManag.newConnection(mainId, mainPort);
@@ -140,7 +140,7 @@ class MessageHandler {
     }
     handleResolveConnection(msg) {
         this.environment.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
-        var farRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.environment);
+        var farRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectFields, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectMethods, msg.senderId, msg.senderAddress, msg.senderPort, this.environment);
         this.environment.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
     }
     handleRoute(msg) {

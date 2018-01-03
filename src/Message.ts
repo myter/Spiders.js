@@ -13,7 +13,7 @@ export class Message{
     typeTag         : MessageTypeTag
     senderId        : string
     senderType      : string
-    senderRef       : ValueContainer
+    senderRef       : FarReference
     //For Messages sent by server
     senderAddress   : string
     senderPort      : number
@@ -26,7 +26,7 @@ export class Message{
     constructor(typeTag : MessageTypeTag,senderRef : FarReference){
         this.typeTag        = typeTag
         this.senderId       = senderRef.ownerId
-        this.senderRef      = serialise(senderRef.environemnt.objectPool.getObject(ObjectPool._BEH_OBJ_ID),senderRef.ownerId,senderRef.environemnt)
+        this.senderRef      = serialise(senderRef.environemnt.objectPool.getObject(ObjectPool._BEH_OBJ_ID),senderRef.ownerId,senderRef.environemnt) as any
         if(senderRef instanceof ServerFarReference){
             this.senderType     = Message.serverSenderType
             this.senderAddress  = (senderRef as ServerFarReference).ownerAddress

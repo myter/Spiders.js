@@ -62,7 +62,7 @@ export class MessageHandler{
         reconstructStatic(behaviourObject,msg.staticProperties,this.environment);
         (this.environment as ClientActorEnvironment).initialise(thisId,mainId,behaviourObject)
         var otherActorIds               = msg.otherActorIds
-        var parentRef                   = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.environment)
+        var parentRef                   = new ClientFarReference(ObjectPool._BEH_OBJ_ID,msg.senderRef[FarReference.farRefAccessorKey].objectFields,msg.senderRef[FarReference.farRefAccessorKey].objectMethods,mainId,mainId,this.environment)
         let channelManag                = this.environment.commMedium as ChannelManager
         var mainPort                = ports[0]
         channelManag.newConnection(mainId,mainPort)
@@ -167,7 +167,7 @@ export class MessageHandler{
 
     private handleResolveConnection(msg : ResolveConnectionMessage){
         this.environment.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
-        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
+        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderRef[FarReference.farRefAccessorKey].objectFields,msg.senderRef[FarReference.farRefAccessorKey].objectMethods,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
         this.environment.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
     }
 
@@ -229,7 +229,7 @@ export class MessageHandler{
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
-        msg.senderRef = deserialise(msg.senderRef,this.environment)
+        msg.senderRef = deserialise(msg.senderRef as any,this.environment)
         switch(msg.typeTag){
             case _INSTALL_BEHAVIOUR_:
                 this.handleInstall(msg as InstallBehaviourMessage,ports)

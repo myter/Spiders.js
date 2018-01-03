@@ -9,6 +9,7 @@ import {ChannelManager} from "./ChannelManager";
 import {MessageHandler} from "./messageHandler";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderActorMirrorClass} from "./spiders";
+import {getObjectFieldNames, getObjectMethodNames} from "./serialisation";
 
 export abstract class ActorEnvironment{
     public thisRef          : FarReference = null
@@ -32,7 +33,9 @@ export abstract class ActorEnvironment{
 export class ServerActorEnvironment extends ActorEnvironment {
     constructor(actorId : string,actorAddress : string,actorPort : number,actorMirror : SpiderActorMirror){
         super(actorMirror)
-        this.thisRef        = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,actorAddress,actorPort,this)
+        let behObj          = this.objectPool.getObject(ObjectPool._BEH_OBJ_ID)
+        //Object fields and methods will be filled-in once known
+        this.thisRef        = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],actorId,actorAddress,actorPort,this)
         this.commMedium     = new ServerSocketManager(actorAddress,actorPort,this)
         this.signalPool     = new SignalPool(this)
         this.gspInstance    = new GSP(actorId,this)
@@ -47,7 +50,7 @@ export class ClientActorEnvironment extends ActorEnvironment{
     }
 
     initialise(actorId,mainId,behaviourObject){
-        this.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,actorId,mainId,this)
+        this.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(behaviourObject),getObjectMethodNames(behaviourObject),actorId,mainId,this)
         this.gspInstance    = new GSP(actorId,this)
         this.objectPool     = new ObjectPool(behaviourObject)
         this.signalPool     = new SignalPool(this)

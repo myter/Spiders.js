@@ -9,7 +9,6 @@ var assert = require('assert');
 var chai = require('chai');
 var expect = chai.expect;
 var spider = require('../src/spiders');
-var serialisation = require('../src/serialisation');
 describe("Behaviour serialisation", () => {
     it("From file", (done) => {
         var app = new spider.Application();

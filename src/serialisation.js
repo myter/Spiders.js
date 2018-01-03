@@ -25,6 +25,10 @@ function getObjectVars(object, receiverId, environment, ignoreSet = []) {
     return vars;
 }
 exports.getObjectVars = getObjectVars;
+function getObjectFieldNames(object) {
+    return Reflect.ownKeys(object).map((key) => { return key.toString(); });
+}
+exports.getObjectFieldNames = getObjectFieldNames;
 function getObjectMethods(object) {
     var methods = [];
     var proto = Object.getPrototypeOf(object);
@@ -40,6 +44,21 @@ function getObjectMethods(object) {
     return methods;
 }
 exports.getObjectMethods = getObjectMethods;
+function getObjectMethodNames(object) {
+    var names = [];
+    var proto = Object.getPrototypeOf(object);
+    var properties = Reflect.ownKeys(proto);
+    for (var i in properties) {
+        var key = properties[i];
+        var method = Reflect.get(proto, key);
+        //Avoid copying over any construction functions (i.e. class declarations)
+        if (typeof method == 'function' && !(method.toString()).startsWith("class")) {
+            names.push(key.toString());
+        }
+    }
+    return names;
+}
+exports.getObjectMethodNames = getObjectMethodNames;
 function deconstructStatic(actorClass, receiverId, results, environment) {
     //Reached the end of the class chain (i.e. current class is function(){})
     if (actorClass.name == "") {
@@ -237,9 +256,11 @@ class PromiseContainer extends ValueContainer {
 }
 exports.PromiseContainer = PromiseContainer;
 class ServerFarRefContainer extends ValueContainer {
-    constructor(objectId, ownerId, ownerAddress, ownerPort) {
+    constructor(objectId, objectFields, objectMethods, ownerId, ownerAddress, ownerPort) {
         super(ValueContainer.serverFarRefType);
         this.objectId = objectId;
+        this.objectFields = objectFields;
+        this.objectMethods = objectMethods;
         this.ownerId = ownerId;
         this.ownerAddress = ownerAddress;
         this.ownerPort = ownerPort;
@@ -247,9 +268,11 @@ class ServerFarRefContainer extends ValueContainer {
 }
 exports.ServerFarRefContainer = ServerFarRefContainer;
 class ClientFarRefContainer extends ValueContainer {
-    constructor(objectId, ownerId, mainId, contactId, contactAddress, contactPort) {
+    constructor(objectId, objectFields, objectMethods, ownerId, mainId, contactId, contactAddress, contactPort) {
         super(ValueContainer.clientFarRefType);
         this.objectId = objectId;
+        this.objectFields = objectFields;
+        this.objectMethods = objectMethods;
         this.ownerId = ownerId;
         this.mainId = mainId;
         this.contactId = contactId;
@@ -390,11 +413,11 @@ function serialisePromise(promise, receiverId, enviroment) {
 function serialiseObject(object, thisRef, objectPool) {
     var oId = objectPool.allocateObject(object);
     if (thisRef instanceof FarRef_1.ServerFarReference) {
-        return new ServerFarRefContainer(oId, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+        return new ServerFarRefContainer(oId, getObjectFieldNames(object), getObjectMethodNames(object), thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
     }
     else {
         var clientRef = thisRef;
-        return new ClientFarRefContainer(oId, clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
+        return new ClientFarRefContainer(oId, getObjectFieldNames(object), getObjectMethodNames(object), clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
     }
 }
 function serialiseRepliqFields(fields, receiverId, environment) {
@@ -495,16 +518,16 @@ function serialise(value, receiverId, environment) {
         }
         else if (value[FarRef_1.FarReference.ServerProxyTypeKey]) {
             var farRef = value[FarRef_1.FarReference.farRefAccessorKey];
-            return new ServerFarRefContainer(farRef.objectId, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
+            return new ServerFarRefContainer(farRef.objectId, farRef.objectFields, farRef.objectMethods, farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
         }
         else if (value[FarRef_1.FarReference.ClientProxyTypeKey]) {
             let farRef = value[FarRef_1.FarReference.farRefAccessorKey];
             if (environment.thisRef instanceof FarRef_1.ServerFarReference && farRef.contactId == null) {
                 //Current actor is a server and is the first to obtain a reference to this client actor. conversation with this client should now be rooted through this actor given that it has a socket reference to it
-                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, environment.thisRef.ownerId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort);
+                return new ClientFarRefContainer(farRef.objectId, farRef.objectFields, farRef.objectMethods, farRef.ownerId, farRef.mainId, environment.thisRef.ownerId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort);
             }
             else {
-                return new ClientFarRefContainer(farRef.objectId, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
+                return new ClientFarRefContainer(farRef.objectId, farRef.objectFields, farRef.objectMethods, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
             }
         }
         else if (value[ArrayIsolateContainer.checkArrayIsolateFuncKey]) {
@@ -603,7 +626,7 @@ function deserialise(value, enviroment) {
         return enviroment.promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
     }
     function deSerialiseServerFarRef(farRefContainer) {
-        var farRef = new FarRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, enviroment);
+        var farRef = new FarRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, enviroment);
         if (enviroment.thisRef instanceof FarRef_1.ServerFarReference) {
             if (!(enviroment.commMedium.hasConnection(farRef.ownerId))) {
                 enviroment.commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
@@ -620,10 +643,10 @@ function deserialise(value, enviroment) {
         var farRef;
         if ((enviroment.thisRef instanceof FarRef_1.ServerFarReference) && farRefContainer.contactId == null) {
             //This is the first server side actor to come into contact with this client-side far reference and will henceforth be the contact point for all messages sent to this far reference
-            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, enviroment.thisRef.ownerId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort);
+            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, enviroment, enviroment.thisRef.ownerId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort);
         }
         else {
-            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, enviroment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, enviroment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
         return farRef.proxyify();
     }
