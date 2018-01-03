@@ -6,19 +6,23 @@ const signalPool_1 = require("./Reactivivity/signalPool");
 const GSP_1 = require("./Replication/GSP");
 const Sockets_1 = require("./Sockets");
 const ChannelManager_1 = require("./ChannelManager");
+const messageHandler_1 = require("./messageHandler");
 class ActorEnvironment {
-    constructor() {
+    constructor(actorMirror) {
         this.thisRef = null;
+        this.messageHandler = new messageHandler_1.MessageHandler(this);
+        this.actorMirror = actorMirror;
+        this.objectPool = new ObjectPool_1.ObjectPool();
+        this.promisePool = new PromisePool_1.PromisePool();
+        this.actorMirror.bindBase(this);
     }
 }
 exports.ActorEnvironment = ActorEnvironment;
 class ServerActorEnvironment extends ActorEnvironment {
-    constructor(actorId, actorAddress, actorPort) {
-        super();
+    constructor(actorId, actorAddress, actorPort, actorMirror) {
+        super(actorMirror);
         this.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, actorId, actorAddress, actorPort, this);
-        this.objectPool = new ObjectPool_1.ObjectPool();
-        this.commMedium = new Sockets_1.ServerSocketManager(actorAddress, actorPort);
-        this.promisePool = new PromisePool_1.PromisePool();
+        this.commMedium = new Sockets_1.ServerSocketManager(actorAddress, actorPort, this);
         this.signalPool = new signalPool_1.SignalPool(this);
         this.gspInstance = new GSP_1.GSP(actorId, this);
     }
@@ -26,11 +30,9 @@ class ServerActorEnvironment extends ActorEnvironment {
 exports.ServerActorEnvironment = ServerActorEnvironment;
 //Constructing a client actor environment happens in two phases (first phase at eval of ActorProto, second phase after receiving the intallation message from app actor running in main thread)
 class ClientActorEnvironment extends ActorEnvironment {
-    constructor() {
-        super();
-        this.commMedium = new ChannelManager_1.ChannelManager();
-        this.promisePool = new PromisePool_1.PromisePool();
-        this.objectPool = new ObjectPool_1.ObjectPool();
+    constructor(actorMirror) {
+        super(actorMirror);
+        this.commMedium = new ChannelManager_1.ChannelManager(this);
     }
     initialise(actorId, mainId, behaviourObject) {
         this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, actorId, mainId, this);

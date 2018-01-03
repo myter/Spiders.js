@@ -72,21 +72,18 @@ class SocketHandler {
 }
 exports.SocketHandler = SocketHandler;
 class ServerSocketManager extends CommMedium_1.CommMedium {
-    constructor(ip, socketPort) {
-        super();
+    constructor(ip, socketPort, environment) {
+        super(environment);
         //Again very dirty hack to satisfy react-native
-        var io = eval("req" + "uire('socket.io')");
+        var io = require('socket.io');
         this.socketIp = ip;
         this.socketPort = socketPort;
         this.socket = io(socketPort);
         this.connectedClients = new Map();
-    }
-    init(messageHandler) {
-        super.init(messageHandler);
-        this.socketHandler.messageHandler = messageHandler;
+        this.socketHandler.messageHandler = environment.messageHandler;
         this.socket.on('connection', (client) => {
             client.on('message', (data) => {
-                messageHandler.dispatch(data, [], client);
+                environment.messageHandler.dispatch(data, [], client);
             });
             client.on('close', () => {
                 //TODO

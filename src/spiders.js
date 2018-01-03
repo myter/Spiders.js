@@ -1,5 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const messageHandler_1 = require("./messageHandler");
 const FarRef_1 = require("./FarRef");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
@@ -11,6 +10,7 @@ const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
 const signal_1 = require("./Reactivivity/signal");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
+const MAP_1 = require("./MAP");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -49,6 +49,9 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
     return mappings;
 }
 class Actor {
+    constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
+        this.actorMirror = actorMirror;
+    }
 }
 class ClientActor extends Actor {
     spawn(app, thisClass) {
@@ -57,7 +60,7 @@ class ClientActor extends Actor {
         var work = require('webworkify');
         var webWorker = work(require('./ActorProto'));
         webWorker.addEventListener('message', (event) => {
-            app.mainMessageHandler.dispatch(event);
+            app.mainEnvironment.messageHandler.dispatch(event);
         });
         var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment);
         var actorVariables = decon[0];
@@ -78,8 +81,7 @@ class ClientActor extends Actor {
 class ServerActor extends Actor {
     spawn(app, port, thisClass) {
         var socketManager = app.mainEnvironment.commMedium;
-        //Really ugly hack to satisfy React-native's "static analyser"
-        var fork = eval("req" + "uire('child_process')").fork;
+        var fork = require('child_process').fork;
         var actorId = utils_1.generateId();
         var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment);
         var actorVariables = decon[0];
@@ -87,7 +89,10 @@ class ServerActor extends Actor {
         var staticProperties = serialisation_1.deconstructStatic(thisClass, actorId, [], app.mainEnvironment);
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties)]);
+        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment);
+        var actorMirrorVariables = deconActorMirror[0];
+        var actorMirrorMethods = deconActorMirror[1];
+        var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
         app.spawnedActors.push(actor);
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainEnvironment);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
@@ -114,9 +119,6 @@ class Application {
         this.appActors = 0;
         if (this.appActors == 0) {
             this.mainId = utils_1.generateId();
-            /*this.mainEnvironment                = new ActorEnvironment()
-            this.mainEnvironment.promisePool    = new PromisePool()
-            this.mainEnvironment.objectPool     = new ObjectPool(this)*/
         }
         else {
             throw new Error("Cannot create more than one application actor");
@@ -124,18 +126,15 @@ class Application {
     }
 }
 class ServerApplication extends Application {
-    constructor(mainIp = "127.0.0.1", mainPort = 8000) {
+    constructor(mainIp = "127.0.0.1", mainPort = 8000, actorMirror = new MAP_1.SpiderActorMirror()) {
         super();
         this.mainIp = mainIp;
         this.mainPort = mainPort;
-        this.mainEnvironment = new ActorEnvironment_1.ServerActorEnvironment(this.mainId, mainIp, mainPort);
+        this.mainEnvironment = new ActorEnvironment_1.ServerActorEnvironment(this.mainId, mainIp, mainPort, actorMirror);
         this.mainEnvironment.objectPool.installBehaviourObject(this);
         this.portCounter = 8001;
         this.spawnedActors = [];
-        this.socketManager = this.mainEnvironment.commMedium;
-        let mainMessageHandler = new messageHandler_1.MessageHandler(this.mainEnvironment);
-        this.socketManager.init(mainMessageHandler);
-        utils_1.installSTDLib(true, null, this, this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);
@@ -151,21 +150,19 @@ class ServerApplication extends Application {
         return ServerActor.spawnFromFile(this, port, path, className, constructorArgs);
     }
     kill() {
-        this.socketManager.closeAll();
+        this.mainEnvironment.commMedium.closeAll();
         this.spawnedActors.forEach((actor) => {
             actor.kill();
         });
     }
 }
 class ClientApplication extends Application {
-    constructor() {
+    constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
         super();
-        this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment();
+        this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment(actorMirror);
         this.mainEnvironment.initialise(this.mainId, this.mainId, this);
         this.spawnedActors = [];
-        this.mainMessageHandler = new messageHandler_1.MessageHandler(this.mainEnvironment);
-        this.mainEnvironment.commMedium.init(this.mainMessageHandler);
-        utils_1.installSTDLib(true, null, this, this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(true);
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);

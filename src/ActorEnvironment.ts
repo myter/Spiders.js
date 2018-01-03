@@ -6,24 +6,34 @@ import {SignalPool} from "./Reactivivity/signalPool";
 import {GSP} from "./Replication/GSP";
 import {ServerSocketManager} from "./Sockets";
 import {ChannelManager} from "./ChannelManager";
-import {reconstructBehaviour, reconstructStatic} from "./serialisation";
+import {MessageHandler} from "./messageHandler";
+import {SpiderActorMirror} from "./MAP";
+import {SpiderActorMirrorClass} from "./spiders";
 
 export abstract class ActorEnvironment{
-    public thisRef     : FarReference = null
-    public objectPool  : ObjectPool
-    public commMedium  : CommMedium
-    public promisePool : PromisePool
-    public signalPool  : SignalPool
-    public gspInstance : GSP
+    public thisRef          : FarReference = null
+    public objectPool       : ObjectPool
+    public commMedium       : CommMedium
+    public promisePool      : PromisePool
+    public signalPool       : SignalPool
+    public gspInstance      : GSP
+    public messageHandler   : MessageHandler
+    public actorMirror      : SpiderActorMirror
+
+    constructor(actorMirror : SpiderActorMirror){
+        this.messageHandler = new MessageHandler(this)
+        this.actorMirror    = actorMirror
+        this.objectPool     = new ObjectPool()
+        this.promisePool    = new PromisePool()
+        this.actorMirror.bindBase(this)
+    }
 }
 
 export class ServerActorEnvironment extends ActorEnvironment {
-    constructor(actorId : string,actorAddress : string,actorPort : number){
-        super()
+    constructor(actorId : string,actorAddress : string,actorPort : number,actorMirror : SpiderActorMirror){
+        super(actorMirror)
         this.thisRef        = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,actorAddress,actorPort,this)
-        this.objectPool     = new ObjectPool()
-        this.commMedium     = new ServerSocketManager(actorAddress,actorPort)
-        this.promisePool    = new PromisePool()
+        this.commMedium     = new ServerSocketManager(actorAddress,actorPort,this)
         this.signalPool     = new SignalPool(this)
         this.gspInstance    = new GSP(actorId,this)
     }
@@ -31,11 +41,9 @@ export class ServerActorEnvironment extends ActorEnvironment {
 
 //Constructing a client actor environment happens in two phases (first phase at eval of ActorProto, second phase after receiving the intallation message from app actor running in main thread)
 export class ClientActorEnvironment extends ActorEnvironment{
-    constructor(){
-        super()
-        this.commMedium          = new ChannelManager()
-        this.promisePool         = new PromisePool()
-        this.objectPool          = new ObjectPool()
+    constructor(actorMirror : SpiderActorMirror){
+        super(actorMirror)
+        this.commMedium          = new ChannelManager(this)
     }
 
     initialise(actorId,mainId,behaviourObject){

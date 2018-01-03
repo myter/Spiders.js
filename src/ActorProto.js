@@ -1,5 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const messageHandler_1 = require("./messageHandler");
 const ObjectPool_1 = require("./ObjectPool");
 const FarRef_1 = require("./FarRef");
 const serialisation_1 = require("./serialisation");
@@ -16,8 +15,6 @@ if (utils.isBrowser()) {
     module.exports = function (self) {
         //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
         environment = new ActorEnvironment_1.ClientActorEnvironment();
-        messageHandler = new messageHandler_1.MessageHandler(environment);
-        environment.commMedium.init(messageHandler);
         self.addEventListener('message', function (ev) {
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
             messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
@@ -31,7 +28,6 @@ else {
     thisId = process.argv[5];
     var parentId = process.argv[6];
     var parentPort = parseInt(process.argv[7]);
-    environment = new ActorEnvironment_1.ServerActorEnvironment(thisId, address, port);
     var behaviourObject;
     if (loadFromFile) {
         var filePath = process.argv[8];
@@ -43,19 +39,24 @@ else {
         });
         var actorClass = require(filePath)[className];
         behaviourObject = new actorClass();
+        let actorMirror = behaviourObject.actorMirror;
+        environment = new ActorEnvironment_1.ServerActorEnvironment(thisId, address, port, actorMirror);
     }
     else {
         var variables = JSON.parse(process.argv[8]);
         var methods = JSON.parse(process.argv[9]);
+        let actorMirrVars = JSON.parse(process.argv[11]);
+        let actorMirrMethods = JSON.parse(process.argv[12]);
+        let actorMirror = serialisation_1.reconstructBehaviour({}, actorMirrVars, actorMirrMethods, environment);
+        //TODO need to get mirror args as well + need to do the same for client actors
+        environment = new ActorEnvironment_1.ServerActorEnvironment(thisId, address, port, actorMirror);
         behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, environment);
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject);
-    messageHandler = new messageHandler_1.MessageHandler(environment);
-    environment.commMedium.init(messageHandler);
     parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, parentId, address, parentPort, environment);
     var parentServer = parentRef;
     environment.commMedium.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    utils.installSTDLib(false, parentRef, behaviourObject, environment);
+    environment.actorMirror.initialise(false, parentRef);
 }
 //# sourceMappingURL=ActorProto.js.map

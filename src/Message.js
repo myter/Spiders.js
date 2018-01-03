@@ -1,9 +1,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Created by flo on 20/12/2016.
+ */
+const serialisation_1 = require("./serialisation");
 const FarRef_1 = require("./FarRef");
+const ObjectPool_1 = require("./ObjectPool");
 class Message {
     constructor(typeTag, senderRef) {
         this.typeTag = typeTag;
         this.senderId = senderRef.ownerId;
+        this.senderRef = serialisation_1.serialise(senderRef.environemnt.objectPool.getObject(ObjectPool_1.ObjectPool._BEH_OBJ_ID), senderRef.ownerId, senderRef.environemnt);
         if (senderRef instanceof FarRef_1.ServerFarReference) {
             this.senderType = Message.serverSenderType;
             this.senderAddress = senderRef.ownerAddress;

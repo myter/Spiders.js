@@ -1,16 +1,15 @@
 import {CommMedium} from "./CommMedium";
-import {MessageHandler} from "./messageHandler";
 import {Message} from "./Message";
+import {ActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 18/01/2017.
  */
-var utils = require("./utils")
 export class ChannelManager extends CommMedium{
     private connections     : Map<string,MessagePort>
 
-    init(messageHandler : MessageHandler){
-        super.init(messageHandler)
-        this.connections    = new Map<string,MessagePort>()
+    constructor(environment : ActorEnvironment){
+        super(environment)
+        this.connections = new Map()
     }
 
     newConnection(actorId : string,channelPort : MessagePort){

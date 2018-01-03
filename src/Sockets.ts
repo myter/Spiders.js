@@ -2,6 +2,7 @@ import {MessageHandler} from "./messageHandler";
 import {Message} from "./Message";
 import {Socket} from "net";
 import {CommMedium} from "./CommMedium";
+import {ActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 19/12/2016.
  */
@@ -94,22 +95,18 @@ export class ServerSocketManager extends CommMedium{
     private socket              : any
     private connectedClients    : Map<string,Socket>
 
-    constructor(ip : string,socketPort : number){
-        super()
+    constructor(ip : string,socketPort : number,environment : ActorEnvironment){
+        super(environment)
         //Again very dirty hack to satisfy react-native
-        var io                      = eval("req" + "uire('socket.io')")
+        var io                      = require('socket.io')
         this.socketIp               = ip
         this.socketPort             = socketPort
         this.socket                 = io(socketPort)
         this.connectedClients       = new Map<string,Socket>()
-    }
-
-    init(messageHandler : MessageHandler){
-        super.init(messageHandler)
-        this.socketHandler.messageHandler = messageHandler
+        this.socketHandler.messageHandler = environment.messageHandler
         this.socket.on('connection',(client) => {
             client.on('message',(data) => {
-                messageHandler.dispatch(data,[],client)
+                environment.messageHandler.dispatch(data,[],client)
             })
             client.on('close',() => {
                 //TODO

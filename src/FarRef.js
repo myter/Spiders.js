@@ -12,14 +12,10 @@ class FarReference {
         this.isServer = isServer;
     }
     sendFieldAccess(fieldName) {
-        var promiseAlloc = this.environemnt.promisePool.newPromise();
-        this.environemnt.commMedium.sendMessage(this.ownerId, new Message_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
+        return this.environemnt.actorMirror.sendAccess(this, fieldName);
     }
     sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.environemnt.promisePool.newPromise();
-        this.environemnt.commMedium.sendMessage(this.ownerId, new Message_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId));
-        return promiseAlloc.promise;
+        return this.environemnt.actorMirror.sendInvocation(this, methodName, args);
     }
     proxyify() {
         var baseObject = this;

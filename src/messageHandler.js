@@ -50,7 +50,7 @@ class MessageHandler {
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id, ports[index + 1]);
         });
-        utils.installSTDLib(false, parentRef, behaviourObject, this.environment);
+        this.environment.actorMirror.initialise(false, parentRef);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.environment.commMedium;
@@ -59,17 +59,19 @@ class MessageHandler {
     handleFieldAccess(msg) {
         var targetObject = this.environment.objectPool.getObject(msg.objectId);
         var fieldVal = Reflect.get(targetObject, msg.fieldName);
-        //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
-        if (typeof fieldVal != 'function') {
-            var serialised = serialisation_1.serialise(fieldVal, msg.senderId, this.environment);
-            var message = new Message_1.ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
-            if (msg.senderType == Message_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+        this.environment.actorMirror.receiveAccess(msg.senderRef, targetObject, msg.fieldName, () => {
+            //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
+            if (typeof fieldVal != 'function') {
+                var serialised = serialisation_1.serialise(fieldVal, msg.senderId, this.environment);
+                var message = new Message_1.ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
+                if (msg.senderType == Message_1.Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+                }
+                else {
+                    this.sendReturnClient(msg.senderId, msg, message);
+                }
             }
-            else {
-                this.sendReturnClient(msg.senderId, msg, message);
-            }
-        }
+        });
     }
     handleMethodInvocation(msg) {
         var targetObject = this.environment.objectPool.getObject(msg.objectId);
@@ -78,30 +80,31 @@ class MessageHandler {
         var deserialisedArgs = args.map((arg) => {
             return serialisation_1.deserialise(arg, this.environment);
         });
-        var retVal;
-        try {
-            retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
-            //retVal = targetObject[methodName](...deserialisedArgs)
-            var serialised = serialisation_1.serialise(retVal, msg.senderId, this.environment);
-            var message = new Message_1.ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
-            if (msg.senderType == Message_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+        this.environment.actorMirror.receiveInvocation(msg.senderRef, targetObject, methodName, deserialisedArgs, () => {
+            var retVal;
+            try {
+                retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
+                var serialised = serialisation_1.serialise(retVal, msg.senderId, this.environment);
+                var message = new Message_1.ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
+                if (msg.senderType == Message_1.Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+                }
+                else {
+                    this.sendReturnClient(msg.senderId, msg, message);
+                }
             }
-            else {
-                this.sendReturnClient(msg.senderId, msg, message);
+            catch (reason) {
+                console.log("Went wrong for : " + methodName);
+                var serialised = serialisation_1.serialise(reason, msg.senderId, this.environment);
+                message = new Message_1.RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
+                if (msg.senderType == Message_1.Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+                }
+                else {
+                    this.sendReturnClient(msg.senderId, msg, message);
+                }
             }
-        }
-        catch (reason) {
-            console.log("Went wrong for : " + methodName);
-            var serialised = serialisation_1.serialise(reason, msg.senderId, this.environment);
-            message = new Message_1.RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
-            if (msg.senderType == Message_1.Message.serverSenderType) {
-                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
-            }
-            else {
-                this.sendReturnClient(msg.senderId, msg, message);
-            }
-        }
+        });
     }
     handlePromiseResolve(msg) {
         let promisePool = this.environment.promisePool;
@@ -191,6 +194,7 @@ class MessageHandler {
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg, ports = [], clientSocket = null) {
+        msg.senderRef = serialisation_1.deserialise(msg.senderRef, this.environment);
         switch (msg.typeTag) {
             case Message_1._INSTALL_BEHAVIOUR_:
                 this.handleInstall(msg, ports);

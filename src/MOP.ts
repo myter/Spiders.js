@@ -1,4 +1,4 @@
-import {clone} from "../utils";
+import {clone} from "./utils";
 
 export class SpiderObjectMirror{
     base : SpiderObject
@@ -8,12 +8,10 @@ export class SpiderObjectMirror{
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
-        console.log("Invoking: " + methodName.toString())
         return this.base[methodName](...args)
     }
 
     access(fieldName){
-        console.log("Accessing " + fieldName.toString())
         return this.base[fieldName]
     }
 

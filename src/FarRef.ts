@@ -26,15 +26,11 @@ export abstract class FarReference {
         this.isServer       = isServer
     }
     sendFieldAccess(fieldName : string) : Promise<any>{
-        var promiseAlloc : PromiseAllocation = this.environemnt.promisePool.newPromise()
-        this.environemnt.commMedium.sendMessage(this.ownerId,new FieldAccessMessage(this.environemnt.thisRef,this.objectId,fieldName,promiseAlloc.promiseId))
-        return promiseAlloc.promise
+        return this.environemnt.actorMirror.sendAccess(this,fieldName)
     }
 
     sendMethodInvocation(methodName : string, args : Array<any>) : Promise<any> {
-        var promiseAlloc : PromiseAllocation = this.environemnt.promisePool.newPromise()
-        this.environemnt.commMedium.sendMessage(this.ownerId,new MethodInvocationMessage(this.environemnt.thisRef,this.objectId,methodName,args,promiseAlloc.promiseId))
-        return promiseAlloc.promise
+        return this.environemnt.actorMirror.sendInvocation(this,methodName,args)
     }
 
     proxyify() : Object{

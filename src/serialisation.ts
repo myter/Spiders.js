@@ -14,16 +14,12 @@ import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {SignalPool} from "./Reactivivity/signalPool";
 import {ActorEnvironment} from "./ActorEnvironment";
+import {getSerialiableClassDefinition} from "./utils";
 
 var Signal      = require("./Reactivivity/signal").Signal
 /**
  * Created by flo on 19/12/2016.
  */
-
-//Enables to detect true type of instances (e.g. array)
-function toType(obj : any) : string {
-    return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
-}
 
 
 export function getObjectVars(object : Object,receiverId : string,environment : ActorEnvironment,ignoreSet : Array<string> = []) : Array<any>{
@@ -81,7 +77,20 @@ export function deconstructStatic(actorClass,receiverId : string,results : Array
     }
 }
 
+function convert(inputString : string){
+    let parts   = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/)
+    parts[2]    = parts[2].replace('(','.bind(this)(')
+    let prefix  = inputString.substring(0,parts.index)
+    return prefix + parts[1]+ parts[2] + parts[3]
+}
+
 function constructMethod(functionSource){
+    //JS disallows the use of super outside of method context (which is the case if you eval a function as a string)
+    //Replace all supers with proto calls
+    if(functionSource.includes("super")){
+        functionSource = convert(functionSource)
+        functionSource = functionSource.replace("super","((this.__proto__).__proto__)")
+    }
     if(functionSource.startsWith("function")){
         var method =  eval( "(" +  functionSource +")" )
     }
@@ -133,7 +142,8 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     var proto               = object.__proto__
     properties              = Reflect.ownKeys(proto)
     properties.shift()
-    var lastProto           = properties.indexOf("spawn") != -1
+    //var lastProto           = properties.indexOf("spawn") != -1
+    var lastProto = properties.indexOf("__proto__") != -1
     if(!lastProto){
         for(var i in properties){
             var key     = properties[i]
@@ -643,16 +653,16 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             return serialisePromise(value,receiverId,environment)
         }
         else if(isClass(value) && isIsolateClass(value)){
-            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
+            var definition = getSerialiableClassDefinition(value)
             return new IsolateDefinitionContainer(definition.replace("super()",''))
         }
         else if(isClass(value) && isRepliqClass(value)){
             //TODO might need to extract annotations in same way that is done for signals
-            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
+            var definition = getSerialiableClassDefinition(value)
             return new RepliqDefinitionContainer(definition)
         }
         else if(isClass(value) && isSignalClass(value)){
-            var definition  = value.toString().replace(/(\extends)(.*?)(?=\{)/,'')
+            var definition  = getSerialiableClassDefinition(value)
             let mutators    = []
             //Need to find out which of the definition's methods are mutating. Can only do this on an instantiated object
             let dummy = new value()

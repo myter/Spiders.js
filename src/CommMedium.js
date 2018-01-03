@@ -6,14 +6,12 @@ const Sockets_1 = require("./Sockets");
  * Created by flo on 17/01/2017.
  */
 class CommMedium {
-    constructor() {
+    constructor(environment) {
         this.pendingActors = new Map();
         this.connectedActors = new Map();
         this.pendingConnectionId = 0;
         this.socketHandler = new Sockets_1.SocketHandler(this);
-    }
-    init(messageHandler) {
-        this.messageHandler = messageHandler;
+        this.messageHandler = environment.messageHandler;
     }
     //Called whenever a server far reference is passed around between actors.
     //Given that at this point the id of the server is known (in contrast to when "remote" is called, we can simply open up a port to the server and mark the socket as "disconnected" using the actor id

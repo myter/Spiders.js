@@ -1,25 +1,29 @@
-Object.defineProperty(exports, "__esModule", { value: true });
-const MOP_1 = require("../src/MOP/MOP");
-class SubObject extends MOP_1.SpiderObject {
-    constructor() {
-        super(...arguments);
-        this.someSuperField = 5;
-    }
-    someFoo() {
-        return 5;
+/*class Wayup{
+    say(){
+        console.log("I'm way up")
     }
 }
-class SubSubObject extends SubObject {
-    constructor() {
-        super();
-        this.someSubField = 10;
-    }
-    someOtherFoo() {
-        return super.someFoo() + 10;
+
+class Sup extends Wayup{
+    x = 5
+    say(){
+        console.log("I'm Sup " + this.x);
     }
 }
-var o = new SubSubObject();
-console.log(o.someOtherFoo());
-console.log(o.someSuperField);
-console.log(o.someSubField);
+
+class Bas extends Sup{
+    say(){
+        console.log("I'm Bas")
+        //;((this.__proto__).__proto__).say.bind(this)()
+    }
+}
+let b = new Bas()
+b.say()*/
+let s = "super.initialise(someArgs)";
+function convert(inputString) {
+    let parts = inputString.match(/(super\.)(.*?\()(.*)/);
+    parts[2] = parts[2].replace('(', '.bind(this)(');
+    return parts[1] + parts[2] + parts[3];
+}
+console.log(convert(s));
 //# sourceMappingURL=test.js.map

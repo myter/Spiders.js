@@ -4,6 +4,7 @@ import {FarReference, ServerFarReference} from "./FarRef";
 import {PromisePool} from "./PromisePool";
 import {Socket} from "net";
 import {SocketHandler} from "./Sockets";
+import {ActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 17/01/2017.
  */
@@ -17,20 +18,16 @@ export abstract class CommMedium{
     pendingActors       : Map<number,Socket>
     connectedActors     : Map<string,Socket>
     pendingConnectionId : number
-    messageHandler      : MessageHandler
     socketHandler       : SocketHandler
+    messageHandler      : MessageHandler
 
-    constructor(){
+    constructor(environment : ActorEnvironment){
         this.pendingActors          = new Map<number,Socket>()
         this.connectedActors        = new Map<string,Socket>()
         this.pendingConnectionId    = 0
         this.socketHandler          = new SocketHandler(this)
+        this.messageHandler         = environment.messageHandler
     }
-
-    init(messageHandler : MessageHandler){
-        this.messageHandler = messageHandler
-    }
-
 
     //Called whenever a server far reference is passed around between actors.
     //Given that at this point the id of the server is known (in contrast to when "remote" is called, we can simply open up a port to the server and mark the socket as "disconnected" using the actor id

@@ -6,14 +6,11 @@ const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
 const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
 const signal_1 = require("./Reactivivity/signal");
+const utils_1 = require("./utils");
 var Signal = require("./Reactivivity/signal").Signal;
 /**
  * Created by flo on 19/12/2016.
  */
-//Enables to detect true type of instances (e.g. array)
-function toType(obj) {
-    return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-}
 function getObjectVars(object, receiverId, environment, ignoreSet = []) {
     var vars = [];
     var properties = Reflect.ownKeys(object);
@@ -70,7 +67,19 @@ function deconstructStatic(actorClass, receiverId, results, environment) {
     }
 }
 exports.deconstructStatic = deconstructStatic;
+function convert(inputString) {
+    let parts = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/);
+    parts[2] = parts[2].replace('(', '.bind(this)(');
+    let prefix = inputString.substring(0, parts.index);
+    return prefix + parts[1] + parts[2] + parts[3];
+}
 function constructMethod(functionSource) {
+    //JS disallows the use of super outside of method context (which is the case if you eval a function as a string)
+    //Replace all supers with proto calls
+    if (functionSource.includes("super")) {
+        functionSource = convert(functionSource);
+        functionSource = functionSource.replace("super", "((this.__proto__).__proto__)");
+    }
     if (functionSource.startsWith("function")) {
         var method = eval("(" + functionSource + ")");
     }
@@ -121,7 +130,8 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     var proto = object.__proto__;
     properties = Reflect.ownKeys(proto);
     properties.shift();
-    var lastProto = properties.indexOf("spawn") != -1;
+    //var lastProto           = properties.indexOf("spawn") != -1
+    var lastProto = properties.indexOf("__proto__") != -1;
     if (!lastProto) {
         for (var i in properties) {
             var key = properties[i];
@@ -554,16 +564,16 @@ function serialise(value, receiverId, environment) {
             return serialisePromise(value, receiverId, environment);
         }
         else if (isClass(value) && isIsolateClass(value)) {
-            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
+            var definition = utils_1.getSerialiableClassDefinition(value);
             return new IsolateDefinitionContainer(definition.replace("super()", ''));
         }
         else if (isClass(value) && isRepliqClass(value)) {
             //TODO might need to extract annotations in same way that is done for signals
-            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
+            var definition = utils_1.getSerialiableClassDefinition(value);
             return new RepliqDefinitionContainer(definition);
         }
         else if (isClass(value) && isSignalClass(value)) {
-            var definition = value.toString().replace(/(\extends)(.*?)(?=\{)/, '');
+            var definition = utils_1.getSerialiableClassDefinition(value);
             let mutators = [];
             //Need to find out which of the definition's methods are mutating. Can only do this on an instantiated object
             let dummy = new value();

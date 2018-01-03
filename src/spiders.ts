@@ -1,26 +1,22 @@
 import {ServerSocketManager} from "./Sockets";
-import {MessageHandler} from "./messageHandler";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
-import {PromisePool} from "./PromisePool";
 import {ObjectPool} from "./ObjectPool";
 import {
     deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic,
     serialise
 } from "./serialisation";
-import {CommMedium} from "./CommMedium";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
-import {GSP} from "./Replication/GSP";
 import {Repliq, atomic} from "./Replication/Repliq";
 import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
 import {FieldUpdate} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity/signal";
-import {SignalPool} from "./Reactivivity/signalPool";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {PubSubTag} from "./PubSub/SubTag";
 import {Subscription} from "./PubSub/SubClient";
-import {generateId, installSTDLib, isBrowser} from "./utils";
+import {generateId, getSerialiableClassDefinition, isBrowser} from "./utils";
+import {SpiderActorMirror} from "./MAP";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -69,6 +65,7 @@ abstract class Actor{
     parent          : FarRef
     Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
+    reflectOnActor  : () => SpiderActorMirror
     remote          : (string,number)=> Promise<FarRef>
     //Pub-sub
     PSClient        : (string?,number?) => null
@@ -89,6 +86,11 @@ abstract class Actor{
     liftStrong      : Function
     liftWeak        : Function
     liftFailure     : Function
+    actorMirror     : SpiderActorMirror
+
+    constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
+        this.actorMirror = actorMirror
+    }
 }
 
 abstract class ClientActor extends Actor{
@@ -98,7 +100,7 @@ abstract class ClientActor extends Actor{
         var work                                        = require('webworkify')
         var webWorker                                   = work(require('./ActorProto'))
         webWorker.addEventListener('message',(event) => {
-            app.mainMessageHandler.dispatch(event)
+            app.mainEnvironment.messageHandler.dispatch(event)
         })
         var decon                                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment)
         var actorVariables                              = decon[0]
@@ -121,8 +123,7 @@ abstract class ServerActor extends Actor{
 
     spawn(app : ServerApplication,port : number,thisClass){
         var socketManager               = app.mainEnvironment.commMedium as ServerSocketManager
-        //Really ugly hack to satisfy React-native's "static analyser"
-        var fork		                = eval("req" + "uire('child_process')").fork
+        var fork                        = require('child_process').fork
         var actorId: string             = generateId()
         var decon                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment)
         var actorVariables              = decon[0]
@@ -130,7 +131,10 @@ abstract class ServerActor extends Actor{
         var staticProperties            = deconstructStatic(thisClass,actorId,[],app.mainEnvironment)
         //Uncomment to debug (huray for webstorms)
         //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var actor                       = fork(__dirname + '/actorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties)])
+        var deconActorMirror            = deconstructBehaviour(this.actorMirror,0,[],[],actorId,app.mainEnvironment)
+        var actorMirrorVariables        = deconActorMirror[0]
+        var actorMirrorMethods          = deconActorMirror[1]
+        var actor                       = fork(__dirname + '/actorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties),JSON.stringify(actorMirrorVariables),JSON.stringify(actorMirrorMethods)])
         app.spawnedActors.push(actor)
         var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,actorId,app.mainIp,port,app.mainEnvironment)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
@@ -162,9 +166,6 @@ abstract class Application {
     constructor(){
         if(this.appActors == 0){
             this.mainId                         = generateId()
-            /*this.mainEnvironment                = new ActorEnvironment()
-            this.mainEnvironment.promisePool    = new PromisePool()
-            this.mainEnvironment.objectPool     = new ObjectPool(this)*/
         }
         else{
             throw new Error("Cannot create more than one application actor")
@@ -181,20 +182,16 @@ class ServerApplication extends Application{
     portCounter                     : number
     //SpawnedActors is actually of type Array<ChildProcess> but the ChildProcess types gives error for React-Native applications
     spawnedActors                   : Array<any>
-    socketManager                   : ServerSocketManager
 
-    constructor(mainIp : string = "127.0.0.1",mainPort : number = 8000){
+    constructor(mainIp : string = "127.0.0.1",mainPort : number = 8000,actorMirror : SpiderActorMirror = new SpiderActorMirror()){
         super()
         this.mainIp                         = mainIp
         this.mainPort                       = mainPort
-        this.mainEnvironment                = new ServerActorEnvironment(this.mainId,mainIp,mainPort)
+        this.mainEnvironment                = new ServerActorEnvironment(this.mainId,mainIp,mainPort,actorMirror)
         this.mainEnvironment.objectPool.installBehaviourObject(this)
         this.portCounter                    = 8001
         this.spawnedActors                  = []
-        this.socketManager                  = this.mainEnvironment.commMedium as ServerSocketManager
-        let mainMessageHandler              = new MessageHandler(this.mainEnvironment)
-        this.socketManager.init(mainMessageHandler)
-        installSTDLib(true,null,this,this.mainEnvironment)
+        this.mainEnvironment.actorMirror.initialise(true)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
@@ -213,7 +210,7 @@ class ServerApplication extends Application{
     }
 
     kill(){
-        this.socketManager.closeAll()
+        (this.mainEnvironment.commMedium as ServerSocketManager).closeAll()
         this.spawnedActors.forEach((actor) => {
             actor.kill()
         })
@@ -222,16 +219,13 @@ class ServerApplication extends Application{
 
 class ClientApplication extends Application{
     spawnedActors       : Array<any>
-    mainMessageHandler  : MessageHandler
 
-    constructor(){
+    constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
         super()
-        this.mainEnvironment                = new ClientActorEnvironment();
+        this.mainEnvironment                = new ClientActorEnvironment(actorMirror);
         (this.mainEnvironment as ClientActorEnvironment).initialise(this.mainId,this.mainId,this)
         this.spawnedActors                  = []
-        this.mainMessageHandler             = new MessageHandler(this.mainEnvironment)
-        this.mainEnvironment.commMedium.init(this.mainMessageHandler)
-        installSTDLib(true,null,this,this.mainEnvironment)
+        this.mainEnvironment.actorMirror.initialise(true)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){
@@ -255,6 +249,7 @@ interface AppType {
     //Provided by standard lib
     Isolate             : IsolateClass
     ArrayIsolate        : ArrayIsolateClass
+    reflectOnActor      : () => SpiderActorMirror
     remote              : (string,number)=> Promise<FarRef>
     //Pub-sub
     PSClient            : (string?,number?) => null
@@ -287,6 +282,7 @@ export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitive
 export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectField}
 export type SignalClass                 = {new(...args : any[]): Signal}
 export type SignalObjectClass           = {new(...args : any[]): SignalObject}
+export type SpiderActorMirrorClass      = {new(...args : any[]): SpiderActorMirror}
 
 export interface SpiderLib{
     Application                 : ApplicationClass

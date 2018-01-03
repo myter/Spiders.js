@@ -1,8 +1,9 @@
 /**
  * Created by flo on 20/12/2016.
  */
-import {ValueContainer} from "./serialisation";
+import {serialise, ValueContainer} from "./serialisation";
 import {FarReference, ServerFarReference, ClientFarReference} from "./FarRef";
+import {ObjectPool} from "./ObjectPool";
 type MessageTypeTag = number
 
 
@@ -12,6 +13,7 @@ export class Message{
     typeTag         : MessageTypeTag
     senderId        : string
     senderType      : string
+    senderRef       : ValueContainer
     //For Messages sent by server
     senderAddress   : string
     senderPort      : number
@@ -24,6 +26,7 @@ export class Message{
     constructor(typeTag : MessageTypeTag,senderRef : FarReference){
         this.typeTag        = typeTag
         this.senderId       = senderRef.ownerId
+        this.senderRef      = serialise(senderRef.environemnt.objectPool.getObject(ObjectPool._BEH_OBJ_ID),senderRef.ownerId,senderRef.environemnt)
         if(senderRef instanceof ServerFarReference){
             this.senderType     = Message.serverSenderType
             this.senderAddress  = (senderRef as ServerFarReference).ownerAddress
