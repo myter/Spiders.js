@@ -4,7 +4,7 @@ import {PromiseAllocation} from "./PromisePool";
 import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./Message";
 import {ObjectPool} from "./ObjectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
-import {ArrayIsolate, Isolate} from "./spiders";
+import {ArrayIsolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
 import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
 import {RepliqField} from "./Replication/RepliqField";
@@ -12,6 +12,7 @@ import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
 import {getSerialiableClassDefinition} from "./utils";
+import {SpiderObject, SpiderObjectMirror} from "./MOP";
 
 var Signal      = require("./Reactivivity/signal").Signal
 /**
@@ -148,7 +149,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
-        if(typeof val != 'function' || isIsolateClass(val) || isSpiderObjectClass(val) || isObjectMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)){
+        if(typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)){
             var serialisedval   = serialise(val,receiverId,environment)
             localAccumVars.push([key,serialisedval])
         }
@@ -249,6 +250,7 @@ export abstract class ValueContainer{
     static signalDefinition     : number = 13
     static spiderObjectDef      : number = 14
     static objectMirrorDef      : number = 15
+    static spiderIsolDef        : number = 16
     type                        : number
 
     constructor(type : number){
@@ -336,30 +338,31 @@ export class ArrayContainer extends ValueContainer{
     }
 }
 
-export class IsolateContainer extends ValueContainer{
-    vars                            : string
-    methods                         : string
-    static checkIsolateFuncKey      : string = "_INSTANCEOF_ISOLATE_"
-    constructor(vars : string,methods : string){
-        super(ValueContainer.isolateType)
-        this.vars       = vars
-        this.methods    = methods
-    }
-}
-
-export class IsolateDefinitionContainer extends ValueContainer{
-    definition : string
-    constructor(definition : string){
-        super(ValueContainer.isolateDefType)
-        this.definition = definition
-    }
-}
-
 export class SpiderObjectDefinitionContainer extends ValueContainer{
     definition : string
     constructor(definition : string){
         super(ValueContainer.spiderObjectDef)
         this.definition = definition
+    }
+}
+
+export class SpiderIsolateDefinitionContainer extends ValueContainer{
+    definition : string
+    constructor(definition : string){
+        super(ValueContainer.spiderIsolDef)
+        this.definition = definition
+    }
+}
+
+export class SpiderIsolateContainer extends ValueContainer{
+    static checkIsolateFuncKey = "_INSTANCEOF_ISOLATE_"
+    vars    : string
+    methods : string
+    constructor(vars : string,methods : string){
+        //TODO add mirror
+        super(ValueContainer.isolateType)
+        this.vars       = vars
+        this.methods    = methods
     }
 }
 
@@ -489,12 +492,12 @@ function isClass(func : Function) : boolean{
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
 
-function isIsolateClass(func : Function) : boolean {
-    return (func.toString().search(/extends.*?Isolate/) != -1)
-}
-
 function isSpiderObjectClass(func : Function) : boolean {
     return (func.toString().search(/extends.*?SpiderObject/) != -1)
+}
+
+function isSpiderIsolateClass(func: Function) : boolean{
+    return (func.toString().search(/extends.*?SpiderIsolate/) != -1)
 }
 
 function isObjectMirrorClass(func : Function) : boolean{
@@ -654,10 +657,11 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             })
             return new ArrayContainer(values)
         }
-        else if(value[IsolateContainer.checkIsolateFuncKey]){
+        else if(value[SpiderIsolateContainer.checkIsolateFuncKey]){
+            //TODO need to add mirror to container + need to invoke pass
             var vars    = getObjectVars(value,receiverId,environment)
             var methods = getObjectMethods(value)
-            return new IsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
+            return new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
         }
         else if(value[RepliqContainer.checkRepliqFuncKey]){
             return serialiseRepliq(value,receiverId,environment)
@@ -692,6 +696,10 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                 throw new Error("Serialisation of signals part of garbage dependency graph dissalowed ")
             }
         }
+        else if(value[SpiderObject.spiderObjectKey]){
+            let objectMirror : SpiderObjectMirror = value[SpiderObjectMirror.mirrorAccessKey]
+            return serialise(objectMirror.pass(),receiverId,environment)
+        }
         else {
             return serialiseObject(value,environment.thisRef,environment.objectPool)
         }
@@ -701,10 +709,6 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
         if(value[FarReference.proxyWrapperAccessorKey]){
             return serialisePromise(value,receiverId,environment)
         }
-        else if(isClass(value) && isIsolateClass(value)){
-            var definition = getSerialiableClassDefinition(value)
-            return new IsolateDefinitionContainer(definition.replace("super()",''))
-        }
         else if(isClass(value) && isObjectMirrorClass(value)){
             var definition = getSerialiableClassDefinition(value)
             return new SpiderObjectMirrorDefinitionContainer(definition)
@@ -712,6 +716,10 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
         else if(isClass(value) && isSpiderObjectClass(value)){
             var definition = getSerialiableClassDefinition(value)
             return new SpiderObjectDefinitionContainer(definition)
+        }
+        else if(isClass(value) && isSpiderIsolateClass(value)){
+            var definition = getSerialiableClassDefinition(value)
+            return new SpiderIsolateDefinitionContainer(definition)
         }
         else if(isClass(value) && isRepliqClass(value)){
             //TODO might need to extract annotations in same way that is done for signals
@@ -791,16 +799,11 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         return deserialised
     }
 
-    function deSerialiseIsolate(isolateContainer : IsolateContainer){
-        var isolate = reconstructObject(new Isolate(),JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),enviroment)
-        return isolate
-    }
-
-    function deSerialiseIsolateDefinition(isolateDefContainer : IsolateDefinitionContainer){
+    /*function deSerialiseIsolateDefinition(isolateDefContainer : IsolateDefinitionContainer){
         var classObj = eval(isolateDefContainer.definition)
         classObj.prototype[IsolateContainer.checkIsolateFuncKey] = true
         return classObj
-    }
+    }*/
 
     function deSerialiseArrayIsolate(arrayIsolateContainer : ArrayIsolateContainer){
         return new ArrayIsolate(arrayIsolateContainer.array)
@@ -919,6 +922,20 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         return classObj
     }
 
+    function deSerialiseSpiderIsolateDefinition(def : SpiderIsolateDefinitionContainer){
+        let index           = def.definition.indexOf("{")
+        let start           = def.definition.substring(0,index)
+        let stop            = def.definition.substring(index,def.definition.length)
+        let SpiderIsolate    = require("./MOP").SpiderIsolate
+        var classObj        = eval(start + " extends SpiderIsolate"+stop)
+        return classObj
+    }
+
+    function deSerialiseSpiderIsolate(isolateContainer : SpiderIsolateContainer){
+        var isolate = reconstructObject({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),enviroment)
+        return isolate
+    }
+
     function deSerialiseSpiderObjectMirrorDefintion(def : SpiderObjectMirrorDefinitionContainer){
         let index                   = def.definition.indexOf("{")
         let start                   = def.definition.substring(0,index)
@@ -941,10 +958,6 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deSerialiseError(value as ErrorContainer)
         case ValueContainer.arrayType:
             return deSerialiseArray(value as ArrayContainer)
-        case ValueContainer.isolateType:
-            return deSerialiseIsolate(value as IsolateContainer)
-        case ValueContainer.isolateDefType:
-            return deSerialiseIsolateDefinition(value as IsolateDefinitionContainer)
         case ValueContainer.arrayIsolateType:
             return deSerialiseArrayIsolate(value as ArrayIsolateContainer)
         case ValueContainer.repliqType:
@@ -959,6 +972,10 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deSerialiseSpiderObjectDefinition(value as SpiderObjectDefinitionContainer)
         case ValueContainer.objectMirrorDef:
             return deSerialiseSpiderObjectMirrorDefintion(value as SpiderObjectMirrorDefinitionContainer)
+        case ValueContainer.spiderIsolDef:
+            return deSerialiseSpiderIsolateDefinition(value as SpiderIsolateDefinitionContainer)
+        case ValueContainer.isolateType:
+            return deSerialiseSpiderIsolate(value as SpiderIsolateContainer)
         default :
             throw "Unknown value container type :  " + value.type
     }

@@ -11,6 +11,7 @@ import {PromiseAllocation} from "./PromisePool";
 import {
     FieldAccessMessage, MethodInvocationMessage,
 } from "./Message";
+import {SpiderObjectMirror} from "./MOP";
 
 
 export class SpiderActorMirror{
@@ -102,7 +103,12 @@ export class SpiderActorMirror{
             return this
         }
         behaviourObject["reflectOnObject"]  = (object : any) =>{
-            //TODO
+            return object[SpiderObjectMirror.mirrorAccessKey]
+        }
+        behaviourObject["instantiate"]      = (classDefinition,...args) =>{
+            let ob = new classDefinition(...args)
+            ob.setEnv(this.base)
+            return ob
         }
         ///////////////////
         //Pub/Sub       //

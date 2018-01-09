@@ -1,5 +1,5 @@
 import {SpiderLib} from "../spiders";
-import {IsolateContainer} from "../serialisation";
+import {SpiderIsolateContainer} from "../serialisation";
 /**
  * Created by flo on 22/03/2017.
  */
@@ -9,7 +9,7 @@ export class PubSubTag{
     tagVal : string
 
     constructor(tagVal : string){
-        this[IsolateContainer.checkIsolateFuncKey] = true
+        this[SpiderIsolateContainer.checkIsolateFuncKey] = true
         this.tagVal = tagVal
     }
 

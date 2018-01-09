@@ -58,7 +58,7 @@ a.send(b)*/
 let app = new spiders.Application();
 class LogMirror extends MOP_1.SpiderObjectMirror {
     invoke(methodName, args) {
-        console.log("Invoking " + methodName);
+        console.log("Invoking " + methodName + " in " + this.base.environment.thisRef.ownerId);
         return super.invoke(methodName, args);
     }
     access(fieldName) {
@@ -83,15 +83,16 @@ class ActorA extends spiders.Actor {
         this.bRef = bRef;
     }
     init() {
-        let t = new this.TestObject(this.LogMirror);
-        /*console.log(t.baseField)
-        console.log(t.baseMethod())*/
+        let t = this.instantiate(this.TestObject, this.LogMirror);
         this.bRef.getMirrorObject(t);
     }
 }
 class ActorB extends spiders.Actor {
     getMirrorObject(o) {
-        console.log("Within b: " + o.baseMethod());
+        o.baseMethod().then((v) => {
+            console.log("Within b: " + v);
+            o.baseMethod();
+        });
     }
 }
 let b = app.spawnActor(ActorB);

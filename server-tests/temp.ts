@@ -1,6 +1,6 @@
 import {FarRef, SpiderLib} from "../src/spiders";
 import {SpiderActorMirror} from "../src/MAP";
-import {SpiderObject, SpiderObjectMirror} from "../src/MOP";
+import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "../src/MOP";
 
 var spiders : SpiderLib = require("../src/spiders")
 
@@ -63,7 +63,7 @@ let app = new spiders.Application()
 
 class LogMirror extends SpiderObjectMirror{
     invoke(methodName : string,args : Array<any>){
-        console.log("Invoking " + methodName)
+        console.log("Invoking " + methodName + " in " + this.base.environment.thisRef.ownerId)
         return super.invoke(methodName,args)
     }
 
@@ -94,16 +94,17 @@ class ActorA extends spiders.Actor{
         this.bRef       = bRef
     }
     init(){
-        let t = new this.TestObject(this.LogMirror)
-        /*console.log(t.baseField)
-        console.log(t.baseMethod())*/
+        let t = (this as any).instantiate(this.TestObject,this.LogMirror)
         this.bRef.getMirrorObject(t)
     }
 }
 
 class ActorB extends spiders.Actor{
     getMirrorObject(o){
-        console.log("Within b: " + o.baseMethod())
+        o.baseMethod().then((v)=>{
+            console.log("Within b: " + v )
+            o.baseMethod()
+        })
     }
 }
 let b = app.spawnActor(ActorB)
