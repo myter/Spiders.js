@@ -20,7 +20,6 @@ import {ActorEnvironment, ClientActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 20/12/2016.
  */
-var utils       = require('./utils')
 
 export class MessageHandler{
     environment : ActorEnvironment

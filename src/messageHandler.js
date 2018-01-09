@@ -6,7 +6,6 @@ const FarRef_1 = require("./FarRef");
 /**
  * Created by flo on 20/12/2016.
  */
-var utils = require('./utils');
 class MessageHandler {
     constructor(environment) {
         this.environment = environment;

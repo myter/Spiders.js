@@ -61,7 +61,22 @@ a.send(b)*/
 
 let app = new spiders.Application()
 
+class LogMirror extends SpiderObjectMirror{
+    invoke(methodName : string,args : Array<any>){
+        console.log("Invoking " + methodName)
+        return super.invoke(methodName,args)
+    }
+
+    access(fieldName :string){
+        console.log("Accessing "+ fieldName)
+        return super.access(fieldName)
+    }
+}
+
 class TestObject extends SpiderObject{
+    constructor(LM){
+        super(new LM())
+    }
     baseField = "baseField"
     baseMethod(){
         return "baseMethodResult"
@@ -70,19 +85,26 @@ class TestObject extends SpiderObject{
 
 class ActorA extends spiders.Actor{
     TestObject
-    constructor(){
+    LogMirror
+    bRef
+    constructor(bRef){
         super()
         this.TestObject = TestObject
+        this.LogMirror  = LogMirror
+        this.bRef       = bRef
     }
     init(){
-        let t = new this.TestObject()
-        console.log(t.baseField)
-        console.log(t.baseMethod())
+        let t = new this.TestObject(this.LogMirror)
+        /*console.log(t.baseField)
+        console.log(t.baseMethod())*/
+        this.bRef.getMirrorObject(t)
     }
 }
 
 class ActorB extends spiders.Actor{
-
+    getMirrorObject(o){
+        console.log("Within b: " + o.baseMethod())
+    }
 }
-
-app.spawnActor(ActorA)
+let b = app.spawnActor(ActorB)
+app.spawnActor(ActorA,[b])

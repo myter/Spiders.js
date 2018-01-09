@@ -138,7 +138,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if (typeof val != 'function' || isIsolateClass(val) || isSpiderObjectClass(val) || isRepliqClass(val) || isSignalClass(val)) {
+        if (typeof val != 'function' || isIsolateClass(val) || isSpiderObjectClass(val) || isObjectMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) {
             var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
@@ -240,6 +240,7 @@ ValueContainer.repliqDefinition = 11;
 ValueContainer.signalType = 12;
 ValueContainer.signalDefinition = 13;
 ValueContainer.spiderObjectDef = 14;
+ValueContainer.objectMirrorDef = 15;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -321,6 +322,13 @@ class SpiderObjectDefinitionContainer extends ValueContainer {
     }
 }
 exports.SpiderObjectDefinitionContainer = SpiderObjectDefinitionContainer;
+class SpiderObjectMirrorDefinitionContainer extends ValueContainer {
+    constructor(definition) {
+        super(ValueContainer.objectMirrorDef);
+        this.definition = definition;
+    }
+}
+exports.SpiderObjectMirrorDefinitionContainer = SpiderObjectMirrorDefinitionContainer;
 class ArrayIsolateContainer extends ValueContainer {
     constructor(array) {
         super(ValueContainer.arrayIsolateType);
@@ -404,6 +412,9 @@ function isIsolateClass(func) {
 }
 function isSpiderObjectClass(func) {
     return (func.toString().search(/extends.*?SpiderObject/) != -1);
+}
+function isObjectMirrorClass(func) {
+    return (func.toString().search(/extends.*?SpiderObjectMirror/) != -1);
 }
 function isRepliqClass(func) {
     return (func.toString().search(/extends.*?Repliq/) != -1);
@@ -601,6 +612,10 @@ function serialise(value, receiverId, environment) {
             var definition = utils_1.getSerialiableClassDefinition(value);
             return new IsolateDefinitionContainer(definition.replace("super()", ''));
         }
+        else if (isClass(value) && isObjectMirrorClass(value)) {
+            var definition = utils_1.getSerialiableClassDefinition(value);
+            return new SpiderObjectMirrorDefinitionContainer(definition);
+        }
         else if (isClass(value) && isSpiderObjectClass(value)) {
             var definition = utils_1.getSerialiableClassDefinition(value);
             return new SpiderObjectDefinitionContainer(definition);
@@ -797,6 +812,14 @@ function deserialise(value, enviroment) {
         var classObj = eval(start + " extends SpiderObject" + stop);
         return classObj;
     }
+    function deSerialiseSpiderObjectMirrorDefintion(def) {
+        let index = def.definition.indexOf("{");
+        let start = def.definition.substring(0, index);
+        let stop = def.definition.substring(index, def.definition.length);
+        let SpiderObjectMirror = require("./MOP").SpiderObjectMirror;
+        var classObj = eval(start + " extends SpiderObjectMirror" + stop);
+        return classObj;
+    }
     switch (value.type) {
         case ValueContainer.nativeType:
             return value.value;
@@ -826,6 +849,8 @@ function deserialise(value, enviroment) {
             return deSerialiseSignalDefinition(value);
         case ValueContainer.spiderObjectDef:
             return deSerialiseSpiderObjectDefinition(value);
+        case ValueContainer.objectMirrorDef:
+            return deSerialiseSpiderObjectMirrorDefintion(value);
         default:
             throw "Unknown value container type :  " + value.type;
     }

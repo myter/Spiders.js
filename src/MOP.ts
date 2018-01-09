@@ -4,17 +4,15 @@ import {ValueContainer} from "./serialisation";
 export class SpiderObjectMirror{
     base : SpiderObject
 
-    constructor(base : SpiderObject){
+    bindBase(base){
         this.base = base
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
-        console.log("Invoked " + methodName.toString())
         return this.base[methodName](...args)
     }
 
     access(fieldName){
-        console.log("Accessed " + fieldName)
         return this.base[fieldName]
     }
 
@@ -27,17 +25,36 @@ export class SpiderObjectMirror{
     }
 }
 
+
+
+function isInternal(property){
+    return property == "_FAR_REF_" || property == "_PROXY_WRAPPER_" || property == "SPIDER_SERVER_TYPE" || property == "SPIDER_CLIENT_TYPE" || property == "_SERVER_" || property == "_CLIENT_" || property == "_INSTANCEOF_Signal_" || property == "_INSTANCEOF_ISOLATE_" || property == "_INSTANCEOF_ARRAY_ISOLATE_" || property == "_INSTANCEOF_REPLIQ_" || property == "_INSTANCEOF_Signal_"
+}
+
 function makeSpiderObjectProxy(baseObject : SpiderObject,mirror : SpiderObjectMirror){
     return new Proxy(baseObject,{
         get: function(target,property){
-            let prop = baseObject[property]
-            if(typeof prop === 'function'){
-                return (...args)=>{
-                    return mirror.invoke(property,args)
+            if(isInternal(property.toString())){
+                let prop = baseObject[property]
+                if(typeof prop === 'function'){
+                    return (...args)=>{
+                        return mirror.base[property](...args)
+                    }
+                }
+                else{
+                    return mirror.base[property]
                 }
             }
             else{
-                return mirror.access(property)
+                let prop = baseObject[property]
+                if(typeof prop === 'function'){
+                    return (...args)=>{
+                        return mirror.invoke(property,args)
+                    }
+                }
+                else{
+                    return mirror.access(property)
+                }
             }
         }
     })
@@ -54,10 +71,11 @@ function wrapPrototypes(currentLevel,mirror){
 export class SpiderObject{
     mirror : SpiderObjectMirror
 
-    constructor(){
+    constructor(objectMirror : SpiderObjectMirror = new SpiderObjectMirror()){
         //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
         let thisClone   = clone(this)
-        this.mirror     = new SpiderObjectMirror(thisClone)
+        objectMirror.bindBase(thisClone)
+        this.mirror     = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject

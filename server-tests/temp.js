@@ -56,9 +56,19 @@ let a = app.spawnActor(TestActor)
 let b = app.spawnActor(TestActor2)
 a.send(b)*/
 let app = new spiders.Application();
+class LogMirror extends MOP_1.SpiderObjectMirror {
+    invoke(methodName, args) {
+        console.log("Invoking " + methodName);
+        return super.invoke(methodName, args);
+    }
+    access(fieldName) {
+        console.log("Accessing " + fieldName);
+        return super.access(fieldName);
+    }
+}
 class TestObject extends MOP_1.SpiderObject {
-    constructor() {
-        super(...arguments);
+    constructor(LM) {
+        super(new LM());
         this.baseField = "baseField";
     }
     baseMethod() {
@@ -66,17 +76,24 @@ class TestObject extends MOP_1.SpiderObject {
     }
 }
 class ActorA extends spiders.Actor {
-    constructor() {
+    constructor(bRef) {
         super();
         this.TestObject = TestObject;
+        this.LogMirror = LogMirror;
+        this.bRef = bRef;
     }
     init() {
-        let t = new this.TestObject();
-        console.log(t.baseField);
-        console.log(t.baseMethod());
+        let t = new this.TestObject(this.LogMirror);
+        /*console.log(t.baseField)
+        console.log(t.baseMethod())*/
+        this.bRef.getMirrorObject(t);
     }
 }
 class ActorB extends spiders.Actor {
+    getMirrorObject(o) {
+        console.log("Within b: " + o.baseMethod());
+    }
 }
-app.spawnActor(ActorA);
+let b = app.spawnActor(ActorB);
+app.spawnActor(ActorA, [b]);
 //# sourceMappingURL=temp.js.map
