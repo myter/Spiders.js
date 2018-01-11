@@ -79,8 +79,8 @@ export class MessageHandler{
 
     private handleFieldAccess(msg : FieldAccessMessage){
         var targetObject    = this.environment.objectPool.getObject(msg.objectId)
-        var fieldVal        = Reflect.get(targetObject,msg.fieldName)
         this.environment.actorMirror.receiveAccess((msg.senderRef as any),targetObject,msg.fieldName,()=>{
+            var fieldVal        = Reflect.get(targetObject,msg.fieldName)
             //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
             if(typeof fieldVal != 'function'){
                 var serialised  = serialise(fieldVal,msg.senderId,this.environment)

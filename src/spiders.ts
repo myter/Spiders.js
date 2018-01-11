@@ -17,7 +17,7 @@ import {PubSubTag} from "./PubSub/SubTag";
 import {Subscription} from "./PubSub/SubClient";
 import {generateId, isBrowser} from "./utils";
 import {SpiderActorMirror} from "./MAP";
-import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "./MOP";
+import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -38,6 +38,7 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 abstract class Actor{
     parent          : FarRef
     reflectOnActor  : () => SpiderActorMirror
+    reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
     remote          : (string,number)=> Promise<FarRef>
     //Pub-sub
     PSClient        : (string?,number?) => null
@@ -221,6 +222,7 @@ interface AppType {
     kill
     //Provided by standard lib
     reflectOnActor      : () => SpiderActorMirror
+    reflectOnObject     : (object : SpiderObject) => SpiderObjectMirror
     remote              : (string,number)=> Promise<FarRef>
     //Pub-sub
     PSClient            : (string?,number?) => null
@@ -255,6 +257,7 @@ export type SpiderActorMirrorClass      = {new(...args : any[]): SpiderActorMirr
 export type SpiderObjectClass           = {new(...args : any[]): SpiderObject}
 export type SpiderIsolateClass          = {new(...args : any[]): SpiderIsolate}
 export type SpiderObjectMirrorClass     = {new(...args : any[]): SpiderObjectMirror}
+export type SpiderIsolateMirrorClass    = {new(...args : any[]): SpiderIsolateMirror}
 
 export interface SpiderLib{
     Application                 : ApplicationClass
@@ -276,6 +279,7 @@ export interface SpiderLib{
     SpiderObjectMirror          : SpiderObjectMirrorClass
     SpiderObject                : SpiderObjectClass
     SpiderIsolate               : SpiderIsolateClass
+    SpiderIsolateMirror         : SpiderIsolateMirrorClass
 }
 
 //Ugly, but a far reference has no static interface
@@ -296,6 +300,7 @@ exports.FieldUpdate                 = FieldUpdate
 exports.SpiderIsolate               = SpiderIsolate
 exports.SpiderObject                = SpiderObject
 exports.SpiderObjectMirror          = SpiderObjectMirror
+exports.SpiderIsolateMirror         = SpiderIsolateMirror
 exports.SpiderActorMirror           = SpiderActorMirror
 if(isBrowser()){
     exports.Application = ClientApplication

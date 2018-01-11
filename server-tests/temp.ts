@@ -1,21 +1,43 @@
 import {SpiderLib} from "../src/spiders";
-import {SpiderIsolate, SpiderIsolateMirror} from "../src/MOP";
 
 var spiders : SpiderLib = require("../src/spiders")
 
-class TestApp extends spiders.Application{
+class TestMirror extends spiders.SpiderObjectMirror{
+    testValue
+    invoke(methodName,args){
+        console.log("Invoke captured")
+        this.testValue = 5
+        return super.invoke(methodName,args)
+    }
+}
+class TestObject extends spiders.SpiderObject{
+    constructor(mirrorClass){
+        super(new mirrorClass())
+    }
+
     someMethod(){
-        console.log("Method invoked")
+        console.log("Some method called")
+        return 5
     }
 }
 class TestActor extends spiders.Actor{
-    init(){
-        this.parent.someMethod()
+    TestObject
+    TestMirror
+    constructor(){
+        super()
+        this.TestObject = TestObject
+        this.TestMirror = TestMirror
     }
-    invokeParent(){
-        this.parent.someMethod()
+    test(){
+        let o = new this.TestObject(this.TestMirror)
+        let r = o.someMethod()
+        console.log("mirror val:" + (this.reflectOnObject(o) as TestMirror).testValue )
+        console.log("Result: " + r)
+        return (this.reflectOnObject(o) as TestMirror).testValue + r
     }
 }
-let app = new TestApp()
+let app = new spiders.Application()
 let act = app.spawnActor(TestActor)
-//act.invokeParent()
+act.test().then((v)=>{
+    console.log("Got result: " + v)
+})

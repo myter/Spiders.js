@@ -172,6 +172,7 @@ exports.FieldUpdate = RepliqField_1.FieldUpdate;
 exports.SpiderIsolate = MOP_1.SpiderIsolate;
 exports.SpiderObject = MOP_1.SpiderObject;
 exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
+exports.SpiderIsolateMirror = MOP_1.SpiderIsolateMirror;
 exports.SpiderActorMirror = MAP_1.SpiderActorMirror;
 if (utils_1.isBrowser()) {
     exports.Application = ClientApplication;

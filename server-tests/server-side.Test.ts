@@ -12,7 +12,6 @@ var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
 
 describe("Behaviour serialisation",() => {
-
     it("From file",(done)=>{
         var app = new spider.Application()
         var act = app.spawnActorFromFile(__dirname + '/testActorDefinition',"TestActor")
@@ -28,7 +27,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Field serialisation",function(done){
         this.timeout(3000)
         var app = new spider.Application()
@@ -53,7 +51,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Method serialisation",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -78,8 +75,6 @@ describe("Behaviour serialisation",() => {
 
         })
     })
-
-
     it("Construction",(done) => {
         var app = new spider.Application()
         var aValue = 5
@@ -107,7 +102,6 @@ describe("Behaviour serialisation",() => {
         })
 
     })
-
     it("Actor reference passing via constructor",(done) => {
         class referencedActor extends spider.Actor {
             getValue() {
@@ -139,7 +133,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Initialisation",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -165,7 +158,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Initialisation chaining",(done)=>{
         var app = new spider.Application()
         class SuperActor extends spider.Actor{
@@ -197,7 +189,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Actor scope",(done) => {
         class testApp extends spider.Application{
 
@@ -221,7 +212,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Inheritance (method)",(done) => {
         var app = new spider.Application()
         class baseActor extends spider.Actor{
@@ -247,7 +237,6 @@ describe("Behaviour serialisation",() => {
             }
         })
     })
-
     it("Inheritance (fields)",(done) => {
         var app = new spider.Application()
         class baseActor extends spider.Actor{
@@ -351,8 +340,6 @@ describe("Behaviour serialisation",() => {
 
     })*/
 
-
-
 })
 
 describe("Functionality",() => {
@@ -385,7 +372,6 @@ describe("Functionality",() => {
             }
         })
     })
-
     it("Remote",(done) => {
         var app = new spider.Application()
         class testActor1 extends spider.Actor{
@@ -442,7 +428,6 @@ describe("Communication",() => {
 
         })
     })
-
     it("Invoking method on far reference",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -464,7 +449,6 @@ describe("Communication",() => {
 
         })
     })
-
     it("Actor accessing main instance variable", (done) => {
         class testApp extends spider.Application{
             mainValue
@@ -497,7 +481,6 @@ describe("Communication",() => {
         var actor = app.spawnActor(testActor)
         actor.access()
     })
-
     it("Actor invoking main method",(done) => {
         class testApp extends spider.Application{
             m(){
@@ -522,7 +505,6 @@ describe("Communication",() => {
         var actor = app.spawnActor(testActor)
         actor.invoke()
     })
-
     it("Promise rejection handling (method invocation)",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -543,7 +525,6 @@ describe("Communication",() => {
             }
         })
     })
-
     it("Promise pipelining (field access)",(done) => {
         class testApp extends spider.Application{
             field
@@ -571,7 +552,6 @@ describe("Communication",() => {
             }
         })
     })
-
     it("Promise pipelining (method invocation)",(done) => {
         class testApp extends spider.Application{
             get(){
@@ -597,7 +577,6 @@ describe("Communication",() => {
             }
         })
     })
-
     it("Isolate passing",(done) => {
         class mIsolate extends spider.SpiderIsolate{
             field
@@ -634,7 +613,6 @@ describe("Communication",() => {
             }
         })
     })
-
     it("Nested isolate passing",(done) => {
         class testApp extends spider.Application { }
         class InnerIsolate extends spider.SpiderIsolate {
@@ -710,7 +688,6 @@ describe("General Serialisation",() => {
             }
         })
     })
-
     it("Correct serialisation of string values",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -731,7 +708,6 @@ describe("General Serialisation",() => {
             }
         })
     })
-
     it("Correct serialisation of boolean values",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -757,7 +733,6 @@ describe("General Serialisation",() => {
             }
         })
     })
-
     it("User-level promise serialisation",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -782,7 +757,6 @@ describe("General Serialisation",() => {
             }
         })
     })
-
     it("Method argument serialisation",(done) => {
         var app = new spider.Application()
         class testActor extends spider.Actor{
@@ -805,7 +779,6 @@ describe("General Serialisation",() => {
             }
         })
     })
-
     it("Lexical object serialisation during construction",(done) => {
         var app = new spider.Application()
         var ob = {
@@ -834,7 +807,6 @@ describe("General Serialisation",() => {
             }
         })
     })
-
     it("Far Ref serialisation",(done) => {
         var app = new spider.Application()
         class testActor1 extends spider.Actor{
@@ -863,33 +835,419 @@ describe("General Serialisation",() => {
             }
         })
     })
+})
 
-    //TODO this is impossible given that farRef is actually a function (applicable proxy)
-    /*it("Method serialisation as far ref",(done) => {
-     class testApp extends spider.Application{
+describe("Meta Actor Protocol",() => {
+    it("Reflecting on Actor",function(done){
+        class TestMirror extends spider.SpiderActorMirror{
+            testValue
+            constructor(){
+                super()
+                this.testValue = 5
+            }
+        }
+        class TestActor extends spider.Actor{
+            constructor(){
+                super(new TestMirror())
+            }
 
-     }
-     var app = new testApp()
-     class testActor extends spider.Actor{
-     m(){
-     return function(){
-     return 5
-     }
-     }
-     }
-     var actor = app.spawnActor(testActor)
-     actor.m().then((farRef) => {
-     farRef.apply().then((v) => {
-     try{
-     expect(v).to.equal(5)
-     app.kill()
-     done()
-     }
-     catch(e){
-     app.kill()
-     done(e)
-     }
-     })
-     })
-     })*/
+            test(){
+                return (this.reflectOnActor() as TestMirror).testValue
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Init",function(done){
+        class TestMirror extends spider.SpiderActorMirror{
+            testValue
+            initialise(appActor,parentRef){
+                super.initialise(appActor,parentRef)
+                this.testValue = 5
+            }
+        }
+        class TestActor extends spider.Actor{
+            testValue
+            constructor(){
+                super(new TestMirror())
+            }
+
+            init(){
+                this.testValue = 5
+            }
+
+            test(){
+                return (this.reflectOnActor() as TestMirror).testValue + this.testValue
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Receive Invocation",function(done){
+        class TestMirror extends spider.SpiderActorMirror{
+            testValue
+
+            receiveInvocation(sender,target,methodName,args,perform){
+                this.testValue = 5
+                super.receiveInvocation(sender,target,methodName,args,perform)
+            }
+        }
+        class TestActor extends spider.Actor{
+            testValue
+            constructor(){
+                super(new TestMirror())
+            }
+            test(){
+                this.testValue = 5
+                return (this.reflectOnActor() as TestMirror).testValue + this.testValue
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Receive Access",function(done){
+        class TestMirror extends spider.SpiderActorMirror{
+            receiveAccess(sender,target,fieldName,perform){
+                target[fieldName]+= 5
+                super.receiveAccess(sender,target,fieldName,perform)
+            }
+        }
+        class TestActor extends spider.Actor{
+            testValue
+            constructor(){
+                super(new TestMirror())
+                this.testValue = 5
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.testValue.then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Send Invocation",function(done){
+        class TestMirror extends spider.SpiderActorMirror{
+            testValue
+            sendInvocation(target,methodName,args){
+                this.testValue = 5
+                return super.sendInvocation(target,methodName,args)
+            }
+        }
+        class TestApp extends spider.Application{
+            test(){
+                return 5
+            }
+        }
+        class TestActor extends spider.Actor{
+            constructor(){
+                super(new TestMirror())
+            }
+            test(){
+                return this.parent.test().then((v)=>{
+                    return (this.reflectOnActor() as TestMirror).testValue + v
+                })
+            }
+        }
+        let app = new TestApp()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Send Access",function(done){
+        class TestMirror extends spider.SpiderActorMirror{
+            testValue
+            sendAccess(target,fieldName){
+                this.testValue = 5
+                return super.sendAccess(target,fieldName)
+            }
+        }
+        class TestApp extends spider.Application{
+            testValue
+            constructor(){
+                super()
+                this.testValue = 5
+            }
+        }
+        class TestActor extends spider.Actor{
+            constructor(){
+                super(new TestMirror())
+            }
+
+            test(){
+                return this.parent.testValue.then((v)=>{
+                    return (this.reflectOnActor() as TestMirror).testValue + v
+                })
+            }
+        }
+        let app = new TestApp()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+})
+
+describe("Meta Object Protocol",()=>{
+    it("Reflecting on Object",function(done){
+        class TestMirror extends spider.SpiderObjectMirror{
+            testValue
+            constructor(){
+                super()
+                this.testValue = 5
+            }
+        }
+        class TestObject extends spider.SpiderObject{
+            constructor(mirrorClass){
+                super(new mirrorClass())
+            }
+        }
+        class TestActor extends spider.Actor{
+            TestObject
+            TestMirror
+            constructor(){
+                super()
+                this.TestObject = TestObject
+                this.TestMirror = TestMirror
+            }
+            test(){
+                let o = new this.TestObject(this.TestMirror)
+                return (this.reflectOnObject(o) as TestMirror).testValue
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Invoke",function(done){
+        class TestMirror extends spider.SpiderObjectMirror{
+            testValue
+            invoke(methodName,args){
+                this.testValue = 5
+                return super.invoke(methodName,args)
+            }
+        }
+        class TestObject extends spider.SpiderObject{
+            constructor(mirrorClass){
+                super(new mirrorClass())
+            }
+
+            someMethod(){
+                return 5
+            }
+        }
+        class TestActor extends spider.Actor{
+            TestObject
+            TestMirror
+            constructor(){
+                super()
+                this.TestObject = TestObject
+                this.TestMirror = TestMirror
+            }
+            test(){
+                let o = new this.TestObject(this.TestMirror)
+                let r = o.someMethod()
+                return (this.reflectOnObject(o) as TestMirror).testValue + r
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Access",function(done){
+        class TestMirror extends spider.SpiderObjectMirror{
+            testValue
+
+            access(fieldName){
+                this.testValue = 5
+                return super.access(fieldName)
+            }
+        }
+        class TestObject extends spider.SpiderObject{
+            someField
+            constructor(mirrorClass){
+                super(new mirrorClass())
+                this.someField = 5
+            }
+        }
+        class TestActor extends spider.Actor{
+            TestObject
+            TestMirror
+            constructor(){
+                super()
+                this.TestObject = TestObject
+                this.TestMirror = TestMirror
+            }
+            test(){
+                let o = new this.TestObject(this.TestMirror)
+                let r = o.someField
+                return (this.reflectOnObject(o) as TestMirror).testValue + r
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Pass",function(done){
+        class TestMirror extends spider.SpiderIsolateMirror{
+            testValue
+
+            pass(){
+                this.testValue = 5
+                return super.pass()
+            }
+        }
+        class TestObject extends spider.SpiderIsolate{
+            constructor(mirrorClass){
+                super(new mirrorClass())
+            }
+        }
+        class TestActor extends spider.Actor{
+            o
+            constructor(){
+                super()
+                this.o          = new TestObject(TestMirror)
+            }
+            test(){
+                return (this.reflectOnObject(this.o) as TestMirror).testValue
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Resolve",function(done){
+        class TestMirror extends spider.SpiderIsolateMirror{
+            testValue
+
+            resolve(){
+                this.testValue = 5
+            }
+        }
+        class TestObject extends spider.SpiderIsolate{
+            constructor(mirrorClass){
+                super(new mirrorClass())
+            }
+        }
+        class TestActor extends spider.Actor{
+            o
+            constructor(){
+                super()
+                this.o          = new TestObject(TestMirror)
+            }
+            test(){
+                return (this.reflectOnObject(this.o) as TestMirror).testValue
+            }
+        }
+        let app = new spider.Application()
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
 })
