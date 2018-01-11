@@ -2,7 +2,7 @@ import {ServerSocketManager} from "./Sockets";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
 import {ObjectPool} from "./ObjectPool";
 import {
-    deconstructBehaviour, IsolateContainer, ArrayIsolateContainer, deconstructStatic,
+    deconstructBehaviour, ArrayIsolateContainer, deconstructStatic,
     serialise, getObjectFieldNames, getObjectMethodNames
 } from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
@@ -15,17 +15,12 @@ import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {PubSubTag} from "./PubSub/SubTag";
 import {Subscription} from "./PubSub/SubClient";
-import {generateId, getSerialiableClassDefinition, isBrowser} from "./utils";
+import {generateId, isBrowser} from "./utils";
 import {SpiderActorMirror} from "./MAP";
+import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "./MOP";
 /**
  * Created by flo on 05/12/2016.
  */
-
-export class Isolate{
-    constructor(){
-        this[IsolateContainer.checkIsolateFuncKey] = true
-    }
-}
 
 export class ArrayIsolate{
     array : Array<any>
@@ -63,7 +58,6 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 
 abstract class Actor{
     parent          : FarRef
-    Isolate         : IsolateClass
     ArrayIsolate    : ArrayIsolateClass
     reflectOnActor  : () => SpiderActorMirror
     remote          : (string,number)=> Promise<FarRef>
@@ -102,7 +96,7 @@ abstract class ClientActor extends Actor{
         webWorker.addEventListener('message',(event) => {
             app.mainEnvironment.messageHandler.dispatch(event)
         })
-        var decon                                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment)
+        var decon                                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment,"spawn")
         var actorVariables                              = decon[0]
         var actorMethods                                = decon[1]
         var staticProperties                            = deconstructStatic(thisClass,actorId,[],app.mainEnvironment)
@@ -125,13 +119,13 @@ abstract class ServerActor extends Actor{
         var socketManager               = app.mainEnvironment.commMedium as ServerSocketManager
         var fork                        = require('child_process').fork
         var actorId: string             = generateId()
-        var decon                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment)
+        var decon                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment,"spawn")
         var actorVariables              = decon[0]
         var actorMethods                = decon[1]
         var staticProperties            = deconstructStatic(thisClass,actorId,[],app.mainEnvironment)
         //Uncomment to debug (huray for webstorms)
-        //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var deconActorMirror            = deconstructBehaviour(this.actorMirror,0,[],[],actorId,app.mainEnvironment)
+        //var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
+        var deconActorMirror            = deconstructBehaviour(this.actorMirror,0,[],[],actorId,app.mainEnvironment,"toString")
         var actorMirrorVariables        = deconActorMirror[0]
         var actorMirrorMethods          = deconActorMirror[1]
         var actor                       = fork(__dirname + '/actorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties),JSON.stringify(actorMirrorVariables),JSON.stringify(actorMirrorMethods)])
@@ -248,7 +242,6 @@ interface AppType {
     spawnActorFromFile
     kill
     //Provided by standard lib
-    Isolate             : IsolateClass
     ArrayIsolate        : ArrayIsolateClass
     reflectOnActor      : () => SpiderActorMirror
     remote              : (string,number)=> Promise<FarRef>
@@ -276,7 +269,6 @@ export type ApplicationClass    = {
     new(...args : any[]): AppType
 }
 export type ActorClass                  = {new(...args : any[]): Actor}
-export type IsolateClass                = {new(...args : any[]): Isolate}
 export type ArrayIsolateClass           = {new(...args : any[]): ArrayIsolate}
 export type RepliqClass                 = {new(...args : any[]): Repliq}
 export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitiveField<any>}
@@ -284,11 +276,13 @@ export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectFie
 export type SignalClass                 = {new(...args : any[]): Signal}
 export type SignalObjectClass           = {new(...args : any[]): SignalObject}
 export type SpiderActorMirrorClass      = {new(...args : any[]): SpiderActorMirror}
+export type SpiderObjectClass           = {new(...args : any[]): SpiderObject}
+export type SpiderIsolateClass          = {new(...args : any[]): SpiderIsolate}
+export type SpiderObjectMirrorClass     = {new(...args : any[]): SpiderObjectMirror}
 
 export interface SpiderLib{
     Application                 : ApplicationClass
     Actor                       : ActorClass
-    Isolate                     : IsolateClass
     ArrayIsolate                : ArrayIsolateClass
     Repliq                      : RepliqClass
     Signal                      : SignalObjectClass
@@ -303,6 +297,10 @@ export interface SpiderLib{
     RepliqObjectField           : RepliqObjectFieldClass
     FieldUpdate                 : FieldUpdate
     makeAnnotation              : Function
+    SpiderActorMirror           : SpiderActorMirrorClass
+    SpiderObjectMirror          : SpiderObjectMirrorClass
+    SpiderObject                : SpiderObjectClass
+    SpiderIsolate               : SpiderIsolateClass
 }
 
 //Ugly, but a far reference has no static interface
@@ -320,7 +318,10 @@ exports.RepliqPrimitiveField        = RepliqPrimitiveField
 exports.RepliqObjectField           = RepliqObjectField
 exports.makeAnnotation              = makeAnnotation
 exports.FieldUpdate                 = FieldUpdate
-exports.Isolate                     = Isolate
+exports.SpiderIsolate               = SpiderIsolate
+exports.SpiderObject                = SpiderObject
+exports.SpiderObjectMirror          = SpiderObjectMirror
+exports.SpiderActorMirror           = SpiderActorMirror
 if(isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor

@@ -599,7 +599,7 @@ describe("Communication",() => {
     })
 
     it("Isolate passing",(done) => {
-        class mIsolate extends spider.Isolate{
+        class mIsolate extends spider.SpiderIsolate{
             field
             constructor(){
                 super()
@@ -664,20 +664,20 @@ describe("Communication",() => {
 
     it("Nested isolate passing",(done) => {
         class testApp extends spider.Application { }
-        class innerIsolate extends spider.Isolate {
+        class InnerIsolate extends spider.SpiderIsolate {
             innerField
             constructor(){
                 super()
                 this.innerField = 5
             }
         }
-        class outerIsolate extends spider.Isolate {
+        class OuterIsolate extends spider.SpiderIsolate {
             outerField
             innerIsol
             constructor() {
                 super();
                 this.outerField = 6
-                this.innerIsol = new innerIsolate()
+                this.innerIsol = new InnerIsolate()
 
             }
             getOuterField(){
@@ -691,9 +691,10 @@ describe("Communication",() => {
         var app = new testApp();
         class testActor extends spider.Actor {
             mIsolate
+
             constructor(){
                 super();
-                this.mIsolate = new outerIsolate();
+                this.mIsolate = new OuterIsolate();
             }
             getIsolate(){
                 return this.mIsolate

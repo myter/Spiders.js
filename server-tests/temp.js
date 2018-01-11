@@ -1,5 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const MOP_1 = require("../src/MOP");
 var spiders = require("../src/spiders");
 /*class TestAppliction extends spiders.Application{
     foo = 5
@@ -55,46 +54,104 @@ class TestActor2 extends spiders.Actor{
 let a = app.spawnActor(TestActor)
 let b = app.spawnActor(TestActor2)
 a.send(b)*/
-let app = new spiders.Application();
-class LogMirror extends MOP_1.SpiderObjectMirror {
-    invoke(methodName, args) {
-        console.log("Invoking " + methodName + " in " + this.base.environment.thisRef.ownerId);
-        return super.invoke(methodName, args);
+/*let app = new spiders.Application()
+
+class LogMirror extends SpiderIsolateMirror{
+    invoke(methodName : string,args : Array<any>){
+        console.log("Invoking " + methodName)
+        return super.invoke(methodName,args)
     }
-    access(fieldName) {
-        console.log("Accessing " + fieldName);
-        return super.access(fieldName);
-    }
-}
-class TestObject extends MOP_1.SpiderObject {
-    constructor(LM) {
-        super(new LM());
-        this.baseField = "baseField";
-    }
-    baseMethod() {
-        return "baseMethodResult";
+
+    access(fieldName :string){
+        console.log("Accessing "+ fieldName)
+        return super.access(fieldName)
     }
 }
-class ActorA extends spiders.Actor {
-    constructor(bRef) {
-        super();
-        this.TestObject = TestObject;
-        this.LogMirror = LogMirror;
-        this.bRef = bRef;
+
+class TestObject extends SpiderIsolate{
+    constructor(LM){
+        super(new LM())
     }
-    init() {
-        let t = this.instantiate(this.TestObject, this.LogMirror);
-        this.bRef.getMirrorObject(t);
+    baseField = "baseField"
+    baseMethod(){
+        return "baseMethodResult"
     }
 }
-class ActorB extends spiders.Actor {
-    getMirrorObject(o) {
-        o.baseMethod().then((v) => {
-            console.log("Within b: " + v);
-            o.baseMethod();
+
+class ActorA extends spiders.Actor{
+    TestObject
+    LogMirror
+    bRef
+    constructor(bRef){
+        super()
+        this.TestObject = TestObject
+        this.LogMirror  = LogMirror
+        this.bRef       = bRef
+    }
+    init(){
+        let t = new this.TestObject(this.LogMirror)
+        //let t = (this as any).instantiate(this.TestObject,this.LogMirror)
+        this.bRef.getMirrorObject(t)
+    }
+}
+
+class ActorB extends spiders.Actor{
+    getMirrorObject(o){
+        console.log(o.baseField)
+        console.log(o.baseMethod())
+
+    }
+}
+let b = app.spawnActor(ActorB)
+app.spawnActor(ActorA,[b])*/
+/*class LogMirror extends SpiderIsolateMirror{
+    invoke(methodName : string,args : Array<any>){
+        console.log("Invoking " + methodName)
+        return super.invoke(methodName,args)
+    }
+
+    access(fieldName :string){
+        console.log("Accessing "+ fieldName)
+        return super.access(fieldName)
+    }
+}
+
+class TestObject extends SpiderIsolate{
+    constructor(LM){
+        super(new LM())
+    }
+    baseField = "baseField"
+    baseMethod(){
+        return "baseMethodResult"
+    }
+}
+
+class TestApp extends spiders.Application{
+    send(toRef){
+        toRef.getIsol(new TestObject(LogMirror))
+        //toRef.getIsol((this as any).instantiate(TestObject,LogMirror))
+    }
+}
+let app = new TestApp()
+
+class TestActor extends spiders.Actor{
+    getIsol(i){
+        console.log(i.baseMethod())
+        console.log(i.baseField)
+    }
+}
+
+let a = app.spawnActor(TestActor)
+app.send(a)*/
+class TestActor extends spiders.Actor {
+    getArray(arr) {
+        console.log(arr.length);
+        arr.forEach((el) => {
+            console.log(el);
         });
     }
 }
-let b = app.spawnActor(ActorB);
-app.spawnActor(ActorA, [b]);
+let app = new spiders.Application();
+let act = app.spawnActor(TestActor);
+act.getArray([1, 2, 3]);
 //# sourceMappingURL=temp.js.map

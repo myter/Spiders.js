@@ -1,6 +1,4 @@
-import {FarRef, SpiderLib} from "../src/spiders";
-import {SpiderActorMirror} from "../src/MAP";
-import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "../src/MOP";
+import {SpiderLib} from "../src/spiders";
 
 var spiders : SpiderLib = require("../src/spiders")
 
@@ -59,11 +57,11 @@ let a = app.spawnActor(TestActor)
 let b = app.spawnActor(TestActor2)
 a.send(b)*/
 
-let app = new spiders.Application()
+/*let app = new spiders.Application()
 
-class LogMirror extends SpiderObjectMirror{
+class LogMirror extends SpiderIsolateMirror{
     invoke(methodName : string,args : Array<any>){
-        console.log("Invoking " + methodName + " in " + this.base.environment.thisRef.ownerId)
+        console.log("Invoking " + methodName)
         return super.invoke(methodName,args)
     }
 
@@ -73,7 +71,7 @@ class LogMirror extends SpiderObjectMirror{
     }
 }
 
-class TestObject extends SpiderObject{
+class TestObject extends SpiderIsolate{
     constructor(LM){
         super(new LM())
     }
@@ -94,18 +92,71 @@ class ActorA extends spiders.Actor{
         this.bRef       = bRef
     }
     init(){
-        let t = (this as any).instantiate(this.TestObject,this.LogMirror)
+        let t = new this.TestObject(this.LogMirror)
+        //let t = (this as any).instantiate(this.TestObject,this.LogMirror)
         this.bRef.getMirrorObject(t)
     }
 }
 
 class ActorB extends spiders.Actor{
     getMirrorObject(o){
-        o.baseMethod().then((v)=>{
-            console.log("Within b: " + v )
-            o.baseMethod()
-        })
+        console.log(o.baseField)
+        console.log(o.baseMethod())
+
     }
 }
 let b = app.spawnActor(ActorB)
-app.spawnActor(ActorA,[b])
+app.spawnActor(ActorA,[b])*/
+
+/*class LogMirror extends SpiderIsolateMirror{
+    invoke(methodName : string,args : Array<any>){
+        console.log("Invoking " + methodName)
+        return super.invoke(methodName,args)
+    }
+
+    access(fieldName :string){
+        console.log("Accessing "+ fieldName)
+        return super.access(fieldName)
+    }
+}
+
+class TestObject extends SpiderIsolate{
+    constructor(LM){
+        super(new LM())
+    }
+    baseField = "baseField"
+    baseMethod(){
+        return "baseMethodResult"
+    }
+}
+
+class TestApp extends spiders.Application{
+    send(toRef){
+        toRef.getIsol(new TestObject(LogMirror))
+        //toRef.getIsol((this as any).instantiate(TestObject,LogMirror))
+    }
+}
+let app = new TestApp()
+
+class TestActor extends spiders.Actor{
+    getIsol(i){
+        console.log(i.baseMethod())
+        console.log(i.baseField)
+    }
+}
+
+let a = app.spawnActor(TestActor)
+app.send(a)*/
+
+
+class TestActor extends spiders.Actor{
+    getArray(arr){
+        console.log(arr.length)
+        arr.forEach((el)=>{
+            console.log(el)
+        })
+    }
+}
+let app  = new spiders.Application()
+let act = app.spawnActor(TestActor)
+act.getArray([1,2,3])

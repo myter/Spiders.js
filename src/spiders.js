@@ -11,15 +11,10 @@ const signal_1 = require("./Reactivivity/signal");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
+const MOP_1 = require("./MOP");
 /**
  * Created by flo on 05/12/2016.
  */
-class Isolate {
-    constructor() {
-        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
-    }
-}
-exports.Isolate = Isolate;
 class ArrayIsolate {
     constructor(array) {
         this[serialisation_1.ArrayIsolateContainer.checkArrayIsolateFuncKey] = true;
@@ -62,7 +57,7 @@ class ClientActor extends Actor {
         webWorker.addEventListener('message', (event) => {
             app.mainEnvironment.messageHandler.dispatch(event);
         });
-        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment);
+        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment, "spawn");
         var actorVariables = decon[0];
         var actorMethods = decon[1];
         var staticProperties = serialisation_1.deconstructStatic(thisClass, actorId, [], app.mainEnvironment);
@@ -83,13 +78,13 @@ class ServerActor extends Actor {
         var socketManager = app.mainEnvironment.commMedium;
         var fork = require('child_process').fork;
         var actorId = utils_1.generateId();
-        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment);
+        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment, "spawn");
         var actorVariables = decon[0];
         var actorMethods = decon[1];
         var staticProperties = serialisation_1.deconstructStatic(thisClass, actorId, [], app.mainEnvironment);
         //Uncomment to debug (huray for webstorms)
-        //var actor           = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment);
+        //var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
+        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment, "toString");
         var actorMirrorVariables = deconActorMirror[0];
         var actorMirrorMethods = deconActorMirror[1];
         var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
@@ -190,7 +185,10 @@ exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
 exports.RepliqObjectField = RepliqObjectField_1.RepliqObjectField;
 exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
 exports.FieldUpdate = RepliqField_1.FieldUpdate;
-exports.Isolate = Isolate;
+exports.SpiderIsolate = MOP_1.SpiderIsolate;
+exports.SpiderObject = MOP_1.SpiderObject;
+exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
+exports.SpiderActorMirror = MAP_1.SpiderActorMirror;
 if (utils_1.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;

@@ -12,7 +12,7 @@ import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
 import {getSerialiableClassDefinition} from "./utils";
-import {SpiderObject, SpiderObjectMirror} from "./MOP";
+import {makeSpiderObjectProxy, SpiderObject, SpiderObjectMirror, wrapPrototypes} from "./MOP";
 
 var Signal      = require("./Reactivivity/signal").Signal
 /**
@@ -55,7 +55,8 @@ export function getObjectMethods(object : Object) : Array<any>{
 
 export function getObjectMethodNames(object : Object) : Array<string>{
     var names     = []
-    var proto       = Object.getPrototypeOf(object)
+    //var proto       = Object.getPrototypeOf(object)
+    var proto       = Reflect.getPrototypeOf(object)
     var properties  = Reflect.ownKeys(proto)
     for(var i in properties){
         var key     = properties[i]
@@ -143,13 +144,13 @@ export function reconstructStatic(behaviourObject : Object,staticProperties : Ar
     })
 }
 
-export function deconstructBehaviour(object : any,currentLevel : number,accumVars : Array<any>,accumMethods : Array<any>,receiverId : string,environment : ActorEnvironment){
+export function deconstructBehaviour(object : any,currentLevel : number,accumVars : Array<any>,accumMethods : Array<any>,receiverId : string,environment : ActorEnvironment,lastProp : string){
     var properties          = Reflect.ownKeys(object)
     var localAccumVars      = []
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
-        if(typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)){
+        if(typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)){
             var serialisedval   = serialise(val,receiverId,environment)
             localAccumVars.push([key,serialisedval])
         }
@@ -157,22 +158,20 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     localAccumVars.unshift(currentLevel)
     accumVars.push(localAccumVars)
     var localAccumMethods   = []
-    var proto               = object.__proto__
+    var proto               = Reflect.getPrototypeOf(object)
     properties              = Reflect.ownKeys(proto)
-    properties.shift()
-    //var lastProto           = properties.indexOf("spawn") != -1
-    var lastProto = properties.indexOf("__proto__") != -1
+    var lastProto           = properties.indexOf(lastProp) != -1
     if(!lastProto){
         for(var i in properties){
             var key     = properties[i]
             var method  = Reflect.get(proto,key)
-            if(typeof method == 'function'){
+            if(typeof method == 'function' && key != "constructor"){
                 localAccumMethods.push([key,method.toString()])
             }
         }
         localAccumMethods.unshift(currentLevel + 1)
         accumMethods.push(localAccumMethods)
-        return deconstructBehaviour(proto,currentLevel + 1,accumVars,accumMethods,receiverId,environment)
+        return deconstructBehaviour(proto,currentLevel + 1,accumVars,accumMethods,receiverId,environment,lastProp)
     }
     else{
         return [accumVars,accumMethods]
@@ -251,6 +250,7 @@ export abstract class ValueContainer{
     static spiderObjectDef      : number = 14
     static objectMirrorDef      : number = 15
     static spiderIsolDef        : number = 16
+    static isolMirrorDef        : number = 17
     type                        : number
 
     constructor(type : number){
@@ -356,13 +356,17 @@ export class SpiderIsolateDefinitionContainer extends ValueContainer{
 
 export class SpiderIsolateContainer extends ValueContainer{
     static checkIsolateFuncKey = "_INSTANCEOF_ISOLATE_"
-    vars    : string
-    methods : string
-    constructor(vars : string,methods : string){
+    vars            : string
+    methods         : string
+    mirrorVars      : string
+    mirrorMethods   : string
+    constructor(vars : string,methods : string,mirrorVars : string,mirrorMethods : string){
         //TODO add mirror
         super(ValueContainer.isolateType)
-        this.vars       = vars
-        this.methods    = methods
+        this.vars           = vars
+        this.methods        = methods
+        this.mirrorVars     = mirrorVars
+        this.mirrorMethods  = mirrorMethods
     }
 }
 
@@ -370,6 +374,14 @@ export class SpiderObjectMirrorDefinitionContainer extends ValueContainer{
     definition : string
     constructor(definition : string){
         super(ValueContainer.objectMirrorDef)
+        this.definition = definition
+    }
+}
+
+export class SpiderIsolateMirrorDefinitionContainer extends ValueContainer{
+    definition : string
+    constructor(definition : string){
+        super(ValueContainer.isolMirrorDef)
         this.definition = definition
     }
 }
@@ -502,6 +514,10 @@ function isSpiderIsolateClass(func: Function) : boolean{
 
 function isObjectMirrorClass(func : Function) : boolean{
     return (func.toString().search(/extends.*?SpiderObjectMirror/) != -1)
+}
+
+function isIsolateMirrorClass(func : Function) : boolean{
+    return (func.toString().search(/extends.*?SpiderIsolateMirror/) != -1)
 }
 
 function isRepliqClass(func : Function) : boolean{
@@ -658,10 +674,14 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             return new ArrayContainer(values)
         }
         else if(value[SpiderIsolateContainer.checkIsolateFuncKey]){
-            //TODO need to add mirror to container + need to invoke pass
-            var vars    = getObjectVars(value,receiverId,environment)
-            var methods = getObjectMethods(value)
-            return new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods))
+            let mirror              = value[SpiderObjectMirror.mirrorAccessKey]
+            let baseOb              = mirror.pass()
+            //Remove base reference from mirror to avoid serialising the base object twice
+            delete mirror.base
+            let [vars,methods]      = deconstructBehaviour(baseOb,0,[],[],receiverId,environment,"toString")
+            let [mVars,mMethods]    = deconstructBehaviour(mirror,0,[],[],receiverId,environment,"toString")
+            let container           = new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods),JSON.stringify(mVars),JSON.stringify(mMethods))
+            return container
         }
         else if(value[RepliqContainer.checkRepliqFuncKey]){
             return serialiseRepliq(value,receiverId,environment)
@@ -713,6 +733,10 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             var definition = getSerialiableClassDefinition(value)
             return new SpiderObjectMirrorDefinitionContainer(definition)
         }
+        else if(isClass(value) && isIsolateMirrorClass(value)){
+            var definition = getSerialiableClassDefinition(value)
+            return new SpiderIsolateMirrorDefinitionContainer(definition)
+        }
         else if(isClass(value) && isSpiderObjectClass(value)){
             var definition = getSerialiableClassDefinition(value)
             return new SpiderObjectDefinitionContainer(definition)
@@ -757,7 +781,6 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         return enviroment.promisePool.newForeignPromise(promiseContainer.promiseId,promiseContainer.promiseCreatorId)
     }
 
-
     function deSerialiseServerFarRef(farRefContainer : ServerFarRefContainer){
         var farRef = new ServerFarReference(farRefContainer.objectId,farRefContainer.objectFields,farRefContainer.objectMethods,farRefContainer.ownerId,farRefContainer.ownerAddress,farRefContainer.ownerPort,enviroment)
         if(enviroment.thisRef instanceof ServerFarReference){
@@ -798,12 +821,6 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         })
         return deserialised
     }
-
-    /*function deSerialiseIsolateDefinition(isolateDefContainer : IsolateDefinitionContainer){
-        var classObj = eval(isolateDefContainer.definition)
-        classObj.prototype[IsolateContainer.checkIsolateFuncKey] = true
-        return classObj
-    }*/
 
     function deSerialiseArrayIsolate(arrayIsolateContainer : ArrayIsolateContainer){
         return new ArrayIsolate(arrayIsolateContainer.array)
@@ -932,8 +949,12 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
     }
 
     function deSerialiseSpiderIsolate(isolateContainer : SpiderIsolateContainer){
-        var isolate = reconstructObject({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),enviroment)
-        return isolate
+        var isolate     = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),enviroment)
+        var isolClone   = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),enviroment)
+        var mirror      = reconstructBehaviour({},JSON.parse(isolateContainer.mirrorVars),JSON.parse(isolateContainer.mirrorMethods),enviroment)
+        let ret         = isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy)
+        mirror.resolve()
+        return ret
     }
 
     function deSerialiseSpiderObjectMirrorDefintion(def : SpiderObjectMirrorDefinitionContainer){
@@ -945,6 +966,14 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         return classObj
     }
 
+    function deSerialiseSpiderIsolateMirrorDefinition(def : SpiderIsolateMirrorDefinitionContainer){
+        let index                   = def.definition.indexOf("{")
+        let start                   = def.definition.substring(0,index)
+        let stop                    = def.definition.substring(index,def.definition.length)
+        let SpiderIsolateMirror     = require("./MOP").SpiderIsolateMirror
+        var classObj                = eval(start + " extends SpiderIsolateMirror"+stop)
+        return classObj
+    }
     switch(value.type){
         case ValueContainer.nativeType :
             return (value as NativeContainer).value
@@ -976,7 +1005,10 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deSerialiseSpiderIsolateDefinition(value as SpiderIsolateDefinitionContainer)
         case ValueContainer.isolateType:
             return deSerialiseSpiderIsolate(value as SpiderIsolateContainer)
+        case ValueContainer.isolMirrorDef:
+            return deSerialiseSpiderIsolateMirrorDefinition(value as SpiderIsolateMirrorDefinitionContainer)
         default :
+            console.log(value)
             throw "Unknown value container type :  " + value.type
     }
 }

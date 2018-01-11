@@ -1,10 +1,32 @@
 import {clone} from "./utils";
 import {SpiderIsolateContainer} from "./serialisation";
-import {ActorEnvironment} from "./ActorEnvironment";
 
-//TODO 1: need to call pass and resolve at the right spots in base code (where are objects serialised, behaviour, after access and invocation ? )
 export class SpiderObjectMirror{
     static mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_"
+    base : SpiderObject
+
+    bindBase(base){
+        this.base = base
+    }
+
+    invoke(methodName : PropertyKey,args : Array<any>){
+        return this.base[methodName](...args)
+    }
+
+    access(fieldName){
+        return this.base[fieldName]
+    }
+
+    pass(){
+        return makeSpiderObjectProxy(this.base,this,false)
+    }
+
+    resolve(){
+        //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
+    }
+}
+
+export class SpiderIsolateMirror{
     base : SpiderObject
 
     constructor(){
@@ -24,10 +46,10 @@ export class SpiderObjectMirror{
     }
 
     pass(){
-        return makeSpiderObjectProxy(this.base,this,false)
+        return this.base
     }
 
-    resolve(stringRepresentation){
+    resolve(){
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }
@@ -35,10 +57,10 @@ export class SpiderObjectMirror{
 
 
 function isInternal(property){
-    return property == "_FAR_REF_" || property == "_PROXY_WRAPPER_" || property == "SPIDER_SERVER_TYPE" || property == "SPIDER_CLIENT_TYPE" || property == "_SERVER_" || property == "_CLIENT_" || property == "_INSTANCEOF_Signal_" || property == "_INSTANCEOF_ISOLATE_" || property == "_INSTANCEOF_ARRAY_ISOLATE_" || property == "_INSTANCEOF_REPLIQ_" || property == "_INSTANCEOF_Signal_" || property == "setEnv" || property == "_SPIDER_OBJECT_"
+    return property == "_FAR_REF_" || property == "_PROXY_WRAPPER_" || property == "SPIDER_SERVER_TYPE" || property == "SPIDER_CLIENT_TYPE" || property == "_SERVER_" || property == "_CLIENT_" || property == "_INSTANCEOF_Signal_" || property == "_INSTANCEOF_ISOLATE_" || property == "_INSTANCEOF_ARRAY_ISOLATE_" || property == "_INSTANCEOF_REPLIQ_" || property == "_INSTANCEOF_Signal_" || property == "setEnv" || property == "_SPIDER_OBJECT_" || property == "hasOwnProperty"
 }
 
-function makeSpiderObjectProxy(baseObject : SpiderObject,mirror : SpiderObjectMirror,considerAsObject = true){
+export function makeSpiderObjectProxy(baseObject : SpiderObject,mirror : SpiderObjectMirror,considerAsObject = true){
     return new Proxy(baseObject,{
         get: function(target,property){
             if(property.toString() == SpiderObjectMirror.mirrorAccessKey){
@@ -73,8 +95,8 @@ function makeSpiderObjectProxy(baseObject : SpiderObject,mirror : SpiderObjectMi
     })
 }
 
-function wrapPrototypes(currentLevel,mirror){
-    if(!currentLevel.hasOwnProperty("__defineGetter__")) {
+export function wrapPrototypes(currentLevel,mirror){
+    if(!currentLevel.hasOwnProperty("mirror")) {
         let proto : SpiderObject = Reflect.getPrototypeOf(currentLevel) as SpiderObject
         Reflect.setPrototypeOf(currentLevel,makeSpiderObjectProxy(proto,mirror))
         wrapPrototypes(proto,mirror)
@@ -83,7 +105,6 @@ function wrapPrototypes(currentLevel,mirror){
 
 export class SpiderObject{
     mirror      : SpiderObjectMirror
-    environment : ActorEnvironment
     static      spiderObjectKey     = "_SPIDER_OBJECT_"
 
     constructor(objectMirror : SpiderObjectMirror = new SpiderObjectMirror()){
@@ -95,17 +116,12 @@ export class SpiderObject{
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject
     }
-
-    setEnv(env){
-        this.environment = env
-    }
 }
 
 export class SpiderIsolate{
     mirror      : SpiderObjectMirror
-    environment : ActorEnvironment
 
-    constructor(objectMirror : SpiderObjectMirror = new SpiderObjectMirror()){
+    constructor(objectMirror : SpiderIsolateMirror = new SpiderIsolateMirror()){
         this[SpiderIsolateContainer.checkIsolateFuncKey] = true
         //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
         let thisClone   = clone(this)
@@ -113,10 +129,17 @@ export class SpiderIsolate{
         this.mirror     = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
-        return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject
+        return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderIsolate
     }
 
-    setEnv(env){
-        this.environment = env
+    //Called by serialise on an already constructed isolate which has just been passed
+    instantiate(objectMirror : SpiderIsolateMirror,isolClone,wrapPrototypes,makeSpiderObjectProxy){
+        //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
+        //let thisClone   = clone(this)
+        objectMirror.bindBase(isolClone)
+        this.mirror     = objectMirror
+        //Make sure the object's prototypes are wrapped as well
+        wrapPrototypes(this,this.mirror)
+        return makeSpiderObjectProxy(isolClone,this.mirror) as SpiderIsolate
     }
 }
