@@ -581,32 +581,6 @@ describe("Communication", () => {
             }
         });
     });
-    it("Array Isolate passing", (done) => {
-        var app = new spider.Application();
-        class testActor1 extends spider.Actor {
-            getArrayLength(arr) {
-                return arr.length;
-            }
-        }
-        class testActor2 extends spider.Actor {
-            sendArray(ref) {
-                return ref.getArrayLength(new this.ArrayIsolate([1, 2, 3, 4, 5]));
-            }
-        }
-        var actor1 = app.spawnActor(testActor1);
-        var actor2 = app.spawnActor(testActor2, [], 8082);
-        actor2.sendArray(actor1).then((val) => {
-            try {
-                expect(val).to.equal(5);
-                app.kill();
-                done();
-            }
-            catch (e) {
-                app.kill();
-                done(e);
-            }
-        });
-    });
     it("Nested isolate passing", (done) => {
         class testApp extends spider.Application {
         }

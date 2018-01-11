@@ -66,12 +66,6 @@ export abstract class FarReference {
                             })
                             return baseObject.sendMethodInvocation(property.toString(), serialisedArgs)
                         }
-                        /*ret["then"] = function(onFull,onRej){
-                            return prom.then(onFull,onRej)
-                        }
-                        ret["catch"] = function(onRej){
-                            return prom.catch(onRej)
-                        }*/
                         ret[FarReference.proxyWrapperAccessorKey] = true
                         return ret
                     }

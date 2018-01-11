@@ -39,6 +39,7 @@ export class SocketHandler{
             messages.forEach((msg : Message) => {
                 this.sendMessage(actorId,msg)
             })
+            this.pendingMessages.delete(actorId)
         }
     }
 
@@ -67,9 +68,7 @@ export class SocketHandler{
 
     sendMessage(actorId : string,msg : Message) : void{
         if(this.disconnectedActors.indexOf(actorId) != -1){
-            var msgs = this.pendingMessages.get(actorId)
-            msgs.push(msg)
-            this.pendingMessages.set(actorId,msgs)
+            this.pendingMessages.get(actorId).push(msg)
         }
         else if(this.owner.connectedActors.has(actorId)){
             var sock = this.owner.connectedActors.get(actorId)
@@ -97,7 +96,6 @@ export class ServerSocketManager extends CommMedium{
 
     constructor(ip : string,socketPort : number,environment : ActorEnvironment){
         super(environment)
-        //Again very dirty hack to satisfy react-native
         var io                      = require('socket.io')
         this.socketIp               = ip
         this.socketPort             = socketPort

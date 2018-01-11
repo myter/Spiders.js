@@ -24,6 +24,7 @@ class SocketHandler {
             messages.forEach((msg) => {
                 this.sendMessage(actorId, msg);
             });
+            this.pendingMessages.delete(actorId);
         }
     }
     //Open connection to Node.js instance owning the object to which the far reference refers to
@@ -49,9 +50,7 @@ class SocketHandler {
     }
     sendMessage(actorId, msg) {
         if (this.disconnectedActors.indexOf(actorId) != -1) {
-            var msgs = this.pendingMessages.get(actorId);
-            msgs.push(msg);
-            this.pendingMessages.set(actorId, msgs);
+            this.pendingMessages.get(actorId).push(msg);
         }
         else if (this.owner.connectedActors.has(actorId)) {
             var sock = this.owner.connectedActors.get(actorId);
@@ -74,7 +73,6 @@ exports.SocketHandler = SocketHandler;
 class ServerSocketManager extends CommMedium_1.CommMedium {
     constructor(ip, socketPort, environment) {
         super(environment);
-        //Again very dirty hack to satisfy react-native
         var io = require('socket.io');
         this.socketIp = ip;
         this.socketPort = socketPort;

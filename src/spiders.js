@@ -15,22 +15,6 @@ const MOP_1 = require("./MOP");
 /**
  * Created by flo on 05/12/2016.
  */
-class ArrayIsolate {
-    constructor(array) {
-        this[serialisation_1.ArrayIsolateContainer.checkArrayIsolateFuncKey] = true;
-        this.array = array;
-        for (var i = 0; i < array.length; i++) {
-            this[i] = array[i];
-        }
-    }
-    forEach(callback) {
-        return this.array.forEach(callback);
-    }
-    filter(callback) {
-        return this.array.filter(callback);
-    }
-}
-exports.ArrayIsolate = ArrayIsolate;
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {

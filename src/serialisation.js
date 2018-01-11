@@ -1,7 +1,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const FarRef_1 = require("./FarRef");
-const spiders_1 = require("./spiders");
 const Repliq_1 = require("./Replication/Repliq");
 const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
 const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
@@ -233,7 +232,6 @@ ValueContainer.arrayType = 4;
 ValueContainer.isolateType = 5;
 ValueContainer.isolateDefType = 6;
 ValueContainer.clientFarRefType = 7;
-ValueContainer.arrayIsolateType = 8;
 ValueContainer.repliqType = 9;
 ValueContainer.repliqFieldType = 10;
 ValueContainer.repliqDefinition = 11;
@@ -317,7 +315,6 @@ class SpiderIsolateDefinitionContainer extends ValueContainer {
 exports.SpiderIsolateDefinitionContainer = SpiderIsolateDefinitionContainer;
 class SpiderIsolateContainer extends ValueContainer {
     constructor(vars, methods, mirrorVars, mirrorMethods) {
-        //TODO add mirror
         super(ValueContainer.isolateType);
         this.vars = vars;
         this.methods = methods;
@@ -341,14 +338,6 @@ class SpiderIsolateMirrorDefinitionContainer extends ValueContainer {
     }
 }
 exports.SpiderIsolateMirrorDefinitionContainer = SpiderIsolateMirrorDefinitionContainer;
-class ArrayIsolateContainer extends ValueContainer {
-    constructor(array) {
-        super(ValueContainer.arrayIsolateType);
-        this.array = array;
-    }
-}
-ArrayIsolateContainer.checkArrayIsolateFuncKey = "_INSTANCEOF_ARRAY_ISOLATE_";
-exports.ArrayIsolateContainer = ArrayIsolateContainer;
 class RepliqContainer extends ValueContainer {
     constructor(primitiveFields, objectFields, innerRepFields, methods, atomicMethods, repliqId, masterOwnerId, isClient, ownerAddress, ownerPort, lastConfirmedRound, innerName = "") {
         super(ValueContainer.repliqType);
@@ -567,9 +556,6 @@ function serialise(value, receiverId, environment) {
                 return new ClientFarRefContainer(farRef.objectId, farRef.objectFields, farRef.objectMethods, farRef.ownerId, farRef.mainId, farRef.contactId, farRef.contactAddress, farRef.contactPort);
             }
         }
-        else if (value[ArrayIsolateContainer.checkArrayIsolateFuncKey]) {
-            return new ArrayIsolateContainer(value.array);
-        }
         else if (value instanceof Array) {
             var values = value.map((val) => {
                 return serialise(val, receiverId, environment);
@@ -719,9 +705,6 @@ function deserialise(value, enviroment) {
             return deserialise(valCont, enviroment);
         });
         return deserialised;
-    }
-    function deSerialiseArrayIsolate(arrayIsolateContainer) {
-        return new spiders_1.ArrayIsolate(arrayIsolateContainer.array);
     }
     function deSerialiseRepliq(repliqContainer) {
         let blankRepliq = new Repliq_1.Repliq();
@@ -876,8 +859,6 @@ function deserialise(value, enviroment) {
             return deSerialiseError(value);
         case ValueContainer.arrayType:
             return deSerialiseArray(value);
-        case ValueContainer.arrayIsolateType:
-            return deSerialiseArrayIsolate(value);
         case ValueContainer.repliqType:
             return deSerialiseRepliq(value);
         case ValueContainer.repliqDefinition:

@@ -2,7 +2,7 @@ import {ServerSocketManager} from "./Sockets";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
 import {ObjectPool} from "./ObjectPool";
 import {
-    deconstructBehaviour, ArrayIsolateContainer, deconstructStatic,
+    deconstructBehaviour, deconstructStatic,
     serialise, getObjectFieldNames, getObjectMethodNames
 } from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
@@ -22,27 +22,6 @@ import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "./MOP";
  * Created by flo on 05/12/2016.
  */
 
-export class ArrayIsolate{
-    array : Array<any>
-    constructor(array : Array<any>){
-        this[ArrayIsolateContainer.checkArrayIsolateFuncKey] = true
-        this.array = array
-        for(var i = 0;i < array.length;i++){
-            this[i] = array[i]
-        }
-    }
-
-    forEach(callback){
-        return this.array.forEach(callback)
-    }
-
-    filter(callback){
-        return this.array.filter(callback)
-    }
-
-    //TODO implement rest
-}
-
 function updateExistingChannels(mainRef : FarReference,existingActors : Array<any>,newActorId : string) : Array<any> {
     var mappings = [[],[]]
     existingActors.forEach((actorPair)=> {
@@ -58,7 +37,6 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 
 abstract class Actor{
     parent          : FarRef
-    ArrayIsolate    : ArrayIsolateClass
     reflectOnActor  : () => SpiderActorMirror
     remote          : (string,number)=> Promise<FarRef>
     //Pub-sub
@@ -242,7 +220,6 @@ interface AppType {
     spawnActorFromFile
     kill
     //Provided by standard lib
-    ArrayIsolate        : ArrayIsolateClass
     reflectOnActor      : () => SpiderActorMirror
     remote              : (string,number)=> Promise<FarRef>
     //Pub-sub
@@ -269,7 +246,6 @@ export type ApplicationClass    = {
     new(...args : any[]): AppType
 }
 export type ActorClass                  = {new(...args : any[]): Actor}
-export type ArrayIsolateClass           = {new(...args : any[]): ArrayIsolate}
 export type RepliqClass                 = {new(...args : any[]): Repliq}
 export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitiveField<any>}
 export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectField}
@@ -283,7 +259,6 @@ export type SpiderObjectMirrorClass     = {new(...args : any[]): SpiderObjectMir
 export interface SpiderLib{
     Application                 : ApplicationClass
     Actor                       : ActorClass
-    ArrayIsolate                : ArrayIsolateClass
     Repliq                      : RepliqClass
     Signal                      : SignalObjectClass
     mutator                     : Function

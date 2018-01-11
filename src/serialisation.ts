@@ -4,7 +4,6 @@ import {PromiseAllocation} from "./PromisePool";
 import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./Message";
 import {ObjectPool} from "./ObjectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
-import {ArrayIsolate} from "./spiders";
 import {Repliq} from "./Replication/Repliq";
 import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
 import {RepliqField} from "./Replication/RepliqField";
@@ -241,7 +240,6 @@ export abstract class ValueContainer{
     static isolateType          : number = 5
     static isolateDefType       : number = 6
     static clientFarRefType     : number = 7
-    static arrayIsolateType     : number = 8
     static repliqType           : number = 9
     static repliqFieldType      : number = 10
     static repliqDefinition     : number = 11
@@ -361,7 +359,6 @@ export class SpiderIsolateContainer extends ValueContainer{
     mirrorVars      : string
     mirrorMethods   : string
     constructor(vars : string,methods : string,mirrorVars : string,mirrorMethods : string){
-        //TODO add mirror
         super(ValueContainer.isolateType)
         this.vars           = vars
         this.methods        = methods
@@ -385,16 +382,6 @@ export class SpiderIsolateMirrorDefinitionContainer extends ValueContainer{
         this.definition = definition
     }
 }
-
-export class ArrayIsolateContainer extends ValueContainer{
-    array                           : Array<any>
-    static checkArrayIsolateFuncKey : string = "_INSTANCEOF_ARRAY_ISOLATE_"
-    constructor(array : Array<any>){
-        super(ValueContainer.arrayIsolateType)
-        this.array = array
-    }
-}
-
 export class RepliqContainer extends ValueContainer{
     primitiveFields             : string
     objectFields                : string
@@ -664,9 +651,6 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                 return new ClientFarRefContainer(farRef.objectId,farRef.objectFields,farRef.objectMethods,farRef.ownerId,farRef.mainId,farRef.contactId,farRef.contactAddress,farRef.contactPort)
             }
         }
-        else if(value[ArrayIsolateContainer.checkArrayIsolateFuncKey]){
-            return new ArrayIsolateContainer(value.array)
-        }
         else if(value instanceof Array){
             var values : Array<ValueContainer> = value.map((val) => {
                 return serialise(val,receiverId,environment)
@@ -820,10 +804,6 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deserialise(valCont,enviroment)
         })
         return deserialised
-    }
-
-    function deSerialiseArrayIsolate(arrayIsolateContainer : ArrayIsolateContainer){
-        return new ArrayIsolate(arrayIsolateContainer.array)
     }
 
     function deSerialiseRepliq(repliqContainer : RepliqContainer){
@@ -987,8 +967,6 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deSerialiseError(value as ErrorContainer)
         case ValueContainer.arrayType:
             return deSerialiseArray(value as ArrayContainer)
-        case ValueContainer.arrayIsolateType:
-            return deSerialiseArrayIsolate(value as ArrayIsolateContainer)
         case ValueContainer.repliqType:
             return deSerialiseRepliq(value as RepliqContainer)
         case ValueContainer.repliqDefinition:

@@ -1,6 +1,6 @@
 import {ActorEnvironment} from "./ActorEnvironment";
 import {FarReference} from "./FarRef";
-import {ArrayIsolate,SignalObjectClass} from "./spiders";
+import {SignalObjectClass} from "./spiders";
 import {PubSubTag} from "./PubSub/SubTag";
 import {SIDUPAdmitter, SIDUPNode, SIDUPSourceSignal} from "./Reactivivity/SIDUP";
 import {lift, liftGarbage, Signal, SignalDependency, SignalValue} from "./Reactivivity/signal";
@@ -97,7 +97,6 @@ export class SpiderActorMirror{
         behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
             return commMedium.connectRemote(thisRef,address,port,promisePool)
         }
-        behaviourObject["ArrayIsolate"]     = ArrayIsolate
         behaviourObject["reflectOnActor"]   = () => {
             return this
         }
