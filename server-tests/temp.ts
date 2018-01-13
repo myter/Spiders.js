@@ -2,42 +2,28 @@ import {SpiderLib} from "../src/spiders";
 
 var spiders : SpiderLib = require("../src/spiders")
 
-class TestMirror extends spiders.SpiderObjectMirror{
-    testValue
-    invoke(methodName,args){
-        console.log("Invoke captured")
-        this.testValue = 5
-        return super.invoke(methodName,args)
-    }
-}
-class TestObject extends spiders.SpiderObject{
-    constructor(mirrorClass){
-        super(new mirrorClass())
-    }
-
-    someMethod(){
-        console.log("Some method called")
-        return 5
-    }
-}
-class TestActor extends spiders.Actor{
-    TestObject
-    TestMirror
+class TestIsolate extends spiders.SpiderIsolate{
+    field
     constructor(){
         super()
-        this.TestObject = TestObject
-        this.TestMirror = TestMirror
+        this.field = 5
     }
-    test(){
-        let o = new this.TestObject(this.TestMirror)
-        let r = o.someMethod()
-        console.log("mirror val:" + (this.reflectOnObject(o) as TestMirror).testValue )
-        console.log("Result: " + r)
-        return (this.reflectOnObject(o) as TestMirror).testValue + r
+}
+
+class TestActor extends spiders.Actor{
+    TestIsolate
+    constructor(){
+        super()
+        this.TestIsolate = TestIsolate
+    }
+
+    getIsolate(){
+        return new this.TestIsolate()
     }
 }
 let app = new spiders.Application()
 let act = app.spawnActor(TestActor)
-act.test().then((v)=>{
-    console.log("Got result: " + v)
+act.getIsolate().then((isol)=>{
+    console.log("Got isol")
+    console.log(isol.field)
 })

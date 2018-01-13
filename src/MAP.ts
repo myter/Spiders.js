@@ -1,5 +1,5 @@
 import {ActorEnvironment} from "./ActorEnvironment";
-import {FarReference} from "./FarRef";
+import {ClientFarReference, FarReference, ServerFarReference} from "./FarRef";
 import {SignalObjectClass} from "./spiders";
 import {PubSubTag} from "./PubSub/SubTag";
 import {SIDUPAdmitter, SIDUPNode, SIDUPSourceSignal} from "./Reactivivity/SIDUP";
@@ -9,7 +9,7 @@ import {PSClient} from "./PubSub/SubClient";
 import {PSServer} from "./PubSub/SubServer";
 import {PromiseAllocation} from "./PromisePool";
 import {
-    FieldAccessMessage, MethodInvocationMessage,
+    FieldAccessMessage, Message, MethodInvocationMessage, RouteMessage,
 } from "./Message";
 import {SpiderObjectMirror} from "./MOP";
 
@@ -29,6 +29,38 @@ export class SpiderActorMirror{
         }
         else{
             return this.getInitChain(behaviourObject.__proto__,result)
+        }
+    }
+
+    private sendRoute(toId: string,contactAddress,contactPort, msg: Message) {
+        if (!this.base.commMedium.hasConnection(toId)) {
+            this.base.commMedium.openConnection(toId, contactAddress, contactPort)
+        }
+        //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
+        msg.contactId = toId
+        msg.contactAddress = contactAddress
+        msg.contactPort = contactPort
+
+        this.base.commMedium.sendMessage(toId, new RouteMessage(this.base.thisRef, this.base.thisRef.ownerId, msg))
+    }
+
+    private send(toId: string, msg: Message,contactId,contactAddress,contactPort,mainId) {
+        let holderRef = this.base.thisRef
+        if (holderRef instanceof ServerFarReference) {
+            if (holderRef.ownerId == contactId) {
+                this.base.commMedium.sendMessage(toId, msg)
+            }
+            else {
+                this.sendRoute(contactId,contactAddress,contactPort, msg)
+            }
+        }
+        else {
+            if ((holderRef as ClientFarReference).mainId == mainId) {
+                this.base.commMedium.sendMessage(toId, msg)
+            }
+            else {
+                this.sendRoute(contactId,contactAddress,contactPort, msg)
+            }
         }
     }
 
@@ -88,8 +120,7 @@ export class SpiderActorMirror{
         let promisePool     = this.base.promisePool
         let signalPool      = this.base.signalPool
         let gspInstance     = this.base.gspInstance
-        let ObjectPool      = require('./ObjectPool').ObjectPool
-        let behaviourObject = this.base.objectPool.getObject(ObjectPool._BEH_OBJ_ID)
+        let behaviourObject = this.base.objectPool.getObject(0)
 
         if(!appActor){
             behaviourObject["parent"]       = parentRef.proxyify()
@@ -299,15 +330,15 @@ export class SpiderActorMirror{
         performAccess()
     }
 
-    sendInvocation(target : FarReference,methodName : string,args : Array<any>) : Promise<any>{
+    sendInvocation(target : FarReference,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null) : Promise<any>{
         var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
-        this.base.commMedium.sendMessage(target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,args,promiseAlloc.promiseId))
+        this.send(target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,args,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 
-    sendAccess(target : FarReference,fieldName : string) : Promise<any>{
+    sendAccess(target : FarReference,fieldName : string,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null) : Promise<any>{
         var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
-        this.base.commMedium.sendMessage(target.ownerId,new FieldAccessMessage(this.base.thisRef,target.objectId,fieldName,promiseAlloc.promiseId))
+        this.send(target.ownerId,new FieldAccessMessage(this.base.thisRef,target.objectId,fieldName,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 }

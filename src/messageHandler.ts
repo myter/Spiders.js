@@ -58,6 +58,9 @@ export class MessageHandler{
         var thisId                      = msg.actorId
         var mainId                      = msg.mainId;
         var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,this.environment)
+        var actorMirror                 = reconstructBehaviour({},msg.mirrorVars,msg.mirrorMethods,this.environment)
+        actorMirror.bindBase(this.environment)
+        this.environment.actorMirror    = actorMirror
         reconstructStatic(behaviourObject,msg.staticProperties,this.environment);
         (this.environment as ClientActorEnvironment).initialise(thisId,mainId,behaviourObject)
         var otherActorIds               = msg.otherActorIds

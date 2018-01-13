@@ -49,14 +49,18 @@ export class InstallBehaviourMessage extends Message{
     actorId             : string
     vars                : Array<any>
     methods             : Array<any>
+    mirrorVars          : Array<any>
+    mirrorMethods       : Array<any>
     staticProperties    : Array<any>
     otherActorIds       : Array<string>
-    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>,staticProperties : Array<any>,otherActorIds : Array<string>){
+    constructor(senderRef : FarReference,mainId : string,actorId : string,vars : Array<any>,methods : Array<any>,mirrorVars : Array<any>,mirrorMethods : Array<any>,staticProperties : Array<any>,otherActorIds : Array<string>){
         super(_INSTALL_BEHAVIOUR_,senderRef)
         this.mainId             = mainId
         this.actorId            = actorId
         this.vars               = vars
         this.methods            = methods
+        this.mirrorVars         = mirrorVars
+        this.mirrorMethods      = mirrorMethods
         this.staticProperties   = staticProperties
         this.otherActorIds      = otherActorIds
     }

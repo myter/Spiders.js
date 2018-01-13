@@ -33,10 +33,6 @@ export function getObjectVars(object : Object,receiverId : string,environment : 
     return vars
 }
 
-export function getObjectFieldNames(object : Object) : Array<string>{
-    return Reflect.ownKeys(object).map((key)=>{return key.toString()})
-}
-
 export function getObjectMethods(object : Object) : Array<any>{
     var methods     = []
     var proto       = Object.getPrototypeOf(object)
@@ -52,20 +48,30 @@ export function getObjectMethods(object : Object) : Array<any>{
     return methods
 }
 
-export function getObjectMethodNames(object : Object) : Array<string>{
-    var names     = []
-    //var proto       = Object.getPrototypeOf(object)
-    var proto       = Reflect.getPrototypeOf(object)
-    var properties  = Reflect.ownKeys(proto)
-    for(var i in properties){
-        var key     = properties[i]
-        var method  = Reflect.get(proto,key)
-        //Avoid copying over any construction functions (i.e. class declarations)
-        if(typeof method == 'function' && !(method.toString()).startsWith("class")){
-            names.push(key.toString())
-        }
+export function getObjectNames(object : Object,lastProp : string,accumVars = [],accumMethods = []){
+    var properties          = Reflect.ownKeys(object)
+    var lastProto           = properties.indexOf(lastProp) != -1
+    if(lastProto){
+        return [accumVars,accumMethods]
     }
-    return names
+    else{
+        for(var i in properties){
+            let key             = properties[i]
+            let val             = Reflect.get(object,key)
+            let k               = key.toString()
+            if(typeof val == 'function'){
+                if(!(accumMethods as any).includes(k)){
+                    accumMethods.push(k)
+                }
+            }
+            else{
+                if(!(accumVars as any).includes(k)){
+                    accumVars.push(k)
+                }
+            }
+        }
+        return getObjectNames(Reflect.getPrototypeOf(object),lastProp,accumVars,accumMethods)
+    }
 }
 
 export function deconstructStatic(actorClass,receiverId : string,results : Array<any>,environment : ActorEnvironment){
@@ -527,13 +533,14 @@ function serialisePromise(promise,receiverId : string,enviroment : ActorEnvironm
 }
 
 function serialiseObject(object : Object,thisRef : FarReference,objectPool : ObjectPool) : ValueContainer{
-    var oId = objectPool.allocateObject(object)
+    var oId                         = objectPool.allocateObject(object)
+    let [fieldNames,methodNames]    = getObjectNames(object,"toString")
     if(thisRef instanceof ServerFarReference){
-        return new ServerFarRefContainer(oId,getObjectFieldNames(object),getObjectMethodNames(object),thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort)
+        return new ServerFarRefContainer(oId,fieldNames,methodNames,thisRef.ownerId,thisRef.ownerAddress,thisRef.ownerPort)
     }
     else{
         var clientRef = thisRef as ClientFarReference
-        return new ClientFarRefContainer(oId,getObjectFieldNames(object),getObjectMethodNames(object),clientRef.ownerId,clientRef.mainId,clientRef.contactId,clientRef.contactAddress,clientRef.contactPort)
+        return new ClientFarRefContainer(oId,fieldNames,methodNames,clientRef.ownerId,clientRef.mainId,clientRef.contactId,clientRef.contactAddress,clientRef.contactPort)
     }
 }
 
@@ -860,7 +867,7 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let start = def.definition.substring(0,index)
         let stop = def.definition.substring(index,def.definition.length)
         let Repliq = require("./Replication/Repliq").Repliq
-        var classObj = eval(start + " extends Repliq"+stop)
+        var classObj = eval("("+start + " extends Repliq"+stop+")")
         return classObj
     }
 
@@ -900,7 +907,7 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let start       = def.definition.substring(0,index)
         let stop        = def.definition.substring(index,def.definition.length)
         let Signal      = require("./Reactivivity/signal").SignalObject
-        var classObj    = eval(start + " extends Signal"+stop)
+        var classObj    = eval("("+start + " extends Signal"+stop+")")
         let mutators    = def.mutators
         //Create a dummy signal instance to get the class name
         let dummy       = new classObj()
@@ -915,7 +922,7 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let start           = def.definition.substring(0,index)
         let stop            = def.definition.substring(index,def.definition.length)
         let SpiderObject    = require("./MOP").SpiderObject
-        var classObj        = eval(start + " extends SpiderObject"+stop)
+        var classObj        = eval("("+start + " extends SpiderObject"+stop+")")
         return classObj
     }
 
@@ -923,8 +930,8 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let index           = def.definition.indexOf("{")
         let start           = def.definition.substring(0,index)
         let stop            = def.definition.substring(index,def.definition.length)
-        let SpiderIsolate    = require("./MOP").SpiderIsolate
-        var classObj        = eval(start + " extends SpiderIsolate"+stop)
+        let SpiderIsolate   = require("./MOP").SpiderIsolate
+        var classObj        = eval("("+start + " extends SpiderIsolate"+stop+")")
         return classObj
     }
 
@@ -942,7 +949,7 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let start                   = def.definition.substring(0,index)
         let stop                    = def.definition.substring(index,def.definition.length)
         let SpiderObjectMirror      = require("./MOP").SpiderObjectMirror
-        var classObj                = eval(start + " extends SpiderObjectMirror"+stop)
+        var classObj                = eval("("+start + " extends SpiderObjectMirror"+stop+")")
         return classObj
     }
 
@@ -951,7 +958,7 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
         let start                   = def.definition.substring(0,index)
         let stop                    = def.definition.substring(index,def.definition.length)
         let SpiderIsolateMirror     = require("./MOP").SpiderIsolateMirror
-        var classObj                = eval(start + " extends SpiderIsolateMirror"+stop)
+        var classObj                = eval("("+start + " extends SpiderIsolateMirror"+stop+")")
         return classObj
     }
     switch(value.type){

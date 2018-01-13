@@ -2,6 +2,7 @@
  * Created by flo on 06/02/2017.
  */
 import {SpiderLib} from "../src/spiders";
+import {FarReference} from "../src/FarRef";
 /**
  * Created by flo on 18/01/2017.
  */
@@ -29,15 +30,357 @@ class testApp extends spider.Application{
 }
 var app = new testApp()
 
-function log(result){
-    if(result.includes("false")){
-        throw new Error("Something went wrong with: " + result)
+function log(testName,result,expected){
+    var ul = document.getElementById("resultList");
+    var li = document.createElement("li");
+    li.appendChild(document.createTextNode(testName + ". Expected: " + expected + " . Result : " + result));
+    li.setAttribute("id", "element4"); // added line
+    if(result == expected){
+        ul.style.color = "Green";
+
     }
     else{
-        console.log("[TESTING] " + result + " [TESTING]")
+        ul.style.color = "Red";
     }
+    ul.appendChild(li);
 }
 
+class ROAMirror extends spider.SpiderActorMirror{
+    testValue
+    constructor(){
+        super()
+        this.testValue = 5
+    }
+}
+class ROAActor extends spider.Actor{
+    constructor(){
+        super(new ROAMirror())
+    }
+
+    test(){
+        return (this.reflectOnActor() as ROAMirror).testValue
+    }
+}
+let performROA = () =>{
+    let act = app.spawnActor(ROAActor)
+    return act.test().then((v)=>{
+        log("Reflecting On Actor",v,5)
+    })
+}
+scheduled.push(performROA)
+
+class InitMirror extends spider.SpiderActorMirror{
+    testValue
+    initialise(appActor,parentRef){
+        super.initialise(appActor,parentRef)
+        this.testValue = 5
+    }
+}
+class InitActor extends spider.Actor{
+    testValue
+    constructor(){
+        super(new InitMirror())
+    }
+
+    init(){
+        this.testValue = 5
+    }
+
+    test(){
+        return (this.reflectOnActor() as InitMirror).testValue + this.testValue
+    }
+}
+let customInit = ()=>{
+    let act = app.spawnActor(InitActor)
+    return act.test().then((v)=>{
+        log("Custom Init (MAP)",v,10)
+    })
+}
+scheduled.push(customInit)
+
+
+class CustInvocMAPMirror extends spider.SpiderActorMirror{
+    testValue
+
+    receiveInvocation(sender,target,methodName,args,perform){
+        this.testValue = 5
+        super.receiveInvocation(sender,target,methodName,args,perform)
+    }
+}
+class CustInvocMAPActor extends spider.Actor{
+    testValue
+    constructor(){
+        super(new CustInvocMAPMirror())
+    }
+    test(){
+        this.testValue = 5
+        return (this.reflectOnActor() as CustInvocMAPMirror).testValue + this.testValue
+    }
+}
+let customInvocMap = ()=>{
+    let act = app.spawnActor(CustInvocMAPActor)
+    return act.test().then((v)=>{
+        log("Custom Invocation (MAP)",v,10)
+    })
+}
+scheduled.push(customInvocMap)
+
+class custAccessMapMirror extends spider.SpiderActorMirror{
+    receiveAccess(sender,target,fieldName,perform){
+        target[fieldName]+= 5
+        super.receiveAccess(sender,target,fieldName,perform)
+    }
+}
+class custAccessMapActor extends spider.Actor{
+    testValue
+    constructor(){
+        super(new custAccessMapMirror())
+        this.testValue = 5
+    }
+}
+let customAccessMap = () => {
+    let act = app.spawnActor(custAccessMapActor)
+    return act.testValue.then((v)=>{
+        log("Custom Access (MAP)",v,10)
+    })
+}
+scheduled.push(customAccessMap)
+
+
+class CustSendInvocMapMirror extends spider.SpiderActorMirror{
+    testValue
+    sendInvocation(target : FarReference,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
+        this.testValue = 5
+        return super.sendInvocation(target,methodName,args,contactId,contactAddress,contactPort,mainId)
+    }
+}
+class CustSendInvocMapApp extends spider.Application{
+    testP(){
+        return 5
+    }
+}
+class CustSendInvocMapActor extends spider.Actor{
+    constructor(){
+        super(new CustSendInvocMapMirror())
+    }
+    test(){
+        return this.parent.testP().then((v)=>{
+            return (this.reflectOnActor() as CustSendInvocMapMirror).testValue + v
+        })
+    }
+}
+let custSendInvocMAP = ()=>{
+    let custSendInvocMapAPP = new CustSendInvocMapApp()
+    let act = custSendInvocMapAPP.spawnActor(CustSendInvocMapActor)
+    return act.test().then((v)=>{
+        log("Custom Send Invocation (MAP)",v,10)
+    })
+}
+scheduled.push(custSendInvocMAP)
+
+class CustSendAccessMapMirror extends spider.SpiderActorMirror{
+    testValue
+    sendAccess(target : FarReference,fieldName : string,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
+        this.testValue = 5
+        return super.sendAccess(target,fieldName,contactId,contactAddress,contactPort,mainId)
+    }
+}
+class CustSendAccessMAPApp extends spider.Application{
+    testValue
+    constructor(){
+        super()
+        this.testValue = 5
+    }
+}
+class CustSendAccessMapActor extends spider.Actor{
+    constructor(){
+        super(new CustSendAccessMapMirror())
+    }
+
+    test(){
+        return this.parent.testValue.then((v)=>{
+            return (this.reflectOnActor() as CustSendAccessMapMirror).testValue + v
+        })
+    }
+}
+let custSendAccessMap = () =>{
+    let custSendAccessMapApp = new CustSendAccessMAPApp()
+    let act = custSendAccessMapApp.spawnActor(CustSendAccessMapActor)
+    return act.test().then((v)=>{
+        log("Custom Send Access (MAP)",v,10)
+    })
+}
+scheduled.push(custSendAccessMap)
+
+class ROOMirror extends spider.SpiderObjectMirror{
+    testValue
+    constructor(){
+        super()
+        this.testValue = 5
+    }
+}
+class ROOObject extends spider.SpiderObject{
+    constructor(mirrorClass){
+        super(new mirrorClass())
+    }
+}
+class ROOActor extends spider.Actor{
+    TestObject
+    TestMirror
+    constructor(){
+        super()
+        this.TestObject = ROOObject
+        this.TestMirror = ROOMirror
+    }
+    test(){
+        let o = new this.TestObject(this.TestMirror)
+        return (this.reflectOnObject(o) as ROOMirror).testValue
+    }
+}
+let ROO = () => {
+    let act = app.spawnActor(ROOActor)
+    return act.test().then((v)=>{
+        log("Reflect On Object",v,5)
+    })
+}
+scheduled.push(ROO)
+
+
+class CustInvokeMOPMirror extends spider.SpiderObjectMirror{
+    testValue
+    invoke(methodName,args){
+        this.testValue = 5
+        return super.invoke(methodName,args)
+    }
+}
+class CustInvokeMOPObject extends spider.SpiderObject{
+    constructor(mirrorClass){
+        super(new mirrorClass())
+    }
+
+    someMethod(){
+        return 5
+    }
+}
+class CustInvokeMOPActor extends spider.Actor{
+    TestObject
+    TestMirror
+    constructor(){
+        super()
+        this.TestObject = CustInvokeMOPObject
+        this.TestMirror = CustInvokeMOPMirror
+    }
+    test(){
+        let o = new this.TestObject(this.TestMirror)
+        let r = o.someMethod()
+        return (this.reflectOnObject(o) as CustInvokeMOPMirror).testValue + r
+    }
+}
+let customInvocMOP = () => {
+    let act = app.spawnActor(CustInvokeMOPActor)
+    return act.test().then((v)=>{
+        log("Custom Invoke (MOP)",v,10)
+    })
+}
+scheduled.push(customInvocMOP)
+
+class CustomAccessMopMirror extends spider.SpiderObjectMirror{
+    testValue
+
+    access(fieldName){
+        this.testValue = 5
+        return super.access(fieldName)
+    }
+}
+class CustomAccessMopObject extends spider.SpiderObject{
+    someField
+    constructor(mirrorClass){
+        super(new mirrorClass())
+        this.someField = 5
+    }
+}
+class CustomAccessMopActor extends spider.Actor{
+    TestObject
+    TestMirror
+    constructor(){
+        super()
+        this.TestObject = CustomAccessMopObject
+        this.TestMirror = CustomAccessMopMirror
+    }
+    test(){
+        let o = new this.TestObject(this.TestMirror)
+        let r = o.someField
+        return (this.reflectOnObject(o) as CustomAccessMopMirror).testValue + r
+    }
+}
+let CustomAccessMop = () => {
+    let act = app.spawnActor(CustomAccessMopActor)
+    return act.test().then((v)=>{
+        log("Custom Access (MOP)",v,10)
+    })
+}
+scheduled.push(CustomAccessMop)
+
+class CustomPassMopMirror extends spider.SpiderIsolateMirror{
+    testValue
+
+    pass(){
+        this.testValue = 5
+        return super.pass()
+    }
+}
+class CustomPassMopObject extends spider.SpiderIsolate{
+    constructor(mirrorClass){
+        super(new mirrorClass())
+    }
+}
+class CustomPassMopActor extends spider.Actor{
+    o
+    constructor(){
+        super()
+        this.o          = new CustomPassMopObject(CustomPassMopMirror)
+    }
+    test(){
+        return (this.reflectOnObject(this.o) as CustomPassMopMirror).testValue
+    }
+}
+let CustomPassMop = () => {
+    let act = app.spawnActor(CustomPassMopActor)
+    return act.test().then((v)=>{
+        log("Custom Pass (MOP)",v,5)
+    })
+}
+scheduled.push(CustomPassMop)
+
+class CustomResolveMopMirror extends spider.SpiderIsolateMirror{
+    testValue
+
+    resolve(){
+        this.testValue = 5
+    }
+}
+class CustomResolveMopObject extends spider.SpiderIsolate{
+    constructor(mirrorClass){
+        super(new mirrorClass())
+    }
+}
+class CustomResolveMopActor extends spider.Actor{
+    o
+    constructor(){
+        super()
+        this.o          = new CustomResolveMopObject(CustomResolveMopMirror)
+    }
+    test(){
+        return (this.reflectOnObject(this.o) as CustomResolveMopMirror).testValue
+    }
+}
+let CustomResolveMop = () => {
+    let act = app.spawnActor(CustomResolveMopActor)
+    return act.test().then((v)=>{
+        log("Custom Resolve (MOP)",v,5)
+    })
+}
+scheduled.push(CustomResolveMop)
 class testFieldSerActor extends spider.Actor{
     val
     constructor(){
@@ -48,7 +391,7 @@ class testFieldSerActor extends spider.Actor{
 var performFieldSer = () => {
     var fieldActor = app.spawnActor(testFieldSerActor)
     return fieldActor.val.then((v) => {
-        log("Field Serialisation: " + (v == 10))
+        log("Field Serialisation",v,10)
         app.kill()
     })
 }
@@ -66,7 +409,7 @@ class testMethSerActor extends spider.Actor{
 var performMethSer = () => {
     var methActor = app.spawnActor(testMethSerActor)
     return methActor.m().then((v) => {
-        log("Method Serialisaton: " + (v == 10))
+        log("Method Serialisaton",v,10)
         app.kill()
     })
 }
@@ -87,7 +430,7 @@ class testConSerActor extends spider.Actor{
 var performConSer = () => {
     var actor = app.spawnActor(testConSerActor)
     return actor.test().then((v) => {
-        log("Construction: " + (v == aValue))
+        log("Construction",v,aValue)
         app.kill()
     })
 }
@@ -107,7 +450,7 @@ class testInitSerActor extends spider.Actor{
 var peformInitSer = () => {
     var actor = app.spawnActor(testInitSerActor)
     return actor.val.then((v) => {
-        log("Initialisation: " + (v == 15))
+        log("Initialisation",v,15)
         app.kill()
     })
 }
@@ -122,7 +465,7 @@ class testScopeActor extends spider.Actor{
 var performScopeSer = () => {
     var actor = app.spawnActor(testScopeActor)
     return actor.get().then((v) => {
-        log("Scope: " + (v == undefined))
+        log("Scope",v,undefined)
         app.kill()
     })
 }
@@ -141,7 +484,7 @@ class inhActor extends baseMethodInhActor{
 var performMethodInhSer = () => {
     var actor = app.spawnActor(inhActor)
     return actor.testInh().then((v) => {
-        log("Inheritance (Method): " + (v == 5))
+        log("Inheritance (Method)",v,5)
         app.kill()
     })
 }
@@ -161,7 +504,7 @@ class fieldInhActor extends baseFieldInhActor{
 var performFieldInhSer = () => {
     var actor = app.spawnActor(fieldInhActor)
     return actor.baseField.then((v) => {
-        log("Inheritance (Field): " + (v == 5))
+        log("Inheritance (Field)",v,5)
         app.kill()
     })
 }
@@ -185,7 +528,7 @@ class testReqActor extends spider.Actor{
 var performReq = () => {
     var actor = app.spawnActor(testReqActor)
     return actor.invoke().then((v) => {
-        log("Require: " + (v == 5))
+        log("Require",v,5)
         app.kill()
     })
 }
@@ -202,7 +545,7 @@ class testFieldAccessActor extends spider.Actor{
 var performFieldAccess = () => {
     var actor = app.spawnActor(testFieldAccessActor)
     return actor.value.then((value) => {
-        log("Accessing actor instance variable: " + (value == 10))
+        log("Accessing actor instance variable",value,10)
         app.kill()
     })
 }
@@ -217,7 +560,7 @@ class testMethodInvocActor extends spider.Actor{
 var performMethodInvoc = () => {
     var actor = app.spawnActor(testMethodInvocActor)
     return actor.m().then((retVal) => {
-        log("Invoking method on far reference: " + (retVal == 10))
+        log("Invoking method on far reference",retVal,10)
         app.kill()
     })
 }
@@ -232,7 +575,7 @@ class testParentAccessActor extends spider.Actor{
 var performParentAccess = () => {
     var actor = app.spawnActor(testParentAccessActor)
     return actor.access().then((v) => {
-        log("Actor accessing main instance variable: " + (v == 10))
+        log("Actor accessing main instance variable",v,10)
         app.kill()
     })
 }
@@ -247,7 +590,7 @@ class testParentInvokeActor extends spider.Actor{
 var performParentInvoke = () => {
     var actor = app.spawnActor(testParentInvokeActor)
     return actor.invoke().then((v) => {
-        log("Actor invoking main method: " + (v == 10))
+        log("Actor invoking main method",v,10)
         app.kill()
     })
 }
@@ -261,7 +604,7 @@ class testPromiseRejectActor extends spider.Actor{
 var performPromiseReject = () => {
     var actor = app.spawnActor(testPromiseRejectActor)
     return actor.m().catch((reason) => {
-        log("Promise rejection handling (method invocation): " + (reason.message == "This is an error"))
+        log("Promise rejection handling (method invocation)",reason.message,"This is an error")
         app.kill()
     })
 }
@@ -276,7 +619,7 @@ class testPromisePipeActor extends spider.Actor{
 var performPromisePipe = () => {
     var actor = app.spawnActor(testPromisePipeActor)
     return actor.get().then((val) => {
-        log("Promise pipelining (field access)" + (val == 10))
+        log("Promise pipelining (field access)",val,10)
         app.kill()
     })
 }
@@ -291,14 +634,14 @@ class testPromiseInvocPipeActor extends spider.Actor{
 var performPromiseInvocPipe = () => {
     var actor = app.spawnActor(testPromiseInvocPipeActor)
     return actor.get().then((val) => {
-        log("Promise pipelining (method invocation): " + (val == 10))
+        log("Promise pipelining (method invocation)",val,10)
         app.kill()
     })
 }
 scheduled.push(performPromiseInvocPipe)
 
 
-class mIsolate extends spider.Isolate{
+class mIsolate extends spider.SpiderIsolate{
     field
     constructor(){
         super()
@@ -322,20 +665,21 @@ class testIsolateActor extends spider.Actor{
 var performIsolate = () => {
     var actor = app.spawnActor(testIsolateActor)
     return actor.getIsolate().then((isol) => {
-        log("Isolate passing: " + (isol.field == 6) + " ," + (isol.m() == 5))
+        log("Isolate passing",isol.field,6)
+        log("Isolate passing2",isol.m(),5)
         app.kill()
     })
 }
 scheduled.push(performIsolate)
 
-class innerIsolate extends spider.Isolate {
+class innerIsolate extends spider.SpiderIsolate {
     innerField
     constructor(){
         super()
         this.innerField = 5
     }
 }
-class outerIsolate extends spider.Isolate {
+class outerIsolate extends spider.SpiderIsolate {
     outerField
     innerIsol
     constructor() {
@@ -366,7 +710,8 @@ class testNestedIsolateActor extends spider.Actor {
 var performNestedIsolate = () => {
     var actor = app.spawnActor(testNestedIsolateActor);
     return actor.getIsolate().then((isol) => {
-        log("Nested Isolate passing: " + (isol.getOuterField() == 6) + " , " + (isol.getInnerIsolate().innerField == 5))
+        log("Nested Isolate passing",isol.getOuterField(),6)
+        log("Nested Isolate passing2",isol.getInnerIsolate().innerField,5)
         app.kill()
     })
 }
@@ -381,7 +726,7 @@ class testNumSerActor extends spider.Actor{
 var performNumSer = () => {
     var actor = app.spawnActor(testNumSerActor)
     return actor.compute(5).then((val) => {
-        log("Correct serialisation of numeric values: " + (val == 10))
+        log("Correct serialisation of numeric values",val,10)
         app.kill()
     })
 }
@@ -396,7 +741,7 @@ class testStringSerActor extends spider.Actor{
 var performStringSer = () => {
     var actor = app.spawnActor(testStringSerActor)
     return actor.append("5").then((val) => {
-        log("Correct serialisation of string values: " + (val == 55))
+        log("Correct serialisation of string values",val,55)
         app.kill()
     })
 }
@@ -416,7 +761,7 @@ class testBoolSerActor extends spider.Actor{
 var performBoolSer = () => {
     var actor = app.spawnActor(testBoolSerActor)
     return actor.test(false).then((val) => {
-        log("Correct serialisation of boolean values: " + (val == "nok"))
+        log("Correct serialisation of boolean values",val,"nok")
         app.kill()
     })
 }
@@ -436,7 +781,7 @@ class testUserPromActor extends spider.Actor{
 var performUserProm = () => {
     var actor = app.spawnActor(testUserPromActor)
     return actor.async().then((val) => {
-        log("User-level promise serialisation: " + (val == 5))
+        log("User-level promise serialisation",val,5)
         app.kill()
     })
 }
@@ -451,7 +796,9 @@ class testArgSerActor extends spider.Actor{
 var performArgSer = () => {
     var actor = app.spawnActor(testArgSerActor)
     return actor.m(1,"1",true).then((retArr) => {
-        log("Method argument serialisation: " + (retArr[0] == 1) + " , " + (retArr[1] == "1") + " , " + retArr[2] )
+        log("Method argument serialisation",retArr[0],1)
+        log("Method argument serialisation",retArr[1],"1")
+        log("Method argument serialisation",retArr[2],true)
         app.kill()
     })
 }
@@ -474,7 +821,7 @@ class testLexObActor extends spider.Actor{
 var performLexOb = () => {
     var actor = app.spawnActor(testLexObActor)
     return actor.test().then((v) => {
-        log("Lexical object serialisation during construction:  " + (v == ob.field))
+        log("Lexical object serialisation during construction",v,ob.field)
         app.kill()
     })
 }
@@ -497,7 +844,7 @@ var performFarRef = () => {
     var actor1 = app.spawnActor(testFarRefActor1)
     var actor2 = app.spawnActor(testFarRefActor2)
     return actor2.obtainAndAccess(actor1).then((v) => {
-        log("Far ref serialisation: " + (v == 666))
+        log("Far ref serialisation",v,666)
         app.kill()
     })
 }
@@ -511,7 +858,7 @@ class testGUIActor extends spider.Actor{
 var performGUI = () => {
     var actor = app.spawnActor(testGUIActor)
     return actor.getField().then((v) => {
-        log("GUI: " + (v == "guiField"))
+        log("GUI",v,"guiField")
         app.kill()
     })
 }
@@ -537,30 +884,11 @@ var performActorReferencePassingTest = () => {
     var actor1 = app.spawnActor(testReferencePassing_ReferencedActor);
     var actor2 = app.spawnActor(testReferencePassing_ReferencingActor, [actor1], 8081);
     return actor2.getValue().then((v) => {
-        log("Actor reference passing and referencing in init: " + (v == 0))
+        log("Actor reference passing and referencing in init",v,0)
         app.kill()
     })
 }
 scheduled.push(performActorReferencePassingTest)
-
-class arrayIsolate1 extends spider.Actor{
-    getArrayLength(arr){
-        return arr.length
-    }
-}
-class arrayIsolate2 extends spider.Actor{
-    sendArray(ref){
-        return ref.getArrayLength(new this.ArrayIsolate([1,2,3,4,5]))
-    }
-}
-var performArrayIsolateTest = () =>{
-    var actor1 = app.spawnActor(arrayIsolate1)
-    var actor2 = app.spawnActor(arrayIsolate2)
-    return actor2.sendArray(actor1).then((v)=>{
-        log("Array Isolate passing : " + (v == 5))
-    })
-}
-scheduled.push(performArrayIsolateTest)
 
 class SuperInitActor extends spider.Actor{
     val
@@ -580,7 +908,7 @@ class BaseInitActor extends SuperInitActor{
 var performInitChaining = () =>{
     var a = app.spawnActor(BaseInitActor)
     return a.val.then((v)=>{
-        log("Init chaining : " + (v == 30))
+        log("Init chaining",v,30)
     })
 }
 scheduled.push(performInitChaining)

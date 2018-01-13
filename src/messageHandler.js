@@ -38,6 +38,9 @@ class MessageHandler {
         var thisId = msg.actorId;
         var mainId = msg.mainId;
         var behaviourObject = serialisation_1.reconstructBehaviour({}, msg.vars, msg.methods, this.environment);
+        var actorMirror = serialisation_1.reconstructBehaviour({}, msg.mirrorVars, msg.mirrorMethods, this.environment);
+        actorMirror.bindBase(this.environment);
+        this.environment.actorMirror = actorMirror;
         serialisation_1.reconstructStatic(behaviourObject, msg.staticProperties, this.environment);
         this.environment.initialise(thisId, mainId, behaviourObject);
         var otherActorIds = msg.otherActorIds;

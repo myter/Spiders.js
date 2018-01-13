@@ -2,8 +2,8 @@ import {ServerSocketManager} from "./Sockets";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
 import {ObjectPool} from "./ObjectPool";
 import {
-    deconstructBehaviour, deconstructStatic,
-    serialise, getObjectFieldNames, getObjectMethodNames
+    deconstructBehaviour, deconstructStatic, getObjectNames,
+    serialise
 } from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
@@ -79,14 +79,18 @@ abstract class ClientActor extends Actor{
         var actorVariables                              = decon[0]
         var actorMethods                                = decon[1]
         var staticProperties                            = deconstructStatic(thisClass,actorId,[],app.mainEnvironment)
+        var deconActorMirror                            = deconstructBehaviour(this.actorMirror,0,[],[],actorId,app.mainEnvironment,"toString")
+        var actorMirrorVariables                        = deconActorMirror[0]
+        var actorMirrorMethods                          = deconActorMirror[1]
         var mainChannel                                 = new MessageChannel()
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels                            = [mainChannel.port1].concat(channelMappings[1])
-        var installMessage                              = new InstallBehaviourMessage(app.mainEnvironment.thisRef,app.mainId,actorId,actorVariables,actorMethods,staticProperties,channelMappings[0])
+        var installMessage                              = new InstallBehaviourMessage(app.mainEnvironment.thisRef,app.mainId,actorId,actorVariables,actorMethods,actorMirrorVariables,actorMirrorMethods,staticProperties,channelMappings[0])
         webWorker.postMessage(JSON.stringify(installMessage),newActorChannels)
         var channelManager                              = (app.mainEnvironment.commMedium as ChannelManager)
         channelManager.newConnection(actorId,mainChannel.port2)
-        var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(this),getObjectMethodNames(this),actorId,app.mainId,app.mainEnvironment)
+        let [fieldNames,methodNames]                    = getObjectNames(this,"spawn")
+        var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,app.mainId,app.mainEnvironment)
         app.spawnedActors.push([actorId,webWorker])
         return ref.proxyify()
     }
@@ -109,7 +113,8 @@ abstract class ServerActor extends Actor{
         var actorMirrorMethods          = deconActorMirror[1]
         var actor                       = fork(__dirname + '/actorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties),JSON.stringify(actorMirrorVariables),JSON.stringify(actorMirrorMethods)])
         app.spawnedActors.push(actor)
-        var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(this),getObjectMethodNames(this),actorId,app.mainIp,port,app.mainEnvironment)
+        let [fieldNames,methodNames]    = getObjectNames(this,"spawn")
+        var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,app.mainIp,port,app.mainEnvironment)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
         return ref.proxyify()
     }

@@ -1,5 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const Message_1 = require("./Message");
 const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
@@ -86,46 +85,11 @@ class ClientFarReference extends FarReference {
         this.contactAddress = contactAddress;
         this.contactPort = contactPort;
     }
-    sendRoute(toId, msg) {
-        if (!this.environemnt.commMedium.hasConnection(this.contactId)) {
-            this.environemnt.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort);
-        }
-        //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
-        msg.contactId = this.contactId;
-        msg.contactAddress = this.contactAddress;
-        msg.contactPort = this.contactPort;
-        this.environemnt.commMedium.sendMessage(this.contactId, new Message_1.RouteMessage(this, this.ownerId, msg));
-    }
-    send(toId, msg) {
-        let holderRef = this.environemnt.thisRef;
-        if (holderRef instanceof ServerFarReference) {
-            if (holderRef.ownerId == this.contactId) {
-                this.environemnt.commMedium.sendMessage(toId, msg);
-            }
-            else {
-                this.sendRoute(this.contactId, msg);
-            }
-        }
-        else {
-            if (holderRef.mainId == this.mainId) {
-                this.environemnt.commMedium.sendMessage(this.ownerId, msg);
-            }
-            else {
-                this.sendRoute(this.contactId, msg);
-            }
-        }
-    }
     sendFieldAccess(fieldName) {
-        var promiseAlloc = this.environemnt.promisePool.newPromise();
-        var message = new Message_1.FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId);
-        this.send(this.ownerId, message);
-        return promiseAlloc.promise;
+        return this.environemnt.actorMirror.sendAccess(this, fieldName, this.contactId, this.contactAddress, this.contactPort, this.mainId);
     }
     sendMethodInvocation(methodName, args) {
-        var promiseAlloc = this.environemnt.promisePool.newPromise();
-        var message = new Message_1.MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId);
-        this.send(this.ownerId, message);
-        return promiseAlloc.promise;
+        return this.environemnt.actorMirror.sendInvocation(this, methodName, args, this.contactId, this.contactAddress, this.contactPort, this.mainId);
     }
 }
 exports.ClientFarReference = ClientFarReference;

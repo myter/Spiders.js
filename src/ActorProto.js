@@ -3,21 +3,23 @@ const ObjectPool_1 = require("./ObjectPool");
 const FarRef_1 = require("./FarRef");
 const serialisation_1 = require("./serialisation");
 const ActorEnvironment_1 = require("./ActorEnvironment");
+const MAP_1 = require("./MAP");
 /**
  * Created by flo on 05/12/2016.
  */
 var utils = require('./utils');
 var environment;
-var messageHandler;
 var parentRef;
 var thisId;
 if (utils.isBrowser()) {
     module.exports = function (self) {
         //At spawning time the actor's behaviour, id and main id are not known. This information will be extracted from an install message handled by the messageHandler (which will make sure this information is set (e.g. in the objectPool)
-        environment = new ActorEnvironment_1.ClientActorEnvironment();
+        //This also means that the actor mirror is not available yet, actor uses the default mirror until specified otherwise in the install message
+        let mirror = new MAP_1.SpiderActorMirror();
+        environment = new ActorEnvironment_1.ClientActorEnvironment(mirror);
         self.addEventListener('message', function (ev) {
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-            messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
+            environment.messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
         });
     };
 }
@@ -48,13 +50,13 @@ else {
         let actorMirrVars = JSON.parse(process.argv[11]);
         let actorMirrMethods = JSON.parse(process.argv[12]);
         let actorMirror = serialisation_1.reconstructBehaviour({}, actorMirrVars, actorMirrMethods, environment);
-        //TODO need to get mirror args as well + need to do the same for client actors
         environment = new ActorEnvironment_1.ServerActorEnvironment(thisId, address, port, actorMirror);
         behaviourObject = serialisation_1.reconstructBehaviour({}, variables, methods, environment);
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject);
-    environment.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, serialisation_1.getObjectFieldNames(behaviourObject), serialisation_1.getObjectMethodNames(behaviourObject), thisId, address, port, environment);
+    let [fieldNames, methodnames] = serialisation_1.getObjectNames(behaviourObject, "toString");
+    environment.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodnames, thisId, address, port, environment);
     parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], parentId, address, parentPort, environment);
     var parentServer = parentRef;
     environment.commMedium.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);

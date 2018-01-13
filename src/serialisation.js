@@ -25,10 +25,6 @@ function getObjectVars(object, receiverId, environment, ignoreSet = []) {
     return vars;
 }
 exports.getObjectVars = getObjectVars;
-function getObjectFieldNames(object) {
-    return Reflect.ownKeys(object).map((key) => { return key.toString(); });
-}
-exports.getObjectFieldNames = getObjectFieldNames;
 function getObjectMethods(object) {
     var methods = [];
     var proto = Object.getPrototypeOf(object);
@@ -44,22 +40,32 @@ function getObjectMethods(object) {
     return methods;
 }
 exports.getObjectMethods = getObjectMethods;
-function getObjectMethodNames(object) {
-    var names = [];
-    //var proto       = Object.getPrototypeOf(object)
-    var proto = Reflect.getPrototypeOf(object);
-    var properties = Reflect.ownKeys(proto);
-    for (var i in properties) {
-        var key = properties[i];
-        var method = Reflect.get(proto, key);
-        //Avoid copying over any construction functions (i.e. class declarations)
-        if (typeof method == 'function' && !(method.toString()).startsWith("class")) {
-            names.push(key.toString());
-        }
+function getObjectNames(object, lastProp, accumVars = [], accumMethods = []) {
+    var properties = Reflect.ownKeys(object);
+    var lastProto = properties.indexOf(lastProp) != -1;
+    if (lastProto) {
+        return [accumVars, accumMethods];
     }
-    return names;
+    else {
+        for (var i in properties) {
+            let key = properties[i];
+            let val = Reflect.get(object, key);
+            let k = key.toString();
+            if (typeof val == 'function') {
+                if (!accumMethods.includes(k)) {
+                    accumMethods.push(k);
+                }
+            }
+            else {
+                if (!accumVars.includes(k)) {
+                    accumVars.push(k);
+                }
+            }
+        }
+        return getObjectNames(Reflect.getPrototypeOf(object), lastProp, accumVars, accumMethods);
+    }
 }
-exports.getObjectMethodNames = getObjectMethodNames;
+exports.getObjectNames = getObjectNames;
 function deconstructStatic(actorClass, receiverId, results, environment) {
     //Reached the end of the class chain (i.e. current class is function(){})
     if (actorClass.name == "") {
@@ -438,12 +444,13 @@ function serialisePromise(promise, receiverId, enviroment) {
 }
 function serialiseObject(object, thisRef, objectPool) {
     var oId = objectPool.allocateObject(object);
+    let [fieldNames, methodNames] = getObjectNames(object, "toString");
     if (thisRef instanceof FarRef_1.ServerFarReference) {
-        return new ServerFarRefContainer(oId, getObjectFieldNames(object), getObjectMethodNames(object), thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
+        return new ServerFarRefContainer(oId, fieldNames, methodNames, thisRef.ownerId, thisRef.ownerAddress, thisRef.ownerPort);
     }
     else {
         var clientRef = thisRef;
-        return new ClientFarRefContainer(oId, getObjectFieldNames(object), getObjectMethodNames(object), clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
+        return new ClientFarRefContainer(oId, fieldNames, methodNames, clientRef.ownerId, clientRef.mainId, clientRef.contactId, clientRef.contactAddress, clientRef.contactPort);
     }
 }
 function serialiseRepliqFields(fields, receiverId, environment) {
@@ -759,7 +766,7 @@ function deserialise(value, enviroment) {
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
         let Repliq = require("./Replication/Repliq").Repliq;
-        var classObj = eval(start + " extends Repliq" + stop);
+        var classObj = eval("(" + start + " extends Repliq" + stop + ")");
         return classObj;
     }
     function deSerialiseSignal(sigContainer) {
@@ -797,7 +804,7 @@ function deserialise(value, enviroment) {
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
         let Signal = require("./Reactivivity/signal").SignalObject;
-        var classObj = eval(start + " extends Signal" + stop);
+        var classObj = eval("(" + start + " extends Signal" + stop + ")");
         let mutators = def.mutators;
         //Create a dummy signal instance to get the class name
         let dummy = new classObj();
@@ -811,7 +818,7 @@ function deserialise(value, enviroment) {
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
         let SpiderObject = require("./MOP").SpiderObject;
-        var classObj = eval(start + " extends SpiderObject" + stop);
+        var classObj = eval("(" + start + " extends SpiderObject" + stop + ")");
         return classObj;
     }
     function deSerialiseSpiderIsolateDefinition(def) {
@@ -819,7 +826,7 @@ function deserialise(value, enviroment) {
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
         let SpiderIsolate = require("./MOP").SpiderIsolate;
-        var classObj = eval(start + " extends SpiderIsolate" + stop);
+        var classObj = eval("(" + start + " extends SpiderIsolate" + stop + ")");
         return classObj;
     }
     function deSerialiseSpiderIsolate(isolateContainer) {
@@ -835,7 +842,7 @@ function deserialise(value, enviroment) {
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
         let SpiderObjectMirror = require("./MOP").SpiderObjectMirror;
-        var classObj = eval(start + " extends SpiderObjectMirror" + stop);
+        var classObj = eval("(" + start + " extends SpiderObjectMirror" + stop + ")");
         return classObj;
     }
     function deSerialiseSpiderIsolateMirrorDefinition(def) {
@@ -843,7 +850,7 @@ function deserialise(value, enviroment) {
         let start = def.definition.substring(0, index);
         let stop = def.definition.substring(index, def.definition.length);
         let SpiderIsolateMirror = require("./MOP").SpiderIsolateMirror;
-        var classObj = eval(start + " extends SpiderIsolateMirror" + stop);
+        var classObj = eval("(" + start + " extends SpiderIsolateMirror" + stop + ")");
         return classObj;
     }
     switch (value.type) {

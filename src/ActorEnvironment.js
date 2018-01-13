@@ -38,7 +38,8 @@ class ClientActorEnvironment extends ActorEnvironment {
         this.commMedium = new ChannelManager_1.ChannelManager(this);
     }
     initialise(actorId, mainId, behaviourObject) {
-        this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, serialisation_1.getObjectFieldNames(behaviourObject), serialisation_1.getObjectMethodNames(behaviourObject), actorId, mainId, this);
+        let [fieldNames, methodNames] = serialisation_1.getObjectNames(behaviourObject, "toString");
+        this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, mainId, this);
         this.gspInstance = new GSP_1.GSP(actorId, this);
         this.objectPool = new ObjectPool_1.ObjectPool(behaviourObject);
         this.signalPool = new signalPool_1.SignalPool(this);

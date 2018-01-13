@@ -1,9 +1,4 @@
-import {PromisePool, PromiseAllocation} from "./PromisePool";
-import {FieldAccessMessage, MethodInvocationMessage, Message, RouteMessage} from "./Message";
 import {serialise} from "./serialisation";
-import {ObjectPool} from "./ObjectPool";
-import {CommMedium} from "./CommMedium";
-import {GSP} from "./Replication/GSP";
 import {ActorEnvironment} from "./ActorEnvironment";
 
 /**
@@ -111,50 +106,12 @@ export class ClientFarReference extends FarReference {
         this.contactPort = contactPort
     }
 
-    private sendRoute(toId: string, msg: Message) {
-        if (!this.environemnt.commMedium.hasConnection(this.contactId)) {
-            this.environemnt.commMedium.openConnection(this.contactId, this.contactAddress, this.contactPort)
-        }
-        //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
-        msg.contactId = this.contactId
-        msg.contactAddress = this.contactAddress
-        msg.contactPort = this.contactPort
-
-        this.environemnt.commMedium.sendMessage(this.contactId, new RouteMessage(this, this.ownerId, msg))
-    }
-
-    private send(toId: string, msg: Message) {
-        let holderRef = this.environemnt.thisRef
-        if (holderRef instanceof ServerFarReference) {
-            if (holderRef.ownerId == this.contactId) {
-                this.environemnt.commMedium.sendMessage(toId, msg)
-            }
-            else {
-                this.sendRoute(this.contactId, msg)
-            }
-        }
-        else {
-            if ((holderRef as ClientFarReference).mainId == this.mainId) {
-                this.environemnt.commMedium.sendMessage(this.ownerId, msg)
-            }
-            else {
-                this.sendRoute(this.contactId, msg)
-            }
-        }
-    }
-
     sendFieldAccess(fieldName: string): Promise<any> {
-        var promiseAlloc: PromiseAllocation = this.environemnt.promisePool.newPromise()
-        var message = new FieldAccessMessage(this.environemnt.thisRef, this.objectId, fieldName, promiseAlloc.promiseId)
-        this.send(this.ownerId, message)
-        return promiseAlloc.promise
+        return this.environemnt.actorMirror.sendAccess(this,fieldName,this.contactId,this.contactAddress,this.contactPort,this.mainId)
     }
 
     sendMethodInvocation(methodName: string, args: Array<any>): Promise<any> {
-        var promiseAlloc: PromiseAllocation = this.environemnt.promisePool.newPromise()
-        var message = new MethodInvocationMessage(this.environemnt.thisRef, this.objectId, methodName, args, promiseAlloc.promiseId)
-        this.send(this.ownerId, message)
-        return promiseAlloc.promise
+        return this.environemnt.actorMirror.sendInvocation(this,methodName,args,this.contactId,this.contactAddress,this.contactPort,this.mainId)
     }
 }
 

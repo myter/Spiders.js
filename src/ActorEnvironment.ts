@@ -8,8 +8,7 @@ import {ServerSocketManager} from "./Sockets";
 import {ChannelManager} from "./ChannelManager";
 import {MessageHandler} from "./messageHandler";
 import {SpiderActorMirror} from "./MAP";
-import {SpiderActorMirrorClass} from "./spiders";
-import {getObjectFieldNames, getObjectMethodNames} from "./serialisation";
+import {getObjectNames} from "./serialisation";
 
 export abstract class ActorEnvironment{
     public thisRef          : FarReference = null
@@ -50,9 +49,10 @@ export class ClientActorEnvironment extends ActorEnvironment{
     }
 
     initialise(actorId,mainId,behaviourObject){
-        this.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,getObjectFieldNames(behaviourObject),getObjectMethodNames(behaviourObject),actorId,mainId,this)
-        this.gspInstance    = new GSP(actorId,this)
-        this.objectPool     = new ObjectPool(behaviourObject)
-        this.signalPool     = new SignalPool(this)
+        let [fieldNames,methodNames]    = getObjectNames(behaviourObject,"toString")
+        this.thisRef                    = new ClientFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,mainId,this)
+        this.gspInstance                = new GSP(actorId,this)
+        this.objectPool                 = new ObjectPool(behaviourObject)
+        this.signalPool                 = new SignalPool(this)
     }
 }

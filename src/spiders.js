@@ -45,14 +45,18 @@ class ClientActor extends Actor {
         var actorVariables = decon[0];
         var actorMethods = decon[1];
         var staticProperties = serialisation_1.deconstructStatic(thisClass, actorId, [], app.mainEnvironment);
+        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment, "toString");
+        var actorMirrorVariables = deconActorMirror[0];
+        var actorMirrorMethods = deconActorMirror[1];
         var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels = [mainChannel.port1].concat(channelMappings[1]);
-        var installMessage = new Message_1.InstallBehaviourMessage(app.mainEnvironment.thisRef, app.mainId, actorId, actorVariables, actorMethods, staticProperties, channelMappings[0]);
+        var installMessage = new Message_1.InstallBehaviourMessage(app.mainEnvironment.thisRef, app.mainId, actorId, actorVariables, actorMethods, actorMirrorVariables, actorMirrorMethods, staticProperties, channelMappings[0]);
         webWorker.postMessage(JSON.stringify(installMessage), newActorChannels);
         var channelManager = app.mainEnvironment.commMedium;
         channelManager.newConnection(actorId, mainChannel.port2);
-        var ref = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, serialisation_1.getObjectFieldNames(this), serialisation_1.getObjectMethodNames(this), actorId, app.mainId, app.mainEnvironment);
+        let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
+        var ref = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainId, app.mainEnvironment);
         app.spawnedActors.push([actorId, webWorker]);
         return ref.proxyify();
     }
@@ -73,7 +77,8 @@ class ServerActor extends Actor {
         var actorMirrorMethods = deconActorMirror[1];
         var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
         app.spawnedActors.push(actor);
-        var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, serialisation_1.getObjectFieldNames(this), serialisation_1.getObjectMethodNames(this), actorId, app.mainIp, port, app.mainEnvironment);
+        let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
+        var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainIp, port, app.mainEnvironment);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
         return ref.proxyify();
     }
