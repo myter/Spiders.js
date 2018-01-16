@@ -143,3 +143,22 @@ export class SpiderIsolate{
         return makeSpiderObjectProxy(isolClone,this.mirror) as SpiderIsolate
     }
 }
+
+//ReCreate functions ensure that deserialised class definitions are evalled in the same scope as the original definitions
+export function reCreateIsolateClass(classDefinition,superClass = undefined){
+    if(superClass){
+        let index                           = classDefinition.indexOf("{")
+        let start                           = classDefinition.substring(0,index)
+        let stop                            = classDefinition.substring(index,classDefinition.length)
+        var classObj                        = eval("("+start + " extends "+superClass+stop+")")
+        return classObj
+    }
+    else{
+        var classObj                        = eval("("+classDefinition+")")
+        return classObj
+    }
+}
+
+export var reCreateObjectClass         = reCreateIsolateClass
+export var reCreateObjectMirrorClass   = reCreateIsolateClass
+export var reCreateISolateMirrorClass  = reCreateIsolateClass

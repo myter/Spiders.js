@@ -145,7 +145,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if (typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) {
+        if ((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor") {
             var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
@@ -306,16 +306,16 @@ class ArrayContainer extends ValueContainer {
 }
 exports.ArrayContainer = ArrayContainer;
 class SpiderObjectDefinitionContainer extends ValueContainer {
-    constructor(definition) {
+    constructor(definitions) {
         super(ValueContainer.spiderObjectDef);
-        this.definition = definition;
+        this.definitions = definitions;
     }
 }
 exports.SpiderObjectDefinitionContainer = SpiderObjectDefinitionContainer;
 class SpiderIsolateDefinitionContainer extends ValueContainer {
-    constructor(definition) {
+    constructor(definitions) {
         super(ValueContainer.spiderIsolDef);
-        this.definition = definition;
+        this.definitions = definitions;
     }
 }
 exports.SpiderIsolateDefinitionContainer = SpiderIsolateDefinitionContainer;
@@ -331,16 +331,16 @@ class SpiderIsolateContainer extends ValueContainer {
 SpiderIsolateContainer.checkIsolateFuncKey = "_INSTANCEOF_ISOLATE_";
 exports.SpiderIsolateContainer = SpiderIsolateContainer;
 class SpiderObjectMirrorDefinitionContainer extends ValueContainer {
-    constructor(definition) {
+    constructor(definitions) {
         super(ValueContainer.objectMirrorDef);
-        this.definition = definition;
+        this.definitions = definitions;
     }
 }
 exports.SpiderObjectMirrorDefinitionContainer = SpiderObjectMirrorDefinitionContainer;
 class SpiderIsolateMirrorDefinitionContainer extends ValueContainer {
-    constructor(definition) {
+    constructor(definitions) {
         super(ValueContainer.isolMirrorDef);
-        this.definition = definition;
+        this.definitions = definitions;
     }
 }
 exports.SpiderIsolateMirrorDefinitionContainer = SpiderIsolateMirrorDefinitionContainer;
@@ -414,23 +414,35 @@ exports.SignalDefinitionContainer = SignalDefinitionContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
+function isXClass(func, className) {
+    let regex = new RegExp("extends.*?" + className);
+    if (func.toString().search(regex) != -1) {
+        return true;
+    }
+    else if (Reflect.ownKeys(func).includes("apply")) {
+        return false;
+    }
+    else {
+        return isXClass(Reflect.getPrototypeOf(func), className);
+    }
+}
 function isSpiderObjectClass(func) {
-    return (func.toString().search(/extends.*?SpiderObject/) != -1);
+    return isXClass(func, "SpiderObject");
 }
 function isSpiderIsolateClass(func) {
-    return (func.toString().search(/extends.*?SpiderIsolate/) != -1);
+    return isXClass(func, "SpiderIsolate");
 }
 function isObjectMirrorClass(func) {
-    return (func.toString().search(/extends.*?SpiderObjectMirror/) != -1);
+    return isXClass(func, "SpiderObjectMirror");
 }
 function isIsolateMirrorClass(func) {
-    return (func.toString().search(/extends.*?SpiderIsolateMirror/) != -1);
+    return isXClass(func, "SpiderIsolateMirror");
 }
 function isRepliqClass(func) {
-    return (func.toString().search(/extends.*?Repliq/) != -1);
+    return isXClass(func, "Repliq");
 }
 function isSignalClass(func) {
-    return (func.toString().search(/extends.*?Signal/) != -1);
+    return isXClass(func, "Signal");
 }
 function serialisePromise(promise, receiverId, enviroment) {
     var wrapper = enviroment.promisePool.newPromise();
@@ -626,24 +638,24 @@ function serialise(value, receiverId, environment) {
             return serialisePromise(value, receiverId, environment);
         }
         else if (isClass(value) && isObjectMirrorClass(value)) {
-            var definition = utils_1.getSerialiableClassDefinition(value);
-            return new SpiderObjectMirrorDefinitionContainer(definition);
+            let definitions = utils_1.getClassDefinitionChain(value);
+            return new SpiderObjectMirrorDefinitionContainer(definitions);
         }
         else if (isClass(value) && isIsolateMirrorClass(value)) {
-            var definition = utils_1.getSerialiableClassDefinition(value);
-            return new SpiderIsolateMirrorDefinitionContainer(definition);
+            let definitions = utils_1.getClassDefinitionChain(value);
+            return new SpiderIsolateMirrorDefinitionContainer(definitions);
         }
         else if (isClass(value) && isSpiderObjectClass(value)) {
-            var definition = utils_1.getSerialiableClassDefinition(value);
-            return new SpiderObjectDefinitionContainer(definition);
+            let definitions = utils_1.getClassDefinitionChain(value);
+            return new SpiderObjectDefinitionContainer(definitions);
         }
         else if (isClass(value) && isSpiderIsolateClass(value)) {
-            var definition = utils_1.getSerialiableClassDefinition(value);
-            return new SpiderIsolateDefinitionContainer(definition);
+            let definitions = utils_1.getClassDefinitionChain(value);
+            return new SpiderIsolateDefinitionContainer(definitions);
         }
         else if (isClass(value) && isRepliqClass(value)) {
             //TODO might need to extract annotations in same way that is done for signals
-            var definition = utils_1.getSerialiableClassDefinition(value);
+            let definition = utils_1.getSerialiableClassDefinition(value);
             return new RepliqDefinitionContainer(definition);
         }
         else if (isClass(value) && isSignalClass(value)) {
@@ -814,20 +826,10 @@ function deserialise(value, enviroment) {
         return classObj;
     }
     function deSerialiseSpiderObjectDefinition(def) {
-        let index = def.definition.indexOf("{");
-        let start = def.definition.substring(0, index);
-        let stop = def.definition.substring(index, def.definition.length);
-        let SpiderObject = require("./MOP").SpiderObject;
-        var classObj = eval("(" + start + " extends SpiderObject" + stop + ")");
-        return classObj;
+        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
     }
     function deSerialiseSpiderIsolateDefinition(def) {
-        let index = def.definition.indexOf("{");
-        let start = def.definition.substring(0, index);
-        let stop = def.definition.substring(index, def.definition.length);
-        let SpiderIsolate = require("./MOP").SpiderIsolate;
-        var classObj = eval("(" + start + " extends SpiderIsolate" + stop + ")");
-        return classObj;
+        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
     }
     function deSerialiseSpiderIsolate(isolateContainer) {
         var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), enviroment);
@@ -838,20 +840,10 @@ function deserialise(value, enviroment) {
         return ret;
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {
-        let index = def.definition.indexOf("{");
-        let start = def.definition.substring(0, index);
-        let stop = def.definition.substring(index, def.definition.length);
-        let SpiderObjectMirror = require("./MOP").SpiderObjectMirror;
-        var classObj = eval("(" + start + " extends SpiderObjectMirror" + stop + ")");
-        return classObj;
+        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
     }
     function deSerialiseSpiderIsolateMirrorDefinition(def) {
-        let index = def.definition.indexOf("{");
-        let start = def.definition.substring(0, index);
-        let stop = def.definition.substring(index, def.definition.length);
-        let SpiderIsolateMirror = require("./MOP").SpiderIsolateMirror;
-        var classObj = eval("(" + start + " extends SpiderIsolateMirror" + stop + ")");
-        return classObj;
+        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
     }
     switch (value.type) {
         case ValueContainer.nativeType:

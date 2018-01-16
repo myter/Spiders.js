@@ -89,3 +89,30 @@ export function clone(object){
 export function getSerialiableClassDefinition(classDefinition){
     return classDefinition.toString().replace(/(\extends)(.*?)(?=\{)/,'')
 }
+
+export function getClassDefinitionChain(classDefinition){
+    let loop = (currentClass,accum) =>{
+        if((Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)) as any).includes("apply")){
+            return accum
+        }
+        else{
+            accum.push(getSerialiableClassDefinition(currentClass))
+            return loop(Reflect.getPrototypeOf(currentClass),accum)
+        }
+    }
+    return loop(classDefinition,[])
+
+}
+
+export function reconstructClassDefinitionChain(classes : Array<string>,topClass,recreate){
+    let loop =  (currentIndex,parentClass)=>{
+        if(currentIndex == 0){
+            return recreate(classes[currentIndex],parentClass)
+        }
+        else{
+            let newParent = recreate(classes[currentIndex],parentClass)
+            return loop(--currentIndex,newParent)
+        }
+    }
+    return loop(classes.length-1,topClass)
+}

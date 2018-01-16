@@ -6,19 +6,38 @@ class TestIsolate extends spiders.SpiderIsolate {
         this.field = 5;
     }
 }
+class TestBaseIsolate extends TestIsolate {
+    constructor() {
+        super();
+        this.baseField = 6;
+    }
+}
 class TestActor extends spiders.Actor {
     constructor() {
         super();
-        this.TestIsolate = TestIsolate;
+        this.TestIsolate = TestBaseIsolate;
+    }
+    init() {
+        let isol = new this.TestIsolate();
+        console.log(isol.baseField);
+        console.log(isol.field);
     }
     getIsolate() {
         return new this.TestIsolate();
+        //return this.TestIsolate
     }
 }
 let app = new spiders.Application();
 let act = app.spawnActor(TestActor);
 act.getIsolate().then((isol) => {
     console.log("Got isol");
+    console.log(isol.baseField);
     console.log(isol.field);
 });
+/*act.getIsolate().then((isol)=>{
+    console.log("Got isol")
+    /*console.log("Got isol")
+    console.log(isol.field)
+    console.log(isol.baseField)
+})*/ 
 //# sourceMappingURL=temp.js.map
