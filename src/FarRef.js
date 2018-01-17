@@ -1,5 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
  */
@@ -38,10 +37,7 @@ class FarReference {
                     }
                     else if (baseObject.objectMethods.includes(property.toString())) {
                         var ret = function (...args) {
-                            var serialisedArgs = args.map((arg) => {
-                                return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
-                            });
-                            return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
+                            return baseObject.sendMethodInvocation(property.toString(), args);
                         };
                         ret[FarReference.proxyWrapperAccessorKey] = true;
                         return ret;
@@ -52,10 +48,7 @@ class FarReference {
                             //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
                             var prom = baseObject.sendFieldAccess(property.toString());
                             var ret = function (...args) {
-                                var serialisedArgs = args.map((arg) => {
-                                    return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
-                                });
-                                return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
+                                return baseObject.sendMethodInvocation(property.toString(), args);
                             };
                             ret["then"] = function (onFull, onRej) {
                                 return prom.then(onFull, onRej);

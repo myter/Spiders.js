@@ -8,7 +8,7 @@ import {ServerSocketManager} from "./Sockets";
 import {ChannelManager} from "./ChannelManager";
 import {MessageHandler} from "./messageHandler";
 import {SpiderActorMirror} from "./MAP";
-import {getObjectNames} from "./serialisation";
+import {getObjectNames, serialise} from "./serialisation";
 
 export abstract class ActorEnvironment{
     public thisRef          : FarReference = null
@@ -26,7 +26,7 @@ export abstract class ActorEnvironment{
         this.actorMirror    = actorMirror
         this.objectPool     = new ObjectPool()
         this.promisePool    = new PromisePool()
-        this.actorMirror.bindBase(this)
+        this.actorMirror.bindBase(this,serialise)
     }
 }
 

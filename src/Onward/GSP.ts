@@ -183,7 +183,7 @@ export class GSP{
         this.environment.commMedium.sendMessage(replica[Repliq.getRepliqOwnerID],new GSPRegisterMessage(this.environment.thisRef,this.thisActorId,replicaId,this.thisActorAddress,this.thisActorPort,this.roundNumbers.get(replicaId)))
     }*/
 
-    newholder(eventualId : string,holderRef : FarRef,roundNr : number){
+    newHolder(eventualId : string,holderRef : FarRef,roundNr : number){
         console.log("New holder registered at master")
         if(!(this.eventualHolders.has(eventualId))){
             this.eventualHolders.set(eventualId,[])

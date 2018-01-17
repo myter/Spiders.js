@@ -17,6 +17,7 @@ import {SpiderObjectMirror} from "./MOP";
 export class SpiderActorMirror{
     private CONSTRAINT_OK = "ok"
     base : ActorEnvironment
+    serialise
 
     private getInitChain(behaviourObject : any,result : Array<Function>){
         var properties = Reflect.ownKeys(behaviourObject)
@@ -109,8 +110,9 @@ export class SpiderActorMirror{
         }
     }
 
-    bindBase(base : ActorEnvironment){
-        this.base = base
+    bindBase(base : ActorEnvironment,serialise){
+        this.base       = base
+        this.serialise  = serialise
     }
 
     //Only non-app actors have a parent reference
@@ -332,7 +334,10 @@ export class SpiderActorMirror{
 
     sendInvocation(target : FarReference,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null) : Promise<any>{
         var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
-        this.send(target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,args,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
+        let serialisedArgs = args.map((arg)=>{
+            return this.serialise(arg,target.ownerId,this.base)
+        })
+        this.send(target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,serialisedArgs,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 

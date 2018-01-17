@@ -56,10 +56,7 @@ export abstract class FarReference {
                     }
                     else if ((baseObject.objectMethods as any).includes(property.toString())) {
                         var ret = function (...args) {
-                            var serialisedArgs = args.map((arg) => {
-                                return serialise(arg, baseObject.ownerId, baseObject.environemnt)
-                            })
-                            return baseObject.sendMethodInvocation(property.toString(), serialisedArgs)
+                            return baseObject.sendMethodInvocation(property.toString(), args)
                         }
                         ret[FarReference.proxyWrapperAccessorKey] = true
                         return ret
@@ -70,10 +67,7 @@ export abstract class FarReference {
                             //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
                             var prom = baseObject.sendFieldAccess(property.toString())
                             var ret = function (...args) {
-                                var serialisedArgs = args.map((arg) => {
-                                    return serialise(arg, baseObject.ownerId, baseObject.environemnt)
-                                })
-                                return baseObject.sendMethodInvocation(property.toString(), serialisedArgs)
+                                return baseObject.sendMethodInvocation(property.toString(), args)
                             }
                             ret["then"] = function (onFull, onRej) {
                                 return prom.then(onFull, onRej)

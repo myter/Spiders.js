@@ -56212,7 +56212,7 @@ class ActorEnvironment {
         this.actorMirror = actorMirror;
         this.objectPool = new ObjectPool_1.ObjectPool();
         this.promisePool = new PromisePool_1.PromisePool();
-        this.actorMirror.bindBase(this);
+        this.actorMirror.bindBase(this, serialisation_1.serialise);
     }
 }
 exports.ActorEnvironment = ActorEnvironment;
@@ -56415,7 +56415,6 @@ exports.CommMedium = CommMedium;
 
 },{"./FarRef":272,"./Message":275,"./Sockets":293,"socket.io-client":192}],272:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
-const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
  */
@@ -56454,10 +56453,10 @@ class FarReference {
                     }
                     else if (baseObject.objectMethods.includes(property.toString())) {
                         var ret = function (...args) {
-                            var serialisedArgs = args.map((arg) => {
-                                return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
-                            });
-                            return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
+                            /*var serialisedArgs = args.map((arg) => {
+                                return serialise(arg, baseObject.ownerId, baseObject.environemnt)
+                            })*/
+                            return baseObject.sendMethodInvocation(property.toString(), args);
                         };
                         ret[FarReference.proxyWrapperAccessorKey] = true;
                         return ret;
@@ -56468,10 +56467,10 @@ class FarReference {
                             //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
                             var prom = baseObject.sendFieldAccess(property.toString());
                             var ret = function (...args) {
-                                var serialisedArgs = args.map((arg) => {
-                                    return serialisation_1.serialise(arg, baseObject.ownerId, baseObject.environemnt);
-                                });
-                                return baseObject.sendMethodInvocation(property.toString(), serialisedArgs);
+                                /*var serialisedArgs = args.map((arg) => {
+                                    return serialise(arg, baseObject.ownerId, baseObject.environemnt)
+                                })*/
+                                return baseObject.sendMethodInvocation(property.toString(), args);
                             };
                             ret["then"] = function (onFull, onRej) {
                                 return prom.then(onFull, onRej);
@@ -56518,7 +56517,7 @@ class ServerFarReference extends FarReference {
 }
 exports.ServerFarReference = ServerFarReference;
 
-},{"./serialisation":295}],273:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
 const SIDUP_1 = require("./Reactivivity/SIDUP");
@@ -56616,8 +56615,9 @@ class SpiderActorMirror {
             return "Trying to create strong lifted signal with a weak dependency";
         }
     }
-    bindBase(base) {
+    bindBase(base, serialise) {
         this.base = base;
+        this.serialise = serialise;
     }
     //Only non-app actors have a parent reference
     initialise(appActor, parentRef = null) {
@@ -56819,7 +56819,10 @@ class SpiderActorMirror {
     }
     sendInvocation(target, methodName, args, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {
         var promiseAlloc = this.base.promisePool.newPromise();
-        this.send(target.ownerId, new Message_1.MethodInvocationMessage(this.base.thisRef, target.objectId, methodName, args, promiseAlloc.promiseId), contactId, contactAddress, contactPort, mainId);
+        let serialisedArgs = args.map((arg) => {
+            return this.serialise(arg, target.ownerId, this.base);
+        });
+        this.send(target.ownerId, new Message_1.MethodInvocationMessage(this.base.thisRef, target.objectId, methodName, serialisedArgs, promiseAlloc.promiseId), contactId, contactAddress, contactPort, mainId);
         return promiseAlloc.promise;
     }
     sendAccess(target, fieldName, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {
@@ -60082,7 +60085,7 @@ class MessageHandler {
         var mainId = msg.mainId;
         var behaviourObject = serialisation_1.reconstructBehaviour({}, msg.vars, msg.methods, this.environment);
         var actorMirror = serialisation_1.reconstructBehaviour({}, msg.mirrorVars, msg.mirrorMethods, this.environment);
-        actorMirror.bindBase(this.environment);
+        actorMirror.bindBase(this.environment, serialisation_1.serialise);
         this.environment.actorMirror = actorMirror;
         serialisation_1.reconstructStatic(behaviourObject, msg.staticProperties, this.environment);
         this.environment.initialise(thisId, mainId, behaviourObject);

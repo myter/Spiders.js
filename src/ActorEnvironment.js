@@ -15,7 +15,7 @@ class ActorEnvironment {
         this.actorMirror = actorMirror;
         this.objectPool = new ObjectPool_1.ObjectPool();
         this.promisePool = new PromisePool_1.PromisePool();
-        this.actorMirror.bindBase(this);
+        this.actorMirror.bindBase(this, serialisation_1.serialise);
     }
 }
 exports.ActorEnvironment = ActorEnvironment;

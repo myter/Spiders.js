@@ -6,14 +6,18 @@ class Actor1 extends CAPActor_1.CAPActor {
         super();
         this.thisDirectory = __dirname;
     }
-    init() {
+    share(withRef) {
         let TestEventual = require(this.thisDirectory + "/tempEventual").TestEventual;
         let ev = new TestEventual();
+        withRef.get(ev);
     }
 }
 class Actor2 extends CAPActor_1.CAPActor {
+    get(anEv) {
+    }
 }
 let app = new spiders.Application();
 let act1 = app.spawnActor(Actor1);
 let act2 = app.spawnActor(Actor2);
+act1.share(act2);
 //# sourceMappingURL=temp.js.map
