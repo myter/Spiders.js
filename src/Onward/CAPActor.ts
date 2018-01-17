@@ -23,6 +23,7 @@ export class CAPMirror extends spiders.SpiderActorMirror{
         if(eventualArgs.length > 0){
             sender.gsp.then((senderGSPRef)=>{
                 eventualArgs.forEach((eventual : Eventual)=>{
+                    eventual.setHost(gsp,this.base.thisRef.ownerId)
                     gsp.registerHolderEventual(eventual,senderGSPRef)
                 })
             })
@@ -33,19 +34,12 @@ export class CAPMirror extends spiders.SpiderActorMirror{
     sendInvocation(target : FarRef,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
         let eventualArgs = this.getEventualArgs(args)
         let gsp = (this.base.behaviourObject as CAPActor).gsp
-        if(methodName == "get"){
-            let ev = args[0]
-            for(var i in ev){
-                console.log(i)
-            }
-        }
         eventualArgs.forEach((eventual : Eventual)=>{
             //An eventual is being sent to another actor, without that eventual being already registered
             //In other words, this eventual must have been created newly by the sending actor
-            console.log(eventual.id + "Known eventual in master ? " + gsp.knownEventual(eventual.id))
             if(!gsp.knownEventual(eventual.id)){
                 gsp.registerMasterEventual(eventual)
-                eventual.setHost(gsp)
+                eventual.setHost(gsp,this.base.thisRef.ownerId)
             }
         })
         return super.sendInvocation(target,methodName,args,contactId,contactAddress,contactPort,mainId)

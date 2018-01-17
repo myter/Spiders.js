@@ -4,11 +4,22 @@ import {SpiderLib} from "../spiders";
 var spiders : SpiderLib = require("../spiders")
 
 export class EventualMirror extends spiders.SpiderIsolateMirror{
+    private ignoreInvoc(methodName){
+        return methodName == "setHost" || methodName == "resetToCommit" || methodName == "commit"
+    }
 
+    invoke(methodName,args){
+        if(!this.ignoreInvoc(methodName)){
+            let baseEV = (this.base as Eventual);
+            baseEV.hostGsp.yield(baseEV.id,baseEV.hostId)
+        }
+        return super.invoke(methodName,args)
+    }
 }
 
 export class Eventual extends spiders.SpiderIsolate{
     hostGsp     : GSP
+    hostId      : string
     id          : string
     isEventual
 
@@ -22,8 +33,9 @@ export class Eventual extends spiders.SpiderIsolate{
     }
 
     //Called by host actor when this eventual is first passed to other actor
-    setHost(hostGsp : GSP){
-        this.hostGsp = hostGsp
+    setHost(hostGsp : GSP,hostId : string){
+        this.hostGsp    = hostGsp
+        this.hostId     = hostId
     }
 
     resetToCommit(){

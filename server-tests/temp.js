@@ -14,6 +14,7 @@ class Actor1 extends CAPActor_1.CAPActor {
 }
 class Actor2 extends CAPActor_1.CAPActor {
     get(anEv) {
+        anEv.dec();
     }
 }
 let app = new spiders.Application();

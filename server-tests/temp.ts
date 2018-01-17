@@ -1,5 +1,6 @@
 import {SpiderLib} from "../src/spiders";
 import {CAPActor} from "../src/Onward/CAPActor";
+import {TestEventual} from "./tempEventual";
 
 
 var spiders : SpiderLib = require("../src/spiders")
@@ -21,8 +22,8 @@ class Actor1 extends CAPActor{
 }
 
 class Actor2 extends CAPActor{
-    get(anEv){
-
+    get(anEv : TestEventual){
+        anEv.dec()
     }
 }
 let app = new spiders.Application()
