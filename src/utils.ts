@@ -90,9 +90,12 @@ export function getSerialiableClassDefinition(classDefinition){
     return classDefinition.toString().replace(/(\extends)(.*?)(?=\{)/,'')
 }
 
-export function getClassDefinitionChain(classDefinition){
+export function getClassDefinitionChain(classDefinition,ignoreLast = true){
     let loop = (currentClass,accum) =>{
-        if((Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)) as any).includes("apply")){
+        if((Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)) as any).includes("apply") && ignoreLast){
+            return accum
+        }
+        else if((Reflect.ownKeys(currentClass) as any).includes("apply")){
             return accum
         }
         else{

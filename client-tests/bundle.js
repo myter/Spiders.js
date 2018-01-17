@@ -56219,7 +56219,6 @@ exports.ActorEnvironment = ActorEnvironment;
 class ServerActorEnvironment extends ActorEnvironment {
     constructor(actorId, actorAddress, actorPort, actorMirror) {
         super(actorMirror);
-        let behObj = this.objectPool.getObject(ObjectPool_1.ObjectPool._BEH_OBJ_ID);
         //Object fields and methods will be filled-in once known
         this.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, actorAddress, actorPort, this);
         this.commMedium = new Sockets_1.ServerSocketManager(actorAddress, actorPort, this);
@@ -56236,6 +56235,7 @@ class ClientActorEnvironment extends ActorEnvironment {
     }
     initialise(actorId, mainId, behaviourObject) {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(behaviourObject, "toString");
+        this.behaviourObject = behaviourObject;
         this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, mainId, this);
         this.gspInstance = new GSP_1.GSP(actorId, this);
         this.objectPool = new ObjectPool_1.ObjectPool(behaviourObject);
@@ -56303,6 +56303,7 @@ else {
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject);
+    environment.behaviourObject = behaviourObject;
     let [fieldNames, methodnames] = serialisation_1.getObjectNames(behaviourObject, "toString");
     environment.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodnames, thisId, address, port, environment);
     parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], parentId, address, parentPort, environment);
@@ -60440,7 +60441,11 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if ((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor") {
+        /*if((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor"){
+            var serialisedval   = serialise(val,receiverId,environment)
+            localAccumVars.push([key,serialisedval])
+        }*/
+        if ((typeof val != 'function' || isClass(val)) && key != "constructor") {
             var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
@@ -60542,6 +60547,7 @@ ValueContainer.spiderObjectDef = 14;
 ValueContainer.objectMirrorDef = 15;
 ValueContainer.spiderIsolDef = 16;
 ValueContainer.isolMirrorDef = 17;
+ValueContainer.classDefType = 18;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -60639,6 +60645,13 @@ class SpiderIsolateMirrorDefinitionContainer extends ValueContainer {
     }
 }
 exports.SpiderIsolateMirrorDefinitionContainer = SpiderIsolateMirrorDefinitionContainer;
+class ClassDefinitionContainer extends ValueContainer {
+    constructor(definitions) {
+        super(ValueContainer.classDefType);
+        this.definitions = definitions;
+    }
+}
+exports.ClassDefinitionContainer = ClassDefinitionContainer;
 class RepliqContainer extends ValueContainer {
     constructor(primitiveFields, objectFields, innerRepFields, methods, atomicMethods, repliqId, masterOwnerId, isClient, ownerAddress, ownerPort, lastConfirmedRound, innerName = "") {
         super(ValueContainer.repliqType);
@@ -60968,7 +60981,8 @@ function serialise(value, receiverId, environment) {
             return new SignalDefinitionContainer(definition, mutators);
         }
         else if (isClass(value)) {
-            throw new Error("Serialisation of classes disallowed");
+            let definitions = utils_1.getClassDefinitionChain(value, false);
+            return new ClassDefinitionContainer(definitions);
         }
         else {
             throw new Error("Serialisation of functions disallowed: " + value.toString());
@@ -61122,12 +61136,6 @@ function deserialise(value, enviroment) {
     }
     function deSerialiseSpiderObjectDefinition(def) {
         return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
-        /*let index           = def.definition.indexOf("{")
-        let start           = def.definition.substring(0,index)
-        let stop            = def.definition.substring(index,def.definition.length)
-        let SpiderObject    = require("./MOP").SpiderObject
-        var classObj        = eval("("+start + " extends SpiderObject"+stop+")")
-        return classObj*/
     }
     function deSerialiseSpiderIsolateDefinition(def) {
         return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
@@ -61142,21 +61150,25 @@ function deserialise(value, enviroment) {
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {
         return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
-        /*let index                   = def.definition.indexOf("{")
-        let start                   = def.definition.substring(0,index)
-        let stop                    = def.definition.substring(index,def.definition.length)
-        let SpiderObjectMirror      = require("./MOP").SpiderObjectMirror
-        var classObj                = eval("("+start + " extends SpiderObjectMirror"+stop+")")
-        return classObj*/
     }
     function deSerialiseSpiderIsolateMirrorDefinition(def) {
         return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
-        /*let index                   = def.definition.indexOf("{")
-        let start                   = def.definition.substring(0,index)
-        let stop                    = def.definition.substring(index,def.definition.length)
-        let SpiderIsolateMirror     = require("./MOP").SpiderIsolateMirror
-        var classObj                = eval("("+start + " extends SpiderIsolateMirror"+stop+")")
-        return classObj*/
+    }
+    function deSerialiseClassDefinition(def) {
+        function reCreateClass(classDefinition, superClass) {
+            if (superClass != null) {
+                let index = classDefinition.indexOf("{");
+                let start = classDefinition.substring(0, index);
+                let stop = classDefinition.substring(index, classDefinition.length);
+                var classObj = eval("(" + start + " extends " + superClass + stop + ")");
+                return classObj;
+            }
+            else {
+                var classObj = eval("(" + classDefinition + ")");
+                return classObj;
+            }
+        }
+        return utils_1.reconstructClassDefinitionChain(def.definitions, null, reCreateClass);
     }
     switch (value.type) {
         case ValueContainer.nativeType:
@@ -61189,6 +61201,8 @@ function deserialise(value, enviroment) {
             return deSerialiseSpiderIsolate(value);
         case ValueContainer.isolMirrorDef:
             return deSerialiseSpiderIsolateMirrorDefinition(value);
+        case ValueContainer.classDefType:
+            return deSerialiseClassDefinition(value);
         default:
             console.log(value);
             throw "Unknown value container type :  " + value.type;
@@ -61232,6 +61246,7 @@ class Actor {
         this.actorMirror = actorMirror;
     }
 }
+exports.Actor = Actor;
 class ClientActor extends Actor {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
@@ -61482,9 +61497,12 @@ function getSerialiableClassDefinition(classDefinition) {
     return classDefinition.toString().replace(/(\extends)(.*?)(?=\{)/, '');
 }
 exports.getSerialiableClassDefinition = getSerialiableClassDefinition;
-function getClassDefinitionChain(classDefinition) {
+function getClassDefinitionChain(classDefinition, ignoreLast = true) {
     let loop = (currentClass, accum) => {
-        if (Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)).includes("apply")) {
+        if (Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)).includes("apply") && ignoreLast) {
+            return accum;
+        }
+        else if (Reflect.ownKeys(currentClass).includes("apply")) {
             return accum;
         }
         else {

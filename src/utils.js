@@ -89,9 +89,12 @@ function getSerialiableClassDefinition(classDefinition) {
     return classDefinition.toString().replace(/(\extends)(.*?)(?=\{)/, '');
 }
 exports.getSerialiableClassDefinition = getSerialiableClassDefinition;
-function getClassDefinitionChain(classDefinition) {
+function getClassDefinitionChain(classDefinition, ignoreLast = true) {
     let loop = (currentClass, accum) => {
-        if (Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)).includes("apply")) {
+        if (Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)).includes("apply") && ignoreLast) {
+            return accum;
+        }
+        else if (Reflect.ownKeys(currentClass).includes("apply")) {
             return accum;
         }
         else {

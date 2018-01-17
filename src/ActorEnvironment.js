@@ -22,7 +22,6 @@ exports.ActorEnvironment = ActorEnvironment;
 class ServerActorEnvironment extends ActorEnvironment {
     constructor(actorId, actorAddress, actorPort, actorMirror) {
         super(actorMirror);
-        let behObj = this.objectPool.getObject(ObjectPool_1.ObjectPool._BEH_OBJ_ID);
         //Object fields and methods will be filled-in once known
         this.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, actorAddress, actorPort, this);
         this.commMedium = new Sockets_1.ServerSocketManager(actorAddress, actorPort, this);
@@ -39,6 +38,7 @@ class ClientActorEnvironment extends ActorEnvironment {
     }
     initialise(actorId, mainId, behaviourObject) {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(behaviourObject, "toString");
+        this.behaviourObject = behaviourObject;
         this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, mainId, this);
         this.gspInstance = new GSP_1.GSP(actorId, this);
         this.objectPool = new ObjectPool_1.ObjectPool(behaviourObject);

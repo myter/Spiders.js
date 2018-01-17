@@ -155,7 +155,11 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     for(var i in properties){
         var key             = properties[i]
         var val             = Reflect.get(object,key)
-        if((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor"){
+        /*if((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor"){
+            var serialisedval   = serialise(val,receiverId,environment)
+            localAccumVars.push([key,serialisedval])
+        }*/
+        if((typeof val != 'function' || isClass(val)) && key != "constructor"){
             var serialisedval   = serialise(val,receiverId,environment)
             localAccumVars.push([key,serialisedval])
         }
@@ -255,6 +259,7 @@ export abstract class ValueContainer{
     static objectMirrorDef      : number = 15
     static spiderIsolDef        : number = 16
     static isolMirrorDef        : number = 17
+    static classDefType         : number = 18
     type                        : number
 
     constructor(type : number){
@@ -385,6 +390,13 @@ export class SpiderIsolateMirrorDefinitionContainer extends ValueContainer{
     definitions : Array<string>
     constructor(definitions : Array<string>){
         super(ValueContainer.isolMirrorDef)
+        this.definitions = definitions
+    }
+}
+export class ClassDefinitionContainer extends ValueContainer{
+    definitions : Array<string>
+    constructor(definitions : Array<string>){
+        super(ValueContainer.classDefType)
         this.definitions = definitions
     }
 }
@@ -770,7 +782,8 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             return new SignalDefinitionContainer(definition,mutators)
         }
         else if(isClass(value)){
-            throw new Error("Serialisation of classes disallowed")
+            let definitions = getClassDefinitionChain(value,false)
+            return new ClassDefinitionContainer(definitions)
         }
         else{
             throw new Error("Serialisation of functions disallowed: " + value.toString())
@@ -955,6 +968,23 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
     function deSerialiseSpiderIsolateMirrorDefinition(def : SpiderIsolateMirrorDefinitionContainer){
         return reconstructClassDefinitionChain(def.definitions,require("./MOP").SpiderIsolateMirror,require("./MOP").reCreateIsolateMirrorClass)
     }
+
+    function deSerialiseClassDefinition(def : ClassDefinitionContainer){
+        function reCreateClass(classDefinition,superClass){
+            if(superClass != null){
+                let index                           = classDefinition.indexOf("{")
+                let start                           = classDefinition.substring(0,index)
+                let stop                            = classDefinition.substring(index,classDefinition.length)
+                var classObj                        = eval("("+start + " extends "+superClass+stop+")")
+                return classObj
+            }
+            else{
+                var classObj                        = eval("("+classDefinition+")")
+                return classObj
+            }
+        }
+        return reconstructClassDefinitionChain(def.definitions,null,reCreateClass)
+    }
     switch(value.type){
         case ValueContainer.nativeType :
             return (value as NativeContainer).value
@@ -986,6 +1016,8 @@ export function deserialise(value : ValueContainer,enviroment : ActorEnvironment
             return deSerialiseSpiderIsolate(value as SpiderIsolateContainer)
         case ValueContainer.isolMirrorDef:
             return deSerialiseSpiderIsolateMirrorDefinition(value as SpiderIsolateMirrorDefinitionContainer)
+        case ValueContainer.classDefType:
+            return deSerialiseClassDefinition(value as ClassDefinitionContainer)
         default :
             console.log(value)
             throw "Unknown value container type :  " + value.type

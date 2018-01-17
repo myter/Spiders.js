@@ -32,6 +32,7 @@ class Actor {
         this.actorMirror = actorMirror;
     }
 }
+exports.Actor = Actor;
 class ClientActor extends Actor {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();

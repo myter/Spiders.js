@@ -58,6 +58,7 @@ else{
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject)
+    environment.behaviourObject = behaviourObject
     let [fieldNames,methodnames]= getObjectNames(behaviourObject,"toString")
     environment.thisRef         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodnames,thisId,address,port,environment)
     parentRef                   = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],parentId,address,parentPort,environment)

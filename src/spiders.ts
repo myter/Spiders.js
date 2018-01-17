@@ -18,6 +18,8 @@ import {Subscription} from "./PubSub/SubClient";
 import {generateId, isBrowser} from "./utils";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
+import {Eventual} from "./Onward/Eventual";
+import {CAPActor} from "./Onward/CAPActor";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -35,7 +37,7 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
     return mappings
 }
 
-abstract class Actor{
+export abstract class Actor{
     parent          : FarRef
     reflectOnActor  : () => SpiderActorMirror
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror

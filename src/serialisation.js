@@ -145,7 +145,11 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     for (var i in properties) {
         var key = properties[i];
         var val = Reflect.get(object, key);
-        if ((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor") {
+        /*if((typeof val != 'function' || isSpiderObjectClass(val) || isSpiderIsolateClass(val) || isObjectMirrorClass(val) || isIsolateMirrorClass(val) || isRepliqClass(val) || isSignalClass(val)) && key != "constructor"){
+            var serialisedval   = serialise(val,receiverId,environment)
+            localAccumVars.push([key,serialisedval])
+        }*/
+        if ((typeof val != 'function' || isClass(val)) && key != "constructor") {
             var serialisedval = serialise(val, receiverId, environment);
             localAccumVars.push([key, serialisedval]);
         }
@@ -247,6 +251,7 @@ ValueContainer.spiderObjectDef = 14;
 ValueContainer.objectMirrorDef = 15;
 ValueContainer.spiderIsolDef = 16;
 ValueContainer.isolMirrorDef = 17;
+ValueContainer.classDefType = 18;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -344,6 +349,13 @@ class SpiderIsolateMirrorDefinitionContainer extends ValueContainer {
     }
 }
 exports.SpiderIsolateMirrorDefinitionContainer = SpiderIsolateMirrorDefinitionContainer;
+class ClassDefinitionContainer extends ValueContainer {
+    constructor(definitions) {
+        super(ValueContainer.classDefType);
+        this.definitions = definitions;
+    }
+}
+exports.ClassDefinitionContainer = ClassDefinitionContainer;
 class RepliqContainer extends ValueContainer {
     constructor(primitiveFields, objectFields, innerRepFields, methods, atomicMethods, repliqId, masterOwnerId, isClient, ownerAddress, ownerPort, lastConfirmedRound, innerName = "") {
         super(ValueContainer.repliqType);
@@ -673,7 +685,8 @@ function serialise(value, receiverId, environment) {
             return new SignalDefinitionContainer(definition, mutators);
         }
         else if (isClass(value)) {
-            throw new Error("Serialisation of classes disallowed");
+            let definitions = utils_1.getClassDefinitionChain(value, false);
+            return new ClassDefinitionContainer(definitions);
         }
         else {
             throw new Error("Serialisation of functions disallowed: " + value.toString());
@@ -845,6 +858,22 @@ function deserialise(value, enviroment) {
     function deSerialiseSpiderIsolateMirrorDefinition(def) {
         return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
     }
+    function deSerialiseClassDefinition(def) {
+        function reCreateClass(classDefinition, superClass) {
+            if (superClass != null) {
+                let index = classDefinition.indexOf("{");
+                let start = classDefinition.substring(0, index);
+                let stop = classDefinition.substring(index, classDefinition.length);
+                var classObj = eval("(" + start + " extends " + superClass + stop + ")");
+                return classObj;
+            }
+            else {
+                var classObj = eval("(" + classDefinition + ")");
+                return classObj;
+            }
+        }
+        return utils_1.reconstructClassDefinitionChain(def.definitions, null, reCreateClass);
+    }
     switch (value.type) {
         case ValueContainer.nativeType:
             return value.value;
@@ -876,6 +905,8 @@ function deserialise(value, enviroment) {
             return deSerialiseSpiderIsolate(value);
         case ValueContainer.isolMirrorDef:
             return deSerialiseSpiderIsolateMirrorDefinition(value);
+        case ValueContainer.classDefType:
+            return deSerialiseClassDefinition(value);
         default:
             console.log(value);
             throw "Unknown value container type :  " + value.type;

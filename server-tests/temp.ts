@@ -1,52 +1,27 @@
 import {SpiderLib} from "../src/spiders";
-import {getSerialiableClassDefinition} from "../src/utils";
-import getPrototypeOf = Reflect.getPrototypeOf;
+import {CAPActor} from "../src/Onward/CAPActor";
+
 
 var spiders : SpiderLib = require("../src/spiders")
 
-class TestIsolate extends spiders.SpiderIsolate{
-    field
-    constructor(){
-        super()
-        this.field = 5
-    }
-}
-class TestBaseIsolate extends TestIsolate{
-    baseField
-    constructor(){
-        super()
-        this.baseField = 6
-    }
-}
 
-class TestActor extends spiders.Actor{
-    TestIsolate
+
+class Actor1 extends CAPActor{
+    thisDirectory
     constructor(){
-        super()
-        this.TestIsolate = TestBaseIsolate
+       super()
+        this.thisDirectory = __dirname
     }
 
     init(){
-        let isol = new this.TestIsolate()
-        console.log(isol.baseField)
-        console.log(isol.field)
-    }
-
-    getIsolate(){
-        return new this.TestIsolate()
-        //return this.TestIsolate
+        let TestEventual = require(this.thisDirectory + "/tempEventual").TestEventual
+        let ev = new TestEventual()
     }
 }
+
+class Actor2 extends CAPActor{
+
+}
 let app = new spiders.Application()
-let act = app.spawnActor(TestActor)
-act.getIsolate().then((isol)=>{
-    console.log("Got isol")
-    console.log(isol.baseField)
-    console.log(isol.field)
-})
-/*act.getIsolate().then((isol)=>{
-    console.log("Got isol")
-    /*console.log("Got isol")
-    console.log(isol.field)
-    console.log(isol.baseField)
-})*/
+let act1 = app.spawnActor(Actor1)
+let act2 = app.spawnActor(Actor2)
