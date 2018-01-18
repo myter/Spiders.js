@@ -56453,9 +56453,6 @@ class FarReference {
                     }
                     else if (baseObject.objectMethods.includes(property.toString())) {
                         var ret = function (...args) {
-                            /*var serialisedArgs = args.map((arg) => {
-                                return serialise(arg, baseObject.ownerId, baseObject.environemnt)
-                            })*/
                             return baseObject.sendMethodInvocation(property.toString(), args);
                         };
                         ret[FarReference.proxyWrapperAccessorKey] = true;
@@ -56467,9 +56464,6 @@ class FarReference {
                             //This field access might be wrong (i.e. might be part of ref.foo()), receiver of field access foo will ignore it if foo is a function type (ugly but needed)
                             var prom = baseObject.sendFieldAccess(property.toString());
                             var ret = function (...args) {
-                                /*var serialisedArgs = args.map((arg) => {
-                                    return serialise(arg, baseObject.ownerId, baseObject.environemnt)
-                                })*/
                                 return baseObject.sendMethodInvocation(property.toString(), args);
                             };
                             ret["then"] = function (onFull, onRej) {
@@ -60393,17 +60387,24 @@ function deconstructStatic(actorClass, receiverId, results, environment) {
 }
 exports.deconstructStatic = deconstructStatic;
 function convert(inputString) {
-    let parts = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/);
+    let reg = new RegExp(/(super\.)(.*?\()((.|[\r\n])*)/);
+    //let parts   = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/)
+    let parts = inputString.match(reg);
     parts[2] = parts[2].replace('(', '.bind(this)(');
     let prefix = inputString.substring(0, parts.index);
-    return prefix + parts[1] + parts[2] + parts[3];
+    if (parts[3].match(reg)) {
+        return prefix + parts[1] + parts[2] + convert(parts[3]);
+    }
+    else {
+        return prefix + parts[1] + parts[2] + parts[3];
+    }
 }
 function constructMethod(functionSource) {
     //JS disallows the use of super outside of method context (which is the case if you eval a function as a string)
     //Replace all supers with proto calls
     if (functionSource.includes("super")) {
         functionSource = convert(functionSource);
-        functionSource = functionSource.replace("super", "((this.__proto__).__proto__)");
+        functionSource = functionSource.replace(new RegExp("super", 'g'), "((this.__proto__).__proto__)");
     }
     if (functionSource.startsWith("function")) {
         var method = eval("(" + functionSource + ")");

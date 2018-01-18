@@ -102,10 +102,17 @@ export function deconstructStatic(actorClass,receiverId : string,results : Array
 }
 
 function convert(inputString : string){
-    let parts   = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/)
+    let reg     = new RegExp(/(super\.)(.*?\()((.|[\r\n])*)/)
+    //let parts   = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/)
+    let parts   = inputString.match(reg)
     parts[2]    = parts[2].replace('(','.bind(this)(')
     let prefix  = inputString.substring(0,parts.index)
-    return prefix + parts[1]+ parts[2] + parts[3]
+    if(parts[3].match(reg)){
+        return prefix + parts[1]+ parts[2] + convert(parts[3])
+    }
+    else{
+        return prefix + parts[1]+ parts[2] + parts[3]
+    }
 }
 
 function constructMethod(functionSource){
@@ -113,7 +120,7 @@ function constructMethod(functionSource){
     //Replace all supers with proto calls
     if(functionSource.includes("super")){
         functionSource = convert(functionSource)
-        functionSource = functionSource.replace("super","((this.__proto__).__proto__)")
+        functionSource = functionSource.replace(new RegExp("super", 'g'),"((this.__proto__).__proto__)")
     }
     if(functionSource.startsWith("function")){
         var method =  eval( "(" +  functionSource +")" )

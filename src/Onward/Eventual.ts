@@ -11,9 +11,14 @@ export class EventualMirror extends spiders.SpiderIsolateMirror{
     invoke(methodName,args){
         if(!this.ignoreInvoc(methodName)){
             let baseEV = (this.base as Eventual);
+            baseEV.hostGsp.createRound(baseEV.id,baseEV.hostId,methodName,args)
+            let ret = super.invoke(methodName,args)
             baseEV.hostGsp.yield(baseEV.id,baseEV.hostId)
+            return null
         }
-        return super.invoke(methodName,args)
+        else{
+            return super.invoke(methodName,args)
+        }
     }
 }
 

@@ -218,9 +218,11 @@ export class GSP{
 
     newRound(round : Round){
         if(this.isMaster(round.masterOwnerId)){
+            console.log("Master received round")
             this.yieldMasterRound(round)
         }
         else{
+            console.log("Slave received round")
             this.confirmMasterRound(round)
         }
     }
