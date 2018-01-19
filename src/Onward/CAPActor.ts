@@ -41,6 +41,10 @@ export class CAPMirror extends spiders.SpiderActorMirror{
             //An eventual is being sent to another actor, without that eventual being already registered
             //In other words, this eventual must have been created newly by the sending actor
             if(!gsp.knownEventual(eventual.id)){
+                if(eventual.committedVals.size == 0){
+                    //This is the first invocation on this eventual, populate its committed map
+                    eventual.populateCommitted()
+                }
                 gsp.registerMasterEventual(eventual)
                 eventual.setHost(gsp,this.base.thisRef.ownerId,true)
             }

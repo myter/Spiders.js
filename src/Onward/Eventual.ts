@@ -5,16 +5,25 @@ var spiders : SpiderLib = require("../spiders")
 
 export class EventualMirror extends spiders.SpiderIsolateMirror{
     private ignoreInvoc(methodName){
-        return methodName == "setHost" || methodName == "resetToCommit" || methodName == "commit"
+        return methodName == "setHost" || methodName == "resetToCommit" || methodName == "commit" || methodName == "populateCommitted"
     }
 
     invoke(methodName,args){
-        if(!this.ignoreInvoc(methodName)){
-            let baseEV = (this.base as Eventual);
-            baseEV.hostGsp.createRound(baseEV.id,baseEV.ownerId,methodName,args)
-            let ret = super.invoke(methodName,args)
-            baseEV.hostGsp.yield(baseEV.id,baseEV.ownerId)
-            return ret
+        let baseEV = this.base as Eventual
+        if(!baseEV.hostGsp){
+            return super.invoke(methodName,args)
+        }
+        else if(!this.ignoreInvoc(methodName)){
+            if((baseEV.hostGsp.replay as any).includes(baseEV.id)){
+                return super.invoke(methodName,args)
+            }
+            else{
+                baseEV.hostGsp.createRound(baseEV.id,baseEV.ownerId,methodName,args)
+                let ret = super.invoke(methodName,args)
+                baseEV.hostGsp.yield(baseEV.id,baseEV.ownerId)
+                return ret
+            }
+
         }
         else{
             return super.invoke(methodName,args)
@@ -23,16 +32,17 @@ export class EventualMirror extends spiders.SpiderIsolateMirror{
 }
 
 export class Eventual extends spiders.SpiderIsolate{
-    hostGsp         : GSP
-    hostId          : string
-    ownerId         : string
-    id              : string
-    committedVals    : Map<string,any>
+    hostGsp             : GSP
+    hostId              : string
+    ownerId             : string
+    id                  : string
+    committedVals       : Map<string,any>
     isEventual
 
-    private populateCommited(){
+    //Calling this at construction time is dangerous but ok for now. A problem could arise if an eventual is created and serialised at actor construction-time (some elements in the map might be serialised as far references)
+    populateCommitted(){
         Reflect.ownKeys(this).forEach((key)=>{
-            if(key != "hostGSP" && key != "hostId" && key != "ownerId" && key != "id" && key != "committedVals" && key != "isEventual"){
+            if(key != "hostGSP" && key != "hostId" && key != "ownerId" && key != "id" && key != "committedVals" && key != "isEventual" && key != "_INSTANCEOF_ISOLATE_"){
                 this.committedVals.set(key.toString(),this[key])
             }
         })
@@ -58,15 +68,14 @@ export class Eventual extends spiders.SpiderIsolate{
     }
 
     resetToCommit(){
-        //TODO run over each field and set it back to commited value
-        console.log("Resetting to commit !")
-        this.committedVals.forEach((commitedVal,key)=>{
-            console.log("Commited val for " + key + " = " + commitedVal)
+        this.committedVals.forEach((committedVal,key)=>{
+            this[key] = committedVal
         })
     }
 
     commit(){
-        //TODO run over each field and set tentative values to commited values
-        console.log("Commit called")
+        this.committedVals.forEach((_,key)=>{
+            this.committedVals.set(key,this[key])
+        })
     }
 }

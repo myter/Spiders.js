@@ -674,6 +674,28 @@ var performUserProm = () => {
     });
 };
 scheduled.push(performUserProm);
+class TestMapActor extends spider.Actor {
+    constructor() {
+        super();
+        this.m = new Map();
+        this.m.set("native", 5);
+        this.m.set("object", { x: 5 });
+    }
+    test() {
+        let nat = this.m.get("native");
+        return this.m.get("object").x.then((xVal) => {
+            return xVal + nat;
+        });
+    }
+}
+let performMap = () => {
+    let act = app.spawnActor(TestMapActor);
+    return act.test().then((v) => {
+        log("Map serialisation", v, 10);
+        app.kill();
+    });
+};
+scheduled.push(performMap);
 class testArgSerActor extends spider.Actor {
     m(num, str, bool) {
         return [num, str, bool];

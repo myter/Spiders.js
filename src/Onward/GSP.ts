@@ -37,7 +37,8 @@ export class GSP{
         Reflect.ownKeys(roundUpdates(round)).forEach((fieldName)=>{
             fields.get(fieldName).update(Reflect.get(roundUpdates(round),fieldName))
         })*/
-        console.log("Replaying round for method: " + round.methodName)
+        let ev = this.eventuals.get(round.objectId)
+        ev[round.methodName](round.args)
     }
 
 
