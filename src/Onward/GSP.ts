@@ -2,12 +2,14 @@
  * Created by flo on 16/03/2017.
  */
 import {Eventual} from "./Eventual";
-import {Round} from "./Round";
 import {FarRef} from "../spiders";
+import {Round} from "./Round";
 /**
  * Created by flo on 09/03/2017.
  */
+type RoundClass    = {new(...args : any[]): Round}
 export class GSP{
+    Round                   : RoundClass
     thisActorId             : string
     eventuals               : Map<string,Eventual>
     //Keep track of current round for each gsp object
@@ -39,25 +41,22 @@ export class GSP{
     }
 
 
-    constructor(thisActorId : string){
+    constructor(thisActorId : string,Round){
+        this.Round                  = Round
         this.thisActorId            = thisActorId
         this.eventuals              = new Map()
         this.current                = new Map()
         this.pending                = new Map()
         this.committed              = new Map()
         this.roundNumbers           = new Map()
-        this.eventualOwner           = new Map()
-        this.eventualHolders         = new Map()
+        this.eventualOwner          = new Map()
+        this.eventualHolders        = new Map()
         this.replay                 = []
     }
 
     //////////////////////////////////
     //Methods invoked by Eventuals  //
     //////////////////////////////////
-
-    newMasterEventual(eventual,eventualId : string){
-        this.eventuals.set(eventualId,eventual)
-    }
 
     isInReplay(eventualId : string) : boolean{
         return (this.replay as any).includes(eventualId)
@@ -66,7 +65,7 @@ export class GSP{
     createRound(eventualId : string,ownerId : string,methodName : string,args : Array<any>) : Round{
         //Round number and ref will be determined upon Yield by the master
         let roundNumber = -1
-        let round = new Round(eventualId,ownerId,roundNumber,methodName,args)
+        let round = new this.Round(eventualId,ownerId,roundNumber,methodName,args)
         this.current.set(eventualId,round)
         return round
     }
@@ -100,6 +99,7 @@ export class GSP{
     }
 
     yieldReplicaRound(round : Round){
+        console.log("Yielding replica round")
         //A replica just finished performing updates.
         //Add these updates to the pending map and sent the round to the master
         if(!this.pending.has(round.objectId)){
@@ -138,6 +138,7 @@ export class GSP{
         //1) Set concerned object on replay modus (i.e. reset concerned fields to commited values)
         this.replay.push(round.objectId)
         let ev : Eventual = this.eventuals.get(round.objectId)
+        console.log("Committing round for eventual " + round.objectId)
         ev.resetToCommit()
         //2) Replay the round on the object. Depending on the field implementation this will commit tentative values
         this.playRound(round)
@@ -168,11 +169,12 @@ export class GSP{
     }
 
     registerMasterEventual(ev : Eventual){
-        console.log("Registering new master eventual")
+        console.log("Registering master eventual for ev: " + ev.id + " in " + this.thisActorId)
         this.eventuals.set(ev.id,ev)
     }
 
     registerHolderEventual(ev : Eventual,masterRef : FarRef){
+        console.log("Register holder eventual for ev: " + ev.id + " in " + this.thisActorId)
         this.eventuals.set(ev.id,ev)
         this.eventualOwner.set(ev.id,masterRef)
         masterRef.newHolder(ev.id,this.roundNumbers.get(ev.id),this)
@@ -184,7 +186,6 @@ export class GSP{
     }*/
 
     newHolder(eventualId : string,holderRef : FarRef,roundNr : number){
-        console.log("New holder registered at master")
         if(!(this.eventualHolders.has(eventualId))){
             this.eventualHolders.set(eventualId,[])
         }

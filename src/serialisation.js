@@ -608,6 +608,8 @@ function serialise(value, receiverId, environment) {
             let [vars, methods] = deconstructBehaviour(baseOb, 0, [], [], receiverId, environment, "toString");
             let [mVars, mMethods] = deconstructBehaviour(mirror, 0, [], [], receiverId, environment, "toString");
             let container = new SpiderIsolateContainer(JSON.stringify(vars), JSON.stringify(methods), JSON.stringify(mVars), JSON.stringify(mMethods));
+            //Reset base object <=> mirror link
+            mirror.base = baseOb;
             return container;
         }
         else if (value[RepliqContainer.checkRepliqFuncKey]) {

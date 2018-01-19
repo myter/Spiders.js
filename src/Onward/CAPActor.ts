@@ -23,12 +23,15 @@ export class CAPMirror extends spiders.SpiderActorMirror{
         if(eventualArgs.length > 0){
             sender.gsp.then((senderGSPRef)=>{
                 eventualArgs.forEach((eventual : Eventual)=>{
-                    eventual.setHost(gsp,this.base.thisRef.ownerId)
+                    eventual.setHost(gsp,this.base.thisRef.ownerId,false)
                     gsp.registerHolderEventual(eventual,senderGSPRef)
                 })
+                super.receiveInvocation(sender,targetObject,methodName,args,performInvocation)
             })
         }
-        super.receiveInvocation(sender,targetObject,methodName,args,performInvocation)
+        else{
+            super.receiveInvocation(sender,targetObject,methodName,args,performInvocation)
+        }
     }
 
     sendInvocation(target : FarRef,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
@@ -39,7 +42,7 @@ export class CAPMirror extends spiders.SpiderActorMirror{
             //In other words, this eventual must have been created newly by the sending actor
             if(!gsp.knownEventual(eventual.id)){
                 gsp.registerMasterEventual(eventual)
-                eventual.setHost(gsp,this.base.thisRef.ownerId)
+                eventual.setHost(gsp,this.base.thisRef.ownerId,true)
             }
         })
         return super.sendInvocation(target,methodName,args,contactId,contactAddress,contactPort,mainId)
@@ -48,13 +51,15 @@ export class CAPMirror extends spiders.SpiderActorMirror{
 export class CAPActor extends spiders.Actor{
     gsp : GSP
     GSP
+    Round
 
     constructor(){
         super(new CAPMirror())
         this.GSP    = require("./GSP").GSP
+        this.Round  = require("./Round").Round
     }
 
     init(){
-        this.gsp = new this.GSP(this.reflectOnActor().base.thisRef.ownerId)
+        this.gsp = new this.GSP(this.reflectOnActor().base.thisRef.ownerId,this.Round)
     }
 }

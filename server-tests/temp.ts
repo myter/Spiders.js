@@ -1,7 +1,6 @@
-import {SpiderLib} from "../src/spiders";
+import {FarRef, SpiderLib} from "../src/spiders";
 import {CAPActor} from "../src/Onward/CAPActor";
 import {TestEventual} from "./tempEventual";
-import {Eventual} from "../src/Onward/Eventual";
 
 
 var spiders : SpiderLib = require("../src/spiders")
@@ -18,13 +17,15 @@ class Actor1 extends CAPActor{
     share(withRef){
         let TestEventual = require(this.thisDirectory + "/tempEventual").TestEventual
         let ev = new TestEventual()
+        ev.commit()
         withRef.get(ev)
+        ev.commit()
     }
 }
 
 class Actor2 extends CAPActor{
     get(anEv : TestEventual){
-        anEv.dec()
+        //anEv.dec()
     }
 }
 let app = new spiders.Application()
@@ -32,39 +33,36 @@ let act1 = app.spawnActor(Actor1)
 let act2 = app.spawnActor(Actor2)
 act1.share(act2)
 
-/*function convert(inputString : string){
-    let reg     = new RegExp(/(super\.)(.*?\()((.|[\r\n])*)/)
-    //let parts   = inputString.match(/(super\.)(.*?\()((.|[\r\n])*)/)
-    let parts   = inputString.match(reg)
-    parts[2]    = parts[2].replace('(','.bind(this)(')
-    let prefix  = inputString.substring(0,parts.index)
-    if(parts[3].match(reg)){
-        return prefix + parts[1]+ parts[2] + convert(parts[3])
-    }
-    else{
-        return prefix + parts[1]+ parts[2] + parts[3]
+/*class TestMirror extends spiders.SpiderActorMirror{
+    receiveInvocation(sender : FarRef,targetObject : Object,methodName : string,args : Array<any>,performInvocation : () => void = () => {}){
+        let isol = args[0]
+        isol.setO({x:6})
+        return super.receiveInvocation(sender,targetObject,methodName,args,performInvocation)
     }
 }
 
-function constructMethod(functionSource){
-    //JS disallows the use of super outside of method context (which is the case if you eval a function as a string)
-    //Replace all supers with proto calls
-    if(functionSource.includes("super")){
-        console.log("Function contains super : " + functionSource)
-        functionSource = convert(functionSource)
-        functionSource = functionSource.replace(new RegExp("super", 'g'),"((this.__proto__).__proto__)")
-        console.log("Replaced : " + functionSource)
+class Actor1 extends spiders.Actor{
+    direct
+    constructor(){
+        super()
+        this.direct = __dirname
     }
-    if(functionSource.startsWith("function")){
-        var method =  eval( "(" +  functionSource +")" )
+
+    sendTo(ref){
+        let TestIsolate = require(this.direct + "/tempEventual").TestIsolate
+        let isol = new TestIsolate(5,{x:5})
+        ref.get(isol)
     }
-    else{
-        var method =  eval("(function " + functionSource + ")" )
-    }
-    return method
 }
-let testSource = "invoke(methodName,args){" +
-    "super.something() \n" +
-    "super.anotherThing()" +
-    "}"
-console.log(constructMethod(testSource))*/
+class Actor2 extends spiders.Actor{
+    constructor(){
+        super(new TestMirror())
+    }
+    get(isol){
+        isol.doSomething()
+    }
+}
+let app = new spiders.Application()
+let ac1 = app.spawnActor(Actor1)
+let ac2 = app.spawnActor(Actor2)
+ac1.sendTo(ac2)*/
