@@ -17,21 +17,26 @@ export class EventualMirror extends spiders.SpiderIsolateMirror{
             return ret
         }
         else{
-            if(methodName == "commit"){
-                console.log("Invoking(Mirror): " + methodName)
-                console.log(this.base as Eventual == undefined)
-            }
             return super.invoke(methodName,args)
         }
     }
 }
 
 export class Eventual extends spiders.SpiderIsolate{
-    hostGsp     : GSP
-    hostId      : string
-    ownerId     : string
-    id          : string
+    hostGsp         : GSP
+    hostId          : string
+    ownerId         : string
+    id              : string
+    committedVals    : Map<string,any>
     isEventual
+
+    private populateCommited(){
+        Reflect.ownKeys(this).forEach((key)=>{
+            if(key != "hostGSP" && key != "hostId" && key != "ownerId" && key != "id" && key != "committedVals" && key != "isEventual"){
+                this.committedVals.set(key.toString(),this[key])
+            }
+        })
+    }
 
     constructor(){
         super(new EventualMirror())
@@ -40,6 +45,7 @@ export class Eventual extends spiders.SpiderIsolate{
             return v.toString(16);
         })
         this.isEventual     = true
+        this.committedVals   = new Map()
     }
 
     //Called by host actor when this eventual is first passed to other actor
@@ -54,6 +60,9 @@ export class Eventual extends spiders.SpiderIsolate{
     resetToCommit(){
         //TODO run over each field and set it back to commited value
         console.log("Resetting to commit !")
+        this.committedVals.forEach((commitedVal,key)=>{
+            console.log("Commited val for " + key + " = " + commitedVal)
+        })
     }
 
     commit(){

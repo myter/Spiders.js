@@ -835,6 +835,37 @@ describe("General Serialisation",() => {
             }
         })
     })
+    it("Map serialisation",(done)=>{
+        var app = new spider.Application()
+        class TestActor extends spider.Actor{
+            m
+            constructor(){
+                super()
+                this.m = new Map()
+                this.m.set("native",5)
+                this.m.set("object",{x:5})
+            }
+
+            test(){
+                let nat = this.m.get("native")
+                return this.m.get("object").x.then((xVal)=>{
+                    return xVal + nat
+                })
+            }
+        }
+        let act = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
 })
 
 describe("Meta Actor Protocol",() => {

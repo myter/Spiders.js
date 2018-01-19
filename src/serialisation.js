@@ -259,6 +259,7 @@ ValueContainer.objectMirrorDef = 15;
 ValueContainer.spiderIsolDef = 16;
 ValueContainer.isolMirrorDef = 17;
 ValueContainer.classDefType = 18;
+ValueContainer.mapType = 19;
 exports.ValueContainer = ValueContainer;
 class NativeContainer extends ValueContainer {
     constructor(value) {
@@ -430,6 +431,14 @@ class SignalDefinitionContainer extends ValueContainer {
     }
 }
 exports.SignalDefinitionContainer = SignalDefinitionContainer;
+class MapContainer extends ValueContainer {
+    constructor(keys, values) {
+        super(ValueContainer.mapType);
+        this.keys = keys;
+        this.values = values;
+    }
+}
+exports.MapContainer = MapContainer;
 function isClass(func) {
     return typeof func === 'function' && /^\s*class\s+/.test(func.toString());
 }
@@ -569,6 +578,15 @@ function serialiseRepliq(repliqProxy, receiverId, environment, innerName = "") {
     }
     return ret;
 }
+function serialiseMap(map, receiverId, environment) {
+    let keys = [];
+    let values = [];
+    map.forEach((value, key) => {
+        keys.push(serialise(key, receiverId, environment));
+        values.push(serialise(value, receiverId, environment));
+    });
+    return new MapContainer(JSON.stringify(keys), JSON.stringify(values));
+}
 function serialise(value, receiverId, environment) {
     if (typeof value == 'object') {
         if (value == null) {
@@ -579,6 +597,9 @@ function serialise(value, receiverId, environment) {
         }
         else if (value instanceof Error) {
             return new ErrorContainer(value);
+        }
+        else if (value instanceof Map) {
+            return serialiseMap(value, receiverId, environment);
         }
         else if (value[FarRef_1.FarReference.ServerProxyTypeKey]) {
             var farRef = value[FarRef_1.FarReference.farRefAccessorKey];
@@ -706,32 +727,32 @@ function serialise(value, receiverId, environment) {
     }
 }
 exports.serialise = serialise;
-function deserialise(value, enviroment) {
+function deserialise(value, environment) {
     function deSerialisePromise(promiseContainer) {
-        return enviroment.promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
+        return environment.promisePool.newForeignPromise(promiseContainer.promiseId, promiseContainer.promiseCreatorId);
     }
     function deSerialiseServerFarRef(farRefContainer) {
-        var farRef = new FarRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, enviroment);
-        if (enviroment.thisRef instanceof FarRef_1.ServerFarReference) {
-            if (!(enviroment.commMedium.hasConnection(farRef.ownerId))) {
-                enviroment.commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
+        var farRef = new FarRef_1.ServerFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.ownerAddress, farRefContainer.ownerPort, environment);
+        if (environment.thisRef instanceof FarRef_1.ServerFarReference) {
+            if (!(environment.commMedium.hasConnection(farRef.ownerId))) {
+                environment.commMedium.openConnection(farRef.ownerId, farRef.ownerAddress, farRef.ownerPort);
             }
         }
         else {
-            if (!(enviroment.commMedium.hasConnection(farRef.ownerId))) {
-                enviroment.commMedium.connectTransientRemote(enviroment.thisRef, farRef, enviroment.promisePool);
+            if (!(environment.commMedium.hasConnection(farRef.ownerId))) {
+                environment.commMedium.connectTransientRemote(environment.thisRef, farRef, environment.promisePool);
             }
         }
         return farRef.proxyify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
         var farRef;
-        if ((enviroment.thisRef instanceof FarRef_1.ServerFarReference) && farRefContainer.contactId == null) {
+        if ((environment.thisRef instanceof FarRef_1.ServerFarReference) && farRefContainer.contactId == null) {
             //This is the first server side actor to come into contact with this client-side far reference and will henceforth be the contact point for all messages sent to this far reference
-            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, enviroment, enviroment.thisRef.ownerId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort);
+            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, environment, environment.thisRef.ownerId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort);
         }
         else {
-            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, enviroment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
+            farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, environment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
         return farRef.proxyify();
     }
@@ -743,7 +764,7 @@ function deserialise(value, enviroment) {
     }
     function deSerialiseArray(arrayContainer) {
         var deserialised = arrayContainer.values.map((valCont) => {
-            return deserialise(valCont, enviroment);
+            return deserialise(valCont, environment);
         });
         return deserialised;
     }
@@ -767,8 +788,8 @@ function deserialise(value, enviroment) {
             Reflect.setPrototypeOf(tentBase, {});
             let comBase = {};
             Reflect.setPrototypeOf(comBase, {});
-            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), enviroment);
-            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), enviroment);
+            let tentative = reconstructObject(tentBase, JSON.parse(tentParsed[0]), JSON.parse(tentParsed[1]), environment);
+            let commited = reconstructObject(comBase, JSON.parse(comParsed[0]), JSON.parse(comParsed[1]), environment);
             let field = new RepliqObjectField_1.RepliqObjectField(repliqField.name, {});
             field.tentative = tentative;
             field.commited = commited;
@@ -780,7 +801,7 @@ function deserialise(value, enviroment) {
             fields.set(field.name, field);
         });
         (JSON.parse(repliqContainer.innerRepFields)).forEach((innerRepliq) => {
-            fields.set(innerRepliq.innerName, deserialise(innerRepliq, enviroment));
+            fields.set(innerRepliq.innerName, deserialise(innerRepliq, environment));
         });
         let methods = new Map();
         (JSON.parse(repliqContainer.methods)).forEach(([methodName, methodSource]) => {
@@ -790,10 +811,10 @@ function deserialise(value, enviroment) {
         (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName, methodSource]) => {
             atomicMethods.set(methodName, constructMethod(methodSource));
         });
-        if (!repliqContainer.isClient && !enviroment.commMedium.hasConnection(repliqContainer.masterOwnerId)) {
-            enviroment.commMedium.openConnection(repliqContainer.masterOwnerId, repliqContainer.ownerAddress, repliqContainer.ownerPort);
+        if (!repliqContainer.isClient && !environment.commMedium.hasConnection(repliqContainer.masterOwnerId)) {
+            environment.commMedium.openConnection(repliqContainer.masterOwnerId, repliqContainer.ownerAddress, repliqContainer.ownerPort);
         }
-        return blankRepliq.reconstruct(enviroment.gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods, repliqContainer.isClient, repliqContainer.ownerAddress, repliqContainer.ownerPort, repliqContainer.lastConfirmedRound);
+        return blankRepliq.reconstruct(environment.gspInstance, repliqContainer.repliqId, repliqContainer.masterOwnerId, fields, methods, atomicMethods, repliqContainer.isClient, repliqContainer.ownerAddress, repliqContainer.ownerPort, repliqContainer.lastConfirmedRound);
     }
     function deSerialiseRepliqDefinition(def) {
         let index = def.definition.indexOf("{");
@@ -804,14 +825,14 @@ function deserialise(value, enviroment) {
         return classObj;
     }
     function deSerialiseSignal(sigContainer) {
-        if (!enviroment.commMedium.hasConnection(sigContainer.ownerId)) {
-            enviroment.commMedium.openConnection(sigContainer.ownerId, sigContainer.ownerAddress, sigContainer.ownerPort);
+        if (!environment.commMedium.hasConnection(sigContainer.ownerId)) {
+            environment.commMedium.openConnection(sigContainer.ownerId, sigContainer.ownerAddress, sigContainer.ownerPort);
         }
         let signalId = sigContainer.id;
         let currentVal;
         if (sigContainer.obectValue) {
             let infoArr = sigContainer.currentValue;
-            currentVal = reconstructObject(new signal_1.SignalObject(), JSON.parse(infoArr[0]), JSON.parse(infoArr[1]), enviroment);
+            currentVal = reconstructObject(new signal_1.SignalObject(), JSON.parse(infoArr[0]), JSON.parse(infoArr[1]), environment);
         }
         else {
             let dummyFunc = new signal_1.SignalFunction(() => { });
@@ -826,10 +847,10 @@ function deserialise(value, enviroment) {
         signalProxy.value.setHolder(signalProxy);
         signalProxy.strong = sigContainer.strong;
         signalProxy.tempStrong = sigContainer.strong;
-        let known = enviroment.signalPool.knownSignal(signalId);
+        let known = environment.signalPool.knownSignal(signalId);
         if (!known) {
-            enviroment.signalPool.newSource(signalProxy);
-            enviroment.commMedium.sendMessage(sigContainer.ownerId, new Message_1.RegisterExternalSignalMessage(enviroment.thisRef, enviroment.thisRef.ownerId, signalId, enviroment.thisRef.ownerAddress, enviroment.thisRef.ownerPort));
+            environment.signalPool.newSource(signalProxy);
+            environment.commMedium.sendMessage(sigContainer.ownerId, new Message_1.RegisterExternalSignalMessage(environment.thisRef, environment.thisRef.ownerId, signalId, environment.thisRef.ownerAddress, environment.thisRef.ownerPort));
         }
         return signalProxy.value;
     }
@@ -843,7 +864,7 @@ function deserialise(value, enviroment) {
         //Create a dummy signal instance to get the class name
         let dummy = new classObj();
         mutators.forEach((mutator) => {
-            enviroment.signalPool.addMutator(dummy.constructor.name, mutator);
+            environment.signalPool.addMutator(dummy.constructor.name, mutator);
         });
         return classObj;
     }
@@ -854,9 +875,9 @@ function deserialise(value, enviroment) {
         return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
     }
     function deSerialiseSpiderIsolate(isolateContainer) {
-        var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), enviroment);
-        var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), enviroment);
-        var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), enviroment);
+        var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
+        var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
+        var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), environment);
         let ret = isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy);
         mirror.resolve();
         return ret;
@@ -882,6 +903,19 @@ function deserialise(value, enviroment) {
             }
         }
         return utils_1.reconstructClassDefinitionChain(def.definitions, null, reCreateClass);
+    }
+    function deSerialiseMap(mapContainer) {
+        let keys = JSON.parse(mapContainer.keys).map((key) => {
+            return deserialise(key, environment);
+        });
+        let vals = JSON.parse(mapContainer.values).map((val) => {
+            return deserialise(val, environment);
+        });
+        let m = new Map();
+        keys.forEach((key, index) => {
+            m.set(key, vals[index]);
+        });
+        return m;
     }
     switch (value.type) {
         case ValueContainer.nativeType:
@@ -916,6 +950,8 @@ function deserialise(value, enviroment) {
             return deSerialiseSpiderIsolateMirrorDefinition(value);
         case ValueContainer.classDefType:
             return deSerialiseClassDefinition(value);
+        case ValueContainer.mapType:
+            return deSerialiseMap(value);
         default:
             console.log(value);
             throw "Unknown value container type :  " + value.type;

@@ -99,7 +99,6 @@ export class GSP{
     }
 
     yieldReplicaRound(round : Round){
-        console.log("Yielding replica round")
         //A replica just finished performing updates.
         //Add these updates to the pending map and sent the round to the master
         if(!this.pending.has(round.objectId)){
@@ -138,7 +137,6 @@ export class GSP{
         //1) Set concerned object on replay modus (i.e. reset concerned fields to commited values)
         this.replay.push(round.objectId)
         let ev : Eventual = this.eventuals.get(round.objectId)
-        console.log("Committing round for eventual " + round.objectId)
         ev.resetToCommit()
         //2) Replay the round on the object. Depending on the field implementation this will commit tentative values
         this.playRound(round)
@@ -169,12 +167,10 @@ export class GSP{
     }
 
     registerMasterEventual(ev : Eventual){
-        console.log("Registering master eventual for ev: " + ev.id + " in " + this.thisActorId)
         this.eventuals.set(ev.id,ev)
     }
 
     registerHolderEventual(ev : Eventual,masterRef : FarRef){
-        console.log("Register holder eventual for ev: " + ev.id + " in " + this.thisActorId)
         this.eventuals.set(ev.id,ev)
         this.eventualOwner.set(ev.id,masterRef)
         masterRef.newHolder(ev.id,this.roundNumbers.get(ev.id),this)
@@ -185,7 +181,7 @@ export class GSP{
         this.environment.commMedium.sendMessage(replica[Repliq.getRepliqOwnerID],new GSPRegisterMessage(this.environment.thisRef,this.thisActorId,replicaId,this.thisActorAddress,this.thisActorPort,this.roundNumbers.get(replicaId)))
     }*/
 
-    newHolder(eventualId : string,holderRef : FarRef,roundNr : number){
+    newHolder(eventualId : string,roundNr : number,holderRef : FarRef){
         if(!(this.eventualHolders.has(eventualId))){
             this.eventualHolders.set(eventualId,[])
         }
@@ -219,11 +215,9 @@ export class GSP{
 
     newRound(round : Round){
         if(this.isMaster(round.masterOwnerId)){
-            console.log("Master received round")
             this.yieldMasterRound(round)
         }
         else{
-            console.log("Slave received round")
             this.confirmMasterRound(round)
         }
     }
