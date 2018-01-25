@@ -914,6 +914,35 @@ var performActorReferencePassingTest = () => {
 }
 scheduled.push(performActorReferencePassingTest)
 
+let someVar     = 5
+class TestScopeIsolate extends spider.SpiderIsolate{
+    val
+    constructor(){
+        super()
+        this.val = someVar
+    }
+}
+class TestScopeActor extends spider.Actor{
+    TestIsolate
+    constructor(){
+        super()
+        let scope = new spider.LexScope()
+        scope.addElement("someVar",someVar)
+        spider.bundleScope(TestScopeIsolate,scope)
+        this.TestIsolate = TestScopeIsolate
+    }
+    test(){
+        let isol = new this.TestIsolate()
+        return isol.val
+    }
+}
+var performScopeBunlde = () => {
+    return app.spawnActor(TestScopeActor).test().then((v)=>{
+        log("Scope Bundling",v,someVar)
+    })
+}
+scheduled.push(performScopeBunlde)
+
 class SuperInitActor extends spider.Actor{
     val
     constructor(){

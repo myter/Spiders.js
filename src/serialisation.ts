@@ -10,7 +10,11 @@ import {RepliqField} from "./Replication/RepliqField";
 import {RepliqObjectField} from "./Replication/RepliqObjectField";
 import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
-import {getClassDefinitionChain, getSerialiableClassDefinition, reconstructClassDefinitionChain} from "./utils";
+import {
+    ClassDefinitionChain,
+    getClassDefinitionChain, getSerialiableClassDefinition, hasLexScope, LexScope,
+    reconstructClassDefinitionChain
+} from "./utils";
 import {makeSpiderObjectProxy, SpiderObject, SpiderObjectMirror, wrapPrototypes} from "./MOP";
 
 var Signal      = require("./Reactivivity/signal").Signal
@@ -357,17 +361,21 @@ export class ArrayContainer extends ValueContainer{
 
 export class SpiderObjectDefinitionContainer extends ValueContainer{
     definitions : Array<string>
-    constructor(definitions : Array<string>){
+    scopes      : Array<ValueContainer>
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
         super(ValueContainer.spiderObjectDef)
-        this.definitions = definitions
+        this.definitions    = definitions
+        this.scopes         = scopes
     }
 }
 
 export class SpiderIsolateDefinitionContainer extends ValueContainer{
     definitions : Array<string>
-    constructor(definitions : Array<string>){
+    scopes      : Array<ValueContainer>
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
         super(ValueContainer.spiderIsolDef)
-        this.definitions = definitions
+        this.definitions    = definitions
+        this.scopes         = scopes
     }
 }
 
@@ -388,24 +396,30 @@ export class SpiderIsolateContainer extends ValueContainer{
 
 export class SpiderObjectMirrorDefinitionContainer extends ValueContainer{
     definitions : Array<string>
-    constructor(definitions : Array<string>){
+    scopes      : Array<ValueContainer>
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
         super(ValueContainer.objectMirrorDef)
-        this.definitions = definitions
+        this.definitions    = definitions
+        this.scopes         = scopes
     }
 }
 
 export class SpiderIsolateMirrorDefinitionContainer extends ValueContainer{
     definitions : Array<string>
-    constructor(definitions : Array<string>){
+    scopes      : Array<ValueContainer>
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
         super(ValueContainer.isolMirrorDef)
-        this.definitions = definitions
+        this.definitions    = definitions
+        this.scopes         = scopes
     }
 }
 export class ClassDefinitionContainer extends ValueContainer{
     definitions : Array<string>
-    constructor(definitions : Array<string>){
+    scopes      : Array<ValueContainer>
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
         super(ValueContainer.classDefType)
-        this.definitions = definitions
+        this.definitions    = definitions
+        this.scopes         = scopes
     }
 }
 export class RepliqContainer extends ValueContainer{
@@ -781,20 +795,56 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             return serialisePromise(value,receiverId,environment)
         }
         else if(isClass(value) && isObjectMirrorClass(value)){
-            let definitions = getClassDefinitionChain(value)
-            return new SpiderObjectMirrorDefinitionContainer(definitions)
+            let chain : ClassDefinitionChain = getClassDefinitionChain(value)
+            let scopes    = chain.classScopes.map((scope : LexScope)=>{
+                if(scope){
+                    return scope.scopeObjects
+                }
+                else{
+                    return scope
+                }
+            })
+            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            return new SpiderObjectMirrorDefinitionContainer(chain.serialisedClass,serScopes)
         }
         else if(isClass(value) && isIsolateMirrorClass(value)){
-            let definitions = getClassDefinitionChain(value)
-            return new SpiderIsolateMirrorDefinitionContainer(definitions)
+            let chain : ClassDefinitionChain = getClassDefinitionChain(value)
+            let scopes    = chain.classScopes.map((scope : LexScope)=>{
+                if(scope){
+                    return scope.scopeObjects
+                }
+                else{
+                    return scope
+                }
+            })
+            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            return new SpiderIsolateMirrorDefinitionContainer(chain.serialisedClass,serScopes)
         }
         else if(isClass(value) && isSpiderObjectClass(value)){
-            let definitions = getClassDefinitionChain(value)
-            return new SpiderObjectDefinitionContainer(definitions)
+            let chain : ClassDefinitionChain = getClassDefinitionChain(value)
+            let scopes    = chain.classScopes.map((scope : LexScope)=>{
+                if(scope){
+                    return scope.scopeObjects
+                }
+                else{
+                    return scope
+                }
+            })
+            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            return new SpiderObjectDefinitionContainer(chain.serialisedClass,serScopes)
         }
         else if(isClass(value) && isSpiderIsolateClass(value)){
-            let definitions = getClassDefinitionChain(value)
-            return new SpiderIsolateDefinitionContainer(definitions)
+            let chain : ClassDefinitionChain       = getClassDefinitionChain(value)
+            let scopes    = chain.classScopes.map((scope : LexScope)=>{
+                if(scope){
+                    return scope.scopeObjects
+                }
+                else{
+                    return scope
+                }
+            })
+            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            return new SpiderIsolateDefinitionContainer(chain.serialisedClass,serScopes)
         }
         else if(isClass(value) && isRepliqClass(value)){
             //TODO might need to extract annotations in same way that is done for signals
@@ -816,8 +866,17 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             return new SignalDefinitionContainer(definition,mutators)
         }
         else if(isClass(value)){
-            let definitions = getClassDefinitionChain(value,false)
-            return new ClassDefinitionContainer(definitions)
+            let chain : ClassDefinitionChain = getClassDefinitionChain(value,false)
+            let scopes    = chain.classScopes.map((scope : LexScope)=>{
+                if(scope){
+                    return scope.scopeObjects
+                }
+                else{
+                    return scope
+                }
+            })
+            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            return new ClassDefinitionContainer(chain.serialisedClass,serScopes)
         }
         else{
             throw new Error("Serialisation of functions disallowed: " + value.toString())
@@ -979,11 +1038,17 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
     }
 
     function deSerialiseSpiderObjectDefinition(def : SpiderObjectDefinitionContainer){
-        return reconstructClassDefinitionChain(def.definitions,require("./MOP").SpiderObject,require("./MOP").reCreateObjectClass)
+        let scopes = def.scopes.map((scope)=>{
+            return deserialise(scope,environment)
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderObject,require("./MOP").reCreateObjectClass)
     }
 
     function deSerialiseSpiderIsolateDefinition(def : SpiderIsolateDefinitionContainer){
-        return reconstructClassDefinitionChain(def.definitions,require("./MOP").SpiderIsolate,require("./MOP").reCreateIsolateClass)
+        let scopes = def.scopes.map((scope)=>{
+            return deserialise(scope,environment)
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderIsolate,require("./MOP").reCreateIsolateClass)
     }
 
     function deSerialiseSpiderIsolate(isolateContainer : SpiderIsolateContainer){
@@ -996,28 +1061,47 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
     }
 
     function deSerialiseSpiderObjectMirrorDefintion(def : SpiderObjectMirrorDefinitionContainer){
-        return reconstructClassDefinitionChain(def.definitions,require("./MOP").SpiderObjectMirror,require("./MOP").reCreateObjectMirrorClass)
+        let scopes = def.scopes.map((scope)=>{
+            return deserialise(scope,environment)
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderObjectMirror,require("./MOP").reCreateObjectMirrorClass)
     }
 
     function deSerialiseSpiderIsolateMirrorDefinition(def : SpiderIsolateMirrorDefinitionContainer){
-        return reconstructClassDefinitionChain(def.definitions,require("./MOP").SpiderIsolateMirror,require("./MOP").reCreateIsolateMirrorClass)
+        let scopes = def.scopes.map((scope)=>{
+            return deserialise(scope,environment)
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderIsolateMirror,require("./MOP").reCreateIsolateMirrorClass)
     }
 
     function deSerialiseClassDefinition(def : ClassDefinitionContainer){
-        function reCreateClass(classDefinition,superClass){
+        function reCreateClass(classDefinition,scope : Map<string,any>,superClass){
             if(superClass != null){
                 let index                           = classDefinition.indexOf("{")
                 let start                           = classDefinition.substring(0,index)
                 let stop                            = classDefinition.substring(index,classDefinition.length)
+                if(scope){
+                    scope.forEach((value,key)=>{
+                        this[key] = value
+                    })
+                }
                 var classObj                        = eval("("+start + " extends "+superClass+stop+")")
                 return classObj
             }
             else{
+                if(scope){
+                    scope.forEach((value,key)=>{
+                        this[key] = value
+                    })
+                }
                 var classObj                        = eval("("+classDefinition+")")
                 return classObj
             }
         }
-        return reconstructClassDefinitionChain(def.definitions,null,reCreateClass)
+        let scopes = def.scopes.map((scope)=>{
+            return deserialise(scope,environment)
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,null,reCreateClass)
     }
 
     function deSerialiseMap(mapContainer : MapContainer){

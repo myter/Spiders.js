@@ -89,33 +89,68 @@ function getSerialiableClassDefinition(classDefinition) {
     return classDefinition.toString().replace(/(\extends)(.*?)(?=\{)/, '');
 }
 exports.getSerialiableClassDefinition = getSerialiableClassDefinition;
+class ClassDefinitionChain {
+    constructor() {
+        this.serialisedClass = [];
+        this.classScopes = [];
+    }
+    addClass(classDefinition, classScope) {
+        this.serialisedClass.push(classDefinition);
+        this.classScopes.push(classScope);
+    }
+}
+exports.ClassDefinitionChain = ClassDefinitionChain;
 function getClassDefinitionChain(classDefinition, ignoreLast = true) {
-    let loop = (currentClass, accum) => {
+    let classDefChain = new ClassDefinitionChain();
+    let loop = (currentClass) => {
         if (Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)).includes("apply") && ignoreLast) {
-            return accum;
+            return;
         }
         else if (Reflect.ownKeys(currentClass).includes("apply")) {
-            return accum;
+            return;
         }
         else {
-            accum.push(getSerialiableClassDefinition(currentClass));
-            return loop(Reflect.getPrototypeOf(currentClass), accum);
+            let classScope;
+            if (hasLexScope(currentClass)) {
+                classScope = currentClass[LexScope._LEX_SCOPE_KEY_];
+            }
+            classDefChain.addClass(getSerialiableClassDefinition(currentClass), classScope);
+            loop(Reflect.getPrototypeOf(currentClass));
         }
     };
-    return loop(classDefinition, []);
+    loop(classDefinition);
+    return classDefChain;
 }
 exports.getClassDefinitionChain = getClassDefinitionChain;
-function reconstructClassDefinitionChain(classes, topClass, recreate) {
+function reconstructClassDefinitionChain(classes, scopes, topClass, recreate) {
     let loop = (currentIndex, parentClass) => {
         if (currentIndex == 0) {
-            return recreate(classes[currentIndex], parentClass);
+            return recreate(classes[currentIndex], scopes[currentIndex], parentClass);
         }
         else {
-            let newParent = recreate(classes[currentIndex], parentClass);
+            let newParent = recreate(classes[currentIndex], scopes[currentIndex], parentClass);
             return loop(--currentIndex, newParent);
         }
     };
     return loop(classes.length - 1, topClass);
 }
 exports.reconstructClassDefinitionChain = reconstructClassDefinitionChain;
+class LexScope {
+    constructor() {
+        this.scopeObjects = new Map();
+    }
+    addElement(key, value) {
+        this.scopeObjects.set(key.toString(), value);
+    }
+}
+LexScope._LEX_SCOPE_KEY_ = "_LEX_SCOPE_";
+exports.LexScope = LexScope;
+function bundleScope(classDefinition, scope) {
+    classDefinition[LexScope._LEX_SCOPE_KEY_] = scope;
+}
+exports.bundleScope = bundleScope;
+function hasLexScope(classDefinition) {
+    return Reflect.has(classDefinition, LexScope._LEX_SCOPE_KEY_);
+}
+exports.hasLexScope = hasLexScope;
 //# sourceMappingURL=utils.js.map

@@ -90,32 +90,73 @@ export function getSerialiableClassDefinition(classDefinition){
     return classDefinition.toString().replace(/(\extends)(.*?)(?=\{)/,'')
 }
 
-export function getClassDefinitionChain(classDefinition,ignoreLast = true){
-    let loop = (currentClass,accum) =>{
+export class ClassDefinitionChain{
+    serialisedClass : Array<string>
+    classScopes     : Array<LexScope>
+    constructor(){
+        this.serialisedClass    = []
+        this.classScopes        = []
+    }
+
+    addClass(classDefinition : string,classScope){
+        this.serialisedClass.push(classDefinition)
+        this.classScopes.push(classScope)
+    }
+}
+
+export function getClassDefinitionChain(classDefinition,ignoreLast = true) : ClassDefinitionChain{
+    let classDefChain = new ClassDefinitionChain()
+    let loop = (currentClass) =>{
         if((Reflect.ownKeys(Reflect.getPrototypeOf(currentClass)) as any).includes("apply") && ignoreLast){
-            return accum
+            return
         }
         else if((Reflect.ownKeys(currentClass) as any).includes("apply")){
-            return accum
+            return
         }
         else{
-            accum.push(getSerialiableClassDefinition(currentClass))
-            return loop(Reflect.getPrototypeOf(currentClass),accum)
+            let classScope
+            if(hasLexScope(currentClass)){
+                classScope = currentClass[LexScope._LEX_SCOPE_KEY_]
+            }
+            classDefChain.addClass(getSerialiableClassDefinition(currentClass),classScope)
+            loop(Reflect.getPrototypeOf(currentClass))
         }
     }
-    return loop(classDefinition,[])
+    loop(classDefinition)
+    return classDefChain
 
 }
 
-export function reconstructClassDefinitionChain(classes : Array<string>,topClass,recreate){
+export function reconstructClassDefinitionChain(classes : Array<string>,scopes : Array<Map<string,any>>,topClass,recreate){
     let loop =  (currentIndex,parentClass)=>{
         if(currentIndex == 0){
-            return recreate(classes[currentIndex],parentClass)
+            return recreate(classes[currentIndex],scopes[currentIndex],parentClass)
         }
         else{
-            let newParent = recreate(classes[currentIndex],parentClass)
+            let newParent = recreate(classes[currentIndex],scopes[currentIndex],parentClass)
             return loop(--currentIndex,newParent)
         }
     }
     return loop(classes.length-1,topClass)
+}
+
+export class LexScope{
+    static _LEX_SCOPE_KEY_ = "_LEX_SCOPE_"
+    scopeObjects : Map<string,any>
+
+    constructor(){
+        this.scopeObjects = new Map()
+    }
+
+    addElement(key,value){
+        this.scopeObjects.set(key.toString(),value)
+    }
+}
+
+export function bundleScope(classDefinition : Function, scope : LexScope){
+    classDefinition[LexScope._LEX_SCOPE_KEY_] = scope
+}
+
+export function hasLexScope(classDefinition){
+    return Reflect.has(classDefinition,LexScope._LEX_SCOPE_KEY_)
 }

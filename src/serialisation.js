@@ -319,16 +319,18 @@ class ArrayContainer extends ValueContainer {
 }
 exports.ArrayContainer = ArrayContainer;
 class SpiderObjectDefinitionContainer extends ValueContainer {
-    constructor(definitions) {
+    constructor(definitions, scopes) {
         super(ValueContainer.spiderObjectDef);
         this.definitions = definitions;
+        this.scopes = scopes;
     }
 }
 exports.SpiderObjectDefinitionContainer = SpiderObjectDefinitionContainer;
 class SpiderIsolateDefinitionContainer extends ValueContainer {
-    constructor(definitions) {
+    constructor(definitions, scopes) {
         super(ValueContainer.spiderIsolDef);
         this.definitions = definitions;
+        this.scopes = scopes;
     }
 }
 exports.SpiderIsolateDefinitionContainer = SpiderIsolateDefinitionContainer;
@@ -344,23 +346,26 @@ class SpiderIsolateContainer extends ValueContainer {
 SpiderIsolateContainer.checkIsolateFuncKey = "_INSTANCEOF_ISOLATE_";
 exports.SpiderIsolateContainer = SpiderIsolateContainer;
 class SpiderObjectMirrorDefinitionContainer extends ValueContainer {
-    constructor(definitions) {
+    constructor(definitions, scopes) {
         super(ValueContainer.objectMirrorDef);
         this.definitions = definitions;
+        this.scopes = scopes;
     }
 }
 exports.SpiderObjectMirrorDefinitionContainer = SpiderObjectMirrorDefinitionContainer;
 class SpiderIsolateMirrorDefinitionContainer extends ValueContainer {
-    constructor(definitions) {
+    constructor(definitions, scopes) {
         super(ValueContainer.isolMirrorDef);
         this.definitions = definitions;
+        this.scopes = scopes;
     }
 }
 exports.SpiderIsolateMirrorDefinitionContainer = SpiderIsolateMirrorDefinitionContainer;
 class ClassDefinitionContainer extends ValueContainer {
-    constructor(definitions) {
+    constructor(definitions, scopes) {
         super(ValueContainer.classDefType);
         this.definitions = definitions;
+        this.scopes = scopes;
     }
 }
 exports.ClassDefinitionContainer = ClassDefinitionContainer;
@@ -680,20 +685,56 @@ function serialise(value, receiverId, environment) {
             return serialisePromise(value, receiverId, environment);
         }
         else if (isClass(value) && isObjectMirrorClass(value)) {
-            let definitions = utils_1.getClassDefinitionChain(value);
-            return new SpiderObjectMirrorDefinitionContainer(definitions);
+            let chain = utils_1.getClassDefinitionChain(value);
+            let scopes = chain.classScopes.map((scope) => {
+                if (scope) {
+                    return scope.scopeObjects;
+                }
+                else {
+                    return scope;
+                }
+            });
+            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            return new SpiderObjectMirrorDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else if (isClass(value) && isIsolateMirrorClass(value)) {
-            let definitions = utils_1.getClassDefinitionChain(value);
-            return new SpiderIsolateMirrorDefinitionContainer(definitions);
+            let chain = utils_1.getClassDefinitionChain(value);
+            let scopes = chain.classScopes.map((scope) => {
+                if (scope) {
+                    return scope.scopeObjects;
+                }
+                else {
+                    return scope;
+                }
+            });
+            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            return new SpiderIsolateMirrorDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else if (isClass(value) && isSpiderObjectClass(value)) {
-            let definitions = utils_1.getClassDefinitionChain(value);
-            return new SpiderObjectDefinitionContainer(definitions);
+            let chain = utils_1.getClassDefinitionChain(value);
+            let scopes = chain.classScopes.map((scope) => {
+                if (scope) {
+                    return scope.scopeObjects;
+                }
+                else {
+                    return scope;
+                }
+            });
+            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            return new SpiderObjectDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else if (isClass(value) && isSpiderIsolateClass(value)) {
-            let definitions = utils_1.getClassDefinitionChain(value);
-            return new SpiderIsolateDefinitionContainer(definitions);
+            let chain = utils_1.getClassDefinitionChain(value);
+            let scopes = chain.classScopes.map((scope) => {
+                if (scope) {
+                    return scope.scopeObjects;
+                }
+                else {
+                    return scope;
+                }
+            });
+            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            return new SpiderIsolateDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else if (isClass(value) && isRepliqClass(value)) {
             //TODO might need to extract annotations in same way that is done for signals
@@ -715,8 +756,17 @@ function serialise(value, receiverId, environment) {
             return new SignalDefinitionContainer(definition, mutators);
         }
         else if (isClass(value)) {
-            let definitions = utils_1.getClassDefinitionChain(value, false);
-            return new ClassDefinitionContainer(definitions);
+            let chain = utils_1.getClassDefinitionChain(value, false);
+            let scopes = chain.classScopes.map((scope) => {
+                if (scope) {
+                    return scope.scopeObjects;
+                }
+                else {
+                    return scope;
+                }
+            });
+            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            return new ClassDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else {
             throw new Error("Serialisation of functions disallowed: " + value.toString());
@@ -869,10 +919,16 @@ function deserialise(value, environment) {
         return classObj;
     }
     function deSerialiseSpiderObjectDefinition(def) {
-        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
+        let scopes = def.scopes.map((scope) => {
+            return deserialise(scope, environment);
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
     }
     function deSerialiseSpiderIsolateDefinition(def) {
-        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
+        let scopes = def.scopes.map((scope) => {
+            return deserialise(scope, environment);
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
     }
     function deSerialiseSpiderIsolate(isolateContainer) {
         var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
@@ -883,26 +939,45 @@ function deserialise(value, environment) {
         return ret;
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {
-        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
+        let scopes = def.scopes.map((scope) => {
+            return deserialise(scope, environment);
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
     }
     function deSerialiseSpiderIsolateMirrorDefinition(def) {
-        return utils_1.reconstructClassDefinitionChain(def.definitions, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
+        let scopes = def.scopes.map((scope) => {
+            return deserialise(scope, environment);
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
     }
     function deSerialiseClassDefinition(def) {
-        function reCreateClass(classDefinition, superClass) {
+        function reCreateClass(classDefinition, scope, superClass) {
             if (superClass != null) {
                 let index = classDefinition.indexOf("{");
                 let start = classDefinition.substring(0, index);
                 let stop = classDefinition.substring(index, classDefinition.length);
+                if (scope) {
+                    scope.forEach((value, key) => {
+                        this[key] = value;
+                    });
+                }
                 var classObj = eval("(" + start + " extends " + superClass + stop + ")");
                 return classObj;
             }
             else {
+                if (scope) {
+                    scope.forEach((value, key) => {
+                        this[key] = value;
+                    });
+                }
                 var classObj = eval("(" + classDefinition + ")");
                 return classObj;
             }
         }
-        return utils_1.reconstructClassDefinitionChain(def.definitions, null, reCreateClass);
+        let scopes = def.scopes.map((scope) => {
+            return deserialise(scope, environment);
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, null, reCreateClass);
     }
     function deSerialiseMap(mapContainer) {
         let keys = JSON.parse(mapContainer.keys).map((key) => {

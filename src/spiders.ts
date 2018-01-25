@@ -15,7 +15,7 @@ import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {PubSubTag} from "./PubSub/SubTag";
 import {Subscription} from "./PubSub/SubClient";
-import {generateId, isBrowser} from "./utils";
+import {bundleScope, generateId, isBrowser, LexScope} from "./utils";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
 import {Eventual} from "./Onward/Eventual";
@@ -265,6 +265,7 @@ export type SpiderObjectClass           = {new(...args : any[]): SpiderObject}
 export type SpiderIsolateClass          = {new(...args : any[]): SpiderIsolate}
 export type SpiderObjectMirrorClass     = {new(...args : any[]): SpiderObjectMirror}
 export type SpiderIsolateMirrorClass    = {new(...args : any[]): SpiderIsolateMirror}
+export type LexScopeClass               = {new(...args : any[]): LexScope}
 
 export interface SpiderLib{
     Application                 : ApplicationClass
@@ -287,6 +288,8 @@ export interface SpiderLib{
     SpiderObject                : SpiderObjectClass
     SpiderIsolate               : SpiderIsolateClass
     SpiderIsolateMirror         : SpiderIsolateMirrorClass
+    LexScope                    : LexScopeClass
+    bundleScope                 : (Function,LexScope) => undefined
 }
 
 //Ugly, but a far reference has no static interface
@@ -309,6 +312,8 @@ exports.SpiderObject                = SpiderObject
 exports.SpiderObjectMirror          = SpiderObjectMirror
 exports.SpiderIsolateMirror         = SpiderIsolateMirror
 exports.SpiderActorMirror           = SpiderActorMirror
+exports.bundleScope                 = bundleScope
+exports.LexScope                    = LexScope
 if(isBrowser()){
     exports.Application = ClientApplication
     exports.Actor       = ClientActor

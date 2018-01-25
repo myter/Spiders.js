@@ -180,6 +180,8 @@ exports.SpiderObject = MOP_1.SpiderObject;
 exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
 exports.SpiderIsolateMirror = MOP_1.SpiderIsolateMirror;
 exports.SpiderActorMirror = MAP_1.SpiderActorMirror;
+exports.bundleScope = utils_1.bundleScope;
+exports.LexScope = utils_1.LexScope;
 if (utils_1.isBrowser()) {
     exports.Application = ClientApplication;
     exports.Actor = ClientActor;

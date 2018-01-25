@@ -145,15 +145,25 @@ export class SpiderIsolate{
 }
 
 //ReCreate functions ensure that deserialised class definitions are evalled in the same scope as the original definitions
-export function reCreateIsolateClass(classDefinition,superClass = undefined){
+export function reCreateIsolateClass(classDefinition,scope : Map<string,any>,superClass = undefined){
     if(superClass){
         let index                           = classDefinition.indexOf("{")
         let start                           = classDefinition.substring(0,index)
         let stop                            = classDefinition.substring(index,classDefinition.length)
+        if(scope){
+            scope.forEach((value,key)=>{
+                this[key] = value
+            })
+        }
         var classObj                        = eval("("+start + " extends "+superClass+stop+")")
         return classObj
     }
     else{
+        if(scope){
+            scope.forEach((value,key)=>{
+                this[key] = value
+            })
+        }
         var classObj                        = eval("("+classDefinition+")")
         return classObj
     }

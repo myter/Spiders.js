@@ -14,7 +14,7 @@ var spider  : SpiderLib         = require('../src/spiders')
 describe("Behaviour serialisation",() => {
     it("From file",(done)=>{
         var app = new spider.Application()
-        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition',"TestMapActor")
+        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition',"TestActor")
         act.getValue().then((val)=>{
             try{
                 expect(val).to.equal(5)
@@ -400,8 +400,43 @@ describe("Functionality",() => {
             }
         })
     })
+    it("Scope Bundling",(done)=>{
+        let app         = new spider.Application()
+        let someVar     = 5
+        class TestIsolate extends spider.SpiderIsolate{
+            val
+            constructor(){
+                super()
+                this.val = someVar
+            }
+        }
+        class TestActor extends spider.Actor{
+            TestIsolate
+            constructor(){
+                super()
+                let scope = new spider.LexScope()
+                scope.addElement("someVar",someVar)
+                spider.bundleScope(TestIsolate,scope)
+                this.TestIsolate = TestIsolate
+            }
+            test(){
+                let isol = new this.TestIsolate()
+                return isol.val
+            }
+        }
+        app.spawnActor(TestActor).test().then((v)=>{
+            try{
+                expect(v).to.equal(someVar)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
 })
-
 
 describe("Communication",() => {
 
