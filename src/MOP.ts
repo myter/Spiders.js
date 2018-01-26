@@ -171,4 +171,4 @@ export function reCreateIsolateClass(classDefinition,scope : Map<string,any>,sup
 
 export var reCreateObjectClass         = reCreateIsolateClass
 export var reCreateObjectMirrorClass   = reCreateIsolateClass
-export var reCreateISolateMirrorClass  = reCreateIsolateClass
+export var reCreateIsolateMirrorClass  = reCreateIsolateClass

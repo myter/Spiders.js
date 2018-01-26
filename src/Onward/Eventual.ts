@@ -1,5 +1,6 @@
 import {GSP} from "./GSP";
 import {SpiderLib} from "../spiders";
+import {bundleScope, LexScope} from "../utils";
 
 var spiders : SpiderLib = require("../spiders")
 
@@ -79,3 +80,6 @@ export class Eventual extends spiders.SpiderIsolate{
         })
     }
 }
+let evScope = new LexScope()
+evScope.addElement("EventualMirror",EventualMirror)
+bundleScope(Eventual,evScope)
