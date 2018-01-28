@@ -1,11 +1,199 @@
 import {SpiderLib} from "../src/spiders";
 import {Eventual} from "../src/Onward/Eventual";
 import {CAPActor} from "../src/Onward/CAPActor";
+import {Consistent} from "../src/Onward/Consistent";
+import {Available} from "../src/Onward/Available";
 
 var assert                      = require('assert')
 var chai                        = require('chai')
 var expect                      = chai.expect
 var spider  : SpiderLib         = require('../src/spiders')
+
+describe("Availables",()=>{
+    class TestAvailable extends Available{
+        value
+        constructor(){
+            super()
+            this.value = 5
+        }
+
+        incWithPrim(num){
+            this.value += num
+        }
+
+        incWithCon(con){
+            this.value += con.value
+        }
+    }
+
+    it("Check OK Constraint (primitive)",(done)=>{
+        let app = new spider.Application()
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+
+            test(){
+                let c = new this.TestConsistent()
+                c.incWithPrim(5)
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Constraint (Available)",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestConsistent()
+                c.incWithCon(cc)
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Constraint (Eventual)",(done)=>{
+        let app = new spider.Application()
+        class TestEventual extends Eventual{
+            value
+            constructor(){
+                super()
+                this.value  = 5
+            }
+        }
+        class Act extends CAPActor{
+            TestConsistent
+            TestEventual
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+                this.TestEventual   = TestEventual
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestEventual()
+                c.incWithCon(cc)
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check NOK Constraint",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                c.incWithCon({value:5})
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().catch((reasone)=>{
+            app.kill()
+            done()
+        })
+    })
+
+    it("Class serialisation",(done)=>{
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+            test(){
+                let c = new this.TestConsistent()
+                return c.value
+            }
+        }
+        let app = new spider.Application()
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Consistent Serialisation",(done)=>{
+        class Act2 extends CAPActor{
+            c
+            constructor(){
+                super()
+                this.c = new TestAvailable()
+            }
+
+            test(){
+                return this.c.value
+            }
+        }
+        let app = new spider.Application()
+        app.spawnActor(Act2).test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+})
 
 describe("Eventuals",()=>{
     class TestEventual extends Eventual{
@@ -19,7 +207,94 @@ describe("Eventuals",()=>{
         inc(){
             this.v1++
         }
+
+        incWithPrim(v){
+            this.v1 += v
+        }
+
+        incWithCon(c){
+            this.v1 += c.v1
+        }
     }
+
+    it("Check OK Constraint (primitive)",(done)=>{
+        let app = new spider.Application()
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestEventual
+            }
+
+            test(){
+                let c = new this.TestConsistent()
+                c.incWithPrim(5)
+                return c.v1
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Constraint (Eventual)",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestEventual
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestConsistent()
+                console.log(cc["_IS_EVENTUAL_"])
+                c.incWithCon(cc)
+                return c.v1
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check NOK Constraint",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestEventual
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                c.incWithCon({value:5})
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().catch((reasone)=>{
+            app.kill()
+            done()
+        })
+    })
 
     it("Class Serialisation",(done)=>{
         class Act extends spider.Actor{
@@ -56,7 +331,7 @@ describe("Eventuals",()=>{
             }
 
             test(){
-                return 5
+                return this.ev.v1
             }
         }
         let app = new spider.Application()
@@ -160,14 +435,153 @@ describe("Eventuals",()=>{
             }
         })
     })
-
-    //TODO test "constraints" (can only be done once other have been implemented as well)
 })
 
 describe("Consistents",()=>{
+    class TestConsistent extends Consistent{
+        value
+        constructor(){
+            super()
+            this.value = 5
+        }
 
+        incWithPrim(num){
+            this.value += num
+        }
+
+        incWithCon(con){
+            this.value += con.value
+        }
+    }
+
+    it("Check OK Constraint (primitive)",(done)=>{
+        let app = new spider.Application()
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+
+            test(){
+                let c = new this.TestConsistent()
+                c.incWithPrim(5)
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Constraint (Consistent)",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestConsistent()
+                c.incWithCon(cc)
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check NOK Constraint",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                c.incWithCon({value:5})
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().catch((reasone)=>{
+            app.kill()
+            done()
+        })
+    })
+
+    it("Class serialisation",(done)=>{
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+            test(){
+                let c = new this.TestConsistent()
+                return c.value
+            }
+        }
+        let app = new spider.Application()
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Consistent Serialisation",(done)=>{
+        class Act2 extends CAPActor{
+            c
+            constructor(){
+                super()
+                this.c = new TestConsistent()
+            }
+
+            test(){
+                return this.c.value
+            }
+        }
+        let app = new spider.Application()
+        app.spawnActor(Act2).test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
 })
 
-describe("Availables",()=>{
-
-})

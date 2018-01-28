@@ -4,34 +4,8 @@ import {bundleScope, LexScope} from "../utils";
 
 var spiders : SpiderLib = require("../spiders")
 
-export class EventualMirror extends spiders.SpiderIsolateMirror{
-    private ignoreInvoc(methodName){
-        return methodName == "setHost" || methodName == "resetToCommit" || methodName == "commit" || methodName == "populateCommitted"
-    }
-
-    invoke(methodName,args){
-        let baseEV = this.base as Eventual
-        if(!baseEV.hostGsp){
-            return super.invoke(methodName,args)
-        }
-        else if(!this.ignoreInvoc(methodName)){
-            if((baseEV.hostGsp.replay as any).includes(baseEV.id)){
-                return super.invoke(methodName,args)
-            }
-            else{
-                baseEV.hostGsp.createRound(baseEV.id,baseEV.ownerId,methodName,args)
-                let ret = super.invoke(methodName,args)
-                baseEV.hostGsp.yield(baseEV.id,baseEV.ownerId)
-                return ret
-            }
-
-        }
-        else{
-            return super.invoke(methodName,args)
-        }
-    }
-}
-
+export var _IS_EVENTUAL_KEY_ = "_IS_EVENTUAL_"
+var _LOCAL_KEY_ = "_IS_EVENTUAL_"
 export class Eventual extends spiders.SpiderIsolate{
     hostGsp             : GSP
     hostId              : string
@@ -51,12 +25,13 @@ export class Eventual extends spiders.SpiderIsolate{
 
     constructor(){
         super(new EventualMirror())
-        this.id             = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        this[_LOCAL_KEY_] = true
+        this.id                 = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
             return v.toString(16);
         })
-        this.isEventual     = true
-        this.committedVals   = new Map()
+        this.isEventual         = true
+        this.committedVals      = new Map()
     }
 
     //Called by host actor when this eventual is first passed to other actor
@@ -80,6 +55,81 @@ export class Eventual extends spiders.SpiderIsolate{
         })
     }
 }
-let evScope = new LexScope()
+export class EventualMirror extends spiders.SpiderIsolateMirror{
+    private ignoreInvoc(methodName){
+        return methodName == "setHost" || methodName == "resetToCommit" || methodName == "commit" || methodName == "populateCommitted"
+    }
+
+    private checkArg(arg){
+        if(arg instanceof Array){
+            let wrongArgs = arg.filter(this.checkArg)
+            return wrongArgs.length > 0
+        }
+        else if(typeof arg == 'object'){
+            //Does this look like I'm stupid ? Yes ! However undefined is not seen as a falsy value for filter while it is in the condition of an if ... go figure
+            if(!arg[_LOCAL_KEY_]){
+                return true
+            }
+            else{
+                return false
+            }
+        }
+        else{
+            return false
+        }
+    }
+
+    private canInvoke(methodName,args){
+        let wrongArgs = args.filter((arg)=>{
+            return this.checkArg(arg)
+        })
+        if(wrongArgs.length > 0){
+            let message = "Cannot pas non-eventual arguments to eventual method call: " + methodName
+            throw new Error(message)
+        }
+        else{
+            return true
+        }
+    }
+
+    invoke(methodName,args){
+        let baseEV = this.base as Eventual
+        if(!baseEV.hostGsp){
+            if(this.ignoreInvoc(methodName)){
+                return super.invoke(methodName,args)
+            }
+            else{
+                if(this.canInvoke(methodName,args)){
+                    return super.invoke(methodName,args)
+                }
+            }
+        }
+        else if(!this.ignoreInvoc(methodName)){
+            if((baseEV.hostGsp.replay as any).includes(baseEV.id)){
+                if(this.canInvoke(methodName,args)){
+                    return super.invoke(methodName,args)
+                }
+            }
+            else{
+                if(this.canInvoke(methodName,args)){
+                    baseEV.hostGsp.createRound(baseEV.id,baseEV.ownerId,methodName,args)
+                    let ret = super.invoke(methodName,args)
+                    baseEV.hostGsp.yield(baseEV.id,baseEV.ownerId)
+                    return ret
+                }
+            }
+        }
+        else{
+            //No need to check method call constraints, it's a system call
+            return super.invoke(methodName,args)
+        }
+    }
+}
+
+let evScope         = new LexScope()
+evScope.addElement("_LOCAL_KEY_",_LOCAL_KEY_)
 evScope.addElement("EventualMirror",EventualMirror)
 bundleScope(Eventual,evScope)
+let evMirrorScope   = new LexScope()
+evMirrorScope.addElement("_LOCAL_KEY_",_LOCAL_KEY_)
+bundleScope(EventualMirror,evMirrorScope)
