@@ -843,7 +843,9 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                     return scope
                 }
             })
-            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{
+                return serialise(scope,receiverId,environment)
+            })
             return new SpiderIsolateDefinitionContainer(chain.serialisedClass,serScopes)
         }
         else if(isClass(value) && isRepliqClass(value)){

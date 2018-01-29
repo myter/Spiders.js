@@ -1,5 +1,6 @@
-import {clone} from "./utils";
+import {clone, LexScope} from "./utils";
 import {SpiderIsolateContainer} from "./serialisation";
+import {FarReference} from "./FarRef";
 
 export class SpiderObjectMirror{
     static mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_"
@@ -124,7 +125,11 @@ export class SpiderIsolate{
     constructor(objectMirror : SpiderIsolateMirror = new SpiderIsolateMirror()){
         this[SpiderIsolateContainer.checkIsolateFuncKey] = true
         //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
+        let lex         = this.constructor[LexScope._LEX_SCOPE_KEY_]
         let thisClone   = clone(this)
+        //Cloning appears to break the lexical scope object (maps are wrongly cloned), this is an easy temp fix
+        this.constructor[LexScope._LEX_SCOPE_KEY_] = lex
+        //this.constructor = construct
         objectMirror.bindBase(thisClone)
         this.mirror     = objectMirror
         //Make sure the object's prototypes are wrapped as well

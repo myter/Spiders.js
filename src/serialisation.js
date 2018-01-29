@@ -733,7 +733,9 @@ function serialise(value, receiverId, environment) {
                     return scope;
                 }
             });
-            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            let serScopes = scopes.map((scope) => {
+                return serialise(scope, receiverId, environment);
+            });
             return new SpiderIsolateDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else if (isClass(value) && isRepliqClass(value)) {

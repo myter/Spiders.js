@@ -40,6 +40,12 @@ function cloneDR(o) {
             result[i] = cloneDR(o[i]);
         }
     }
+    else if (o instanceof Map) {
+        result = new Map();
+        o.forEach((val, key) => {
+            result.set(key, cloneDR(val));
+        });
+    }
     else if (o instanceof Function) {
         result = o;
     }
