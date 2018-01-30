@@ -144,7 +144,7 @@ export class SpiderActorMirror{
         //Pub/Sub       //
         //////////////////
 
-        behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
+        /*behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
             let psClient                    = new PSClient(serverAddress,serverPort,behaviourObject)
             behaviourObject["publish"]      = psClient.publish.bind(psClient)
             behaviourObject["subscribe"]    = psClient.subscribe.bind(psClient)
@@ -315,7 +315,7 @@ export class SpiderActorMirror{
                 }
 
             }
-        }
+        }*/
         if(!appActor){
             var initChain                   = this.getInitChain(behaviourObject,[])
             initChain.forEach((initFunc)=>{

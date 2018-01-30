@@ -27,10 +27,10 @@ function log(testName, result, expected) {
     li.appendChild(document.createTextNode(testName + ". Expected: " + expected + " . Result : " + result));
     li.setAttribute("id", "element4"); // added line
     if (result == expected) {
-        ul.style.color = "Green";
+        li.style.color = "Green";
     }
     else {
-        ul.style.color = "Red";
+        li.style.color = "Red";
     }
     ul.appendChild(li);
 }
@@ -921,11 +921,11 @@ var performStaticError = () =>{
 }
 scheduled.push(performStaticError)*/
 function performAll(nextTest) {
-    nextTest().then((dc) => {
+    nextTest().then(() => {
         if (scheduled.length > 0) {
             performAll(scheduled.pop());
         }
     });
 }
 performAll(scheduled.pop());
-//# sourceMappingURL=test.js.map
+//# sourceMappingURL=testBaseFramework.js.map
