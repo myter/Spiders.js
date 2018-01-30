@@ -121,6 +121,101 @@ describe("Availables",()=>{
         })
     })
 
+    it("Check OK Assignment (primitive)",(done)=>{
+        let app = new spider.Application()
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+
+            test(){
+                let c = new this.TestConsistent()
+                c.value = 6
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(6)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Assignment (Available)",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestConsistent()
+                c.value = cc
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v.value).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Assignment (Eventual)",(done)=>{
+        let app = new spider.Application()
+        class TestEventual extends Eventual{
+            value
+            constructor(){
+                super()
+                this.value  = 5
+            }
+        }
+        class Act extends CAPActor{
+            TestConsistent
+            TestEventual
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+                this.TestEventual   = TestEventual
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestEventual()
+                c.value = cc
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v.value).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
     it("Check NOK Constraint",(done)=>{
         let app = new spider.Application()
         class Act extends CAPActor{
@@ -136,7 +231,28 @@ describe("Availables",()=>{
                 return c.value
             }
         }
-        app.spawnActor(Act).test().catch((reasone)=>{
+        app.spawnActor(Act).test().catch(()=>{
+            app.kill()
+            done()
+        })
+    })
+
+    it("Check NOK Assignment",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestAvailable
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                c.value = {x:5}
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().catch(()=>{
             app.kill()
             done()
         })
@@ -257,7 +373,6 @@ describe("Eventuals",()=>{
             test(){
                 let c   = new this.TestConsistent()
                 let cc  = new this.TestConsistent()
-                console.log(cc["_IS_EVENTUAL_"])
                 c.incWithCon(cc)
                 return c.v1
             }
@@ -265,6 +380,63 @@ describe("Eventuals",()=>{
         app.spawnActor(Act).test().then((v)=>{
             try{
                 expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Assignment (primitive)",(done)=>{
+        let app = new spider.Application()
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestEventual
+            }
+
+            test(){
+                let c = new this.TestConsistent()
+                c.v1 = 6
+                return c.v1
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(6)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Assignment (Eventual)",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestEventual
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestConsistent()
+                c.v1 = cc
+                return c.v1
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v.v1).to.equal(5)
                 app.kill()
                 done()
             }
@@ -290,7 +462,28 @@ describe("Eventuals",()=>{
                 return c.value
             }
         }
-        app.spawnActor(Act).test().catch((reasone)=>{
+        app.spawnActor(Act).test().catch(()=>{
+            app.kill()
+            done()
+        })
+    })
+
+    it("Check NOK Assignment",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestEventual
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                c.v1 = {x:5}
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().catch(()=>{
             app.kill()
             done()
         })
@@ -511,6 +704,65 @@ describe("Consistents",()=>{
         })
     })
 
+    it("Check OK Assignment (primitive)",(done)=>{
+        let app = new spider.Application()
+        class Act extends spider.Actor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+
+            test(){
+                let c = new this.TestConsistent()
+                c.value = 6
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            try{
+                expect(v).to.equal(6)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+
+    it("Check OK Assignment (Consistent)",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                let cc  = new this.TestConsistent()
+                c.value = cc
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().then((v)=>{
+            v.value.then((vv)=>{
+                try{
+                    expect(vv).to.equal(5)
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
+        })
+    })
+
     it("Check NOK Constraint",(done)=>{
         let app = new spider.Application()
         class Act extends CAPActor{
@@ -526,7 +778,28 @@ describe("Consistents",()=>{
                 return c.value
             }
         }
-        app.spawnActor(Act).test().catch((reasone)=>{
+        app.spawnActor(Act).test().catch(()=>{
+            app.kill()
+            done()
+        })
+    })
+
+    it("Check NOK Assignment",(done)=>{
+        let app = new spider.Application()
+        class Act extends CAPActor{
+            TestConsistent
+            constructor(){
+                super()
+                this.TestConsistent = TestConsistent
+            }
+
+            test(){
+                let c   = new this.TestConsistent()
+                c.value = {x:5}
+                return c.value
+            }
+        }
+        app.spawnActor(Act).test().catch(()=>{
             app.kill()
             done()
         })

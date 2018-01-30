@@ -41,6 +41,15 @@ export class ConsistentMirror extends spiders.SpiderObjectMirror{
             return super.invoke(methodName,args)
         }
     }
+
+    write(fieldName,value){
+        if(this.checkArg(value)){
+            throw new Error("Cannot assign non-consistent argument to consistent field")
+        }
+        else{
+            return super.write(fieldName,value)
+        }
+    }
 }
 let consScope       = new LexScope()
 consScope.addElement("ConsistentMirror",ConsistentMirror)

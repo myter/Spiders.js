@@ -16,7 +16,7 @@ class Act extends spiders.Actor {
     }
     test() {
         let av = new this.TestAvailable();
-        //av.someVal = 111
+        av.someVal = 555;
         return av.someVal;
     }
 }

@@ -42,6 +42,15 @@ export class AvailableMirror extends spiders.SpiderIsolateMirror{
             return super.invoke(methodName,args)
         }
     }
+
+    write(fieldName,value){
+        if(this.checkArg(value)){
+            throw new Error("Cannot assign non-available argument to available field: " + fieldName)
+        }
+        else{
+            return super.write(fieldName,value)
+        }
+    }
 }
 
 let avScope       = new LexScope()

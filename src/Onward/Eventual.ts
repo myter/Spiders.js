@@ -124,6 +124,15 @@ export class EventualMirror extends spiders.SpiderIsolateMirror{
             return super.invoke(methodName,args)
         }
     }
+
+    write(fieldName,value){
+        if(this.checkArg(value) && fieldName != "hostGsp" && fieldName != "committedVals"){
+            throw new Error("Cannot assign non-eventual argument to eventual field: " + fieldName)
+        }
+        else{
+            return super.write(fieldName,value)
+        }
+    }
 }
 
 let evScope         = new LexScope()
