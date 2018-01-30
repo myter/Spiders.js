@@ -12,7 +12,7 @@ var spider = require('../src/spiders');
 describe("Behaviour serialisation", () => {
     it("From file", (done) => {
         var app = new spider.Application();
-        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition', "TestActor");
+        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition', "CustomWriteMOPActor");
         act.getValue().then((val) => {
             try {
                 expect(val).to.equal(5);
@@ -1160,6 +1160,46 @@ describe("Meta Object Protocol", () => {
         act.test().then((v) => {
             try {
                 expect(v).to.equal(10);
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
+    it("Custom Write", function (done) {
+        class TestMirror extends spider.SpiderObjectMirror {
+            write(fieldName, value) {
+                this.testValue = 5;
+                this.base[fieldName] = value * 2;
+                return true;
+            }
+        }
+        class TestObject extends spider.SpiderObject {
+            constructor(mirrorClass) {
+                super(new mirrorClass());
+                this.someField = 5;
+            }
+        }
+        class TestActor extends spider.Actor {
+            constructor() {
+                super();
+                this.TestObject = TestObject;
+                this.TestMirror = TestMirror;
+            }
+            test() {
+                let o = new this.TestObject(this.TestMirror);
+                let r = o.someField;
+                return this.reflectOnObject(o).testValue + r;
+            }
+        }
+        let app = new spider.Application();
+        let act = app.spawnActor(TestActor);
+        act.test().then((v) => {
+            try {
+                expect(v).to.equal(15);
                 app.kill();
                 done();
             }

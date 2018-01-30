@@ -272,6 +272,38 @@ let CustomAccessMop = () => {
     });
 };
 scheduled.push(CustomAccessMop);
+class custWriteMOPMirror extends spider.SpiderObjectMirror {
+    write(fieldName, value) {
+        this.testValue = 5;
+        this.base[fieldName] = value * 2;
+        return true;
+    }
+}
+class CustomWriteMOPObject extends spider.SpiderObject {
+    constructor(mirrorClass) {
+        super(new mirrorClass());
+        this.someField = 5;
+    }
+}
+class CustomWriteMOPActor extends spider.Actor {
+    constructor() {
+        super();
+        this.TestObject = CustomWriteMOPObject;
+        this.TestMirror = custWriteMOPMirror;
+    }
+    test() {
+        let o = new this.TestObject(this.TestMirror);
+        let r = o.someField;
+        return this.reflectOnObject(o).testValue + r;
+    }
+}
+let CustomWriteMop = () => {
+    let act = app.spawnActor(CustomWriteMOPActor);
+    return act.test().then((v) => {
+        log("Custom Write (MOP)", v, 15);
+    });
+};
+scheduled.push(CustomWriteMop);
 class CustomPassMopMirror extends spider.SpiderIsolateMirror {
     pass() {
         this.testValue = 5;

@@ -283,6 +283,38 @@ let CustomAccessMop = () => {
     });
 };
 scheduled.push(CustomAccessMop);
+class custWriteMOPMirror extends spider.SpiderObjectMirror {
+    write(fieldName, value) {
+        this.testValue = 5;
+        this.base[fieldName] = value * 2;
+        return true;
+    }
+}
+class CustomWriteMOPObject extends spider.SpiderObject {
+    constructor(mirrorClass) {
+        super(new mirrorClass());
+        this.someField = 5;
+    }
+}
+class CustomWriteMOPActor extends spider.Actor {
+    constructor() {
+        super();
+        this.TestObject = CustomWriteMOPObject;
+        this.TestMirror = custWriteMOPMirror;
+    }
+    test() {
+        let o = new this.TestObject(this.TestMirror);
+        let r = o.someField;
+        return this.reflectOnObject(o).testValue + r;
+    }
+}
+let CustomWriteMop = () => {
+    let act = app.spawnActor(CustomWriteMOPActor);
+    return act.test().then((v) => {
+        log("Custom Write (MOP)", v, 15);
+    });
+};
+scheduled.push(CustomWriteMop);
 class CustomPassMopMirror extends spider.SpiderIsolateMirror {
     pass() {
         this.testValue = 5;
@@ -56889,6 +56921,10 @@ class SpiderObjectMirror {
     access(fieldName) {
         return this.base[fieldName];
     }
+    write(fieldName, value) {
+        this.base[fieldName] = value;
+        return true;
+    }
     pass() {
         return makeSpiderObjectProxy(this.base, this, false);
     }
@@ -56910,6 +56946,10 @@ class SpiderIsolateMirror {
     }
     access(fieldName) {
         return this.base[fieldName];
+    }
+    write(fieldName, value) {
+        this.base[fieldName] = value;
+        return true;
     }
     pass() {
         return this.base;
@@ -56953,6 +56993,15 @@ function makeSpiderObjectProxy(baseObject, mirror, considerAsObject = true) {
                     return mirror.access(property);
                 }
             }
+        },
+        set: function (target, property, value, receiver) {
+            if (!isInternal(property.toString())) {
+                return mirror.write(property.toString(), value);
+            }
+            else {
+                target[property] = value;
+                return true;
+            }
         }
     });
 }
@@ -56982,7 +57031,11 @@ class SpiderIsolate {
     constructor(objectMirror = new SpiderIsolateMirror()) {
         this[serialisation_1.SpiderIsolateContainer.checkIsolateFuncKey] = true;
         //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
+        let lex = this.constructor[utils_1.LexScope._LEX_SCOPE_KEY_];
         let thisClone = utils_1.clone(this);
+        //Cloning appears to break the lexical scope object (maps are wrongly cloned), this is an easy temp fix
+        this.constructor[utils_1.LexScope._LEX_SCOPE_KEY_] = lex;
+        //this.constructor = construct
         objectMirror.bindBase(thisClone);
         this.mirror = objectMirror;
         //Make sure the object's prototypes are wrapped as well
@@ -57028,7 +57081,7 @@ function reCreateIsolateClass(classDefinition, scope, superClass = undefined) {
 exports.reCreateIsolateClass = reCreateIsolateClass;
 exports.reCreateObjectClass = reCreateIsolateClass;
 exports.reCreateObjectMirrorClass = reCreateIsolateClass;
-exports.reCreateISolateMirrorClass = reCreateIsolateClass;
+exports.reCreateIsolateMirrorClass = reCreateIsolateClass;
 
 },{"./serialisation":295,"./utils":297}],275:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -61084,7 +61137,9 @@ function serialise(value, receiverId, environment) {
                     return scope;
                 }
             });
-            let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
+            let serScopes = scopes.map((scope) => {
+                return serialise(scope, receiverId, environment);
+            });
             return new SpiderIsolateDefinitionContainer(chain.serialisedClass, serScopes);
         }
         else if (isClass(value) && isRepliqClass(value)) {
@@ -61624,6 +61679,12 @@ function cloneDR(o) {
         for (var i = 0; i < o.length; i++) {
             result[i] = cloneDR(o[i]);
         }
+    }
+    else if (o instanceof Map) {
+        result = new Map();
+        o.forEach((val, key) => {
+            result.set(key, cloneDR(val));
+        });
     }
     else if (o instanceof Function) {
         result = o;

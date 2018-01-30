@@ -1,6 +1,6 @@
 import {clone, LexScope} from "./utils";
 import {SpiderIsolateContainer} from "./serialisation";
-import {FarReference} from "./FarRef";
+
 
 export class SpiderObjectMirror{
     static mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_"
@@ -16,6 +16,11 @@ export class SpiderObjectMirror{
 
     access(fieldName){
         return this.base[fieldName]
+    }
+
+    write(fieldName,value) : boolean{
+        this.base[fieldName] = value
+        return true
     }
 
     pass(){
@@ -44,6 +49,11 @@ export class SpiderIsolateMirror{
 
     access(fieldName){
         return this.base[fieldName]
+    }
+
+    write(fieldName,value) : boolean{
+        this.base[fieldName] = value
+        return true
     }
 
     pass(){
@@ -91,6 +101,15 @@ export function makeSpiderObjectProxy(baseObject : SpiderObject,mirror : SpiderO
                 else{
                     return mirror.access(property)
                 }
+            }
+        },
+        set: function(target, property, value, receiver){
+            if(!isInternal(property.toString())){
+                return mirror.write(property.toString(),value)
+            }
+            else{
+                target[property] = value
+                return true
             }
         }
     })

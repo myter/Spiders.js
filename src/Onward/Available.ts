@@ -6,13 +6,14 @@ var spiders : SpiderLib = require("../spiders")
 var _IS_AVAILABLE_KEY_ = "_IS_AVAILABLE_"
 export class Available extends spiders.SpiderIsolate{
     constructor(){
-        super(new AvailableMirror())
+        let mirror = new AvailableMirror()
+        super(mirror)
         this[_IS_AVAILABLE_KEY_] = true
     }
 }
 
 export class AvailableMirror extends spiders.SpiderIsolateMirror{
-    private checkArg(arg){
+    checkArg(arg){
         if(arg instanceof Array){
             let wrongArgs = arg.filter(this.checkArg)
             return wrongArgs.length > 0

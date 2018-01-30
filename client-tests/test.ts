@@ -321,6 +321,45 @@ let CustomAccessMop = () => {
 }
 scheduled.push(CustomAccessMop)
 
+class custWriteMOPMirror extends spider.SpiderObjectMirror{
+    testValue
+
+    write(fieldName,value){
+        this.testValue = 5
+        this.base[fieldName] = value * 2
+        return true
+    }
+}
+class CustomWriteMOPObject extends spider.SpiderObject{
+    someField
+    constructor(mirrorClass){
+        super(new mirrorClass())
+        this.someField = 5
+    }
+}
+class CustomWriteMOPActor extends spider.Actor{
+    TestObject
+    TestMirror
+    constructor(){
+        super()
+        this.TestObject = CustomWriteMOPObject
+        this.TestMirror = custWriteMOPMirror
+    }
+    test(){
+        let o = new this.TestObject(this.TestMirror)
+        let r = o.someField
+        return (this.reflectOnObject(o) as custWriteMOPMirror).testValue + r
+    }
+}
+let CustomWriteMop = () => {
+    let act = app.spawnActor(CustomWriteMOPActor)
+    return act.test().then((v)=>{
+        log("Custom Write (MOP)",v,15)
+    })
+}
+scheduled.push(CustomWriteMop)
+
+
 class CustomPassMopMirror extends spider.SpiderIsolateMirror{
     testValue
 

@@ -23,25 +23,13 @@ class Act extends spiders.Actor{
     constructor(){
         super()
         this.thisDir = __dirname
-        console.log("before")
-        console.log(Available[LexScope._LEX_SCOPE_KEY_])
         this.av             = new TestAvailable()
-        console.log("after")
-        console.log(Available[LexScope._LEX_SCOPE_KEY_])
         this.TestAvailable  = TestAvailable
     }
 
     test(){
-        /*let TestAvailable = require(this.thisDir + "/test").TestAvailable
-        console.log("before")
-        console.log(TestAvailable[LexScope._LEX_SCOPE_KEY_])
-        console.log(TestAvailable[LexScope._LEX_SCOPE_KEY_].scopeObjects.get("AvailableMirror"))
-        let av = new TestAvailable()
-        console.log("after")
-        console.log(TestAvailable[LexScope._LEX_SCOPE_KEY_])
-        console.log(TestAvailable[LexScope._LEX_SCOPE_KEY_].scopeObjects.get("AvailableMirror"))
-        return av.someVal*/
         let av = new this.TestAvailable()
+        //av.someVal = 111
         return av.someVal
     }
 }
