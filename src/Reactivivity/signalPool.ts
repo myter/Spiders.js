@@ -1,5 +1,5 @@
 import {Signal, SignalDependency} from "./signal";
-import {ExternalSignalDeleteMessage} from "../messages";
+import {ExternalSignalDeleteMessage} from "../Message";
 import {ActorEnvironment} from "../ActorEnvironment";
 import {DPropAlgorithm} from "./DPropAlgorithm";
 import {NoGlitchFreedom} from "./NoGlitchFreedom";
@@ -24,8 +24,8 @@ export class SignalPool{
     lastPropMessage     : PropagationValue
     lastPulse           : NodePulse
 
-    constructor(environment : ActorEnvironment){
-        this.environment            = environment
+    constructor(actorEnvironment : ActorEnvironment){
+        this.environment            = actorEnvironment
         this.signals                = new Map()
         this.garbageSignals         = new Map()
         this.externalHolders        = new Map()

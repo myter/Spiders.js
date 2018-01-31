@@ -1,45 +1,25 @@
-/**
- * Created by flo on 20/01/2017.
- */
-var spiders = require("../src/spiders")
-class testApp extends spiders.Application{
-
-}
-var app = new testApp()
-class ServerActor1 extends app.Actor{
-    constructor(){
-        super()
-        this.clients = []
-        this.first = true
+Object.defineProperty(exports, "__esModule", { value: true });
+var spiders = require("../src/spiders");
+var app = new spiders.Application();
+class ServerActor1 extends spiders.Actor {
+    constructor(act2Ref) {
+        super();
+        this.clients = [];
+        this.act2Ref = act2Ref;
     }
-
-    register(clientRef){
-        this.clients.push(clientRef)
-        this.clients.forEach((i) => {
-            this.clients.forEach((j) => {
-                if(i != j){
-                    i.newPeer(j)
-                }
-            })
-        })
-        if(this.first){
-            clientRef.clientTestVal.then((val) => {
-                console.log("[TESTING] Client test val : " + val +  " [TESTING]")
-            })
-            remote("127.0.0.1",8081).then((serverRef) => {
-                serverRef.passClient(clientRef)
-            })
+    register(clientRef) {
+        this.clients.push(clientRef);
+        if (this.clients.length > 1) {
+            this.act2Ref.setupForRouting(this.clients[0], this.clients[1]);
         }
-        this.first = false
-        return true
+        return true;
     }
 }
-class ServerActor2 extends app.Actor{
-    passClient(clientRef){
-        clientRef.clientTestVal.then((val) => {
-            console.log("[TESTING] Routing : " + val + " [TESTING]")
-        })
+class ServerActor2 extends spiders.Actor {
+    setupForRouting(target, c) {
+        target.meet(c);
     }
 }
-app.spawnActor(ServerActor1,[],8080)
-app.spawnActor(ServerActor2,[],8081)
+let act2 = app.spawnActor(ServerActor2, [], 8081);
+app.spawnActor(ServerActor1, [act2], 8080);
+//# sourceMappingURL=server.js.map

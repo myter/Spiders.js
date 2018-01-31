@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-const commMedium_1 = require("./commMedium");
+const commMedium_1 = require("../../../src/CommMedium");
 /**
  * Created by flo on 18/01/2017.
  */
@@ -128,9 +128,9 @@ exports.PromisePool = PromisePool;
 (function (process){
 ///<reference path="../../../Library/Preferences/WebStorm2016.3/javascript/extLibs/http_github.com_DefinitelyTyped_DefinitelyTyped_raw_master_node_node.d.ts"/>
 const messageHandler_1 = require("./messageHandler");
-const sockets_1 = require("./sockets");
-const objectPool_1 = require("./objectPool");
-const farRef_1 = require("./farRef");
+const sockets_1 = require("../../../src/Sockets");
+const objectPool_1 = require("../../../src/ObjectPool");
+const farRef_1 = require("../../../src/FarRef");
 const PromisePool_1 = require("./PromisePool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
@@ -180,9 +180,9 @@ else {
 
 }).call(this,require('_process'))
 },{"./ChannelManager":1,"./PromisePool":2,"./farRef":5,"./messageHandler":6,"./objectPool":8,"./serialisation":9,"./sockets":10,"./utils":12,"_process":244}],4:[function(require,module,exports){
-const messages_1 = require("./messages");
-const farRef_1 = require("./farRef");
-const sockets_1 = require("./sockets");
+const messages_1 = require("../../../src/Message");
+const farRef_1 = require("../../../src/FarRef");
+const sockets_1 = require("../../../src/Sockets");
 /**
  * Created by flo on 17/01/2017.
  */
@@ -230,7 +230,7 @@ class CommMedium {
 exports.CommMedium = CommMedium;
 
 },{"./farRef":5,"./messages":7,"./sockets":10,"socket.io-client":71}],5:[function(require,module,exports){
-const messages_1 = require("./messages");
+const messages_1 = require("../../../src/Message");
 const serialisation_1 = require("./serialisation");
 /**
  * Created by flo on 21/12/2016.
@@ -359,10 +359,10 @@ class ServerFarReference extends FarReference {
 exports.ServerFarReference = ServerFarReference;
 
 },{"./messages":7,"./serialisation":9}],6:[function(require,module,exports){
-const messages_1 = require("./messages");
-const objectPool_1 = require("./objectPool");
+const messages_1 = require("../../../src/Message");
+const objectPool_1 = require("../../../src/ObjectPool");
 const serialisation_1 = require("./serialisation");
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../../src/FarRef");
 /**
  * Created by flo on 20/12/2016.
  */
@@ -555,7 +555,7 @@ class MessageHandler {
 exports.MessageHandler = MessageHandler;
 
 },{"./farRef":5,"./messages":7,"./objectPool":8,"./serialisation":9,"./utils":12}],7:[function(require,module,exports){
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../../src/FarRef");
 class Message {
     constructor(typeTag, senderRef) {
         this.typeTag = typeTag;
@@ -695,8 +695,8 @@ ObjectPool._BEH_OBJ_ID = 0;
 exports.ObjectPool = ObjectPool;
 
 },{}],9:[function(require,module,exports){
-const messages_1 = require("./messages");
-const farRef_1 = require("./farRef");
+const messages_1 = require("../../../src/Message");
+const farRef_1 = require("../../../src/FarRef");
 const spiders_1 = require("./spiders");
 /**
  * Created by flo on 19/12/2016.
@@ -1154,7 +1154,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool) {
 exports.deserialise = deserialise;
 
 },{"./farRef":5,"./messages":7,"./spiders":11}],10:[function(require,module,exports){
-const commMedium_1 = require("./commMedium");
+const commMedium_1 = require("../../../src/CommMedium");
 /**
  * Created by flo on 19/12/2016.
  */
@@ -1261,14 +1261,14 @@ exports.ServerSocketManager = ServerSocketManager;
 
 },{"./commMedium":4,"socket.io":85,"socket.io-client":71}],11:[function(require,module,exports){
 (function (__dirname){
-const sockets_1 = require("./sockets");
+const sockets_1 = require("../../../src/Sockets");
 const messageHandler_1 = require("./messageHandler");
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../../src/FarRef");
 const PromisePool_1 = require("./PromisePool");
-const objectPool_1 = require("./objectPool");
+const objectPool_1 = require("../../../src/ObjectPool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
-const messages_1 = require("./messages");
+const messages_1 = require("../../../src/Message");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -1305,7 +1305,7 @@ class ClientActor extends Actor {
         var actorId = utils.generateId();
         var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
-        var webWorker = work(require('./actorProto'));
+        var webWorker = work(require('../../../src/ActorProto'));
         webWorker.addEventListener('message', (event) => {
             app.mainMessageHandler.dispatch(event);
         });
@@ -21681,14 +21681,14 @@ arguments[4][9][0].apply(exports,arguments)
 arguments[4][10][0].apply(exports,arguments)
 },{"./commMedium":91,"dup":10,"socket.io":85,"socket.io-client":71}],98:[function(require,module,exports){
 (function (__dirname){
-const sockets_1 = require("./sockets");
+const sockets_1 = require("../../../src/Sockets");
 const messageHandler_1 = require("./messageHandler");
-const farRef_1 = require("./farRef");
+const farRef_1 = require("../../../src/FarRef");
 const PromisePool_1 = require("./PromisePool");
-const objectPool_1 = require("./objectPool");
+const objectPool_1 = require("../../../src/ObjectPool");
 const serialisation_1 = require("./serialisation");
 const ChannelManager_1 = require("./ChannelManager");
-const messages_1 = require("./messages");
+const messages_1 = require("../../../src/Message");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -21725,7 +21725,7 @@ class ClientActor extends Actor {
         var actorId = utils.generateId();
         var channelMappings = updateExistingChannels(app.mainRef, app.spawnedActors, actorId);
         var work = require('webworkify');
-        var webWorker = work(require('./actorProto'));
+        var webWorker = work(require('../../../src/ActorProto'));
         webWorker.addEventListener('message', (event) => {
             app.mainMessageHandler.dispatch(event);
         });
@@ -44504,7 +44504,7 @@ var utils   = require('../utils/common');
 var trees   = require('./trees');
 var adler32 = require('./adler32');
 var crc32   = require('./crc32');
-var msg     = require('./messages');
+var msg     = require('../../../src/Message');
 
 /* Public constants ==========================================================*/
 /* ===========================================================================*/

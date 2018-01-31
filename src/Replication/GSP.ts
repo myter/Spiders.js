@@ -2,8 +2,8 @@
  * Created by flo on 16/03/2017.
  */
 
-import {ServerFarReference} from "../farRef";
-import {GSPRoundMessage, GSPSyncMessage, GSPRegisterMessage} from "../messages";
+import {ServerFarReference} from "../FarRef";
+import {GSPRoundMessage, GSPSyncMessage, GSPRegisterMessage} from "../Message";
 import {Repliq} from "./Repliq";
 import {ArrayIsolate} from "../spiders";
 import {
@@ -70,7 +70,6 @@ export class GSP{
 
 
     constructor(thisActorId : string,environment : ActorEnvironment){
-
         this.thisActorId            = thisActorId
         this.environment            = environment
         //TODO Initialisisation of fields will be refactored together with communication

@@ -6,26 +6,20 @@ import {
     GSPRoundMessage, _GSP_SYNC_, GSPSyncMessage, _GSP_REGISTER_, GSPRegisterMessage, RegisterExternalSignalMessage,
     _REGISTER_EXTERNAL_SIGNAL_, ExternalSignalChangeMessage, _EXTERNAL_SIGNAL_CHANGE_, ExternalSignalDeleteMessage,
     _EXTERNAL_SIGNAL_DELETE_
-} from "./messages";
-import {ServerSocketManager} from "./sockets";
-import {PromisePool} from "./PromisePool";
-import {ObjectPool} from "./objectPool";
+} from "./Message";
+import {ServerSocketManager} from "./Sockets";
+import {ObjectPool} from "./ObjectPool";
 import {
-    ValueContainer, serialise, deserialise, reconstructObject, ClientFarRefContainer,
+    ValueContainer, serialise, deserialise, ClientFarRefContainer,
     reconstructBehaviour, reconstructStatic
 } from "./serialisation";
-import {ServerFarReference, FarReference, ClientFarReference} from "./farRef";
-import {CommMedium} from "./commMedium";
+import {ServerFarReference, ClientFarReference, FarReference} from "./FarRef";
 import {ChannelManager} from "./ChannelManager";
 import {Socket} from "net";
-import {GSP} from "./Replication/GSP";
-import {Signal} from "./Reactivivity/signal";
-import {SignalPool} from "./Reactivivity/signalPool";
-import {ActorEnvironment} from "./ActorEnvironment";
+import {ActorEnvironment, ClientActorEnvironment} from "./ActorEnvironment";
 /**
  * Created by flo on 20/12/2016.
  */
-var utils       = require('./utils')
 
 export class MessageHandler{
     environment : ActorEnvironment
@@ -62,23 +56,23 @@ export class MessageHandler{
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
     private handleInstall(msg : InstallBehaviourMessage,ports : Array<MessagePort>){
         var thisId                      = msg.actorId
-        var mainId                      = msg.mainId
-        this.environment.thisRef        = new ClientFarReference(ObjectPool._BEH_OBJ_ID,thisId,mainId,this.environment)
-        this.environment.gspInstance    = new GSP(thisId,this.environment)
+        var mainId                      = msg.mainId;
         var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,this.environment)
-        reconstructStatic(behaviourObject,msg.staticProperties,this.environment)
+        var actorMirror                 = reconstructBehaviour({},msg.mirrorVars,msg.mirrorMethods,this.environment)
+        actorMirror.bindBase(this.environment,serialise)
+        this.environment.actorMirror    = actorMirror
+        reconstructStatic(behaviourObject,msg.staticProperties,this.environment);
+        (this.environment as ClientActorEnvironment).initialise(thisId,mainId,behaviourObject)
         var otherActorIds               = msg.otherActorIds
-        this.environment.objectPool     = new ObjectPool(behaviourObject)
-        var parentRef                   = new ClientFarReference(ObjectPool._BEH_OBJ_ID,mainId,mainId,this.environment)
+        var parentRef                   = new ClientFarReference(ObjectPool._BEH_OBJ_ID,msg.senderRef[FarReference.farRefAccessorKey].objectFields,msg.senderRef[FarReference.farRefAccessorKey].objectMethods,mainId,mainId,this.environment)
         let channelManag                = this.environment.commMedium as ChannelManager
-        this.environment.signalPool     = new SignalPool(this.environment)
         var mainPort                = ports[0]
         channelManag.newConnection(mainId,mainPort)
         otherActorIds.forEach((id,index)=>{
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id,ports[index + 1])
         })
-        utils.installSTDLib(false,parentRef,behaviourObject,this.environment)
+        this.environment.actorMirror.initialise(false,parentRef)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
@@ -88,52 +82,55 @@ export class MessageHandler{
 
     private handleFieldAccess(msg : FieldAccessMessage){
         var targetObject    = this.environment.objectPool.getObject(msg.objectId)
-        var fieldVal        = Reflect.get(targetObject,msg.fieldName)
-        //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
-        if(typeof fieldVal != 'function'){
-            var serialised  = serialise(fieldVal,msg.senderId,this.environment)
-            var message     = new ResolvePromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
-            if(msg.senderType == Message.serverSenderType){
-                this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
+        this.environment.actorMirror.receiveAccess((msg.senderRef as any),targetObject,msg.fieldName,()=>{
+            var fieldVal        = Reflect.get(targetObject,msg.fieldName)
+            //Due to JS' crappy meta API actor might receive field access as part of a method invocation (see farRef implementation)
+            if(typeof fieldVal != 'function'){
+                var serialised  = serialise(fieldVal,msg.senderId,this.environment)
+                var message     = new ResolvePromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
+                if(msg.senderType == Message.serverSenderType){
+                    this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
+                }
+                else{
+                    this.sendReturnClient(msg.senderId,msg,message)
+                }
             }
-            else{
-                this.sendReturnClient(msg.senderId,msg,message)
-            }
-        }
+        })
     }
 
-    private handleMethodInvocation(msg : MethodInvocationMessage){
-        var targetObject                        = this.environment.objectPool.getObject(msg.objectId)
-        var methodName                          = msg.methodName
-        var args                                = msg.args
-        var deserialisedArgs                    = args.map((arg) => {
-            return deserialise(arg,this.environment)
+    private handleMethodInvocation(msg: MethodInvocationMessage) {
+        var targetObject = this.environment.objectPool.getObject(msg.objectId)
+        var methodName = msg.methodName
+        var args = msg.args
+        var deserialisedArgs = args.map((arg) => {
+            return deserialise(arg, this.environment)
         })
-        var retVal
-        try{
-            retVal = targetObject[methodName].apply(targetObject,deserialisedArgs)
-            //retVal = targetObject[methodName](...deserialisedArgs)
-            var serialised : ValueContainer         = serialise(retVal,msg.senderId,this.environment)
-            var message    : Message                = new ResolvePromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
-            if(msg.senderType == Message.serverSenderType){
-                this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
+        this.environment.actorMirror.receiveInvocation((msg.senderRef as any), targetObject, methodName, deserialisedArgs, () => {
+            var retVal
+            try {
+                retVal = targetObject[methodName].apply(targetObject, deserialisedArgs)
+                var serialised: ValueContainer = serialise(retVal, msg.senderId, this.environment)
+                var message: Message = new ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
+                if (msg.senderType == Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
+                }
+                else {
+                    this.sendReturnClient(msg.senderId, msg, message)
+                }
             }
-            else{
-                this.sendReturnClient(msg.senderId,msg,message)
+            catch (reason) {
+                console.log("Went wrong for : " + methodName)
+                console.log(reason)
+                var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
+                message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
+                if (msg.senderType == Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
+                }
+                else {
+                    this.sendReturnClient(msg.senderId, msg, message)
+                }
             }
-        }
-        catch(reason){
-            console.log("Went wrong for : " + methodName)
-            var serialised : ValueContainer         = serialise(reason,msg.senderId,this.environment)
-            message                             = new RejectPromiseMessage(this.environment.thisRef,msg.promiseId,serialised)
-            if(msg.senderType == Message.serverSenderType){
-                this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,message)
-            }
-            else{
-                this.sendReturnClient(msg.senderId,msg,message)
-            }
-        }
-
+        })
     }
 
     private handlePromiseResolve(msg : ResolvePromiseMessage){
@@ -173,12 +170,12 @@ export class MessageHandler{
 
     private handleResolveConnection(msg : ResolveConnectionMessage){
         this.environment.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
-        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
+        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderRef[FarReference.farRefAccessorKey].objectFields,msg.senderRef[FarReference.farRefAccessorKey].objectMethods,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
         this.environment.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
     }
 
     private handleRoute(msg : RouteMessage){
-        //TODO temp fix , works but should be refactored
+        //Must ensure that any client references "leaking" form this server actor also have the correct contact information
         if(msg.message.typeTag == _METHOD_INVOC_){
             var args = (msg.message as MethodInvocationMessage).args
             args.forEach((valContainer : ValueContainer)=>{
@@ -235,6 +232,7 @@ export class MessageHandler{
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
+        msg.senderRef = deserialise(msg.senderRef as any,this.environment)
         switch(msg.typeTag){
             case _INSTALL_BEHAVIOUR_:
                 this.handleInstall(msg as InstallBehaviourMessage,ports)

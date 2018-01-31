@@ -6,7 +6,7 @@ const serialisation_1 = require("../serialisation");
 var spiders = require("../spiders");
 class PubSubTag {
     constructor(tagVal) {
-        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
+        this[serialisation_1.SpiderIsolateContainer.checkIsolateFuncKey] = true;
         this.tagVal = tagVal;
     }
     equals(otherTag) {

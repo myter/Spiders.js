@@ -1,6 +1,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const signal_1 = require("./signal");
-const messages_1 = require("../messages");
+const Message_1 = require("../Message");
 const serialisation_1 = require("../serialisation");
 class NoGlitchFreedom {
     setSignalPool(signalPool) {
@@ -23,7 +23,7 @@ class NoGlitchFreedom {
     }
     propagate(signal, toIds) {
         toIds.forEach((toId) => {
-            this.signalPool.environment.commMedium.sendMessage(toId, new messages_1.ExternalSignalChangeMessage(this.signalPool.environment.thisRef, signal.id, serialisation_1.serialise(signal.value, toId, this.signalPool.environment)));
+            this.signalPool.environment.commMedium.sendMessage(toId, new Message_1.ExternalSignalChangeMessage(this.signalPool.environment.thisRef, signal.id, serialisation_1.serialise(signal.value, toId, this.signalPool.environment)));
         });
     }
 }

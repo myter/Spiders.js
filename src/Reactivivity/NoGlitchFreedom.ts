@@ -1,7 +1,7 @@
 import {DPropAlgorithm} from "./DPropAlgorithm";
 import {SignalPool} from "./signalPool";
 import {Signal, SignalFunction} from "./signal";
-import {ExternalSignalChangeMessage} from "../messages";
+import {ExternalSignalChangeMessage} from "../Message";
 import {serialise} from "../serialisation";
 
 export class NoGlitchFreedom implements DPropAlgorithm{

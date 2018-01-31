@@ -5,7 +5,7 @@ import {Queue} from "./Queue";
 import {DPropAlgorithm} from "./DPropAlgorithm";
 import {SignalPool} from "./signalPool";
 import {mutator, Signal, SignalFunction, SignalObject} from "./signal";
-import {FarReference} from "../farRef";
+import {FarReference} from "../FarRef";
 
 class SourceIsolate{
     sources

@@ -4,9 +4,9 @@
   "main": "src/spiders.js",
   "typings": "src/spiders",
   "scripts": {
-    "build-client-tests": "browserify client-tests/test.js -o client-tests/bundle.js",
-    "build-full-tests-client1": "browserify full-tests/client1.js -o full-tests/full-bundle1.js",
-    "build-full-tests-client2": "browserify full-tests/client2.js -o full-tests/full-bundle2.js",
+    "build-client-tests": "browserify client-tests/testBaseFramework.js -o client-tests/baseBundle.js",
+    "build-client-cap-tests": "browserify client-tests/testCapExtension.js -o client-tests/CAPExtensionBundle.js",
+    "build-full-tests-client": "browserify full-tests/client.js -o full-tests/full-bundle.js",
     "build-client-benchmarks": "browserify benchmarks/Client-Benchmarks/ClientBenchmarks.js -o benchmarks/Client-Benchmarks/bundle.js",
     "build-spiderpong-client": "browserify SpiderPong/spiderClient/js/logic.js -o SpiderPong/spiderClient/bundle.js",
     "build-nativepong-client": "browserify NativePong/nativeClient/js/logic.js -o NativePong/nativeClient/bundle.js",
