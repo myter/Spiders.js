@@ -1,4 +1,3 @@
-import {serialise} from "./serialisation";
 import {ActorEnvironment} from "./ActorEnvironment";
 
 /**
