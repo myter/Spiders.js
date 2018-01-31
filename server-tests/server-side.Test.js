@@ -12,7 +12,7 @@ var spider = require('../src/spiders');
 describe("Behaviour serialisation", () => {
     it("From file", (done) => {
         var app = new spider.Application();
-        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition', "CustomWriteMOPActor");
+        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition', "TestActor");
         act.getValue().then((val) => {
             try {
                 expect(val).to.equal(5);

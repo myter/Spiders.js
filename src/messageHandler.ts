@@ -120,6 +120,7 @@ export class MessageHandler{
             }
             catch (reason) {
                 console.log("Went wrong for : " + methodName)
+                console.log(reason)
                 var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
                 message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
                 if (msg.senderType == Message.serverSenderType) {
@@ -174,7 +175,7 @@ export class MessageHandler{
     }
 
     private handleRoute(msg : RouteMessage){
-        //TODO temp fix , works but should be refactored
+        //Must ensure that any client references "leaking" form this server actor also have the correct contact information
         if(msg.message.typeTag == _METHOD_INVOC_){
             var args = (msg.message as MethodInvocationMessage).args
             args.forEach((valContainer : ValueContainer)=>{

@@ -33,7 +33,7 @@ export class SpiderActorMirror{
         }
     }
 
-    private sendRoute(toId: string,contactAddress,contactPort, msg: Message) {
+    private sendRoute(toId : string,contactId: string,contactAddress,contactPort, msg: Message) {
         if (!this.base.commMedium.hasConnection(toId)) {
             this.base.commMedium.openConnection(toId, contactAddress, contactPort)
         }
@@ -42,25 +42,34 @@ export class SpiderActorMirror{
         msg.contactAddress = contactAddress
         msg.contactPort = contactPort
 
-        this.base.commMedium.sendMessage(toId, new RouteMessage(this.base.thisRef, this.base.thisRef.ownerId, msg))
+        this.base.commMedium.sendMessage(toId, new RouteMessage(this.base.thisRef, toId, msg))
     }
 
-    private send(toId: string, msg: Message,contactId,contactAddress,contactPort,mainId) {
+    private send(targetRef : FarReference,toId: string, msg: Message,contactId,contactAddress,contactPort,mainId) {
         let holderRef = this.base.thisRef
         if (holderRef instanceof ServerFarReference) {
-            if (holderRef.ownerId == contactId) {
+            if(targetRef instanceof ServerFarReference){
+                this.base.commMedium.sendMessage(toId,msg)
+            }
+            else if (holderRef.ownerId == contactId) {
                 this.base.commMedium.sendMessage(toId, msg)
             }
             else {
-                this.sendRoute(contactId,contactAddress,contactPort, msg)
+                this.sendRoute(toId,contactId,contactAddress,contactPort, msg)
             }
         }
         else {
-            if ((holderRef as ClientFarReference).mainId == mainId) {
+            if(targetRef instanceof ServerFarReference){
+                if(!this.base.commMedium.hasConnection(toId)){
+                    this.base.commMedium.openConnection(toId,targetRef.ownerAddress,targetRef.ownerPort)
+                }
+                this.base.commMedium.sendMessage(toId,msg)
+            }
+            else if ((holderRef as ClientFarReference).mainId == mainId) {
                 this.base.commMedium.sendMessage(toId, msg)
             }
             else {
-                this.sendRoute(contactId,contactAddress,contactPort, msg)
+                this.sendRoute(toId,contactId,contactAddress,contactPort, msg)
             }
         }
     }
@@ -337,13 +346,13 @@ export class SpiderActorMirror{
         let serialisedArgs = args.map((arg)=>{
             return this.serialise(arg,target.ownerId,this.base)
         })
-        this.send(target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,serialisedArgs,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
+        this.send(target,target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,serialisedArgs,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 
     sendAccess(target : FarReference,fieldName : string,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null) : Promise<any>{
         var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
-        this.send(target.ownerId,new FieldAccessMessage(this.base.thisRef,target.objectId,fieldName,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
+        this.send(target,target.ownerId,new FieldAccessMessage(this.base.thisRef,target.objectId,fieldName,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 }
