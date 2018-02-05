@@ -33,7 +33,7 @@ export class SpiderObjectMirror{
 }
 
 export class SpiderIsolateMirror{
-    base : SpiderObject
+    base : SpiderIsolate
 
     constructor(){
         this[SpiderIsolateContainer.checkIsolateFuncKey] = true

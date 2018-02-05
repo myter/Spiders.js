@@ -1,31 +1,13 @@
-import {SpiderIsolate,Actor,Application} from "../src/spiders"
+import {Actor, Application, FarRef} from "../src/spiders";
+//var spiders = require('spiders.js')
+class TestApplication extends Application{
 
-class TestAvailable extends SpiderIsolate{
-    someVal
-    constructor(){
-        super()
-        this.someVal = 5
-    }
 }
 
-class Act extends Actor{
-    TestAvailable
-    av
-    thisDir
-    constructor(){
-        super()
-        this.thisDir = __dirname
-        this.av             = new TestAvailable()
-        this.TestAvailable  = TestAvailable
-    }
-
-    test(){
-        let av = new this.TestAvailable()
-        av.someVal = 555
-        return av.someVal
+class TestActor extends Actor{
+    init(){
+        console.log("Actor has been initialised!!")
     }
 }
 let app = new Application()
-app.spawnActor(Act).test().then((v)=>{
-    console.log("Got back:  " + v)
-})
+app.spawnActor(TestActor)

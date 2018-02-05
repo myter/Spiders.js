@@ -144,10 +144,6 @@ export class SpiderActorMirror{
         behaviourObject["reflectOnObject"]  = (object : any) =>{
             return object[SpiderObjectMirror.mirrorAccessKey]
         }
-        behaviourObject["instantiate"]      = (classDefinition,...args) =>{
-            let ob = new classDefinition(...args)
-            return ob
-        }
         ///////////////////
         //Pub/Sub       //
         //////////////////

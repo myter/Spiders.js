@@ -1,26 +1,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
-class TestAvailable extends spiders_1.SpiderIsolate {
-    constructor() {
-        super();
-        this.someVal = 5;
-    }
+//var spiders = require('spiders.js')
+class TestApplication extends spiders_1.Application {
 }
-class Act extends spiders_1.Actor {
-    constructor() {
-        super();
-        this.thisDir = __dirname;
-        this.av = new TestAvailable();
-        this.TestAvailable = TestAvailable;
-    }
-    test() {
-        let av = new this.TestAvailable();
-        av.someVal = 555;
-        return av.someVal;
+class TestActor extends spiders_1.Actor {
+    init() {
+        console.log("Actor has been initialised!!");
     }
 }
 let app = new spiders_1.Application();
-app.spawnActor(Act).test().then((v) => {
-    console.log("Got back:  " + v);
-});
+app.spawnActor(TestActor);
 //# sourceMappingURL=temp.js.map
