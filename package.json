@@ -1,7 +1,7 @@
 {
   "name": "spiders.js",
   "version": "1.1.0",
-  "main": "index.js",
+  "main": "./src/spiders.js",
   "typings": "./index.d.ts",
   "scripts": {
     "build-client-tests": "browserify client-tests/testBaseFramework.js -o client-tests/baseBundle.js",
