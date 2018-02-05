@@ -3,18 +3,9 @@ const FarRef_1 = require("./FarRef");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
 const Message_1 = require("./Message");
-const Repliq_1 = require("./Replication/Repliq");
-const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
-const RepliqField_1 = require("./Replication/RepliqField");
-const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
-const signal_1 = require("./Reactivivity/signal");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
-const MOP_1 = require("./MOP");
-/**
- * Created by flo on 05/12/2016.
- */
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -32,7 +23,6 @@ class Actor {
         this.actorMirror = actorMirror;
     }
 }
-exports.Actor = Actor;
 class ClientActor extends Actor {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
@@ -154,6 +144,9 @@ class ClientApplication extends Application {
         var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, actorClass);
     }
+    spawnActorFromFile(path, className, constructorArgs, port) {
+        throw new Error("Cannot spawn actor from file in client-side context");
+    }
     kill() {
         this.spawnedActors.forEach((workerPair) => {
             workerPair[1].terminate();
@@ -162,32 +155,26 @@ class ClientApplication extends Application {
         this.spawnedActors = [];
     }
 }
-exports.Repliq = Repliq_1.Repliq;
-exports.Signal = signal_1.SignalObject;
-exports.mutator = signal_1.mutator;
-exports.atomic = Repliq_1.atomic;
-exports.lease = signal_1.lease;
-exports.strong = signal_1.strong;
-exports.weak = signal_1.weak;
-exports.LWR = RepliqPrimitiveField_1.LWR;
-exports.Count = RepliqPrimitiveField_1.Count;
-exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
-exports.RepliqObjectField = RepliqObjectField_1.RepliqObjectField;
-exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
-exports.FieldUpdate = RepliqField_1.FieldUpdate;
+var exportActor;
+exports.Actor = exportActor;
+var exportApp;
+exports.Application = exportApp;
+if (utils_1.isBrowser()) {
+    exports.Application = exportApp = ClientApplication;
+    exports.Actor = exportActor = ClientActor;
+}
+else {
+    exports.Application = exportApp = ServerApplication;
+    exports.Actor = exportActor = ServerActor;
+}
+var MOP_1 = require("./MOP");
 exports.SpiderIsolate = MOP_1.SpiderIsolate;
 exports.SpiderObject = MOP_1.SpiderObject;
 exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
 exports.SpiderIsolateMirror = MOP_1.SpiderIsolateMirror;
-exports.SpiderActorMirror = MAP_1.SpiderActorMirror;
-exports.bundleScope = utils_1.bundleScope;
-exports.LexScope = utils_1.LexScope;
-if (utils_1.isBrowser()) {
-    exports.Application = ClientApplication;
-    exports.Actor = ClientActor;
-}
-else {
-    exports.Application = ServerApplication;
-    exports.Actor = ServerActor;
-}
+var MAP_2 = require("./MAP");
+exports.SpiderActorMirror = MAP_2.SpiderActorMirror;
+var utils_2 = require("./utils");
+exports.bundleScope = utils_2.bundleScope;
+exports.LexScope = utils_2.LexScope;
 //# sourceMappingURL=spiders.js.map

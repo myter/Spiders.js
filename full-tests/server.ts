@@ -1,8 +1,6 @@
-import {FarRef, SpiderLib} from "../src/spiders";
-
-var spiders : SpiderLib = require("../src/spiders")
-var app = new spiders.Application()
-class ServerActor1 extends spiders.Actor{
+import {Actor,Application,FarRef} from "../src/spiders"
+var app = new Application()
+class ServerActor1 extends Actor{
     clients : Array<FarRef>
     act2Ref
     constructor(act2Ref){
@@ -19,7 +17,7 @@ class ServerActor1 extends spiders.Actor{
         return true
     }
 }
-class ServerActor2 extends spiders.Actor{
+class ServerActor2 extends Actor{
     setupForRouting(target,c){
         target.meet(c)
     }

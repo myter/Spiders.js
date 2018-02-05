@@ -1,6 +1,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-var spiders = require("../src/spiders");
-class ClientApp extends spiders.Application {
+const spiders_1 = require("../src/spiders");
+class ClientApp extends spiders_1.Application {
     log(testName, result, expected) {
         var ul = document.getElementById("resultList");
         var li = document.createElement("li");
@@ -31,7 +31,7 @@ class ClientApp extends spiders.Application {
         ul.appendChild(li);
     }
 }
-class TestIsolate extends spiders.SpiderIsolate {
+class TestIsolate extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.value = 5;
@@ -40,7 +40,7 @@ class TestIsolate extends spiders.SpiderIsolate {
         return this.value;
     }
 }
-class TestObject extends spiders.SpiderObject {
+class TestObject extends spiders_1.SpiderObject {
     constructor() {
         super();
         this.value = 5;
@@ -49,7 +49,7 @@ class TestObject extends spiders.SpiderObject {
         return this.value;
     }
 }
-class ClientActor extends spiders.Actor {
+class ClientActor extends spiders_1.Actor {
     constructor(myId) {
         super();
         this.myId = myId;

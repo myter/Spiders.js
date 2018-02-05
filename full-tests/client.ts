@@ -1,7 +1,6 @@
-import {FarRef, SpiderLib} from "../src/spiders";
+import {Application,Actor,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,bundleScope,LexScope,FarRef} from "../src/spiders"
 
-var spiders : SpiderLib = require("../src/spiders")
-class ClientApp extends spiders.Application{
+class ClientApp extends Application{
     log(testName,result,expected){
         var ul = document.getElementById("resultList");
         var li = document.createElement("li");
@@ -36,7 +35,7 @@ class ClientApp extends spiders.Application{
     }
 }
 
-class TestIsolate extends spiders.SpiderIsolate{
+class TestIsolate extends SpiderIsolate{
     value
 
     constructor(){
@@ -49,7 +48,7 @@ class TestIsolate extends spiders.SpiderIsolate{
     }
 }
 
-class TestObject extends spiders.SpiderObject{
+class TestObject extends SpiderObject{
     value
 
     constructor(){
@@ -62,7 +61,7 @@ class TestObject extends spiders.SpiderObject{
     }
 }
 
-class ClientActor extends spiders.Actor{
+class ClientActor extends Actor{
     serverRef : FarRef
     myId
     TestIsolate

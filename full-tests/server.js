@@ -1,7 +1,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-var spiders = require("../src/spiders");
-var app = new spiders.Application();
-class ServerActor1 extends spiders.Actor {
+const spiders_1 = require("../src/spiders");
+var app = new spiders_1.Application();
+class ServerActor1 extends spiders_1.Actor {
     constructor(act2Ref) {
         super();
         this.clients = [];
@@ -15,7 +15,7 @@ class ServerActor1 extends spiders.Actor {
         return true;
     }
 }
-class ServerActor2 extends spiders.Actor {
+class ServerActor2 extends spiders_1.Actor {
     setupForRouting(target, c) {
         target.meet(c);
     }

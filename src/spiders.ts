@@ -20,10 +20,12 @@ import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
 import {Eventual} from "./Onward/Eventual";
 import {CAPActor} from "./Onward/CAPActor";
+import {FarRef} from "../index";
 /**
  * Created by flo on 05/12/2016.
  */
-
+type ActorClass                  = {new(...args : any[]): Actor}
+type SignalObjectClass           = {new(...args : any[]): SignalObject}
 function updateExistingChannels(mainRef : FarReference,existingActors : Array<any>,newActorId : string) : Array<any> {
     var mappings = [[],[]]
     existingActors.forEach((actorPair)=> {
@@ -37,11 +39,11 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
     return mappings
 }
 
-export abstract class Actor{
-    parent          : FarRef
+abstract class Actor{
+    parent          : FarReference
     reflectOnActor  : () => SpiderActorMirror
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
-    remote          : (string,number)=> Promise<FarRef>
+    remote          : (string,number)=> Promise<FarReference>
     //Pub-sub
     PSClient        : (string?,number?) => null
     PSServer        : (string?,number?) => null
@@ -154,6 +156,8 @@ abstract class Application {
     }
 
     abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
+    //Only implemented by ServerApplication
+    abstract spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
     abstract kill()
 }
 
@@ -214,6 +218,10 @@ class ClientApplication extends Application{
         return actorObject.spawn(this,actorClass)
     }
 
+    spawnActorFromFile(path : string,className : string,constructorArgs : Array<any>,port : number){
+        throw new Error("Cannot spawn actor from file in client-side context")
+    }
+
     kill(){
         this.spawnedActors.forEach((workerPair) => {
             workerPair[1].terminate()
@@ -223,7 +231,7 @@ class ClientApplication extends Application{
     }
 
 }
-interface AppType {
+/*interface AppType {
     spawnActor
     spawnActorFromFile
     kill
@@ -290,10 +298,10 @@ export interface SpiderLib{
     SpiderIsolateMirror         : SpiderIsolateMirrorClass
     LexScope                    : LexScopeClass
     bundleScope                 : (Function,LexScope) => undefined
-}
+}*/
 
 //Ugly, but a far reference has no static interface
-export type FarRef = any
+/*export type FarRef = any
 exports.Repliq                      = Repliq
 exports.Signal                      = SignalObject
 exports.mutator                     = mutator
@@ -313,15 +321,32 @@ exports.SpiderObjectMirror          = SpiderObjectMirror
 exports.SpiderIsolateMirror         = SpiderIsolateMirror
 exports.SpiderActorMirror           = SpiderActorMirror
 exports.bundleScope                 = bundleScope
-exports.LexScope                    = LexScope
+exports.LexScope                    = LexScope*/
+interface ActorType{
+    new(mirror? : SpiderActorMirror)
+}
+interface ApplicationType{
+    new()
+    kill()
+    spawnActor(actorClass : Function,constructorArgs? : Array<any>,port? : number)
+    spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
+}
+var exportActor : ActorType
+var exportApp   : ApplicationType
 if(isBrowser()){
-    exports.Application = ClientApplication
-    exports.Actor       = ClientActor
+    exportApp           = ClientApplication as any
+    exportActor         = ClientActor as any
 }
 else{
-    exports.Application = ServerApplication
-    exports.Actor       = ServerActor
+    exportApp           = ServerApplication as any
+    exportActor         = ServerActor as any
 }
+export {exportApp as Application}
+export {exportActor as Actor}
+export {FarRef as FarRef}
+export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
+export {SpiderActorMirror} from "./MAP"
+export {bundleScope,LexScope} from "./utils"
 
 
 

@@ -1,8 +1,8 @@
 {
   "name": "spiders.js",
   "version": "1.0.3",
-  "main": "src/spiders.js",
-  "typings": "src/spiders",
+  "main": "index.js",
+  "typings": "./index.d.ts",
   "scripts": {
     "build-client-tests": "browserify client-tests/testBaseFramework.js -o client-tests/baseBundle.js",
     "build-client-cap-tests": "browserify client-tests/testCapExtension.js -o client-tests/CAPExtensionBundle.js",

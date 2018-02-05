@@ -1,13 +1,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const Available_1 = require("../src/Onward/Available");
-var spiders = require("../src/spiders");
-class TestAvailable extends Available_1.Available {
+const spiders_1 = require("../src/spiders");
+class TestAvailable extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.someVal = 5;
     }
 }
-class Act extends spiders.Actor {
+class Act extends spiders_1.Actor {
     constructor() {
         super();
         this.thisDir = __dirname;
@@ -20,7 +19,7 @@ class Act extends spiders.Actor {
         return av.someVal;
     }
 }
-let app = new spiders.Application();
+let app = new spiders_1.Application();
 app.spawnActor(Act).test().then((v) => {
     console.log("Got back:  " + v);
 });

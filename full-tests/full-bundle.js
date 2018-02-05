@@ -1,7 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
-var spiders = require("../src/spiders");
-class ClientApp extends spiders.Application {
+const spiders_1 = require("../src/spiders");
+class ClientApp extends spiders_1.Application {
     log(testName, result, expected) {
         var ul = document.getElementById("resultList");
         var li = document.createElement("li");
@@ -32,7 +32,7 @@ class ClientApp extends spiders.Application {
         ul.appendChild(li);
     }
 }
-class TestIsolate extends spiders.SpiderIsolate {
+class TestIsolate extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.value = 5;
@@ -41,7 +41,7 @@ class TestIsolate extends spiders.SpiderIsolate {
         return this.value;
     }
 }
-class TestObject extends spiders.SpiderObject {
+class TestObject extends spiders_1.SpiderObject {
     constructor() {
         super();
         this.value = 5;
@@ -50,7 +50,7 @@ class TestObject extends spiders.SpiderObject {
         return this.value;
     }
 }
-class ClientActor extends spiders.Actor {
+class ClientActor extends spiders_1.Actor {
     constructor(myId) {
         super();
         this.myId = myId;
@@ -59354,18 +59354,9 @@ const FarRef_1 = require("./FarRef");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
 const Message_1 = require("./Message");
-const Repliq_1 = require("./Replication/Repliq");
-const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
-const RepliqField_1 = require("./Replication/RepliqField");
-const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
-const signal_1 = require("./Reactivivity/signal");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
-const MOP_1 = require("./MOP");
-/**
- * Created by flo on 05/12/2016.
- */
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -59383,7 +59374,6 @@ class Actor {
         this.actorMirror = actorMirror;
     }
 }
-exports.Actor = Actor;
 class ClientActor extends Actor {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
@@ -59505,6 +59495,9 @@ class ClientApplication extends Application {
         var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, actorClass);
     }
+    spawnActorFromFile(path, className, constructorArgs, port) {
+        throw new Error("Cannot spawn actor from file in client-side context");
+    }
     kill() {
         this.spawnedActors.forEach((workerPair) => {
             workerPair[1].terminate();
@@ -59513,37 +59506,31 @@ class ClientApplication extends Application {
         this.spawnedActors = [];
     }
 }
-exports.Repliq = Repliq_1.Repliq;
-exports.Signal = signal_1.SignalObject;
-exports.mutator = signal_1.mutator;
-exports.atomic = Repliq_1.atomic;
-exports.lease = signal_1.lease;
-exports.strong = signal_1.strong;
-exports.weak = signal_1.weak;
-exports.LWR = RepliqPrimitiveField_1.LWR;
-exports.Count = RepliqPrimitiveField_1.Count;
-exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
-exports.RepliqObjectField = RepliqObjectField_1.RepliqObjectField;
-exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
-exports.FieldUpdate = RepliqField_1.FieldUpdate;
+var exportActor;
+exports.Actor = exportActor;
+var exportApp;
+exports.Application = exportApp;
+if (utils_1.isBrowser()) {
+    exports.Application = exportApp = ClientApplication;
+    exports.Actor = exportActor = ClientActor;
+}
+else {
+    exports.Application = exportApp = ServerApplication;
+    exports.Actor = exportActor = ServerActor;
+}
+var MOP_1 = require("./MOP");
 exports.SpiderIsolate = MOP_1.SpiderIsolate;
 exports.SpiderObject = MOP_1.SpiderObject;
 exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
 exports.SpiderIsolateMirror = MOP_1.SpiderIsolateMirror;
-exports.SpiderActorMirror = MAP_1.SpiderActorMirror;
-exports.bundleScope = utils_1.bundleScope;
-exports.LexScope = utils_1.LexScope;
-if (utils_1.isBrowser()) {
-    exports.Application = ClientApplication;
-    exports.Actor = ClientActor;
-}
-else {
-    exports.Application = ServerApplication;
-    exports.Actor = ServerActor;
-}
+var MAP_2 = require("./MAP");
+exports.SpiderActorMirror = MAP_2.SpiderActorMirror;
+var utils_2 = require("./utils");
+exports.bundleScope = utils_2.bundleScope;
+exports.LexScope = utils_2.LexScope;
 
 }).call(this,"/src")
-},{"./ActorEnvironment":267,"./ActorProto":268,"./FarRef":271,"./MAP":272,"./MOP":273,"./Message":274,"./ObjectPool":275,"./Reactivivity/signal":278,"./Replication/Repliq":281,"./Replication/RepliqField":282,"./Replication/RepliqObjectField":283,"./Replication/RepliqPrimitiveField":284,"./serialisation":288,"./utils":290,"child_process":55,"webworkify":264}],290:[function(require,module,exports){
+},{"./ActorEnvironment":267,"./ActorProto":268,"./FarRef":271,"./MAP":272,"./MOP":273,"./Message":274,"./ObjectPool":275,"./serialisation":288,"./utils":290,"child_process":55,"webworkify":264}],290:[function(require,module,exports){
 (function (process){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**

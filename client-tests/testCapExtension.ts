@@ -1,9 +1,9 @@
 import {CAPActor} from "../src/Onward/CAPActor";
-import {SpiderLib} from "../src/spiders";
 import {Available} from "../src/Onward/Available";
 import {Eventual} from "../src/Onward/Eventual";
 import {Consistent} from "../src/Onward/Consistent";
-var spider : SpiderLib  = require("../src/spiders")
+import {Application,Actor,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,bundleScope,LexScope,FarRef} from "../src/spiders"
+
 var scheduled           = []
 function log(testName,result,expected){
     var ul = document.getElementById("resultList");
@@ -19,7 +19,7 @@ function log(testName,result,expected){
     }
     ul.appendChild(li);
 }
-var app                 = new spider.Application()
+var app                 = new Application()
 class TestAvailable extends Available{
     value
     constructor(){
@@ -90,7 +90,7 @@ let AvailableContentSer = ()=> {
 }
 scheduled.push(AvailableContentSer)
 
-class AvailableClassSerActor extends spider.Actor{
+class AvailableClassSerActor extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -199,7 +199,7 @@ let AvailableAssignmentAvailable = () => {
 }
 scheduled.push(AvailableAssignmentAvailable)
 
-class AvailableAssignmentPrimitiveAct extends spider.Actor{
+class AvailableAssignmentPrimitiveAct extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -270,7 +270,7 @@ let AvailableConstraintAvailable = ()=>{
 }
 scheduled.push(AvailableConstraintAvailable)
 
-class AvailableConstraintPrimitiveAct extends spider.Actor{
+class AvailableConstraintPrimitiveAct extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -360,7 +360,7 @@ let EventualReplicationMasterchange = () =>{
 }
 scheduled.push(EventualReplicationMasterchange)
 
-class EventualContentSerialisationAct extends spider.Actor{
+class EventualContentSerialisationAct extends Actor{
     ev
     constructor(){
         super()
@@ -378,7 +378,7 @@ let EventualContentSerialisation = ()=>{
 }
 scheduled.push(EventualContentSerialisation)
 
-class EventualClassSerialisationAct extends spider.Actor{
+class EventualClassSerialisationAct extends Actor{
     TestEventual
     constructor(){
         super()
@@ -458,7 +458,7 @@ let EventualAssignmentEventual = ()=>{
 }
 scheduled.push(EventualAssignmentEventual)
 
-class EventualAssignmentPrimitiveAct extends spider.Actor{
+class EventualAssignmentPrimitiveAct extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -499,7 +499,7 @@ let EventualConstraintEventual = ()=>{
 }
 scheduled.push(EventualConstraintEventual)
 
-class EventualConstraintPrimitiveAct extends spider.Actor{
+class EventualConstraintPrimitiveAct extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -537,7 +537,7 @@ let ConsistentContentSerialisation = ()=>{
 }
 scheduled.push(ConsistentContentSerialisation)
 
-class ConsistentClassSerialisationAct extends spider.Actor{
+class ConsistentClassSerialisationAct extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -618,7 +618,7 @@ let ConsistentAssignmentConsistent = ()=>{
 }
 scheduled.push(ConsistentAssignmentConsistent)
 
-class ConsistentAssignmentPrimitiveAct extends spider.Actor{
+class ConsistentAssignmentPrimitiveAct extends Actor{
     TestConsistent
     constructor(){
         super()
@@ -659,7 +659,7 @@ let ConsistentConstraintConsistent = ()=>{
 }
 scheduled.push(ConsistentConstraintConsistent)
 
-class ConsistentConstraintPrimitiveAct extends spider.Actor{
+class ConsistentConstraintPrimitiveAct extends Actor{
     TestConsistent
     constructor(){
         super()

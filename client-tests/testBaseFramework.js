@@ -1,13 +1,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Created by flo on 18/01/2017.
- */
-var spider = require("../src/spiders");
+const spiders_1 = require("../src/spiders");
 /**
  * Created by flo on 10/01/2017.
  */
 var scheduled = [];
-class testApp extends spider.Application {
+class testApp extends spiders_1.Application {
     constructor() {
         super();
         this.mainValue = 10;
@@ -34,13 +31,13 @@ function log(testName, result, expected) {
     }
     ul.appendChild(li);
 }
-class ROAMirror extends spider.SpiderActorMirror {
+class ROAMirror extends spiders_1.SpiderActorMirror {
     constructor() {
         super();
         this.testValue = 5;
     }
 }
-class ROAActor extends spider.Actor {
+class ROAActor extends spiders_1.Actor {
     constructor() {
         super(new ROAMirror());
     }
@@ -55,13 +52,13 @@ let performROA = () => {
     });
 };
 scheduled.push(performROA);
-class InitMirror extends spider.SpiderActorMirror {
+class InitMirror extends spiders_1.SpiderActorMirror {
     initialise(appActor, parentRef) {
         super.initialise(appActor, parentRef);
         this.testValue = 5;
     }
 }
-class InitActor extends spider.Actor {
+class InitActor extends spiders_1.Actor {
     constructor() {
         super(new InitMirror());
     }
@@ -79,13 +76,13 @@ let customInit = () => {
     });
 };
 scheduled.push(customInit);
-class CustInvocMAPMirror extends spider.SpiderActorMirror {
+class CustInvocMAPMirror extends spiders_1.SpiderActorMirror {
     receiveInvocation(sender, target, methodName, args, perform) {
         this.testValue = 5;
         super.receiveInvocation(sender, target, methodName, args, perform);
     }
 }
-class CustInvocMAPActor extends spider.Actor {
+class CustInvocMAPActor extends spiders_1.Actor {
     constructor() {
         super(new CustInvocMAPMirror());
     }
@@ -101,13 +98,13 @@ let customInvocMap = () => {
     });
 };
 scheduled.push(customInvocMap);
-class custAccessMapMirror extends spider.SpiderActorMirror {
+class custAccessMapMirror extends spiders_1.SpiderActorMirror {
     receiveAccess(sender, target, fieldName, perform) {
         target[fieldName] += 5;
         super.receiveAccess(sender, target, fieldName, perform);
     }
 }
-class custAccessMapActor extends spider.Actor {
+class custAccessMapActor extends spiders_1.Actor {
     constructor() {
         super(new custAccessMapMirror());
         this.testValue = 5;
@@ -120,18 +117,18 @@ let customAccessMap = () => {
     });
 };
 scheduled.push(customAccessMap);
-class CustSendInvocMapMirror extends spider.SpiderActorMirror {
+class CustSendInvocMapMirror extends spiders_1.SpiderActorMirror {
     sendInvocation(target, methodName, args, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {
         this.testValue = 5;
         return super.sendInvocation(target, methodName, args, contactId, contactAddress, contactPort, mainId);
     }
 }
-class CustSendInvocMapApp extends spider.Application {
+class CustSendInvocMapApp extends spiders_1.Application {
     testP() {
         return 5;
     }
 }
-class CustSendInvocMapActor extends spider.Actor {
+class CustSendInvocMapActor extends spiders_1.Actor {
     constructor() {
         super(new CustSendInvocMapMirror());
     }
@@ -149,19 +146,19 @@ let custSendInvocMAP = () => {
     });
 };
 scheduled.push(custSendInvocMAP);
-class CustSendAccessMapMirror extends spider.SpiderActorMirror {
+class CustSendAccessMapMirror extends spiders_1.SpiderActorMirror {
     sendAccess(target, fieldName, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {
         this.testValue = 5;
         return super.sendAccess(target, fieldName, contactId, contactAddress, contactPort, mainId);
     }
 }
-class CustSendAccessMAPApp extends spider.Application {
+class CustSendAccessMAPApp extends spiders_1.Application {
     constructor() {
         super();
         this.testValue = 5;
     }
 }
-class CustSendAccessMapActor extends spider.Actor {
+class CustSendAccessMapActor extends spiders_1.Actor {
     constructor() {
         super(new CustSendAccessMapMirror());
     }
@@ -179,18 +176,18 @@ let custSendAccessMap = () => {
     });
 };
 scheduled.push(custSendAccessMap);
-class ROOMirror extends spider.SpiderObjectMirror {
+class ROOMirror extends spiders_1.SpiderObjectMirror {
     constructor() {
         super();
         this.testValue = 5;
     }
 }
-class ROOObject extends spider.SpiderObject {
+class ROOObject extends spiders_1.SpiderObject {
     constructor(mirrorClass) {
         super(new mirrorClass());
     }
 }
-class ROOActor extends spider.Actor {
+class ROOActor extends spiders_1.Actor {
     constructor() {
         super();
         this.TestObject = ROOObject;
@@ -208,13 +205,13 @@ let ROO = () => {
     });
 };
 scheduled.push(ROO);
-class CustInvokeMOPMirror extends spider.SpiderObjectMirror {
+class CustInvokeMOPMirror extends spiders_1.SpiderObjectMirror {
     invoke(methodName, args) {
         this.testValue = 5;
         return super.invoke(methodName, args);
     }
 }
-class CustInvokeMOPObject extends spider.SpiderObject {
+class CustInvokeMOPObject extends spiders_1.SpiderObject {
     constructor(mirrorClass) {
         super(new mirrorClass());
     }
@@ -222,7 +219,7 @@ class CustInvokeMOPObject extends spider.SpiderObject {
         return 5;
     }
 }
-class CustInvokeMOPActor extends spider.Actor {
+class CustInvokeMOPActor extends spiders_1.Actor {
     constructor() {
         super();
         this.TestObject = CustInvokeMOPObject;
@@ -241,19 +238,19 @@ let customInvocMOP = () => {
     });
 };
 scheduled.push(customInvocMOP);
-class CustomAccessMopMirror extends spider.SpiderObjectMirror {
+class CustomAccessMopMirror extends spiders_1.SpiderObjectMirror {
     access(fieldName) {
         this.testValue = 5;
         return super.access(fieldName);
     }
 }
-class CustomAccessMopObject extends spider.SpiderObject {
+class CustomAccessMopObject extends spiders_1.SpiderObject {
     constructor(mirrorClass) {
         super(new mirrorClass());
         this.someField = 5;
     }
 }
-class CustomAccessMopActor extends spider.Actor {
+class CustomAccessMopActor extends spiders_1.Actor {
     constructor() {
         super();
         this.TestObject = CustomAccessMopObject;
@@ -272,20 +269,20 @@ let CustomAccessMop = () => {
     });
 };
 scheduled.push(CustomAccessMop);
-class custWriteMOPMirror extends spider.SpiderObjectMirror {
+class custWriteMOPMirror extends spiders_1.SpiderObjectMirror {
     write(fieldName, value) {
         this.testValue = 5;
         this.base[fieldName] = value * 2;
         return true;
     }
 }
-class CustomWriteMOPObject extends spider.SpiderObject {
+class CustomWriteMOPObject extends spiders_1.SpiderObject {
     constructor(mirrorClass) {
         super(new mirrorClass());
         this.someField = 5;
     }
 }
-class CustomWriteMOPActor extends spider.Actor {
+class CustomWriteMOPActor extends spiders_1.Actor {
     constructor() {
         super();
         this.TestObject = CustomWriteMOPObject;
@@ -304,18 +301,18 @@ let CustomWriteMop = () => {
     });
 };
 scheduled.push(CustomWriteMop);
-class CustomPassMopMirror extends spider.SpiderIsolateMirror {
+class CustomPassMopMirror extends spiders_1.SpiderIsolateMirror {
     pass() {
         this.testValue = 5;
         return super.pass();
     }
 }
-class CustomPassMopObject extends spider.SpiderIsolate {
+class CustomPassMopObject extends spiders_1.SpiderIsolate {
     constructor(mirrorClass) {
         super(new mirrorClass());
     }
 }
-class CustomPassMopActor extends spider.Actor {
+class CustomPassMopActor extends spiders_1.Actor {
     constructor() {
         super();
         this.o = new CustomPassMopObject(CustomPassMopMirror);
@@ -331,17 +328,17 @@ let CustomPassMop = () => {
     });
 };
 scheduled.push(CustomPassMop);
-class CustomResolveMopMirror extends spider.SpiderIsolateMirror {
+class CustomResolveMopMirror extends spiders_1.SpiderIsolateMirror {
     resolve() {
         this.testValue = 5;
     }
 }
-class CustomResolveMopObject extends spider.SpiderIsolate {
+class CustomResolveMopObject extends spiders_1.SpiderIsolate {
     constructor(mirrorClass) {
         super(new mirrorClass());
     }
 }
-class CustomResolveMopActor extends spider.Actor {
+class CustomResolveMopActor extends spiders_1.Actor {
     constructor() {
         super();
         this.o = new CustomResolveMopObject(CustomResolveMopMirror);
@@ -357,7 +354,7 @@ let CustomResolveMop = () => {
     });
 };
 scheduled.push(CustomResolveMop);
-class testFieldSerActor extends spider.Actor {
+class testFieldSerActor extends spiders_1.Actor {
     constructor() {
         super();
         this.val = 10;
@@ -371,7 +368,7 @@ var performFieldSer = () => {
     });
 };
 scheduled.push(performFieldSer);
-class testMethSerActor extends spider.Actor {
+class testMethSerActor extends spiders_1.Actor {
     msub() {
         return 5;
     }
@@ -388,7 +385,7 @@ var performMethSer = () => {
 };
 scheduled.push(performMethSer);
 var aValue = 5;
-class testConSerActor extends spider.Actor {
+class testConSerActor extends spiders_1.Actor {
     constructor() {
         super();
         this.val = aValue;
@@ -405,7 +402,7 @@ var performConSer = () => {
     });
 };
 scheduled.push(performConSer);
-class testInitSerActor extends spider.Actor {
+class testInitSerActor extends spiders_1.Actor {
     constructor() {
         super();
         this.val = 10;
@@ -422,7 +419,7 @@ var peformInitSer = () => {
     });
 };
 scheduled.push(peformInitSer);
-class testScopeActor extends spider.Actor {
+class testScopeActor extends spiders_1.Actor {
     get() {
         return this.promisePool;
     }
@@ -435,7 +432,7 @@ var performScopeSer = () => {
     });
 };
 scheduled.push(performScopeSer);
-class baseMethodInhActor extends spider.Actor {
+class baseMethodInhActor extends spiders_1.Actor {
     test() {
         return 5;
     }
@@ -453,7 +450,7 @@ var performMethodInhSer = () => {
     });
 };
 scheduled.push(performMethodInhSer);
-class baseFieldInhActor extends spider.Actor {
+class baseFieldInhActor extends spiders_1.Actor {
     constructor() {
         super();
         this.baseField = 5;
@@ -471,7 +468,7 @@ var performFieldInhSer = () => {
 scheduled.push(performFieldInhSer);
 //Due to Browserify's static analyser it is impossible to dynamically require a module. therefore require must happen on actor creation time (the required library is available to the actor is a far reference)
 //Warning, this entails that all work done by the required librarby is performed on the spawning thread (use importscripts if needed to require in actor self)
-class testReqActor extends spider.Actor {
+class testReqActor extends spiders_1.Actor {
     constructor() {
         super();
         this.mod = require('/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule');
@@ -488,7 +485,7 @@ var performReq = () => {
     });
 };
 scheduled.push(performReq);
-class testFieldAccessActor extends spider.Actor {
+class testFieldAccessActor extends spiders_1.Actor {
     constructor() {
         super();
         this.value = 10;
@@ -502,7 +499,7 @@ var performFieldAccess = () => {
     });
 };
 scheduled.push(performFieldAccess);
-class testMethodInvocActor extends spider.Actor {
+class testMethodInvocActor extends spiders_1.Actor {
     m() {
         return 10;
     }
@@ -515,7 +512,7 @@ var performMethodInvoc = () => {
     });
 };
 scheduled.push(performMethodInvoc);
-class testParentAccessActor extends spider.Actor {
+class testParentAccessActor extends spiders_1.Actor {
     access() {
         return this.parent.mainValue;
     }
@@ -528,7 +525,7 @@ var performParentAccess = () => {
     });
 };
 scheduled.push(performParentAccess);
-class testParentInvokeActor extends spider.Actor {
+class testParentInvokeActor extends spiders_1.Actor {
     invoke() {
         return this.parent.mainMethod();
     }
@@ -541,7 +538,7 @@ var performParentInvoke = () => {
     });
 };
 scheduled.push(performParentInvoke);
-class testPromiseRejectActor extends spider.Actor {
+class testPromiseRejectActor extends spiders_1.Actor {
     m() {
         throw new Error("This is an error");
     }
@@ -554,7 +551,7 @@ var performPromiseReject = () => {
     });
 };
 scheduled.push(performPromiseReject);
-class testPromisePipeActor extends spider.Actor {
+class testPromisePipeActor extends spiders_1.Actor {
     get() {
         return this.parent.field;
     }
@@ -567,7 +564,7 @@ var performPromisePipe = () => {
     });
 };
 scheduled.push(performPromisePipe);
-class testPromiseInvocPipeActor extends spider.Actor {
+class testPromiseInvocPipeActor extends spiders_1.Actor {
     get() {
         return this.parent.mainMethod();
     }
@@ -580,7 +577,7 @@ var performPromiseInvocPipe = () => {
     });
 };
 scheduled.push(performPromiseInvocPipe);
-class mIsolate extends spider.SpiderIsolate {
+class mIsolate extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.field = 6;
@@ -589,7 +586,7 @@ class mIsolate extends spider.SpiderIsolate {
         return 5;
     }
 }
-class testIsolateActor extends spider.Actor {
+class testIsolateActor extends spiders_1.Actor {
     constructor() {
         super();
         this.mIsolate = mIsolate;
@@ -607,13 +604,13 @@ var performIsolate = () => {
     });
 };
 scheduled.push(performIsolate);
-class innerIsolate extends spider.SpiderIsolate {
+class innerIsolate extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.innerField = 5;
     }
 }
-class outerIsolate extends spider.SpiderIsolate {
+class outerIsolate extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.outerField = 6;
@@ -627,7 +624,7 @@ class outerIsolate extends spider.SpiderIsolate {
     }
 }
 var app = new testApp();
-class testNestedIsolateActor extends spider.Actor {
+class testNestedIsolateActor extends spiders_1.Actor {
     constructor() {
         super();
         this.mIsolate = new outerIsolate();
@@ -645,7 +642,7 @@ var performNestedIsolate = () => {
     });
 };
 scheduled.push(performNestedIsolate);
-class testNumSerActor extends spider.Actor {
+class testNumSerActor extends spiders_1.Actor {
     compute(num) {
         return num + 5;
     }
@@ -658,7 +655,7 @@ var performNumSer = () => {
     });
 };
 scheduled.push(performNumSer);
-class testStringSerActor extends spider.Actor {
+class testStringSerActor extends spiders_1.Actor {
     append(str) {
         return str + 5;
     }
@@ -671,7 +668,7 @@ var performStringSer = () => {
     });
 };
 scheduled.push(performStringSer);
-class testBoolSerActor extends spider.Actor {
+class testBoolSerActor extends spiders_1.Actor {
     test(bool) {
         if (bool) {
             return "ok";
@@ -689,7 +686,7 @@ var performBoolSer = () => {
     });
 };
 scheduled.push(performBoolSer);
-class testUserPromActor extends spider.Actor {
+class testUserPromActor extends spiders_1.Actor {
     async() {
         return new Promise((resolve, reject) => {
             setTimeout(() => {
@@ -706,7 +703,7 @@ var performUserProm = () => {
     });
 };
 scheduled.push(performUserProm);
-class TestMapActor extends spider.Actor {
+class TestMapActor extends spiders_1.Actor {
     constructor() {
         super();
         this.m = new Map();
@@ -728,7 +725,7 @@ let performMap = () => {
     });
 };
 scheduled.push(performMap);
-class testArgSerActor extends spider.Actor {
+class testArgSerActor extends spiders_1.Actor {
     m(num, str, bool) {
         return [num, str, bool];
     }
@@ -746,7 +743,7 @@ scheduled.push(performArgSer);
 var ob = {
     field: 5
 };
-class testLexObActor extends spider.Actor {
+class testLexObActor extends spiders_1.Actor {
     constructor() {
         super();
         this.farRef = ob;
@@ -763,13 +760,13 @@ var performLexOb = () => {
     });
 };
 scheduled.push(performLexOb);
-class testFarRefActor1 extends spider.Actor {
+class testFarRefActor1 extends spiders_1.Actor {
     constructor() {
         super();
         this.value = 666;
     }
 }
-class testFarRefActor2 extends spider.Actor {
+class testFarRefActor2 extends spiders_1.Actor {
     obtainAndAccess(farRef) {
         return farRef.value;
     }
@@ -783,7 +780,7 @@ var performFarRef = () => {
     });
 };
 scheduled.push(performFarRef);
-class testGUIActor extends spider.Actor {
+class testGUIActor extends spiders_1.Actor {
     getField() {
         return this.parent.getGUI();
     }
@@ -796,11 +793,11 @@ var performGUI = () => {
     });
 };
 scheduled.push(performGUI);
-class testReferencePassing_ReferencedActor extends spider.Actor {
+class testReferencePassing_ReferencedActor extends spiders_1.Actor {
     setValue(x) { this.x = x; }
     getValue() { return this.x; }
 }
-class testReferencePassing_ReferencingActor extends spider.Actor {
+class testReferencePassing_ReferencingActor extends spiders_1.Actor {
     constructor(ref) {
         super();
         this.actorreference = ref;
@@ -820,18 +817,18 @@ var performActorReferencePassingTest = () => {
 };
 scheduled.push(performActorReferencePassingTest);
 let someVar = 5;
-class TestScopeIsolate extends spider.SpiderIsolate {
+class TestScopeIsolate extends spiders_1.SpiderIsolate {
     constructor() {
         super();
         this.val = someVar;
     }
 }
-class TestScopeActor extends spider.Actor {
+class TestScopeActor extends spiders_1.Actor {
     constructor() {
         super();
-        let scope = new spider.LexScope();
+        let scope = new spiders_1.LexScope();
         scope.addElement("someVar", someVar);
-        spider.bundleScope(TestScopeIsolate, scope);
+        spiders_1.bundleScope(TestScopeIsolate, scope);
         this.TestIsolate = TestScopeIsolate;
     }
     test() {
@@ -845,7 +842,7 @@ var performScopeBunlde = () => {
     });
 };
 scheduled.push(performScopeBunlde);
-class SuperInitActor extends spider.Actor {
+class SuperInitActor extends spiders_1.Actor {
     constructor() {
         super();
         this.val = 10;
@@ -866,7 +863,7 @@ var performInitChaining = () => {
     });
 };
 scheduled.push(performInitChaining);
-/*class StaticActor extends spider.Actor{
+/*class StaticActor extends Actor{
     static _STATIC_FIELD = 5
     static _STATIC_METHOD_(){
         return 6
@@ -889,7 +886,7 @@ var performStaticFieldAndMethod = () =>{
 }
 scheduled.push(performStaticFieldAndMethod)
 
-class StaticSuperActor extends spider.Actor{
+class StaticSuperActor extends Actor{
     static _STATIC_SUPER_FIELD = 5
 }
 class StaticBaseActor extends StaticSuperActor{
@@ -906,7 +903,7 @@ var performStaticInheritance = () =>{
 }
 scheduled.push(performStaticInheritance)
 
-class StaticEror extends spider.Actor{
+class StaticEror extends Actor{
     static _STATIC_FIELD_ = 5
     changeField(){
         return StaticEror._STATIC_FIELD_ = 6

@@ -3,7 +3,7 @@ const CAPActor_1 = require("../src/Onward/CAPActor");
 const Available_1 = require("../src/Onward/Available");
 const Eventual_1 = require("../src/Onward/Eventual");
 const Consistent_1 = require("../src/Onward/Consistent");
-var spider = require("../src/spiders");
+const spiders_1 = require("../src/spiders");
 var scheduled = [];
 function log(testName, result, expected) {
     var ul = document.getElementById("resultList");
@@ -18,7 +18,7 @@ function log(testName, result, expected) {
     }
     ul.appendChild(li);
 }
-var app = new spider.Application();
+var app = new spiders_1.Application();
 class TestAvailable extends Available_1.Available {
     constructor() {
         super();
@@ -73,7 +73,7 @@ let AvailableContentSer = () => {
     });
 };
 scheduled.push(AvailableContentSer);
-class AvailableClassSerActor extends spider.Actor {
+class AvailableClassSerActor extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestAvailable;
@@ -166,7 +166,7 @@ let AvailableAssignmentAvailable = () => {
     });
 };
 scheduled.push(AvailableAssignmentAvailable);
-class AvailableAssignmentPrimitiveAct extends spider.Actor {
+class AvailableAssignmentPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestAvailable;
@@ -226,7 +226,7 @@ let AvailableConstraintAvailable = () => {
     });
 };
 scheduled.push(AvailableConstraintAvailable);
-class AvailableConstraintPrimitiveAct extends spider.Actor {
+class AvailableConstraintPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestAvailable;
@@ -304,7 +304,7 @@ let EventualReplicationMasterchange = () => {
     });
 };
 scheduled.push(EventualReplicationMasterchange);
-class EventualContentSerialisationAct extends spider.Actor {
+class EventualContentSerialisationAct extends spiders_1.Actor {
     constructor() {
         super();
         this.ev = new TestEventual();
@@ -319,7 +319,7 @@ let EventualContentSerialisation = () => {
     });
 };
 scheduled.push(EventualContentSerialisation);
-class EventualClassSerialisationAct extends spider.Actor {
+class EventualClassSerialisationAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestEventual = TestEventual;
@@ -387,7 +387,7 @@ let EventualAssignmentEventual = () => {
     });
 };
 scheduled.push(EventualAssignmentEventual);
-class EventualAssignmentPrimitiveAct extends spider.Actor {
+class EventualAssignmentPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestEventual;
@@ -422,7 +422,7 @@ let EventualConstraintEventual = () => {
     });
 };
 scheduled.push(EventualConstraintEventual);
-class EventualConstraintPrimitiveAct extends spider.Actor {
+class EventualConstraintPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestEventual;
@@ -454,7 +454,7 @@ let ConsistentContentSerialisation = () => {
     });
 };
 scheduled.push(ConsistentContentSerialisation);
-class ConsistentClassSerialisationAct extends spider.Actor {
+class ConsistentClassSerialisationAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestConsistent;
@@ -524,7 +524,7 @@ let ConsistentAssignmentConsistent = () => {
     });
 };
 scheduled.push(ConsistentAssignmentConsistent);
-class ConsistentAssignmentPrimitiveAct extends spider.Actor {
+class ConsistentAssignmentPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestConsistent;
@@ -559,7 +559,7 @@ let ConsistentConstraintConsistent = () => {
     });
 };
 scheduled.push(ConsistentConstraintConsistent);
-class ConsistentConstraintPrimitiveAct extends spider.Actor {
+class ConsistentConstraintPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestConsistent;

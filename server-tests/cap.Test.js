@@ -3,10 +3,10 @@ const Eventual_1 = require("../src/Onward/Eventual");
 const CAPActor_1 = require("../src/Onward/CAPActor");
 const Consistent_1 = require("../src/Onward/Consistent");
 const Available_1 = require("../src/Onward/Available");
+const spiders_1 = require("../src/spiders");
 var assert = require('assert');
 var chai = require('chai');
 var expect = chai.expect;
-var spider = require('../src/spiders');
 describe("Availables", () => {
     class TestAvailable extends Available_1.Available {
         constructor() {
@@ -21,8 +21,8 @@ describe("Availables", () => {
         }
     }
     it("Check OK Constraint (primitive)", (done) => {
-        let app = new spider.Application();
-        class Act extends spider.Actor {
+        let app = new spiders_1.Application();
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestAvailable;
@@ -46,7 +46,7 @@ describe("Availables", () => {
         });
     });
     it("Check OK Constraint (Available)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -72,7 +72,7 @@ describe("Availables", () => {
         });
     });
     it("Check OK Constraint (Eventual)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class TestEventual extends Eventual_1.Eventual {
             constructor() {
                 super();
@@ -105,8 +105,8 @@ describe("Availables", () => {
         });
     });
     it("Check OK Assignment (primitive)", (done) => {
-        let app = new spider.Application();
-        class Act extends spider.Actor {
+        let app = new spiders_1.Application();
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestAvailable;
@@ -130,7 +130,7 @@ describe("Availables", () => {
         });
     });
     it("Check OK Assignment (Available)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -156,7 +156,7 @@ describe("Availables", () => {
         });
     });
     it("Check OK Assignment (Eventual)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class TestEventual extends Eventual_1.Eventual {
             constructor() {
                 super();
@@ -189,7 +189,7 @@ describe("Availables", () => {
         });
     });
     it("Check NOK Constraint", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -207,7 +207,7 @@ describe("Availables", () => {
         });
     });
     it("Check NOK Assignment", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -225,7 +225,7 @@ describe("Availables", () => {
         });
     });
     it("Class serialisation", (done) => {
-        class Act extends spider.Actor {
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestAvailable;
@@ -235,7 +235,7 @@ describe("Availables", () => {
                 return c.value;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         app.spawnActor(Act).test().then((v) => {
             try {
                 expect(v).to.equal(5);
@@ -258,7 +258,7 @@ describe("Availables", () => {
                 return this.c.value;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         app.spawnActor(Act2).test().then((v) => {
             try {
                 expect(v).to.equal(5);
@@ -289,8 +289,8 @@ describe("Eventuals", () => {
         }
     }
     it("Check OK Constraint (primitive)", (done) => {
-        let app = new spider.Application();
-        class Act extends spider.Actor {
+        let app = new spiders_1.Application();
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestEventual;
@@ -314,7 +314,7 @@ describe("Eventuals", () => {
         });
     });
     it("Check OK Constraint (Eventual)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -340,8 +340,8 @@ describe("Eventuals", () => {
         });
     });
     it("Check OK Assignment (primitive)", (done) => {
-        let app = new spider.Application();
-        class Act extends spider.Actor {
+        let app = new spiders_1.Application();
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestEventual;
@@ -365,7 +365,7 @@ describe("Eventuals", () => {
         });
     });
     it("Check OK Assignment (Eventual)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -391,7 +391,7 @@ describe("Eventuals", () => {
         });
     });
     it("Check NOK Constraint", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -409,7 +409,7 @@ describe("Eventuals", () => {
         });
     });
     it("Check NOK Assignment", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -427,7 +427,7 @@ describe("Eventuals", () => {
         });
     });
     it("Class Serialisation", (done) => {
-        class Act extends spider.Actor {
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestEventual = TestEventual;
@@ -437,7 +437,7 @@ describe("Eventuals", () => {
                 return ev.v1;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         app.spawnActor(Act).test().then((v) => {
             try {
                 expect(v).to.equal(5);
@@ -451,7 +451,7 @@ describe("Eventuals", () => {
         });
     });
     it("Eventual Serialisation", function (done) {
-        class Act2 extends spider.Actor {
+        class Act2 extends spiders_1.Actor {
             constructor() {
                 super();
                 this.ev = new TestEventual();
@@ -460,7 +460,7 @@ describe("Eventuals", () => {
                 return this.ev.v1;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         app.spawnActor(Act2).test().then((v) => {
             try {
                 expect(v).to.equal(5);
@@ -475,7 +475,7 @@ describe("Eventuals", () => {
     });
     it("Simple Replication, master change", function (done) {
         this.timeout(4000);
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Master extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -515,7 +515,7 @@ describe("Eventuals", () => {
     });
     it("Simple Replication, slave change", function (done) {
         this.timeout(4000);
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Master extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -567,8 +567,8 @@ describe("Consistents", () => {
         }
     }
     it("Check OK Constraint (primitive)", (done) => {
-        let app = new spider.Application();
-        class Act extends spider.Actor {
+        let app = new spiders_1.Application();
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestConsistent;
@@ -592,7 +592,7 @@ describe("Consistents", () => {
         });
     });
     it("Check OK Constraint (Consistent)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -618,8 +618,8 @@ describe("Consistents", () => {
         });
     });
     it("Check OK Assignment (primitive)", (done) => {
-        let app = new spider.Application();
-        class Act extends spider.Actor {
+        let app = new spiders_1.Application();
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestConsistent;
@@ -643,7 +643,7 @@ describe("Consistents", () => {
         });
     });
     it("Check OK Assignment (Consistent)", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -671,7 +671,7 @@ describe("Consistents", () => {
         });
     });
     it("Check NOK Constraint", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -689,7 +689,7 @@ describe("Consistents", () => {
         });
     });
     it("Check NOK Assignment", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         class Act extends CAPActor_1.CAPActor {
             constructor() {
                 super();
@@ -707,7 +707,7 @@ describe("Consistents", () => {
         });
     });
     it("Class serialisation", (done) => {
-        class Act extends spider.Actor {
+        class Act extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestConsistent = TestConsistent;
@@ -717,7 +717,7 @@ describe("Consistents", () => {
                 return c.value;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         app.spawnActor(Act).test().then((v) => {
             try {
                 expect(v).to.equal(5);
@@ -740,7 +740,7 @@ describe("Consistents", () => {
                 return this.c.value;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         app.spawnActor(Act2).test().then((v) => {
             try {
                 expect(v).to.equal(5);

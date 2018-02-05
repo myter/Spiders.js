@@ -1,14 +1,6 @@
-import {SpiderLib} from "../src/spiders";
-import {CAPActor} from "../src/Onward/CAPActor";
-import {Eventual} from "../src/Onward/Eventual";
-import {Consistent} from "../src/Onward/Consistent";
-import {Available} from "../src/Onward/Available";
-import {LexScope} from "../src/utils";
+import {SpiderIsolate,Actor,Application} from "../src/spiders"
 
-
-var spiders : SpiderLib = require("../src/spiders")
-
-class TestAvailable extends Available{
+class TestAvailable extends SpiderIsolate{
     someVal
     constructor(){
         super()
@@ -16,7 +8,7 @@ class TestAvailable extends Available{
     }
 }
 
-class Act extends spiders.Actor{
+class Act extends Actor{
     TestAvailable
     av
     thisDir
@@ -33,8 +25,7 @@ class Act extends spiders.Actor{
         return av.someVal
     }
 }
-let app = new spiders.Application()
+let app = new Application()
 app.spawnActor(Act).test().then((v)=>{
     console.log("Got back:  " + v)
 })
-

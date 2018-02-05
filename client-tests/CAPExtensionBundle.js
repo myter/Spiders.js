@@ -4,7 +4,7 @@ const CAPActor_1 = require("../src/Onward/CAPActor");
 const Available_1 = require("../src/Onward/Available");
 const Eventual_1 = require("../src/Onward/Eventual");
 const Consistent_1 = require("../src/Onward/Consistent");
-var spider = require("../src/spiders");
+const spiders_1 = require("../src/spiders");
 var scheduled = [];
 function log(testName, result, expected) {
     var ul = document.getElementById("resultList");
@@ -19,7 +19,7 @@ function log(testName, result, expected) {
     }
     ul.appendChild(li);
 }
-var app = new spider.Application();
+var app = new spiders_1.Application();
 class TestAvailable extends Available_1.Available {
     constructor() {
         super();
@@ -74,7 +74,7 @@ let AvailableContentSer = () => {
     });
 };
 scheduled.push(AvailableContentSer);
-class AvailableClassSerActor extends spider.Actor {
+class AvailableClassSerActor extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestAvailable;
@@ -167,7 +167,7 @@ let AvailableAssignmentAvailable = () => {
     });
 };
 scheduled.push(AvailableAssignmentAvailable);
-class AvailableAssignmentPrimitiveAct extends spider.Actor {
+class AvailableAssignmentPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestAvailable;
@@ -227,7 +227,7 @@ let AvailableConstraintAvailable = () => {
     });
 };
 scheduled.push(AvailableConstraintAvailable);
-class AvailableConstraintPrimitiveAct extends spider.Actor {
+class AvailableConstraintPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestAvailable;
@@ -305,7 +305,7 @@ let EventualReplicationMasterchange = () => {
     });
 };
 scheduled.push(EventualReplicationMasterchange);
-class EventualContentSerialisationAct extends spider.Actor {
+class EventualContentSerialisationAct extends spiders_1.Actor {
     constructor() {
         super();
         this.ev = new TestEventual();
@@ -320,7 +320,7 @@ let EventualContentSerialisation = () => {
     });
 };
 scheduled.push(EventualContentSerialisation);
-class EventualClassSerialisationAct extends spider.Actor {
+class EventualClassSerialisationAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestEventual = TestEventual;
@@ -388,7 +388,7 @@ let EventualAssignmentEventual = () => {
     });
 };
 scheduled.push(EventualAssignmentEventual);
-class EventualAssignmentPrimitiveAct extends spider.Actor {
+class EventualAssignmentPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestEventual;
@@ -423,7 +423,7 @@ let EventualConstraintEventual = () => {
     });
 };
 scheduled.push(EventualConstraintEventual);
-class EventualConstraintPrimitiveAct extends spider.Actor {
+class EventualConstraintPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestEventual;
@@ -455,7 +455,7 @@ let ConsistentContentSerialisation = () => {
     });
 };
 scheduled.push(ConsistentContentSerialisation);
-class ConsistentClassSerialisationAct extends spider.Actor {
+class ConsistentClassSerialisationAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestConsistent;
@@ -525,7 +525,7 @@ let ConsistentAssignmentConsistent = () => {
     });
 };
 scheduled.push(ConsistentAssignmentConsistent);
-class ConsistentAssignmentPrimitiveAct extends spider.Actor {
+class ConsistentAssignmentPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestConsistent;
@@ -560,7 +560,7 @@ let ConsistentConstraintConsistent = () => {
     });
 };
 scheduled.push(ConsistentConstraintConsistent);
-class ConsistentConstraintPrimitiveAct extends spider.Actor {
+class ConsistentConstraintPrimitiveAct extends spiders_1.Actor {
     constructor() {
         super();
         this.TestConsistent = TestConsistent;
@@ -60330,18 +60330,9 @@ const FarRef_1 = require("./FarRef");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
 const Message_1 = require("./Message");
-const Repliq_1 = require("./Replication/Repliq");
-const RepliqPrimitiveField_1 = require("./Replication/RepliqPrimitiveField");
-const RepliqField_1 = require("./Replication/RepliqField");
-const RepliqObjectField_1 = require("./Replication/RepliqObjectField");
-const signal_1 = require("./Reactivivity/signal");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
-const MOP_1 = require("./MOP");
-/**
- * Created by flo on 05/12/2016.
- */
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -60359,7 +60350,6 @@ class Actor {
         this.actorMirror = actorMirror;
     }
 }
-exports.Actor = Actor;
 class ClientActor extends Actor {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
@@ -60481,6 +60471,9 @@ class ClientApplication extends Application {
         var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, actorClass);
     }
+    spawnActorFromFile(path, className, constructorArgs, port) {
+        throw new Error("Cannot spawn actor from file in client-side context");
+    }
     kill() {
         this.spawnedActors.forEach((workerPair) => {
             workerPair[1].terminate();
@@ -60489,37 +60482,31 @@ class ClientApplication extends Application {
         this.spawnedActors = [];
     }
 }
-exports.Repliq = Repliq_1.Repliq;
-exports.Signal = signal_1.SignalObject;
-exports.mutator = signal_1.mutator;
-exports.atomic = Repliq_1.atomic;
-exports.lease = signal_1.lease;
-exports.strong = signal_1.strong;
-exports.weak = signal_1.weak;
-exports.LWR = RepliqPrimitiveField_1.LWR;
-exports.Count = RepliqPrimitiveField_1.Count;
-exports.RepliqPrimitiveField = RepliqPrimitiveField_1.RepliqPrimitiveField;
-exports.RepliqObjectField = RepliqObjectField_1.RepliqObjectField;
-exports.makeAnnotation = RepliqPrimitiveField_1.makeAnnotation;
-exports.FieldUpdate = RepliqField_1.FieldUpdate;
+var exportActor;
+exports.Actor = exportActor;
+var exportApp;
+exports.Application = exportApp;
+if (utils_1.isBrowser()) {
+    exports.Application = exportApp = ClientApplication;
+    exports.Actor = exportActor = ClientActor;
+}
+else {
+    exports.Application = exportApp = ServerApplication;
+    exports.Actor = exportActor = ServerActor;
+}
+var MOP_1 = require("./MOP");
 exports.SpiderIsolate = MOP_1.SpiderIsolate;
 exports.SpiderObject = MOP_1.SpiderObject;
 exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
 exports.SpiderIsolateMirror = MOP_1.SpiderIsolateMirror;
-exports.SpiderActorMirror = MAP_1.SpiderActorMirror;
-exports.bundleScope = utils_1.bundleScope;
-exports.LexScope = utils_1.LexScope;
-if (utils_1.isBrowser()) {
-    exports.Application = ClientApplication;
-    exports.Actor = ClientActor;
-}
-else {
-    exports.Application = ServerApplication;
-    exports.Actor = ServerActor;
-}
+var MAP_2 = require("./MAP");
+exports.SpiderActorMirror = MAP_2.SpiderActorMirror;
+var utils_2 = require("./utils");
+exports.bundleScope = utils_2.bundleScope;
+exports.LexScope = utils_2.LexScope;
 
 }).call(this,"/src")
-},{"./ActorEnvironment":267,"./ActorProto":268,"./FarRef":271,"./MAP":272,"./MOP":273,"./Message":274,"./ObjectPool":275,"./Reactivivity/signal":284,"./Replication/Repliq":287,"./Replication/RepliqField":288,"./Replication/RepliqObjectField":289,"./Replication/RepliqPrimitiveField":290,"./serialisation":294,"./utils":296,"child_process":55,"webworkify":264}],296:[function(require,module,exports){
+},{"./ActorEnvironment":267,"./ActorProto":268,"./FarRef":271,"./MAP":272,"./MOP":273,"./Message":274,"./ObjectPool":275,"./serialisation":294,"./utils":296,"child_process":55,"webworkify":264}],296:[function(require,module,exports){
 (function (process){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**

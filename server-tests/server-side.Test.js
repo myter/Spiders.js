@@ -2,16 +2,16 @@
  * Created by flo on 06/02/2017.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+const spiders_1 = require("../src/spiders");
 /**
  * Created by flo on 10/01/2017.
  */
 var assert = require('assert');
 var chai = require('chai');
 var expect = chai.expect;
-var spider = require('../src/spiders');
 describe("Behaviour serialisation", () => {
     it("From file", (done) => {
-        var app = new spider.Application();
+        var app = new spiders_1.Application();
         var act = app.spawnActorFromFile(__dirname + '/testActorDefinition', "TestActor");
         act.getValue().then((val) => {
             try {
@@ -27,8 +27,8 @@ describe("Behaviour serialisation", () => {
     });
     it("Field serialisation", function (done) {
         this.timeout(3000);
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.val = 10;
@@ -48,8 +48,8 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Method serialisation", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             msub() {
                 return 5;
             }
@@ -71,9 +71,9 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Construction", (done) => {
-        var app = new spider.Application();
+        var app = new spiders_1.Application();
         var aValue = 5;
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.val = aValue;
@@ -96,12 +96,12 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Actor reference passing via constructor", (done) => {
-        class referencedActor extends spider.Actor {
+        class referencedActor extends spiders_1.Actor {
             getValue() {
                 return 5;
             }
         }
-        class referencingActor extends spider.Actor {
+        class referencingActor extends spiders_1.Actor {
             constructor(actorReference) {
                 super();
                 this.ref = actorReference;
@@ -110,7 +110,7 @@ describe("Behaviour serialisation", () => {
                 return this.ref.getValue().then((v) => { return v; });
             }
         }
-        var app = new spider.Application();
+        var app = new spiders_1.Application();
         var actor1 = app.spawnActor(referencedActor);
         var actor2 = app.spawnActor(referencingActor, [actor1]);
         actor2.getValue().then((v) => {
@@ -126,8 +126,8 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Initialisation", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.val = 10;
@@ -150,8 +150,8 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Initialisation chaining", (done) => {
-        var app = new spider.Application();
-        class SuperActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class SuperActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.val = 10;
@@ -179,10 +179,10 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Actor scope", (done) => {
-        class testApp extends spider.Application {
+        class testApp extends spiders_1.Application {
         }
         var app = new testApp();
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             get() {
                 return this.promisePool;
             }
@@ -201,8 +201,8 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Inheritance (method)", (done) => {
-        var app = new spider.Application();
-        class baseActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class baseActor extends spiders_1.Actor {
             test() {
                 return 5;
             }
@@ -226,8 +226,8 @@ describe("Behaviour serialisation", () => {
         });
     });
     it("Inheritance (fields)", (done) => {
-        var app = new spider.Application();
-        class baseActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class baseActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.baseField = 5;
@@ -249,8 +249,8 @@ describe("Behaviour serialisation", () => {
         });
     });
     /*it("Static Fields & methods",(done)=>{
-        var app = new spider.Application()
-        class StaticActor extends spider.Actor{
+        var app = new Application()
+        class StaticActor extends Actor{
             static _STATIC_FIELD_ = 5
             static _STATIC_METHOD_(){
                 return 6
@@ -286,8 +286,8 @@ describe("Behaviour serialisation", () => {
     })
 
     it("Static inheritance",(done)=>{
-        var app = new spider.Application()
-        class SuperActor extends spider.Actor{
+        var app = new Application()
+        class SuperActor extends Actor{
             static _SUPER_STATIC_ = 5
         }
         class BaseActor extends SuperActor{
@@ -310,8 +310,8 @@ describe("Behaviour serialisation", () => {
     })
 
     it("Static immutable",(done)=>{
-        var app = new spider.Application()
-        class StaticActor extends spider.Actor{
+        var app = new Application()
+        class StaticActor extends Actor{
             static _FIELD_ = 5
             changeField(){
                 return StaticActor._FIELD_ = 6
@@ -327,8 +327,8 @@ describe("Behaviour serialisation", () => {
 });
 describe("Functionality", () => {
     it("Require", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.directory = __dirname;
@@ -354,15 +354,15 @@ describe("Functionality", () => {
         });
     });
     it("Remote", (done) => {
-        var app = new spider.Application();
-        class testActor1 extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor1 extends spiders_1.Actor {
             getAndAccess() {
                 return this.remote("127.0.0.1", 8082).then((ref) => {
                     return ref.getVal();
                 });
             }
         }
-        class testActor2 extends spider.Actor {
+        class testActor2 extends spiders_1.Actor {
             getVal() {
                 return 5;
             }
@@ -382,20 +382,20 @@ describe("Functionality", () => {
         });
     });
     it("Scope Bundling", (done) => {
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let someVar = 5;
-        class TestIsolate extends spider.SpiderIsolate {
+        class TestIsolate extends spiders_1.SpiderIsolate {
             constructor() {
                 super();
                 this.val = someVar;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
-                let scope = new spider.LexScope();
+                let scope = new spiders_1.LexScope();
                 scope.addElement("someVar", someVar);
-                spider.bundleScope(TestIsolate, scope);
+                spiders_1.bundleScope(TestIsolate, scope);
                 this.TestIsolate = TestIsolate;
             }
             test() {
@@ -418,8 +418,8 @@ describe("Functionality", () => {
 });
 describe("Communication", () => {
     it("Accessing actor instance variable", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.value = 10;
@@ -439,8 +439,8 @@ describe("Communication", () => {
         });
     });
     it("Invoking method on far reference", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             m() {
                 return 10;
             }
@@ -459,7 +459,7 @@ describe("Communication", () => {
         });
     });
     it("Actor accessing main instance variable", (done) => {
-        class testApp extends spider.Application {
+        class testApp extends spiders_1.Application {
             constructor() {
                 super();
                 this.mainValue = 10;
@@ -477,7 +477,7 @@ describe("Communication", () => {
             }
         }
         var app = new testApp();
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             access() {
                 this.parent.mainValue.then((value) => {
                     this.parent.checkValue(value);
@@ -488,7 +488,7 @@ describe("Communication", () => {
         actor.access();
     });
     it("Actor invoking main method", (done) => {
-        class testApp extends spider.Application {
+        class testApp extends spiders_1.Application {
             m() {
                 try {
                     assert(true);
@@ -502,7 +502,7 @@ describe("Communication", () => {
             }
         }
         var app = new testApp();
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             invoke() {
                 this.parent.m();
             }
@@ -511,8 +511,8 @@ describe("Communication", () => {
         actor.invoke();
     });
     it("Promise rejection handling (method invocation)", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             m() {
                 throw new Error("This is an error");
             }
@@ -531,14 +531,14 @@ describe("Communication", () => {
         });
     });
     it("Promise pipelining (field access)", (done) => {
-        class testApp extends spider.Application {
+        class testApp extends spiders_1.Application {
             constructor() {
                 super();
                 this.field = 10;
             }
         }
         var app = new testApp();
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             get() {
                 return this.parent.field;
             }
@@ -557,13 +557,13 @@ describe("Communication", () => {
         });
     });
     it("Promise pipelining (method invocation)", (done) => {
-        class testApp extends spider.Application {
+        class testApp extends spiders_1.Application {
             get() {
                 return 10;
             }
         }
         var app = new testApp();
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             get() {
                 return this.parent.get();
             }
@@ -582,7 +582,7 @@ describe("Communication", () => {
         });
     });
     it("Isolate passing", (done) => {
-        class mIsolate extends spider.SpiderIsolate {
+        class mIsolate extends spiders_1.SpiderIsolate {
             constructor() {
                 super();
                 this.field = 6;
@@ -591,8 +591,8 @@ describe("Communication", () => {
                 return 5;
             }
         }
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.mIsolate = mIsolate;
@@ -616,15 +616,15 @@ describe("Communication", () => {
         });
     });
     it("Nested isolate passing", (done) => {
-        class testApp extends spider.Application {
+        class testApp extends spiders_1.Application {
         }
-        class InnerIsolate extends spider.SpiderIsolate {
+        class InnerIsolate extends spiders_1.SpiderIsolate {
             constructor() {
                 super();
                 this.innerField = 5;
             }
         }
-        class OuterIsolate extends spider.SpiderIsolate {
+        class OuterIsolate extends spiders_1.SpiderIsolate {
             constructor() {
                 super();
                 this.outerField = 6;
@@ -638,7 +638,7 @@ describe("Communication", () => {
             }
         }
         var app = new testApp();
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.mIsolate = new OuterIsolate();
@@ -664,8 +664,8 @@ describe("Communication", () => {
 });
 describe("General Serialisation", () => {
     it("Correct serialisation of numeric values", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             compute(num) {
                 return num + 5;
             }
@@ -684,8 +684,8 @@ describe("General Serialisation", () => {
         });
     });
     it("Correct serialisation of string values", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             append(str) {
                 return str + 5;
             }
@@ -704,8 +704,8 @@ describe("General Serialisation", () => {
         });
     });
     it("Correct serialisation of boolean values", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             test(bool) {
                 if (bool) {
                     return "ok";
@@ -729,8 +729,8 @@ describe("General Serialisation", () => {
         });
     });
     it("User-level promise serialisation", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             async() {
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
@@ -753,8 +753,8 @@ describe("General Serialisation", () => {
         });
     });
     it("Method argument serialisation", (done) => {
-        var app = new spider.Application();
-        class testActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor extends spiders_1.Actor {
             m(num, str, bool) {
                 return [num, str, bool];
             }
@@ -775,11 +775,11 @@ describe("General Serialisation", () => {
         });
     });
     it("Lexical object serialisation during construction", (done) => {
-        var app = new spider.Application();
+        var app = new spiders_1.Application();
         var ob = {
             field: 5
         };
-        class testActor extends spider.Actor {
+        class testActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.farRef = ob;
@@ -802,14 +802,14 @@ describe("General Serialisation", () => {
         });
     });
     it("Far Ref serialisation", (done) => {
-        var app = new spider.Application();
-        class testActor1 extends spider.Actor {
+        var app = new spiders_1.Application();
+        class testActor1 extends spiders_1.Actor {
             constructor() {
                 super();
                 this.value = 666;
             }
         }
-        class testActor2 extends spider.Actor {
+        class testActor2 extends spiders_1.Actor {
             obtainAndAccess(farRef) {
                 return farRef.value;
             }
@@ -829,8 +829,8 @@ describe("General Serialisation", () => {
         });
     });
     it("Map serialisation", (done) => {
-        var app = new spider.Application();
-        class TestActor extends spider.Actor {
+        var app = new spiders_1.Application();
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.m = new Map();
@@ -860,13 +860,13 @@ describe("General Serialisation", () => {
 });
 describe("Meta Actor Protocol", () => {
     it("Reflecting on Actor", function (done) {
-        class TestMirror extends spider.SpiderActorMirror {
+        class TestMirror extends spiders_1.SpiderActorMirror {
             constructor() {
                 super();
                 this.testValue = 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super(new TestMirror());
             }
@@ -874,7 +874,7 @@ describe("Meta Actor Protocol", () => {
                 return this.reflectOnActor().testValue;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -889,13 +889,13 @@ describe("Meta Actor Protocol", () => {
         });
     });
     it("Custom Init", function (done) {
-        class TestMirror extends spider.SpiderActorMirror {
+        class TestMirror extends spiders_1.SpiderActorMirror {
             initialise(appActor, parentRef) {
                 super.initialise(appActor, parentRef);
                 this.testValue = 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super(new TestMirror());
             }
@@ -906,7 +906,7 @@ describe("Meta Actor Protocol", () => {
                 return this.reflectOnActor().testValue + this.testValue;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -921,13 +921,13 @@ describe("Meta Actor Protocol", () => {
         });
     });
     it("Custom Receive Invocation", function (done) {
-        class TestMirror extends spider.SpiderActorMirror {
+        class TestMirror extends spiders_1.SpiderActorMirror {
             receiveInvocation(sender, target, methodName, args, perform) {
                 this.testValue = 5;
                 super.receiveInvocation(sender, target, methodName, args, perform);
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super(new TestMirror());
             }
@@ -936,7 +936,7 @@ describe("Meta Actor Protocol", () => {
                 return this.reflectOnActor().testValue + this.testValue;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -951,19 +951,19 @@ describe("Meta Actor Protocol", () => {
         });
     });
     it("Custom Receive Access", function (done) {
-        class TestMirror extends spider.SpiderActorMirror {
+        class TestMirror extends spiders_1.SpiderActorMirror {
             receiveAccess(sender, target, fieldName, perform) {
                 target[fieldName] += 5;
                 super.receiveAccess(sender, target, fieldName, perform);
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super(new TestMirror());
                 this.testValue = 5;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.testValue.then((v) => {
             try {
@@ -978,18 +978,18 @@ describe("Meta Actor Protocol", () => {
         });
     });
     it("Custom Send Invocation", function (done) {
-        class TestMirror extends spider.SpiderActorMirror {
+        class TestMirror extends spiders_1.SpiderActorMirror {
             sendInvocation(target, methodName, args) {
                 this.testValue = 5;
                 return super.sendInvocation(target, methodName, args);
             }
         }
-        class TestApp extends spider.Application {
+        class TestApp extends spiders_1.Application {
             test() {
                 return 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super(new TestMirror());
             }
@@ -1014,19 +1014,19 @@ describe("Meta Actor Protocol", () => {
         });
     });
     it("Custom Send Access", function (done) {
-        class TestMirror extends spider.SpiderActorMirror {
+        class TestMirror extends spiders_1.SpiderActorMirror {
             sendAccess(target, fieldName) {
                 this.testValue = 5;
                 return super.sendAccess(target, fieldName);
             }
         }
-        class TestApp extends spider.Application {
+        class TestApp extends spiders_1.Application {
             constructor() {
                 super();
                 this.testValue = 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super(new TestMirror());
             }
@@ -1053,18 +1053,18 @@ describe("Meta Actor Protocol", () => {
 });
 describe("Meta Object Protocol", () => {
     it("Reflecting on Object", function (done) {
-        class TestMirror extends spider.SpiderObjectMirror {
+        class TestMirror extends spiders_1.SpiderObjectMirror {
             constructor() {
                 super();
                 this.testValue = 5;
             }
         }
-        class TestObject extends spider.SpiderObject {
+        class TestObject extends spiders_1.SpiderObject {
             constructor(mirrorClass) {
                 super(new mirrorClass());
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestObject = TestObject;
@@ -1075,7 +1075,7 @@ describe("Meta Object Protocol", () => {
                 return this.reflectOnObject(o).testValue;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -1090,13 +1090,13 @@ describe("Meta Object Protocol", () => {
         });
     });
     it("Custom Invoke", function (done) {
-        class TestMirror extends spider.SpiderObjectMirror {
+        class TestMirror extends spiders_1.SpiderObjectMirror {
             invoke(methodName, args) {
                 this.testValue = 5;
                 return super.invoke(methodName, args);
             }
         }
-        class TestObject extends spider.SpiderObject {
+        class TestObject extends spiders_1.SpiderObject {
             constructor(mirrorClass) {
                 super(new mirrorClass());
             }
@@ -1104,7 +1104,7 @@ describe("Meta Object Protocol", () => {
                 return 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestObject = TestObject;
@@ -1116,7 +1116,7 @@ describe("Meta Object Protocol", () => {
                 return this.reflectOnObject(o).testValue + r;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -1131,19 +1131,19 @@ describe("Meta Object Protocol", () => {
         });
     });
     it("Custom Access", function (done) {
-        class TestMirror extends spider.SpiderObjectMirror {
+        class TestMirror extends spiders_1.SpiderObjectMirror {
             access(fieldName) {
                 this.testValue = 5;
                 return super.access(fieldName);
             }
         }
-        class TestObject extends spider.SpiderObject {
+        class TestObject extends spiders_1.SpiderObject {
             constructor(mirrorClass) {
                 super(new mirrorClass());
                 this.someField = 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestObject = TestObject;
@@ -1155,7 +1155,7 @@ describe("Meta Object Protocol", () => {
                 return this.reflectOnObject(o).testValue + r;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -1170,20 +1170,20 @@ describe("Meta Object Protocol", () => {
         });
     });
     it("Custom Write", function (done) {
-        class TestMirror extends spider.SpiderObjectMirror {
+        class TestMirror extends spiders_1.SpiderObjectMirror {
             write(fieldName, value) {
                 this.testValue = 5;
                 this.base[fieldName] = value * 2;
                 return true;
             }
         }
-        class TestObject extends spider.SpiderObject {
+        class TestObject extends spiders_1.SpiderObject {
             constructor(mirrorClass) {
                 super(new mirrorClass());
                 this.someField = 5;
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.TestObject = TestObject;
@@ -1195,7 +1195,7 @@ describe("Meta Object Protocol", () => {
                 return this.reflectOnObject(o).testValue + r;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -1210,18 +1210,18 @@ describe("Meta Object Protocol", () => {
         });
     });
     it("Custom Pass", function (done) {
-        class TestMirror extends spider.SpiderIsolateMirror {
+        class TestMirror extends spiders_1.SpiderIsolateMirror {
             pass() {
                 this.testValue = 5;
                 return super.pass();
             }
         }
-        class TestObject extends spider.SpiderIsolate {
+        class TestObject extends spiders_1.SpiderIsolate {
             constructor(mirrorClass) {
                 super(new mirrorClass());
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.o = new TestObject(TestMirror);
@@ -1230,7 +1230,7 @@ describe("Meta Object Protocol", () => {
                 return this.reflectOnObject(this.o).testValue;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
@@ -1245,17 +1245,17 @@ describe("Meta Object Protocol", () => {
         });
     });
     it("Custom Resolve", function (done) {
-        class TestMirror extends spider.SpiderIsolateMirror {
+        class TestMirror extends spiders_1.SpiderIsolateMirror {
             resolve() {
                 this.testValue = 5;
             }
         }
-        class TestObject extends spider.SpiderIsolate {
+        class TestObject extends spiders_1.SpiderIsolate {
             constructor(mirrorClass) {
                 super(new mirrorClass());
             }
         }
-        class TestActor extends spider.Actor {
+        class TestActor extends spiders_1.Actor {
             constructor() {
                 super();
                 this.o = new TestObject(TestMirror);
@@ -1264,7 +1264,7 @@ describe("Meta Object Protocol", () => {
                 return this.reflectOnObject(this.o).testValue;
             }
         }
-        let app = new spider.Application();
+        let app = new spiders_1.Application();
         let act = app.spawnActor(TestActor);
         act.test().then((v) => {
             try {
