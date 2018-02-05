@@ -47,7 +47,7 @@ export function bundleScope(classDefinition : Function, scope : LexScope): undef
     }
     export class Application{
         spawnActor(actorClass : Function,constructionArgs? : Array<any>,port? : number)
-        spawnActorFromFile(path : string,className : string,constructorArgs : Array<any>,port : number)
+        spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
         kill()
     }
 //}
