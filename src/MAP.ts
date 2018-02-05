@@ -1,6 +1,5 @@
 import {ActorEnvironment} from "./ActorEnvironment";
 import {ClientFarReference, FarReference, ServerFarReference} from "./FarRef";
-import {SignalObjectClass} from "./spiders";
 import {PubSubTag} from "./PubSub/SubTag";
 import {SIDUPAdmitter, SIDUPNode, SIDUPSourceSignal} from "./Reactivivity/SIDUP";
 import {lift, liftGarbage, Signal, SignalDependency, SignalValue} from "./Reactivivity/signal";
