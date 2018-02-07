@@ -5,7 +5,6 @@
   "typings": "./index.d.ts",
   "scripts": {
     "build-client-tests": "browserify client-tests/testBaseFramework.js -o client-tests/baseBundle.js",
-    "build-client-cap-tests": "browserify client-tests/testCapExtension.js -o client-tests/CAPExtensionBundle.js",
     "build-full-tests-client": "browserify full-tests/client.js -o full-tests/full-bundle.js",
     "build-client-benchmarks": "browserify benchmarks/Client-Benchmarks/ClientBenchmarks.js -o benchmarks/Client-Benchmarks/bundle.js",
     "build-spiderpong-client": "browserify SpiderPong/spiderClient/js/logic.js -o SpiderPong/spiderClient/bundle.js",

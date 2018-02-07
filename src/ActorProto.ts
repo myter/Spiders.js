@@ -1,4 +1,3 @@
-import {MessageHandler} from "./messageHandler";
 import {ObjectPool} from "./ObjectPool";
 import {FarReference, ServerFarReference} from "./FarRef";
 import {deserialise, getObjectNames, reconstructBehaviour} from "./serialisation";

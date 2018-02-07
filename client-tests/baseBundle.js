@@ -56715,10 +56715,6 @@ class SpiderActorMirror {
         behaviourObject["reflectOnObject"] = (object) => {
             return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
         };
-        behaviourObject["instantiate"] = (classDefinition, ...args) => {
-            let ob = new classDefinition(...args);
-            return ob;
-        };
         ///////////////////
         //Pub/Sub       //
         //////////////////
@@ -56901,10 +56897,10 @@ class SpiderActorMirror {
             });
         }
     }
-    receiveInvocation(sender, targetObject, methodName, args, performInvocation = () => { }) {
+    receiveInvocation(sender, targetObject, methodName, args, performInvocation = () => undefined) {
         performInvocation();
     }
-    receiveAccess(sender, targetObject, fieldName, performAccess = () => { }) {
+    receiveAccess(sender, targetObject, fieldName, performAccess = () => undefined) {
         performAccess();
     }
     sendInvocation(target, methodName, args, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {

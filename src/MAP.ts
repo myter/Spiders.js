@@ -328,11 +328,11 @@ export class SpiderActorMirror{
         }
     }
 
-    receiveInvocation(sender : FarReference,targetObject : Object,methodName : string,args : Array<any>,performInvocation : () => void = () => {}){
+    receiveInvocation(sender : FarReference,targetObject : Object,methodName : string,args : Array<any>,performInvocation : () => undefined = () => undefined){
         performInvocation()
     }
 
-    receiveAccess(sender : FarReference,targetObject : Object,fieldName : string,performAccess : () => void = () => {}){
+    receiveAccess(sender : FarReference,targetObject : Object,fieldName : string,performAccess : () => undefined = () => undefined){
         performAccess()
     }
 
