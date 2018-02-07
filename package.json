@@ -14,6 +14,7 @@
     "build-ping-example": "browserify examples/Distributed/pinger.js -o examples/Distributed/pingBundle.js",
     "build-pong-example": "browserify examples/Distributed/ponger.js -o examples/Distributed/pongBundle.js",
     "build-rep-test": "browserify FullRepTest/client.js -o FullRepTest/RepBundle.js"
+    "server-skeleton": "pwd"
   },
   "dependencies": {
     "browserify": "14.0.0",
@@ -35,6 +36,7 @@
     "benchmark": "^2.1.4",
     "chai": "^3.5.0",
     "decimal.js": "7.1.1",
-    "mocha": "^3.5.3"
+    "mocha": "^3.5.3",
+    "spiders.js": "latest"
   }
 }
