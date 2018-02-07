@@ -13,7 +13,7 @@
     "build-speedup-client": "browserify benchmarks/Speedup/ClientSpeedupBenchmarks.js -o benchmarks/Speedup/bundle.js",
     "build-ping-example": "browserify examples/Distributed/pinger.js -o examples/Distributed/pingBundle.js",
     "build-pong-example": "browserify examples/Distributed/ponger.js -o examples/Distributed/pongBundle.js",
-    "build-rep-test": "browserify FullRepTest/client.js -o FullRepTest/RepBundle.js"
+    "build-rep-test": "browserify FullRepTest/client.js -o FullRepTest/RepBundle.js",
     "server-skeleton": "pwd"
   },
   "dependencies": {
