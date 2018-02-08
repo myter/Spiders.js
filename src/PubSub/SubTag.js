@@ -1,12 +1,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const serialisation_1 = require("../serialisation");
+const spiders_js_1 = require("../spiders.js");
 /**
  * Created by flo on 22/03/2017.
  */
-var spiders = require("../spiders");
-class PubSubTag {
+class PubSubTag extends spiders_js_1.SpiderIsolate {
     constructor(tagVal) {
-        this[serialisation_1.SpiderIsolateContainer.checkIsolateFuncKey] = true;
+        super();
         this.tagVal = tagVal;
     }
     equals(otherTag) {

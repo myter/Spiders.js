@@ -9,8 +9,6 @@ import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
 import {Signal, SignalObject} from "./Reactivivity/signal";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
-import {PubSubTag} from "./PubSub/SubTag";
-import {Subscription} from "./PubSub/SubClient";
 import {bundleScope, generateId, isBrowser, LexScope} from "./utils";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
@@ -41,7 +39,7 @@ abstract class Actor{
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
     remote          : (string,number)=> Promise<FarReference>
     //Pub-sub
-    PSClient        : (string?,number?) => null
+    /*PSClient        : (string?,number?) => null
     PSServer        : (string?,number?) => null
     publish         : (Object,PubSubTag) => null
     subscribe       : (PubSubTag) => Subscription
@@ -58,19 +56,11 @@ abstract class Actor{
     lift            : Function
     liftStrong      : Function
     liftWeak        : Function
-    liftFailure     : Function
+    liftFailure     : Function*/
     actorMirror     : SpiderActorMirror
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
         this.actorMirror = actorMirror
-    }
-}
-
-abstract class ActorTrait extends SpiderIsolate{
-    myActor : any
-    constructor(myActor : any){
-        super()
-        this.myActor = myActor
     }
 }
 
@@ -152,6 +142,7 @@ abstract class Application {
     self                : any
 
     constructor(){
+        this.self = this
         if(this.appActors == 0){
             this.mainId                         = generateId()
         }
@@ -173,7 +164,7 @@ class ServerApplication extends Application{
     //SpawnedActors is actually of type Array<ChildProcess> but the ChildProcess types gives error for React-Native applications
     spawnedActors                   : Array<any>
 
-    constructor(mainIp : string = "127.0.0.1",mainPort : number = 8000,actorMirror : SpiderActorMirror = new SpiderActorMirror()){
+    constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror(),mainIp : string = "127.0.0.1",mainPort : number = 8000){
         super()
         this.mainIp                         = mainIp
         this.mainPort                       = mainPort
@@ -236,12 +227,11 @@ class ClientApplication extends Application{
     }
 
 }
-
 interface ActorType{
     new(mirror? : SpiderActorMirror)
 }
 interface ApplicationType{
-    new()
+    new(actorMirror? : SpiderActorMirror,ip? : string,port? : number)
     kill()
     spawnActor(actorClass : Function,constructorArgs? : Array<any>,port? : number)
     spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
@@ -258,11 +248,11 @@ else{
 }
 export {exportApp as Application}
 export {exportActor as Actor}
-export {ActorTrait as ActorTrait}
 export {FarRef as FarRef}
 export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
 export {SpiderActorMirror} from "./MAP"
 export {bundleScope,LexScope} from "./utils"
+
 
 
 

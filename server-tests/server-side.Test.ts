@@ -2,7 +2,7 @@
  * Created by flo on 06/02/2017.
  */
 
-import {ActorTrait,Actor,Application,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,LexScope,bundleScope} from "../src/spiders";
+import {Actor,Application,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,LexScope,bundleScope} from "../src/spiders";
 /**
  * Created by flo on 10/01/2017.
  */
@@ -426,50 +426,6 @@ describe("Functionality",() => {
         app.spawnActor(TestActor).test().then((v)=>{
             try{
                 expect(v).to.equal(someVar)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Traits",(done)=>{
-        let app = new Application()
-        class TestTrait extends ActorTrait{
-            baseValue
-            constructor(myActor){
-                super(myActor)
-                this.baseValue = 5
-            }
-            traitMethod(){
-                return this.baseValue
-            }
-        }
-        class SuperTrait extends TestTrait{
-            traitMethod(){
-                return super.traitMethod() + this.myActor.someValue
-            }
-        }
-        class TraitActor extends Actor{
-            SuperTrait
-            someValue
-            constructor(){
-                super()
-                this.SuperTrait = SuperTrait
-            }
-            init(){
-                this.someValue = 5
-                this.installTrait(new this.SuperTrait(this))
-            }
-            test(){
-                return this.traitMethod()
-            }
-        }
-        app.spawnActor(TraitActor).test().then((v)=>{
-            try{
-                expect(v).to.equal(10)
                 app.kill()
                 done()
             }

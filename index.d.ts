@@ -1,13 +1,9 @@
 // Type definitions for Spiders.js
 // Definitions by: Florian Myter
 import {ActorEnvironment} from "./src/ActorEnvironment";
-
+type newable = {new(...args : any[]): any}
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export type FarRef = any
-export class ActorTrait extends SpiderIsolate{
-    myActor : any
-    constructor(myActor : any)
-}
 export class LexScope{
     addElement(key : string,value : any)
 }

@@ -1,15 +1,16 @@
-import {SpiderLib, FarRef} from "../spiders";
 import {PubSubTag} from "./SubTag";
+import {FarRef,ActorTrait} from "../spiders"
 /**
  * Created by flo on 22/03/2017.
  */
-var spiders : SpiderLib = require('../spiders')
 
-export class PSServer{
+
+export class PSServer extends ActorTrait{
     private subscribers : Map<string,Array<FarRef>>
     private published   : Map<string,Array<any>>
 
-    constructor(address : string = "127.0.0.1",port : number = 8000){
+    constructor(myActor){
+        super(myActor)
         this.subscribers    = new Map()
         this.published      = new Map()
     }

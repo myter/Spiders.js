@@ -1,11 +1,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const serialisation_1 = require("../serialisation");
+const spiders_1 = require("../spiders");
+const SubTag_1 = require("./SubTag");
 /**
  * Created by flo on 22/03/2017.
  */
-class Subscription {
+/*This might seem strange, and it is. Need to explicitly have the definition in the file scope in order to correctly bundle it.
+Otherwise typescript will prepend the lib name which will mess up the bundling
+*/
+var PSTag = SubTag_1.PubSubTag;
+class Subscription extends spiders_1.SpiderIsolate {
     constructor() {
-        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
+        super();
         this.subArray = [];
         this.listeners = [];
         this.onceMode = false;
@@ -42,23 +47,20 @@ class Subscription {
     }
 }
 exports.Subscription = Subscription;
-class Publication {
-    constructor() {
-        this[serialisation_1.IsolateContainer.checkIsolateFuncKey] = true;
-    }
+class Publication extends spiders_1.SpiderIsolate {
     cancel() {
         //TODO, How can server identifiy which publiciation to withdraw ? Far ref equality will probably not work
     }
 }
 exports.Publication = Publication;
-class PSClient {
-    constructor(serverAddress = "127.0.0.1", serverPort = 8000, hostActor) {
+class PSClient extends spiders_1.ActorTrait {
+    constructor(myActor, serverAddress, serverPort) {
+        super(myActor);
         this.connected = false;
-        this.serverAddress = serverAddress;
-        this.serverPort = serverPort;
+        myActor.PubSubTag = PSTag;
         var that = this;
         this.bufferedMessages = [];
-        hostActor.remote(this.serverAddress, this.serverPort).then((serverRef) => {
+        myActor.remote(serverAddress, serverPort).then((serverRef) => {
             that.serverRef = serverRef;
             that.connected = true;
             if (that.bufferedMessages.length > 0) {
@@ -75,7 +77,12 @@ class PSClient {
         }
         else {
             this.bufferedMessages.push(() => {
+                console.log("Publishing");
+                for (var i in this) {
+                    console.log(i);
+                }
                 this.serverRef.addPublish(object, typeTag);
+                console.log("Published");
             });
         }
         //TODO return publication object
@@ -104,4 +111,9 @@ class PSClient {
     }
 }
 exports.PSClient = PSClient;
+let scope = new spiders_1.LexScope();
+scope.addElement("Subscription", Subscription);
+scope.addElement("Publication", Publication);
+scope.addElement("PSTag", PSTag);
+spiders_1.bundleScope(PSClient, scope);
 //# sourceMappingURL=SubClient.js.map

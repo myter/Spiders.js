@@ -1,18 +1,20 @@
-import {FarRef, Isolate} from "../spiders";
+import {FarRef,ActorTrait,bundleScope,LexScope,SpiderIsolate} from "../spiders"
 import {PubSubTag} from "./SubTag";
-import {IsolateContainer} from "../serialisation";
 /**
  * Created by flo on 22/03/2017.
  */
-
-export class Subscription{
+    /*This might seem strange, and it is. Need to explicitly have the definition in the file scope in order to correctly bundle it.
+    Otherwise typescript will prepend the lib name which will mess up the bundling
+    */
+var PSTag = PubSubTag
+export class Subscription extends SpiderIsolate{
     private subArray    : Array<any>
     private listeners   : Array<(any)=> any>
     private onceMode    : boolean
     private discovered  : number
 
     constructor(){
-        this[IsolateContainer.checkIsolateFuncKey] = true
+        super()
         this.subArray   = []
         this.listeners  = []
         this.onceMode   = false
@@ -55,31 +57,25 @@ export class Subscription{
     }
 }
 
-export class Publication{
-
-    constructor(){
-        this[IsolateContainer.checkIsolateFuncKey] = true
-    }
+export class Publication extends SpiderIsolate{
 
     cancel(){
         //TODO, How can server identifiy which publiciation to withdraw ? Far ref equality will probably not work
     }
 }
 
-export class PSClient{
+export class PSClient extends ActorTrait{
     private connected           : boolean = false
-    private serverAddress       : string
-    private serverPort          : number
     private serverRef           : FarRef
     private bufferedMessages    : Array<Function>
     protected subscriptions     : Map<string,Array<Subscription>>
 
-    constructor(serverAddress : string = "127.0.0.1",serverPort : number = 8000,hostActor){
-        this.serverAddress  = serverAddress
-        this.serverPort     = serverPort
+    constructor(myActor,serverAddress,serverPort){
+        super(myActor)
+        myActor.PubSubTag       = PSTag
         var that                = this
         this.bufferedMessages   = []
-        hostActor.remote(this.serverAddress,this.serverPort).then((serverRef : FarRef)=>{
+        myActor.remote(serverAddress,serverPort).then((serverRef : FarRef)=>{
             that.serverRef = serverRef
             that.connected = true
             if(that.bufferedMessages.length > 0){
@@ -97,7 +93,12 @@ export class PSClient{
         }
         else{
             this.bufferedMessages.push(()=>{
+                console.log("Publishing")
+                for(var i in this){
+                    console.log(i)
+                }
                 this.serverRef.addPublish(object,typeTag)
+                console.log("Published")
             })
         }
         //TODO return publication object
@@ -127,3 +128,9 @@ export class PSClient{
         })
     }
 }
+
+let scope = new LexScope()
+scope.addElement("Subscription",Subscription)
+scope.addElement("Publication",Publication)
+scope.addElement("PSTag",PSTag)
+bundleScope(PSClient,scope)
