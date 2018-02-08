@@ -9,7 +9,7 @@ export class LexScope{
 }
 export class SpiderActorMirror{
     base : ActorEnvironment
-    initialise(appActor : boolean,parentRef? : FarRef)
+    initialise(stdLib : ActorSTDLib,appActor : boolean,parentRef? : FarRef)
     receiveInvocation(sender : FarRef,targetObject : Object,methodName : string,args : Array<any>,performInvocation? : ()=> undefined)
     receiveAccess(sender : FarRef,targetObject : Object,fieldName : string,performAcess? : ()=> undefined)
     sendInvocation(target : FarRef,methodName : string,args : Array<any>,contactId? : string,contactAddress? : string,contactPort? : number,mainId? : string) : Promise<any>

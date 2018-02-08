@@ -7,7 +7,7 @@
     "noImplicitUseStrict" : true
   },
   "files": [
-    "./index.d.ts"
+    "./spidersjs.d.ts"
   ],
   "include": [
     "src/**/*",
