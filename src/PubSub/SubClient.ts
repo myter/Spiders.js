@@ -1,4 +1,4 @@
-import {FarRef,ActorTrait,bundleScope,LexScope,SpiderIsolate} from "../spiders"
+import {FarRef} from "../spiders"
 import {PubSubTag} from "./SubTag";
 /**
  * Created by flo on 22/03/2017.
@@ -6,15 +6,13 @@ import {PubSubTag} from "./SubTag";
     /*This might seem strange, and it is. Need to explicitly have the definition in the file scope in order to correctly bundle it.
     Otherwise typescript will prepend the lib name which will mess up the bundling
     */
-var PSTag = PubSubTag
-export class Subscription extends SpiderIsolate{
+export class Subscription{
     private subArray    : Array<any>
     private listeners   : Array<(any)=> any>
     private onceMode    : boolean
     private discovered  : number
 
     constructor(){
-        super()
         this.subArray   = []
         this.listeners  = []
         this.onceMode   = false
@@ -57,32 +55,31 @@ export class Subscription extends SpiderIsolate{
     }
 }
 
-export class Publication extends SpiderIsolate{
-
+export class Publication{
     cancel(){
         //TODO, How can server identifiy which publiciation to withdraw ? Far ref equality will probably not work
     }
 }
 
-export class PSClient extends ActorTrait{
+export class PSClient{
     private connected           : boolean = false
     private serverRef           : FarRef
     private bufferedMessages    : Array<Function>
     protected subscriptions     : Map<string,Array<Subscription>>
 
-    constructor(myActor,serverAddress,serverPort){
-        super(myActor)
-        myActor.PubSubTag       = PSTag
+    constructor(hostActor,serverAddress,serverPort){
         var that                = this
         this.bufferedMessages   = []
-        myActor.remote(serverAddress,serverPort).then((serverRef : FarRef)=>{
-            that.serverRef = serverRef
-            that.connected = true
-            if(that.bufferedMessages.length > 0){
-                that.bufferedMessages.forEach((f)=>{
-                    f.apply(that,[])
-                })
-            }
+        hostActor.remote(serverAddress,serverPort).then((serverRef : FarRef)=>{
+            serverRef._PS_SERVER_.then((psServerRef : FarRef)=>{
+                that.serverRef = psServerRef
+                that.connected = true
+                if(that.bufferedMessages.length > 0){
+                    that.bufferedMessages.forEach((f)=>{
+                        f.apply(that,[])
+                    })
+                }
+            })
         })
         this.subscriptions      = new Map()
     }
@@ -93,12 +90,7 @@ export class PSClient extends ActorTrait{
         }
         else{
             this.bufferedMessages.push(()=>{
-                console.log("Publishing")
-                for(var i in this){
-                    console.log(i)
-                }
                 this.serverRef.addPublish(object,typeTag)
-                console.log("Published")
             })
         }
         //TODO return publication object
@@ -128,9 +120,3 @@ export class PSClient extends ActorTrait{
         })
     }
 }
-
-let scope = new LexScope()
-scope.addElement("Subscription",Subscription)
-scope.addElement("Publication",Publication)
-scope.addElement("PSTag",PSTag)
-bundleScope(PSClient,scope)

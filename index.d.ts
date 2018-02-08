@@ -1,7 +1,7 @@
 // Type definitions for Spiders.js
 // Definitions by: Florian Myter
 import {ActorEnvironment} from "./src/ActorEnvironment";
-type newable = {new(...args : any[]): any}
+import {ActorSTDLib} from "./src/ActorSTDLib";
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export type FarRef = any
 export class LexScope{
@@ -39,7 +39,7 @@ export class SpiderIsolate{
 }
 export class Actor{
     parent          : FarRef
-    installTrait(ActorTrait) : undefined
+    libs            : ActorSTDLib
     remote(address : string,port : number) : Promise<FarRef>
     reflectOnActor() : SpiderActorMirror
     reflectOnObject(obj : SpiderObject | SpiderIsolate) : SpiderObjectMirror | SpiderIsolateMirror

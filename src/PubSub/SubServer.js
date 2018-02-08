@@ -1,11 +1,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-const spiders_1 = require("../spiders");
 /**
  * Created by flo on 22/03/2017.
  */
-class PSServer extends spiders_1.ActorTrait {
-    constructor(myActor) {
-        super(myActor);
+class PSServer {
+    constructor() {
         this.subscribers = new Map();
         this.published = new Map();
     }

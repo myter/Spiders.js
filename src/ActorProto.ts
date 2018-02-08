@@ -3,6 +3,7 @@ import {FarReference, ServerFarReference} from "./FarRef";
 import {deserialise, getObjectNames, reconstructBehaviour} from "./serialisation";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {SpiderActorMirror} from "./MAP";
+import {ActorSTDLib} from "./ActorSTDLib";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -63,7 +64,8 @@ else{
     parentRef                   = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],parentId,address,parentPort,environment)
     var parentServer            = parentRef as ServerFarReference
     environment.commMedium.openConnection(parentServer.ownerId,parentServer.ownerAddress,parentServer.ownerPort)
-    environment.actorMirror.initialise(false,parentRef)
+    let stdLib                  = new ActorSTDLib(environment)
+    environment.actorMirror.initialise(stdLib,false,parentRef)
 }
 
 

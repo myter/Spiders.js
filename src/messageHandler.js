@@ -3,6 +3,7 @@ const Message_1 = require("./Message");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
 const FarRef_1 = require("./FarRef");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 /**
  * Created by flo on 20/12/2016.
  */
@@ -52,7 +53,8 @@ class MessageHandler {
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id, ports[index + 1]);
         });
-        this.environment.actorMirror.initialise(false, parentRef);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.environment);
+        this.environment.actorMirror.initialise(stdLib, false, parentRef);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.environment.commMedium;
@@ -73,6 +75,7 @@ class MessageHandler {
                     this.sendReturnClient(msg.senderId, msg, message);
                 }
             }
+            return undefined;
         });
     }
     handleMethodInvocation(msg) {
@@ -107,6 +110,7 @@ class MessageHandler {
                     this.sendReturnClient(msg.senderId, msg, message);
                 }
             }
+            return undefined;
         });
     }
     handlePromiseResolve(msg) {

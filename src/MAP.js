@@ -3,6 +3,13 @@ const FarRef_1 = require("./FarRef");
 const signal_1 = require("./Reactivivity/signal");
 const Message_1 = require("./Message");
 const MOP_1 = require("./MOP");
+const SubClient_1 = require("./PubSub/SubClient");
+const SubServer_1 = require("./PubSub/SubServer");
+const SubTag_1 = require("./PubSub/SubTag");
+const utils_1 = require("./utils");
+var PBT = SubTag_1.PubSubTag;
+var PSS = SubServer_1.PSServer;
+var PSC = SubClient_1.PSClient;
 class SpiderActorMirror {
     constructor() {
         this.CONSTRAINT_OK = "ok";
@@ -105,7 +112,7 @@ class SpiderActorMirror {
         this.serialise = serialise;
     }
     //Only non-app actors have a parent reference
-    initialise(appActor, parentRef = null) {
+    initialise(actSTDLib, appActor, parentRef = null) {
         let commMedium = this.base.commMedium;
         let thisRef = this.base.thisRef;
         let promisePool = this.base.promisePool;
@@ -124,6 +131,10 @@ class SpiderActorMirror {
         behaviourObject["reflectOnObject"] = (object) => {
             return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
         };
+        ///////////////////
+        //Actor STDL     //
+        //////////////////
+        behaviourObject["libs"] = actSTDLib;
         ///////////////////
         //Pub/Sub       //
         //////////////////
@@ -327,4 +338,9 @@ class SpiderActorMirror {
     }
 }
 exports.SpiderActorMirror = SpiderActorMirror;
+let scope = new utils_1.LexScope();
+scope.addElement("PBT", PBT);
+scope.addElement("PSS", PSS);
+scope.addElement("PSC", PSC);
+utils_1.bundleScope(SpiderActorMirror, scope);
 //# sourceMappingURL=MAP.js.map

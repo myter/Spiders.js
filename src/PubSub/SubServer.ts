@@ -1,16 +1,15 @@
 import {PubSubTag} from "./SubTag";
-import {FarRef,ActorTrait} from "../spiders"
+import {FarRef} from "../spiders"
 /**
  * Created by flo on 22/03/2017.
  */
 
 
-export class PSServer extends ActorTrait{
+export class PSServer{
     private subscribers : Map<string,Array<FarRef>>
     private published   : Map<string,Array<any>>
 
-    constructor(myActor){
-        super(myActor)
+    constructor(){
         this.subscribers    = new Map()
         this.published      = new Map()
     }

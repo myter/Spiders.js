@@ -1,26 +1,20 @@
 import {Actor, Application, FarRef,SpiderActorMirror} from "../src/spiders";
-/*class App extends Application{
+class App extends Application{
     constructor(){
-        super(new SpiderActorMirror(),"127.0.0.1",8888)
-        this.installTrait(new Libs.SubServer(this))
+        super()
+        this.libs.setupPSServer()
     }
 }
 class Act extends Actor{
-    SubClient
-    constructor(){
-        super()
-        this.SubClient = Libs.SubClient
-    }
-
     init(){
-        let that = this as any
-        this.installTrait(new this.SubClient(this,"127.0.0.1",8888))
-        that.publish("foo",new that.PubSubTag("footype"))
-        that.subscribe(new that.PubSubTag("footype")).each((occ)=>{
-            console.log("discovered: " + occ)
+        let psClient = this.libs.setupPSClient()
+        let type     = new this.libs.PubSubTag("test")
+        psClient.publish(5,type)
+        psClient.subscribe(type).each((discov)=>{
+            console.log("got: " + discov)
         })
     }
 }
 let app = new App()
 app.spawnActor(Act)
-app.spawnActor(Act)*/
+app.spawnActor(Act)

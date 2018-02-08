@@ -4,6 +4,7 @@ const FarRef_1 = require("./FarRef");
 const serialisation_1 = require("./serialisation");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const MAP_1 = require("./MAP");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -61,6 +62,7 @@ else {
     parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], parentId, address, parentPort, environment);
     var parentServer = parentRef;
     environment.commMedium.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    environment.actorMirror.initialise(false, parentRef);
+    let stdLib = new ActorSTDLib_1.ActorSTDLib(environment);
+    environment.actorMirror.initialise(stdLib, false, parentRef);
 }
 //# sourceMappingURL=ActorProto.js.map

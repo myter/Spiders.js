@@ -64,8 +64,8 @@ let performROA = () => {
 };
 scheduled.push(performROA);
 class InitMirror extends spiders_1.SpiderActorMirror {
-    initialise(appActor, parentRef) {
-        super.initialise(appActor, parentRef);
+    initialise(stdLib, appActor, parentRef) {
+        super.initialise(stdLib, appActor, parentRef);
         this.testValue = 5;
     }
 }
@@ -937,7 +937,7 @@ function performAll(nextTest) {
 }
 performAll(scheduled.pop());
 
-},{"../src/spiders":290,"/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule":1}],3:[function(require,module,exports){
+},{"../src/spiders":294,"/Users/flo/WebstormProjects/Spiders.js/client-tests/clientTestModule":1}],3:[function(require,module,exports){
 /*!
  * accepts
  * Copyright(c) 2014 Jonathan Ong
@@ -56321,7 +56321,7 @@ class ClientActorEnvironment extends ActorEnvironment {
 }
 exports.ClientActorEnvironment = ClientActorEnvironment;
 
-},{"./ChannelManager":270,"./FarRef":272,"./ObjectPool":276,"./PromisePool":277,"./Reactivivity/signalPool":280,"./Replication/GSP":281,"./Sockets":287,"./messageHandler":288,"./serialisation":289}],269:[function(require,module,exports){
+},{"./ChannelManager":271,"./FarRef":273,"./ObjectPool":277,"./PromisePool":278,"./Reactivivity/signalPool":284,"./Replication/GSP":285,"./Sockets":291,"./messageHandler":292,"./serialisation":293}],269:[function(require,module,exports){
 (function (process){
 Object.defineProperty(exports, "__esModule", { value: true });
 const ObjectPool_1 = require("./ObjectPool");
@@ -56329,6 +56329,7 @@ const FarRef_1 = require("./FarRef");
 const serialisation_1 = require("./serialisation");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const MAP_1 = require("./MAP");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -56386,11 +56387,31 @@ else {
     parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], parentId, address, parentPort, environment);
     var parentServer = parentRef;
     environment.commMedium.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    environment.actorMirror.initialise(false, parentRef);
+    let stdLib = new ActorSTDLib_1.ActorSTDLib(environment);
+    environment.actorMirror.initialise(stdLib, false, parentRef);
 }
 
 }).call(this,require('_process'))
-},{"./ActorEnvironment":268,"./FarRef":272,"./MAP":273,"./ObjectPool":276,"./serialisation":289,"./utils":291,"_process":158}],270:[function(require,module,exports){
+},{"./ActorEnvironment":268,"./ActorSTDLib":270,"./FarRef":273,"./MAP":274,"./ObjectPool":277,"./serialisation":293,"./utils":295,"_process":158}],270:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+const SubClient_1 = require("./PubSub/SubClient");
+const SubServer_1 = require("./PubSub/SubServer");
+const SubTag_1 = require("./PubSub/SubTag");
+class ActorSTDLib {
+    constructor(env) {
+        this.environment = env;
+        this.PubSubTag = SubTag_1.PubSubTag;
+    }
+    setupPSClient(address, port) {
+        return new SubClient_1.PSClient(this.environment.behaviourObject, address, port);
+    }
+    setupPSServer() {
+        this.environment.behaviourObject["_PS_SERVER_"] = new SubServer_1.PSServer();
+    }
+}
+exports.ActorSTDLib = ActorSTDLib;
+
+},{"./PubSub/SubClient":279,"./PubSub/SubServer":280,"./PubSub/SubTag":281}],271:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const CommMedium_1 = require("./CommMedium");
 /**
@@ -56441,7 +56462,7 @@ class ChannelManager extends CommMedium_1.CommMedium {
 }
 exports.ChannelManager = ChannelManager;
 
-},{"./CommMedium":271}],271:[function(require,module,exports){
+},{"./CommMedium":272}],272:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const FarRef_1 = require("./FarRef");
@@ -56490,7 +56511,7 @@ class CommMedium {
 }
 exports.CommMedium = CommMedium;
 
-},{"./FarRef":272,"./Message":275,"./Sockets":287,"socket.io-client":192}],272:[function(require,module,exports){
+},{"./FarRef":273,"./Message":276,"./Sockets":291,"socket.io-client":192}],273:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 21/12/2016.
@@ -56588,12 +56609,19 @@ class ServerFarReference extends FarReference {
 }
 exports.ServerFarReference = ServerFarReference;
 
-},{}],273:[function(require,module,exports){
+},{}],274:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
 const signal_1 = require("./Reactivivity/signal");
 const Message_1 = require("./Message");
 const MOP_1 = require("./MOP");
+const SubClient_1 = require("./PubSub/SubClient");
+const SubServer_1 = require("./PubSub/SubServer");
+const SubTag_1 = require("./PubSub/SubTag");
+const utils_1 = require("./utils");
+var PBT = SubTag_1.PubSubTag;
+var PSS = SubServer_1.PSServer;
+var PSC = SubClient_1.PSClient;
 class SpiderActorMirror {
     constructor() {
         this.CONSTRAINT_OK = "ok";
@@ -56696,7 +56724,7 @@ class SpiderActorMirror {
         this.serialise = serialise;
     }
     //Only non-app actors have a parent reference
-    initialise(appActor, parentRef = null) {
+    initialise(actSTDLib, appActor, parentRef = null) {
         let commMedium = this.base.commMedium;
         let thisRef = this.base.thisRef;
         let promisePool = this.base.promisePool;
@@ -56715,6 +56743,10 @@ class SpiderActorMirror {
         behaviourObject["reflectOnObject"] = (object) => {
             return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
         };
+        ///////////////////
+        //Actor STDL     //
+        //////////////////
+        behaviourObject["libs"] = actSTDLib;
         ///////////////////
         //Pub/Sub       //
         //////////////////
@@ -56918,8 +56950,13 @@ class SpiderActorMirror {
     }
 }
 exports.SpiderActorMirror = SpiderActorMirror;
+let scope = new utils_1.LexScope();
+scope.addElement("PBT", PBT);
+scope.addElement("PSS", PSS);
+scope.addElement("PSC", PSC);
+utils_1.bundleScope(SpiderActorMirror, scope);
 
-},{"./FarRef":272,"./MOP":274,"./Message":275,"./Reactivivity/signal":279}],274:[function(require,module,exports){
+},{"./FarRef":273,"./MOP":275,"./Message":276,"./PubSub/SubClient":279,"./PubSub/SubServer":280,"./PubSub/SubTag":281,"./Reactivivity/signal":283,"./utils":295}],275:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
 const serialisation_1 = require("./serialisation");
@@ -57095,7 +57132,7 @@ exports.reCreateObjectClass = reCreateIsolateClass;
 exports.reCreateObjectMirrorClass = reCreateIsolateClass;
 exports.reCreateIsolateMirrorClass = reCreateIsolateClass;
 
-},{"./serialisation":289,"./utils":291}],275:[function(require,module,exports){
+},{"./serialisation":293,"./utils":295}],276:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 20/12/2016.
@@ -57277,7 +57314,7 @@ class ExternalSignalDeleteMessage extends Message {
 }
 exports.ExternalSignalDeleteMessage = ExternalSignalDeleteMessage;
 
-},{"./FarRef":272,"./ObjectPool":276,"./serialisation":289}],276:[function(require,module,exports){
+},{"./FarRef":273,"./ObjectPool":277,"./serialisation":293}],277:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 08/01/2017.
@@ -57304,7 +57341,7 @@ class ObjectPool {
 ObjectPool._BEH_OBJ_ID = 0;
 exports.ObjectPool = ObjectPool;
 
-},{}],277:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
 /**
  * Created by flo on 22/12/2016.
  */
@@ -57382,7 +57419,168 @@ class PromisePool {
 }
 exports.PromisePool = PromisePool;
 
-},{}],278:[function(require,module,exports){
+},{}],279:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Created by flo on 22/03/2017.
+ */
+/*This might seem strange, and it is. Need to explicitly have the definition in the file scope in order to correctly bundle it.
+Otherwise typescript will prepend the lib name which will mess up the bundling
+*/
+class Subscription {
+    constructor() {
+        this.subArray = [];
+        this.listeners = [];
+        this.onceMode = false;
+        this.discovered = 0;
+    }
+    newPublishedObject(publishedObject) {
+        this.discovered++;
+        this.subArray.push(publishedObject);
+        if (this.onceMode) {
+            if (!(this.discovered > 1)) {
+                this.listeners.forEach((callback) => {
+                    callback(publishedObject);
+                });
+            }
+        }
+        else {
+            this.listeners.forEach((callback) => {
+                callback(publishedObject);
+            });
+        }
+    }
+    each(callback) {
+        this.listeners.push(callback);
+    }
+    all() {
+        return this.subArray;
+    }
+    once(callback) {
+        this.onceMode = true;
+        this.listeners.push(callback);
+    }
+    cancel() {
+        //TODO
+    }
+}
+exports.Subscription = Subscription;
+class Publication {
+    cancel() {
+        //TODO, How can server identifiy which publiciation to withdraw ? Far ref equality will probably not work
+    }
+}
+exports.Publication = Publication;
+class PSClient {
+    constructor(hostActor, serverAddress, serverPort) {
+        this.connected = false;
+        var that = this;
+        this.bufferedMessages = [];
+        hostActor.remote(serverAddress, serverPort).then((serverRef) => {
+            serverRef._PS_SERVER_.then((psServerRef) => {
+                that.serverRef = psServerRef;
+                that.connected = true;
+                if (that.bufferedMessages.length > 0) {
+                    that.bufferedMessages.forEach((f) => {
+                        f.apply(that, []);
+                    });
+                }
+            });
+        });
+        this.subscriptions = new Map();
+    }
+    publish(object, typeTag) {
+        if (this.connected) {
+            this.serverRef.addPublish(object, typeTag);
+        }
+        else {
+            this.bufferedMessages.push(() => {
+                this.serverRef.addPublish(object, typeTag);
+            });
+        }
+        //TODO return publication object
+    }
+    subscribe(typeTag) {
+        if (this.connected) {
+            this.serverRef.addSubscriber(typeTag, this);
+        }
+        else {
+            this.bufferedMessages.push(() => {
+                this.serverRef.addSubscriber(typeTag, this);
+            });
+        }
+        let sub = new Subscription();
+        if (!this.subscriptions.has(typeTag.tagVal)) {
+            this.subscriptions.set(typeTag.tagVal, []);
+        }
+        this.subscriptions.get(typeTag.tagVal).push(sub);
+        return sub;
+    }
+    newPublished(publishedObject, typeTag) {
+        //Sure to have at least one subscription, given that server only invokes this method if this actor is in the TypeTag's subscribers list
+        this.subscriptions.get(typeTag.tagVal).forEach((sub) => {
+            sub.newPublishedObject(publishedObject);
+        });
+    }
+}
+exports.PSClient = PSClient;
+
+},{}],280:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Created by flo on 22/03/2017.
+ */
+class PSServer {
+    constructor() {
+        this.subscribers = new Map();
+        this.published = new Map();
+    }
+    addPublish(published, typeTag) {
+        if (!this.published.has(typeTag.tagVal)) {
+            this.published.set(typeTag.tagVal, []);
+        }
+        this.published.get(typeTag.tagVal).push(published);
+        if (this.subscribers.has(typeTag.tagVal)) {
+            this.subscribers.get(typeTag.tagVal).forEach((subscriber) => {
+                subscriber.newPublished(published, typeTag);
+            });
+        }
+    }
+    addSubscriber(typeTag, subReference) {
+        if (!this.subscribers.has(typeTag.tagVal)) {
+            this.subscribers.set(typeTag.tagVal, []);
+        }
+        this.subscribers.get(typeTag.tagVal).push(subReference);
+        if (this.published.has(typeTag.tagVal)) {
+            this.published.get(typeTag.tagVal).forEach((publishedObject) => {
+                subReference.newPublished(publishedObject, typeTag);
+            });
+        }
+    }
+}
+exports.PSServer = PSServer;
+
+},{}],281:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+const MOP_1 = require("../MOP");
+/**
+ * Created by flo on 22/03/2017.
+ */
+class PubSubTag extends MOP_1.SpiderIsolate {
+    constructor(tagVal) {
+        super();
+        this.tagVal = tagVal;
+    }
+    equals(otherTag) {
+        otherTag.tagVal == this.tagVal;
+    }
+    asString() {
+        return this.tagVal;
+    }
+}
+exports.PubSubTag = PubSubTag;
+
+},{"../MOP":275}],282:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const signal_1 = require("./signal");
 const Message_1 = require("../Message");
@@ -57414,7 +57612,7 @@ class NoGlitchFreedom {
 }
 exports.NoGlitchFreedom = NoGlitchFreedom;
 
-},{"../Message":275,"../serialisation":289,"./signal":279}],279:[function(require,module,exports){
+},{"../Message":276,"../serialisation":293,"./signal":283}],283:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const serialisation_1 = require("../serialisation");
 /**
@@ -57753,7 +57951,7 @@ function liftGarbage(func) {
 }
 exports.liftGarbage = liftGarbage;
 
-},{"../serialisation":289,"../utils":291}],280:[function(require,module,exports){
+},{"../serialisation":293,"../utils":295}],284:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("../Message");
 const NoGlitchFreedom_1 = require("./NoGlitchFreedom");
@@ -57920,7 +58118,7 @@ class SignalPool {
 }
 exports.SignalPool = SignalPool;
 
-},{"../Message":275,"./NoGlitchFreedom":278}],281:[function(require,module,exports){
+},{"../Message":276,"./NoGlitchFreedom":282}],285:[function(require,module,exports){
 /**
  * Created by flo on 16/03/2017.
  */
@@ -58169,7 +58367,7 @@ class GSP {
 }
 exports.GSP = GSP;
 
-},{"../Message":275,"../utils":291,"./Repliq":282,"./Round":286}],282:[function(require,module,exports){
+},{"../Message":276,"../utils":295,"./Repliq":286,"./Round":290}],286:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const serialisation_1 = require("../serialisation");
 const RepliqPrimitiveField_1 = require("./RepliqPrimitiveField");
@@ -58514,7 +58712,7 @@ Repliq.getRepliqOwnerPort = "_GET_REPLIQ_OWNER_PORT_";
 Repliq.getRepliqOwnerAddress = "_GET_REPLIQ_OWNER_ADDRESS_";
 exports.Repliq = Repliq;
 
-},{"../serialisation":289,"../utils":291,"./RepliqObjectField":284,"./RepliqPrimitiveField":285,"./Round":286}],283:[function(require,module,exports){
+},{"../serialisation":293,"../utils":295,"./RepliqObjectField":288,"./RepliqPrimitiveField":289,"./Round":290}],287:[function(require,module,exports){
 /**
  * Created by flo on 30/03/2017.
  */
@@ -58553,7 +58751,7 @@ class RepliqField {
 }
 exports.RepliqField = RepliqField;
 
-},{}],284:[function(require,module,exports){
+},{}],288:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const RepliqField_1 = require("./RepliqField");
 /**
@@ -58596,7 +58794,7 @@ class RepliqObjectField extends RepliqField_1.RepliqField {
 }
 exports.RepliqObjectField = RepliqObjectField;
 
-},{"../utils":291,"./RepliqField":283}],285:[function(require,module,exports){
+},{"../utils":295,"./RepliqField":287}],289:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const RepliqField_1 = require("./RepliqField");
 /**
@@ -58655,7 +58853,7 @@ exports.RepliqCountField = RepliqCountField;
 exports.LWR = makeAnnotation(RepliqPrimitiveField);
 exports.Count = makeAnnotation(RepliqCountField);
 
-},{"./RepliqField":283}],286:[function(require,module,exports){
+},{"./RepliqField":287}],290:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../spiders");
 /**
@@ -58765,7 +58963,7 @@ exports.roundUpdates = roundUpdates;
     }
 }*/ 
 
-},{"../spiders":290}],287:[function(require,module,exports){
+},{"../spiders":294}],291:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const CommMedium_1 = require("./CommMedium");
 /**
@@ -58883,12 +59081,13 @@ class ServerSocketManager extends CommMedium_1.CommMedium {
 }
 exports.ServerSocketManager = ServerSocketManager;
 
-},{"./CommMedium":271,"socket.io":216,"socket.io-client":192}],288:[function(require,module,exports){
+},{"./CommMedium":272,"socket.io":216,"socket.io-client":192}],292:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
 const FarRef_1 = require("./FarRef");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 /**
  * Created by flo on 20/12/2016.
  */
@@ -58938,7 +59137,8 @@ class MessageHandler {
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id, ports[index + 1]);
         });
-        this.environment.actorMirror.initialise(false, parentRef);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.environment);
+        this.environment.actorMirror.initialise(stdLib, false, parentRef);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.environment.commMedium;
@@ -58959,6 +59159,7 @@ class MessageHandler {
                     this.sendReturnClient(msg.senderId, msg, message);
                 }
             }
+            return undefined;
         });
     }
     handleMethodInvocation(msg) {
@@ -58993,6 +59194,7 @@ class MessageHandler {
                     this.sendReturnClient(msg.senderId, msg, message);
                 }
             }
+            return undefined;
         });
     }
     handlePromiseResolve(msg) {
@@ -59137,7 +59339,7 @@ class MessageHandler {
 }
 exports.MessageHandler = MessageHandler;
 
-},{"./FarRef":272,"./Message":275,"./ObjectPool":276,"./serialisation":289}],289:[function(require,module,exports){
+},{"./ActorSTDLib":270,"./FarRef":273,"./Message":276,"./ObjectPool":277,"./serialisation":293}],293:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const FarRef_1 = require("./FarRef");
@@ -60176,7 +60378,7 @@ function deserialise(value, environment) {
 }
 exports.deserialise = deserialise;
 
-},{"./FarRef":272,"./MOP":274,"./Message":275,"./Reactivivity/signal":279,"./Replication/Repliq":282,"./Replication/RepliqObjectField":284,"./Replication/RepliqPrimitiveField":285,"./utils":291}],290:[function(require,module,exports){
+},{"./FarRef":273,"./MOP":275,"./Message":276,"./Reactivivity/signal":283,"./Replication/Repliq":286,"./Replication/RepliqObjectField":288,"./Replication/RepliqPrimitiveField":289,"./utils":295}],294:[function(require,module,exports){
 (function (__dirname){
 Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
@@ -60186,6 +60388,7 @@ const Message_1 = require("./Message");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -60290,9 +60493,11 @@ class ServerApplication extends Application {
         this.mainPort = mainPort;
         this.mainEnvironment = new ActorEnvironment_1.ServerActorEnvironment(this.mainId, mainIp, mainPort, actorMirror);
         this.mainEnvironment.objectPool.installBehaviourObject(this);
+        this.mainEnvironment.behaviourObject = this;
         this.portCounter = 8001;
         this.spawnedActors = [];
-        this.mainEnvironment.actorMirror.initialise(true);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);
@@ -60320,7 +60525,8 @@ class ClientApplication extends Application {
         this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment(actorMirror);
         this.mainEnvironment.initialise(this.mainId, this.mainId, this);
         this.spawnedActors = [];
-        this.mainEnvironment.actorMirror.initialise(true);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);
@@ -60361,7 +60567,7 @@ exports.bundleScope = utils_2.bundleScope;
 exports.LexScope = utils_2.LexScope;
 
 }).call(this,"/src")
-},{"./ActorEnvironment":268,"./ActorProto":269,"./FarRef":272,"./MAP":273,"./MOP":274,"./Message":275,"./ObjectPool":276,"./serialisation":289,"./utils":291,"child_process":56,"webworkify":265}],291:[function(require,module,exports){
+},{"./ActorEnvironment":268,"./ActorProto":269,"./ActorSTDLib":270,"./FarRef":273,"./MAP":274,"./MOP":275,"./Message":276,"./ObjectPool":277,"./serialisation":293,"./utils":295,"child_process":56,"webworkify":265}],295:[function(require,module,exports){
 (function (process){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**

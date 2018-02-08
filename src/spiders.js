@@ -6,6 +6,7 @@ const Message_1 = require("./Message");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -110,9 +111,11 @@ class ServerApplication extends Application {
         this.mainPort = mainPort;
         this.mainEnvironment = new ActorEnvironment_1.ServerActorEnvironment(this.mainId, mainIp, mainPort, actorMirror);
         this.mainEnvironment.objectPool.installBehaviourObject(this);
+        this.mainEnvironment.behaviourObject = this;
         this.portCounter = 8001;
         this.spawnedActors = [];
-        this.mainEnvironment.actorMirror.initialise(true);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);
@@ -140,7 +143,8 @@ class ClientApplication extends Application {
         this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment(actorMirror);
         this.mainEnvironment.initialise(this.mainId, this.mainId, this);
         this.spawnedActors = [];
-        this.mainEnvironment.actorMirror.initialise(true);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);

@@ -1,27 +1,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-/*class App extends Application{
-    constructor(){
-        super(new SpiderActorMirror(),"127.0.0.1",8888)
-        this.installTrait(new Libs.SubServer(this))
+const spiders_1 = require("../src/spiders");
+class App extends spiders_1.Application {
+    constructor() {
+        super();
+        this.libs.setupPSServer();
     }
 }
-class Act extends Actor{
-    SubClient
-    constructor(){
-        super()
-        this.SubClient = Libs.SubClient
-    }
-
-    init(){
-        let that = this as any
-        this.installTrait(new this.SubClient(this,"127.0.0.1",8888))
-        that.publish("foo",new that.PubSubTag("footype"))
-        that.subscribe(new that.PubSubTag("footype")).each((occ)=>{
-            console.log("discovered: " + occ)
-        })
+class Act extends spiders_1.Actor {
+    init() {
+        let psClient = this.libs.setupPSClient();
+        let type = new this.libs.PubSubTag("test");
+        psClient.publish(5, type);
+        psClient.subscribe(type).each((discov) => {
+            console.log("got: " + discov);
+        });
     }
 }
-let app = new App()
-app.spawnActor(Act)
-app.spawnActor(Act)*/
+let app = new App();
+app.spawnActor(Act);
+app.spawnActor(Act);
 //# sourceMappingURL=temp.js.map

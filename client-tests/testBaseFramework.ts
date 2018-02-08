@@ -66,8 +66,8 @@ scheduled.push(performROA)
 
 class InitMirror extends SpiderActorMirror{
     testValue
-    initialise(appActor,parentRef){
-        super.initialise(appActor,parentRef)
+    initialise(stdLib,appActor,parentRef){
+        super.initialise(stdLib,appActor,parentRef)
         this.testValue = 5
     }
 }

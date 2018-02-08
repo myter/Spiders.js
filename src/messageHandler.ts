@@ -17,6 +17,7 @@ import {ServerFarReference, ClientFarReference, FarReference} from "./FarRef";
 import {ChannelManager} from "./ChannelManager";
 import {Socket} from "net";
 import {ActorEnvironment, ClientActorEnvironment} from "./ActorEnvironment";
+import {ActorSTDLib} from "./ActorSTDLib";
 /**
  * Created by flo on 20/12/2016.
  */
@@ -72,7 +73,8 @@ export class MessageHandler{
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id,ports[index + 1])
         })
-        this.environment.actorMirror.initialise(false,parentRef)
+        let stdLib                      = new ActorSTDLib(this.environment)
+        this.environment.actorMirror.initialise(stdLib,false,parentRef)
     }
 
     private handleOpenPort(msg : OpenPortMessage,port : MessagePort){
@@ -95,6 +97,7 @@ export class MessageHandler{
                     this.sendReturnClient(msg.senderId,msg,message)
                 }
             }
+            return undefined
         })
     }
 
@@ -130,6 +133,7 @@ export class MessageHandler{
                     this.sendReturnClient(msg.senderId, msg, message)
                 }
             }
+            return undefined
         })
     }
 

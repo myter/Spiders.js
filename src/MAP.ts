@@ -6,8 +6,15 @@ import {
     FieldAccessMessage, Message, MethodInvocationMessage, RouteMessage,
 } from "./Message";
 import {SpiderObjectMirror} from "./MOP";
+import {PSClient} from "./PubSub/SubClient";
+import {PSServer} from "./PubSub/SubServer";
+import {PubSubTag} from "./PubSub/SubTag";
+import {bundleScope, LexScope} from "./utils";
+import {ActorSTDLib} from "./ActorSTDLib";
 
-
+var PBT = PubSubTag
+var PSS = PSServer
+var PSC = PSClient
 export class SpiderActorMirror{
     private CONSTRAINT_OK = "ok"
     base : ActorEnvironment
@@ -119,7 +126,7 @@ export class SpiderActorMirror{
     }
 
     //Only non-app actors have a parent reference
-    initialise(appActor : boolean,parentRef : FarReference = null){
+    initialise(actSTDLib : ActorSTDLib,appActor : boolean,parentRef : FarReference = null){
         let commMedium      = this.base.commMedium
         let thisRef         = this.base.thisRef
         let promisePool     = this.base.promisePool
@@ -138,6 +145,10 @@ export class SpiderActorMirror{
         behaviourObject["reflectOnObject"]  = (object : any) =>{
             return object[SpiderObjectMirror.mirrorAccessKey]
         }
+        ///////////////////
+        //Actor STDL     //
+        //////////////////
+        behaviourObject["libs"]             = actSTDLib
         ///////////////////
         //Pub/Sub       //
         //////////////////
@@ -345,3 +356,8 @@ export class SpiderActorMirror{
         return promiseAlloc.promise
     }
 }
+let scope = new LexScope()
+scope.addElement("PBT",PBT)
+scope.addElement("PSS",PSS)
+scope.addElement("PSC",PSC)
+bundleScope(SpiderActorMirror,scope)

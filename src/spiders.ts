@@ -13,6 +13,7 @@ import {bundleScope, generateId, isBrowser, LexScope} from "./utils";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
 import {FarRef} from "../index";
+import {ActorSTDLib} from "./ActorSTDLib";
 /**
  * Created by flo on 05/12/2016.
  */
@@ -34,10 +35,10 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 //TODO, will need to remove all redundant type definitions
 abstract class Actor{
     parent          : FarReference
-    installTrait    : (ActorTrait) => undefined
     reflectOnActor  : () => SpiderActorMirror
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
     remote          : (string,number)=> Promise<FarReference>
+    libs            : ActorSTDLib
     //Pub-sub
     /*PSClient        : (string?,number?) => null
     PSServer        : (string?,number?) => null
@@ -166,13 +167,15 @@ class ServerApplication extends Application{
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror(),mainIp : string = "127.0.0.1",mainPort : number = 8000){
         super()
-        this.mainIp                         = mainIp
-        this.mainPort                       = mainPort
-        this.mainEnvironment                = new ServerActorEnvironment(this.mainId,mainIp,mainPort,actorMirror)
+        this.mainIp                             = mainIp
+        this.mainPort                           = mainPort
+        this.mainEnvironment                    = new ServerActorEnvironment(this.mainId,mainIp,mainPort,actorMirror)
         this.mainEnvironment.objectPool.installBehaviourObject(this)
-        this.portCounter                    = 8001
-        this.spawnedActors                  = []
-        this.mainEnvironment.actorMirror.initialise(true)
+        this.mainEnvironment.behaviourObject    = this
+        this.portCounter                        = 8001
+        this.spawnedActors                      = []
+        let stdLib                              = new ActorSTDLib(this.mainEnvironment)
+        this.mainEnvironment.actorMirror.initialise(stdLib,true)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
@@ -206,7 +209,8 @@ class ClientApplication extends Application{
         this.mainEnvironment                = new ClientActorEnvironment(actorMirror);
         (this.mainEnvironment as ClientActorEnvironment).initialise(this.mainId,this.mainId,this)
         this.spawnedActors                  = []
-        this.mainEnvironment.actorMirror.initialise(true)
+        let stdLib                          = new ActorSTDLib(this.mainEnvironment)
+        this.mainEnvironment.actorMirror.initialise(stdLib,true)
     }
 
     spawnActor(actorClass ,constructorArgs : Array<any> = []){

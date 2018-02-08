@@ -1,4 +1,4 @@
-import {SpiderIsolate} from "../spiders.js";
+import {SpiderIsolate} from "../MOP";
 
 /**
  * Created by flo on 22/03/2017.

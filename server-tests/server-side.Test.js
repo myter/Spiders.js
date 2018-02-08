@@ -890,8 +890,8 @@ describe("Meta Actor Protocol", () => {
     });
     it("Custom Init", function (done) {
         class TestMirror extends spiders_1.SpiderActorMirror {
-            initialise(appActor, parentRef) {
-                super.initialise(appActor, parentRef);
+            initialise(stdLib, appActor, parentRef) {
+                super.initialise(stdLib, appActor, parentRef);
                 this.testValue = 5;
             }
         }
