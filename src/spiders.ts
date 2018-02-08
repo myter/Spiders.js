@@ -149,6 +149,7 @@ abstract class Application {
     mainId              : string
     mainEnvironment     : ActorEnvironment
     appActors           : number = 0
+    self                : any
 
     constructor(){
         if(this.appActors == 0){

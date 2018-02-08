@@ -5,6 +5,7 @@ import {ActorEnvironment} from "./src/ActorEnvironment";
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export type FarRef = any
 export class ActorTrait extends SpiderIsolate{
+    myActor : any
     constructor(myActor : any)
 }
 export class LexScope{
