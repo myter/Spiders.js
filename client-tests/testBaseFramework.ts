@@ -1,4 +1,7 @@
-import {Application,Actor,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,bundleScope,LexScope,FarRef} from "../src/spiders"
+import {
+    Application, Actor, SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror, SpiderActorMirror,
+    bundleScope, LexScope, FarRef, ActorTrait
+} from "../src/spiders"
 /**
  * Created by flo on 10/01/2017.
  */
@@ -997,6 +1000,43 @@ var performInitChaining = () =>{
     })
 }
 scheduled.push(performInitChaining)
+
+class TestTrait extends ActorTrait{
+    baseValue
+    constructor(myActor){
+        super(myActor)
+        this.baseValue = 5
+    }
+    traitMethod(){
+        return this.baseValue
+    }
+}
+class SuperTrait extends TestTrait{
+    traitMethod(){
+        return super.traitMethod() + this.myActor.someValue
+    }
+}
+class TraitActor extends Actor{
+    SuperTrait
+    someValue
+    constructor(){
+        super()
+        this.SuperTrait = SuperTrait
+    }
+    init(){
+        this.someValue = 5
+        this.installTrait(new this.SuperTrait(this))
+    }
+    test(){
+        return this.traitMethod()
+    }
+}
+var performTrait = ()=>{
+    return app.spawnActor(TraitActor).test().then((v)=>{
+        log("Traits",v,10)
+    })
+}
+scheduled.push(performTrait)
 
 /*class StaticActor extends Actor{
     static _STATIC_FIELD = 5

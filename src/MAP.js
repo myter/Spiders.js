@@ -115,6 +115,22 @@ class SpiderActorMirror {
         if (!appActor) {
             behaviourObject["parent"] = parentRef.proxyify();
         }
+        behaviourObject["installTrait"] = (trait) => {
+            let loop = (currentTrait) => {
+                //Check if we have not reached the top level trait (i.e. SpiderIsolate)
+                if (!Reflect.ownKeys(currentTrait).includes("instantiate")) {
+                    //Make sure not to override already imported traits (in case of inheritance)
+                    let toImport = Reflect.ownKeys(currentTrait).filter((key) => {
+                        return !(Reflect.ownKeys(behaviourObject).includes(key)) && key != "constructor" && key != "_INSTANCEOF_ISOLATE_";
+                    });
+                    toImport.forEach((key) => {
+                        behaviourObject[key] = currentTrait[key];
+                    });
+                    loop(Reflect.getPrototypeOf(currentTrait));
+                }
+            };
+            loop(trait);
+        };
         behaviourObject["remote"] = (address, port) => {
             return commMedium.connectRemote(thisRef, address, port, promisePool);
         };

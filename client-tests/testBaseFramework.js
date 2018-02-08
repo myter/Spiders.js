@@ -863,6 +863,39 @@ var performInitChaining = () => {
     });
 };
 scheduled.push(performInitChaining);
+class TestTrait extends spiders_1.ActorTrait {
+    constructor(myActor) {
+        super(myActor);
+        this.baseValue = 5;
+    }
+    traitMethod() {
+        return this.baseValue;
+    }
+}
+class SuperTrait extends TestTrait {
+    traitMethod() {
+        return super.traitMethod() + this.myActor.someValue;
+    }
+}
+class TraitActor extends spiders_1.Actor {
+    constructor() {
+        super();
+        this.SuperTrait = SuperTrait;
+    }
+    init() {
+        this.someValue = 5;
+        this.installTrait(new this.SuperTrait(this));
+    }
+    test() {
+        return this.traitMethod();
+    }
+}
+var performTrait = () => {
+    return app.spawnActor(TraitActor).test().then((v) => {
+        log("Traits", v, 10);
+    });
+};
+scheduled.push(performTrait);
 /*class StaticActor extends Actor{
     static _STATIC_FIELD = 5
     static _STATIC_METHOD_(){

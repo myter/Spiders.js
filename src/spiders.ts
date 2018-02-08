@@ -7,19 +7,13 @@ import {
 } from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
-import {Repliq, atomic} from "./Replication/Repliq";
-import {RepliqPrimitiveField, LWR, Count, makeAnnotation} from "./Replication/RepliqPrimitiveField";
-import {FieldUpdate} from "./Replication/RepliqField";
-import {RepliqObjectField} from "./Replication/RepliqObjectField";
-import {lease, mutator, Signal, SignalObject, strong, weak} from "./Reactivivity/signal";
+import {Signal, SignalObject} from "./Reactivivity/signal";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {PubSubTag} from "./PubSub/SubTag";
 import {Subscription} from "./PubSub/SubClient";
 import {bundleScope, generateId, isBrowser, LexScope} from "./utils";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
-import {Eventual} from "./Onward/Eventual";
-import {CAPActor} from "./Onward/CAPActor";
 import {FarRef} from "../index";
 /**
  * Created by flo on 05/12/2016.
@@ -39,8 +33,10 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
     return mappings
 }
 
+//TODO, will need to remove all redundant type definitions
 abstract class Actor{
     parent          : FarReference
+    installTrait    : (ActorTrait) => undefined
     reflectOnActor  : () => SpiderActorMirror
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
     remote          : (string,number)=> Promise<FarReference>
@@ -67,6 +63,14 @@ abstract class Actor{
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
         this.actorMirror = actorMirror
+    }
+}
+
+abstract class ActorTrait extends SpiderIsolate{
+    myActor : any
+    constructor(myActor : any){
+        super()
+        this.myActor = myActor
     }
 }
 
@@ -231,97 +235,7 @@ class ClientApplication extends Application{
     }
 
 }
-/*interface AppType {
-    spawnActor
-    spawnActorFromFile
-    kill
-    //Provided by standard lib
-    reflectOnActor      : () => SpiderActorMirror
-    reflectOnObject     : (object : SpiderObject) => SpiderObjectMirror
-    remote              : (string,number)=> Promise<FarRef>
-    //Pub-sub
-    PSClient            : (string?,number?) => null
-    PSServer            : (string?,number?) => null
-    publish             : (Object,PubSubTag) => null
-    subscribe           : (PubSubTag) => Subscription
-    newPSTag            : (string)=>PubSubTag
-    //Replication
-    newRepliq           : (RepliqClass,... any) => Object
-    //Reactivity
-    QPROP               : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
-    addDependency       : (fromType : PubSubTag,toType : PubSubTag) => null
-    SIDUP               : (ownType : PubSubTag,parents : Array<PubSubTag>,admitterType : PubSubTag,isSink?:boolean) => Signal
-    SIDUPAdmitter       : (admitterType : PubSubTag,sources : number,sinks : number,idleListener?:Function,changeListener?:Function,admitListener?:Function) => null
-    publishSignal       : (signal) => null
-    newSignal           : (signalClass : SignalObjectClass,... any) => Signal
-    lift                : Function
-    liftStrong          : Function
-    liftWeak            : Function
-    liftFailure         : Function
-}
-export type ApplicationClass    = {
-    new(...args : any[]): AppType
-}
-export type ActorClass                  = {new(...args : any[]): Actor}
-export type RepliqClass                 = {new(...args : any[]): Repliq}
-export type RepliqFieldClass            = {new(...args : any[]): RepliqPrimitiveField<any>}
-export type RepliqObjectFieldClass      = {new(...args : any[]): RepliqObjectField}
-export type SignalClass                 = {new(...args : any[]): Signal}
-export type SignalObjectClass           = {new(...args : any[]): SignalObject}
-export type SpiderActorMirrorClass      = {new(...args : any[]): SpiderActorMirror}
-export type SpiderObjectClass           = {new(...args : any[]): SpiderObject}
-export type SpiderIsolateClass          = {new(...args : any[]): SpiderIsolate}
-export type SpiderObjectMirrorClass     = {new(...args : any[]): SpiderObjectMirror}
-export type SpiderIsolateMirrorClass    = {new(...args : any[]): SpiderIsolateMirror}
-export type LexScopeClass               = {new(...args : any[]): LexScope}
 
-export interface SpiderLib{
-    Application                 : ApplicationClass
-    Actor                       : ActorClass
-    Repliq                      : RepliqClass
-    Signal                      : SignalObjectClass
-    mutator                     : Function
-    lease                       : Function
-    strong                      : Function
-    weak                        : Function
-    atomic                      : Function
-    LWR                         : Function
-    Count                       : Function
-    RepliqPrimitiveField        : RepliqFieldClass
-    RepliqObjectField           : RepliqObjectFieldClass
-    FieldUpdate                 : FieldUpdate
-    makeAnnotation              : Function
-    SpiderActorMirror           : SpiderActorMirrorClass
-    SpiderObjectMirror          : SpiderObjectMirrorClass
-    SpiderObject                : SpiderObjectClass
-    SpiderIsolate               : SpiderIsolateClass
-    SpiderIsolateMirror         : SpiderIsolateMirrorClass
-    LexScope                    : LexScopeClass
-    bundleScope                 : (Function,LexScope) => undefined
-}*/
-
-//Ugly, but a far reference has no static interface
-/*export type FarRef = any
-exports.Repliq                      = Repliq
-exports.Signal                      = SignalObject
-exports.mutator                     = mutator
-exports.atomic                      = atomic
-exports.lease                       = lease
-exports.strong                      = strong
-exports.weak                        = weak
-exports.LWR                         = LWR
-exports.Count                       = Count
-exports.RepliqPrimitiveField        = RepliqPrimitiveField
-exports.RepliqObjectField           = RepliqObjectField
-exports.makeAnnotation              = makeAnnotation
-exports.FieldUpdate                 = FieldUpdate
-exports.SpiderIsolate               = SpiderIsolate
-exports.SpiderObject                = SpiderObject
-exports.SpiderObjectMirror          = SpiderObjectMirror
-exports.SpiderIsolateMirror         = SpiderIsolateMirror
-exports.SpiderActorMirror           = SpiderActorMirror
-exports.bundleScope                 = bundleScope
-exports.LexScope                    = LexScope*/
 interface ActorType{
     new(mirror? : SpiderActorMirror)
 }
@@ -343,6 +257,7 @@ else{
 }
 export {exportApp as Application}
 export {exportActor as Actor}
+export {ActorTrait as ActorTrait}
 export {FarRef as FarRef}
 export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
 export {SpiderActorMirror} from "./MAP"

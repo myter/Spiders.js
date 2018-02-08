@@ -415,6 +415,47 @@ describe("Functionality", () => {
             }
         });
     });
+    it("Traits", (done) => {
+        let app = new spiders_1.Application();
+        class TestTrait extends spiders_1.ActorTrait {
+            constructor(myActor) {
+                super(myActor);
+                this.baseValue = 5;
+            }
+            traitMethod() {
+                return this.baseValue;
+            }
+        }
+        class SuperTrait extends TestTrait {
+            traitMethod() {
+                return super.traitMethod() + this.myActor.someValue;
+            }
+        }
+        class TraitActor extends spiders_1.Actor {
+            constructor() {
+                super();
+                this.SuperTrait = SuperTrait;
+            }
+            init() {
+                this.someValue = 5;
+                this.installTrait(new this.SuperTrait(this));
+            }
+            test() {
+                return this.traitMethod();
+            }
+        }
+        app.spawnActor(TraitActor).test().then((v) => {
+            try {
+                expect(v).to.equal(10);
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
 });
 describe("Communication", () => {
     it("Accessing actor instance variable", (done) => {

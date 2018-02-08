@@ -874,6 +874,39 @@ var performInitChaining = () => {
     });
 };
 scheduled.push(performInitChaining);
+class TestTrait extends spiders_1.ActorTrait {
+    constructor(myActor) {
+        super(myActor);
+        this.baseValue = 5;
+    }
+    traitMethod() {
+        return this.baseValue;
+    }
+}
+class SuperTrait extends TestTrait {
+    traitMethod() {
+        return super.traitMethod() + this.myActor.someValue;
+    }
+}
+class TraitActor extends spiders_1.Actor {
+    constructor() {
+        super();
+        this.SuperTrait = SuperTrait;
+    }
+    init() {
+        this.someValue = 5;
+        this.installTrait(new this.SuperTrait(this));
+    }
+    test() {
+        return this.traitMethod();
+    }
+}
+var performTrait = () => {
+    return app.spawnActor(TraitActor).test().then((v) => {
+        log("Traits", v, 10);
+    });
+};
+scheduled.push(performTrait);
 /*class StaticActor extends Actor{
     static _STATIC_FIELD = 5
     static _STATIC_METHOD_(){
@@ -56706,6 +56739,22 @@ class SpiderActorMirror {
         if (!appActor) {
             behaviourObject["parent"] = parentRef.proxyify();
         }
+        behaviourObject["installTrait"] = (trait) => {
+            let loop = (currentTrait) => {
+                //Check if we have not reached the top level trait (i.e. SpiderIsolate)
+                if (!Reflect.ownKeys(currentTrait).includes("instantiate")) {
+                    //Make sure not to override already imported traits (in case of inheritance)
+                    let toImport = Reflect.ownKeys(currentTrait).filter((key) => {
+                        return !(Reflect.ownKeys(behaviourObject).includes(key)) && key != "constructor" && key != "_INSTANCEOF_ISOLATE_";
+                    });
+                    toImport.forEach((key) => {
+                        behaviourObject[key] = currentTrait[key];
+                    });
+                    loop(Reflect.getPrototypeOf(currentTrait));
+                }
+            };
+            loop(trait);
+        };
         behaviourObject["remote"] = (address, port) => {
             return commMedium.connectRemote(thisRef, address, port, promisePool);
         };
@@ -60186,6 +60235,7 @@ const Message_1 = require("./Message");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
+const MOP_1 = require("./MOP");
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -60198,11 +60248,19 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
     });
     return mappings;
 }
+//TODO, will need to remove all redundant type definitions
 class Actor {
     constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
         this.actorMirror = actorMirror;
     }
 }
+class ActorTrait extends MOP_1.SpiderIsolate {
+    constructor(myActor) {
+        super();
+        this.myActor = myActor;
+    }
+}
+exports.ActorTrait = ActorTrait;
 class ClientActor extends Actor {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
@@ -60347,11 +60405,11 @@ else {
     exports.Application = exportApp = ServerApplication;
     exports.Actor = exportActor = ServerActor;
 }
-var MOP_1 = require("./MOP");
-exports.SpiderIsolate = MOP_1.SpiderIsolate;
-exports.SpiderObject = MOP_1.SpiderObject;
-exports.SpiderObjectMirror = MOP_1.SpiderObjectMirror;
-exports.SpiderIsolateMirror = MOP_1.SpiderIsolateMirror;
+var MOP_2 = require("./MOP");
+exports.SpiderIsolate = MOP_2.SpiderIsolate;
+exports.SpiderObject = MOP_2.SpiderObject;
+exports.SpiderObjectMirror = MOP_2.SpiderObjectMirror;
+exports.SpiderIsolateMirror = MOP_2.SpiderIsolateMirror;
 var MAP_2 = require("./MAP");
 exports.SpiderActorMirror = MAP_2.SpiderActorMirror;
 var utils_2 = require("./utils");

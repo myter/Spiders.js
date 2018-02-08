@@ -1,16 +1,13 @@
 import {ActorEnvironment} from "./ActorEnvironment";
 import {ClientFarReference, FarReference, ServerFarReference} from "./FarRef";
-import {PubSubTag} from "./PubSub/SubTag";
-import {SIDUPAdmitter, SIDUPNode, SIDUPSourceSignal} from "./Reactivivity/SIDUP";
-import {lift, liftGarbage, Signal, SignalDependency, SignalValue} from "./Reactivivity/signal";
-import {DependencyChange, QPROPNode, QPROPSourceSignal} from "./Reactivivity/QPROP";
-import {PSClient} from "./PubSub/SubClient";
-import {PSServer} from "./PubSub/SubServer";
+import { SignalValue} from "./Reactivivity/signal";
 import {PromiseAllocation} from "./PromisePool";
 import {
     FieldAccessMessage, Message, MethodInvocationMessage, RouteMessage,
 } from "./Message";
 import {SpiderObjectMirror} from "./MOP";
+import {ActorTrait} from "./spiders.js"
+import {SpiderIsolate} from "spiders.js";
 
 
 export class SpiderActorMirror{
@@ -131,9 +128,24 @@ export class SpiderActorMirror{
         let signalPool      = this.base.signalPool
         let gspInstance     = this.base.gspInstance
         let behaviourObject = this.base.objectPool.getObject(0)
-
         if(!appActor){
             behaviourObject["parent"]       = parentRef.proxyify()
+        }
+        behaviourObject["installTrait"]     = (trait : ActorTrait) => {
+            let loop = (currentTrait)=>{
+                //Check if we have not reached the top level trait (i.e. SpiderIsolate)
+                if(!(Reflect.ownKeys(currentTrait) as any).includes("instantiate")){
+                    //Make sure not to override already imported traits (in case of inheritance)
+                    let toImport = Reflect.ownKeys(currentTrait).filter((key)=>{
+                        return !((Reflect.ownKeys(behaviourObject) as any).includes(key)) && key != "constructor" && key != "_INSTANCEOF_ISOLATE_"
+                    })
+                    toImport.forEach((key)=>{
+                        behaviourObject[key] = currentTrait[key]
+                    })
+                    loop(Reflect.getPrototypeOf(currentTrait))
+                }
+            }
+            loop(trait)
         }
         behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
             return commMedium.connectRemote(thisRef,address,port,promisePool)
