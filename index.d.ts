@@ -1,9 +1,14 @@
 // Type definitions for Spiders.js
 // Definitions by: Florian Myter
 import {ActorEnvironment} from "./src/ActorEnvironment";
-import {ActorSTDLib} from "./src/ActorSTDLib";
+import {PSClient} from "./src/PubSub/SubClient";
+
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export type FarRef = any
+export class ActorSTDLib{
+    setupPSClient(address? : string,port? : number) : PSClient
+    setupPSServer()
+}
 export class LexScope{
     addElement(key : string,value : any)
 }
@@ -46,6 +51,7 @@ export class Actor{
     constructor(actorMirror? : SpiderActorMirror)
 }
 export class Application{
+    constructor(actorMirror? : SpiderActorMirror,address? : string,port? : number)
     spawnActor(actorClass : Function,constructionArgs? : Array<any>,port? : number)
     spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
     kill()

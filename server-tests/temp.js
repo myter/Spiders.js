@@ -1,22 +1,38 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
-class App extends spiders_1.Application {
+/*class App extends Application{
+    constructor(){
+        super()
+        this.libs.setupPSServer()
+    }
+}
+class Act extends Actor{
+    init(){
+        let psClient = this.libs.setupPSClient()
+        let type     = new this.libs.PubSubTag("test")
+        psClient.publish(5,type)
+        psClient.subscribe(type).each((discov)=>{
+            console.log("got: " + discov)
+        })
+    }
+}
+let app = new App()
+app.spawnActor(Act)
+app.spawnActor(Act)*/
+class TestMirror extends spiders_1.SpiderObjectMirror {
+    invoke(methodName, args) {
+        console.log("invoked: " + methodName);
+    }
+}
+class Test extends spiders_1.SpiderObject {
     constructor() {
-        super();
-        this.libs.setupPSServer();
+        super(new TestMirror());
+    }
+    foo() {
     }
 }
-class Act extends spiders_1.Actor {
-    init() {
-        let psClient = this.libs.setupPSClient();
-        let type = new this.libs.PubSubTag("test");
-        psClient.publish(5, type);
-        psClient.subscribe(type).each((discov) => {
-            console.log("got: " + discov);
-        });
-    }
-}
-let app = new App();
-app.spawnActor(Act);
-app.spawnActor(Act);
+let t = new Test();
+t.foo();
+let x = t instanceof Test;
+5;
 //# sourceMappingURL=temp.js.map

@@ -1,5 +1,5 @@
-import {Actor, Application, FarRef,SpiderActorMirror} from "../src/spiders";
-class App extends Application{
+import {Actor, Application, FarRef,SpiderActorMirror,SpiderObject,SpiderObjectMirror} from "../src/spiders";
+/*class App extends Application{
     constructor(){
         super()
         this.libs.setupPSServer()
@@ -17,4 +17,22 @@ class Act extends Actor{
 }
 let app = new App()
 app.spawnActor(Act)
-app.spawnActor(Act)
+app.spawnActor(Act)*/
+class TestMirror extends SpiderObjectMirror{
+    invoke(methodName,args){
+        console.log("invoked: " + methodName)
+    }
+}
+class Test extends SpiderObject{
+    constructor(){
+        super(new TestMirror())
+    }
+
+    foo(){
+
+    }
+}
+let t = new Test()
+t.foo()
+let x = t instanceof Test
+5
