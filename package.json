@@ -28,7 +28,8 @@
     "utf-8-validate": "2.0.0",
     "webworkify": "1.4.0",
     "geocoder": "^0.2.3",
-    "request-promise-native": "^1.0.5"
+    "request-promise-native": "^1.0.5",
+    "ejs": "^2.5.7"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",

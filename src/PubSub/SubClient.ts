@@ -70,7 +70,7 @@ export class PSClient{
     constructor(hostActor,serverAddress,serverPort){
         var that                = this
         this.bufferedMessages   = []
-        hostActor.remote(serverAddress,serverPort).then((serverRef : FarRef)=>{
+        hostActor.libs.remote(serverAddress,serverPort).then((serverRef : FarRef)=>{
             serverRef._PS_SERVER_.then((psServerRef : FarRef)=>{
                 that.serverRef = psServerRef
                 that.connected = true
