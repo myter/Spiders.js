@@ -375,7 +375,7 @@ describe("Functionality",() => {
         var app = new Application()
         class testActor1 extends Actor{
             getAndAccess(){
-                return this.remote("127.0.0.1",8082).then((ref) => {
+                return this.libs.remote("127.0.0.1",8082).then((ref) => {
                     return ref.getVal()
                 })
             }
@@ -390,6 +390,51 @@ describe("Functionality",() => {
         actor.getAndAccess().then((v) => {
             try{
                 expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Buffered Remote",function(done){
+        this.timeout(4000)
+        var app = new Application()
+        class testActor1 extends Actor{
+            getAndAccess(){
+                return new Promise((resolve)=>{
+                    let rem = this.libs.buffRemote("127.0.0.1",8082)
+                    let ps  = []
+                    ps[0]   = rem.getVal()
+                    ps[1]   = rem.someVal
+                    setTimeout(()=>{
+                        ps[2] = rem.getVal()
+                        ps[3] = rem.someVal
+                        resolve(Promise.all(ps))
+                    },2000)
+                })
+            }
+        }
+        class testActor2 extends Actor{
+            someVal
+            constructor(){
+                super()
+                this.someVal = 6
+            }
+            getVal(){
+                return 5
+            }
+        }
+        app.spawnActor(testActor2,[],8082)
+        var actor  = app.spawnActor(testActor1)
+        actor.getAndAccess().then((v) => {
+            try{
+                expect(v[0]).to.equal(5)
+                expect(v[1]).to.equal(6)
+                expect(v[2]).to.equal(5)
+                expect(v[3]).to.equal(6)
                 app.kill()
                 done()
             }
@@ -917,7 +962,7 @@ describe("Meta Actor Protocol",() => {
             }
 
             test(){
-                return (this.reflectOnActor() as TestMirror).testValue
+                return (this.libs.reflectOnActor() as TestMirror).testValue
             }
         }
         let app = new Application()
@@ -953,7 +998,7 @@ describe("Meta Actor Protocol",() => {
             }
 
             test(){
-                return (this.reflectOnActor() as TestMirror).testValue + this.testValue
+                return (this.libs.reflectOnActor() as TestMirror).testValue + this.testValue
             }
         }
         let app = new Application()
@@ -986,7 +1031,7 @@ describe("Meta Actor Protocol",() => {
             }
             test(){
                 this.testValue = 5
-                return (this.reflectOnActor() as TestMirror).testValue + this.testValue
+                return (this.libs.reflectOnActor() as TestMirror).testValue + this.testValue
             }
         }
         let app = new Application()
@@ -1050,7 +1095,7 @@ describe("Meta Actor Protocol",() => {
             }
             test(){
                 return this.parent.test().then((v)=>{
-                    return (this.reflectOnActor() as TestMirror).testValue + v
+                    return (this.libs.reflectOnActor() as TestMirror).testValue + v
                 })
             }
         }
@@ -1090,7 +1135,7 @@ describe("Meta Actor Protocol",() => {
 
             test(){
                 return this.parent.testValue.then((v)=>{
-                    return (this.reflectOnActor() as TestMirror).testValue + v
+                    return (this.libs.reflectOnActor() as TestMirror).testValue + v
                 })
             }
         }
@@ -1134,7 +1179,7 @@ describe("Meta Object Protocol",()=>{
             }
             test(){
                 let o = new this.TestObject(this.TestMirror)
-                return (this.reflectOnObject(o) as TestMirror).testValue
+                return (this.libs.reflectOnObject(o) as TestMirror).testValue
             }
         }
         let app = new Application()
@@ -1179,7 +1224,7 @@ describe("Meta Object Protocol",()=>{
             test(){
                 let o = new this.TestObject(this.TestMirror)
                 let r = o.someMethod()
-                return (this.reflectOnObject(o) as TestMirror).testValue + r
+                return (this.libs.reflectOnObject(o) as TestMirror).testValue + r
             }
         }
         let app = new Application()
@@ -1223,7 +1268,7 @@ describe("Meta Object Protocol",()=>{
             test(){
                 let o = new this.TestObject(this.TestMirror)
                 let r = o.someField
-                return (this.reflectOnObject(o) as TestMirror).testValue + r
+                return (this.libs.reflectOnObject(o) as TestMirror).testValue + r
             }
         }
         let app = new Application()
@@ -1268,7 +1313,7 @@ describe("Meta Object Protocol",()=>{
             test(){
                 let o = new this.TestObject(this.TestMirror)
                 let r = o.someField
-                return (this.reflectOnObject(o) as TestMirror).testValue + r
+                return (this.libs.reflectOnObject(o) as TestMirror).testValue + r
             }
         }
         let app = new Application()
@@ -1306,7 +1351,7 @@ describe("Meta Object Protocol",()=>{
                 this.o          = new TestObject(TestMirror)
             }
             test(){
-                return (this.reflectOnObject(this.o) as TestMirror).testValue
+                return (this.libs.reflectOnObject(this.o) as TestMirror).testValue
             }
         }
         let app = new Application()
@@ -1343,7 +1388,7 @@ describe("Meta Object Protocol",()=>{
                 this.o          = new TestObject(TestMirror)
             }
             test(){
-                return (this.reflectOnObject(this.o) as TestMirror).testValue
+                return (this.libs.reflectOnObject(this.o) as TestMirror).testValue
             }
         }
         let app = new Application()

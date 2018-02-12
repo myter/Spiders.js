@@ -5,16 +5,13 @@ import {PromiseAllocation} from "./PromisePool";
 import {
     FieldAccessMessage, Message, MethodInvocationMessage, RouteMessage,
 } from "./Message";
-import {SpiderObjectMirror} from "./MOP";
+import {SpiderObject, SpiderObjectMirror} from "./MOP";
 import {PSClient} from "./PubSub/SubClient";
 import {PSServer} from "./PubSub/SubServer";
 import {PubSubTag} from "./PubSub/SubTag";
 import {bundleScope, LexScope} from "./utils";
 import {ActorSTDLib} from "./ActorSTDLib";
 
-var PBT = PubSubTag
-var PSS = PSServer
-var PSC = PSClient
 export class SpiderActorMirror{
     private CONSTRAINT_OK = "ok"
     base : ActorEnvironment
@@ -127,17 +124,20 @@ export class SpiderActorMirror{
 
     //Only non-app actors have a parent reference
     initialise(actSTDLib : ActorSTDLib,appActor : boolean,parentRef : FarReference = null){
-        let commMedium      = this.base.commMedium
-        let thisRef         = this.base.thisRef
-        let promisePool     = this.base.promisePool
-        let signalPool      = this.base.signalPool
-        let gspInstance     = this.base.gspInstance
         let behaviourObject = this.base.objectPool.getObject(0)
         if(!appActor){
             behaviourObject["parent"]       = parentRef.proxyify()
         }
-        behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
+        behaviourObject["libs"]             = actSTDLib
+        /*behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
             return commMedium.connectRemote(thisRef,address,port,promisePool)
+        }
+        behaviourObject["buffRemote"]       = (address : string,port : number) : any =>{
+            let ref = new BufferedRef()
+            commMedium.connectRemote(thisRef,address,port,promisePool).then((realRef)=>{
+                ref.connected(realRef)
+            })
+            return ref
         }
         behaviourObject["reflectOnActor"]   = () => {
             return this
@@ -146,14 +146,10 @@ export class SpiderActorMirror{
             return object[SpiderObjectMirror.mirrorAccessKey]
         }
         ///////////////////
-        //Actor STDL     //
-        //////////////////
-        behaviourObject["libs"]             = actSTDLib
-        ///////////////////
         //Pub/Sub       //
         //////////////////
 
-        /*behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
+        behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
             let psClient                    = new PSClient(serverAddress,serverPort,behaviourObject)
             behaviourObject["publish"]      = psClient.publish.bind(psClient)
             behaviourObject["subscribe"]    = psClient.subscribe.bind(psClient)
@@ -356,8 +352,3 @@ export class SpiderActorMirror{
         return promiseAlloc.promise
     }
 }
-let scope = new LexScope()
-scope.addElement("PBT",PBT)
-scope.addElement("PSS",PSS)
-scope.addElement("PSC",PSC)
-bundleScope(SpiderActorMirror,scope)

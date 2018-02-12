@@ -35,9 +35,9 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 //TODO, will need to remove all redundant type definitions
 abstract class Actor{
     parent          : FarReference
-    reflectOnActor  : () => SpiderActorMirror
+    /*reflectOnActor  : () => SpiderActorMirror
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
-    remote          : (string,number)=> Promise<FarReference>
+    remote          : (string,number)=> Promise<FarReference>*/
     libs            : ActorSTDLib
     //Pub-sub
     /*PSClient        : (string?,number?) => null

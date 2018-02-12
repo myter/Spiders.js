@@ -1,38 +1,33 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
-/*class App extends Application{
-    constructor(){
-        super()
-        this.libs.setupPSServer()
+var app = new spiders_1.Application();
+class testActor1 extends spiders_1.Actor {
+    getAndAccess() {
+        return new Promise((resolve) => {
+            let rem = this.libs.buffRemote("127.0.0.1", 8082);
+            let ps = [];
+            ps[0] = rem.getVal();
+            ps[1] = rem.someVal;
+            setTimeout(() => {
+                ps[2] = rem.getVal();
+                ps[3] = rem.someVal;
+                resolve(Promise.all(ps));
+            }, 2000);
+        });
     }
 }
-class Act extends Actor{
-    init(){
-        let psClient = this.libs.setupPSClient()
-        let type     = new this.libs.PubSubTag("test")
-        psClient.publish(5,type)
-        psClient.subscribe(type).each((discov)=>{
-            console.log("got: " + discov)
-        })
-    }
-}
-let app = new App()
-app.spawnActor(Act)
-app.spawnActor(Act)*/
-class TestMirror extends spiders_1.SpiderObjectMirror {
-    invoke(methodName, args) {
-        console.log("invoked: " + methodName);
-    }
-}
-class Test extends spiders_1.SpiderObject {
+class testActor2 extends spiders_1.Actor {
     constructor() {
-        super(new TestMirror());
+        super();
+        this.someVal = 6;
     }
-    foo() {
+    getVal() {
+        return 5;
     }
 }
-let t = new Test();
-t.foo();
-let x = t instanceof Test;
-5;
+var actor = app.spawnActor(testActor1);
+actor.getAndAccess().then((v) => {
+    console.log("Got : " + v);
+});
+app.spawnActor(testActor2, [], 8082);
 //# sourceMappingURL=temp.js.map

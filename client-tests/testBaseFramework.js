@@ -42,7 +42,7 @@ class ROAActor extends spiders_1.Actor {
         super(new ROAMirror());
     }
     test() {
-        return this.reflectOnActor().testValue;
+        return this.libs.reflectOnActor().testValue;
     }
 }
 let performROA = () => {
@@ -66,7 +66,7 @@ class InitActor extends spiders_1.Actor {
         this.testValue = 5;
     }
     test() {
-        return this.reflectOnActor().testValue + this.testValue;
+        return this.libs.reflectOnActor().testValue + this.testValue;
     }
 }
 let customInit = () => {
@@ -88,7 +88,7 @@ class CustInvocMAPActor extends spiders_1.Actor {
     }
     test() {
         this.testValue = 5;
-        return this.reflectOnActor().testValue + this.testValue;
+        return this.libs.reflectOnActor().testValue + this.testValue;
     }
 }
 let customInvocMap = () => {
@@ -134,7 +134,7 @@ class CustSendInvocMapActor extends spiders_1.Actor {
     }
     test() {
         return this.parent.testP().then((v) => {
-            return this.reflectOnActor().testValue + v;
+            return this.libs.reflectOnActor().testValue + v;
         });
     }
 }
@@ -164,7 +164,7 @@ class CustSendAccessMapActor extends spiders_1.Actor {
     }
     test() {
         return this.parent.testValue.then((v) => {
-            return this.reflectOnActor().testValue + v;
+            return this.libs.reflectOnActor().testValue + v;
         });
     }
 }
@@ -195,7 +195,7 @@ class ROOActor extends spiders_1.Actor {
     }
     test() {
         let o = new this.TestObject(this.TestMirror);
-        return this.reflectOnObject(o).testValue;
+        return this.libs.reflectOnObject(o).testValue;
     }
 }
 let ROO = () => {
@@ -228,7 +228,7 @@ class CustInvokeMOPActor extends spiders_1.Actor {
     test() {
         let o = new this.TestObject(this.TestMirror);
         let r = o.someMethod();
-        return this.reflectOnObject(o).testValue + r;
+        return this.libs.reflectOnObject(o).testValue + r;
     }
 }
 let customInvocMOP = () => {
@@ -259,7 +259,7 @@ class CustomAccessMopActor extends spiders_1.Actor {
     test() {
         let o = new this.TestObject(this.TestMirror);
         let r = o.someField;
-        return this.reflectOnObject(o).testValue + r;
+        return this.libs.reflectOnObject(o).testValue + r;
     }
 }
 let CustomAccessMop = () => {
@@ -291,7 +291,7 @@ class CustomWriteMOPActor extends spiders_1.Actor {
     test() {
         let o = new this.TestObject(this.TestMirror);
         let r = o.someField;
-        return this.reflectOnObject(o).testValue + r;
+        return this.libs.reflectOnObject(o).testValue + r;
     }
 }
 let CustomWriteMop = () => {
@@ -318,7 +318,7 @@ class CustomPassMopActor extends spiders_1.Actor {
         this.o = new CustomPassMopObject(CustomPassMopMirror);
     }
     test() {
-        return this.reflectOnObject(this.o).testValue;
+        return this.libs.reflectOnObject(this.o).testValue;
     }
 }
 let CustomPassMop = () => {
@@ -344,7 +344,7 @@ class CustomResolveMopActor extends spiders_1.Actor {
         this.o = new CustomResolveMopObject(CustomResolveMopMirror);
     }
     test() {
-        return this.reflectOnObject(this.o).testValue;
+        return this.libs.reflectOnObject(this.o).testValue;
     }
 }
 let CustomResolveMop = () => {

@@ -8,6 +8,10 @@ export type FarRef = any
 export class ActorSTDLib{
     setupPSClient(address? : string,port? : number) : PSClient
     setupPSServer()
+    remote(address : string,port : number) : Promise<FarRef>
+    buffRemote(address : string,port : number) : FarRef
+    reflectOnActor() : SpiderActorMirror
+    reflectOnObject(obj : SpiderObject | SpiderIsolate) : SpiderObjectMirror | SpiderIsolateMirror
 }
 export class LexScope{
     addElement(key : string,value : any)
@@ -45,9 +49,6 @@ export class SpiderIsolate{
 export class Actor{
     parent          : FarRef
     libs            : ActorSTDLib
-    remote(address : string,port : number) : Promise<FarRef>
-    reflectOnActor() : SpiderActorMirror
-    reflectOnObject(obj : SpiderObject | SpiderIsolate) : SpiderObjectMirror | SpiderIsolateMirror
     constructor(actorMirror? : SpiderActorMirror)
 }
 export class Application{

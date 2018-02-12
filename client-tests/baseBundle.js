@@ -53,7 +53,7 @@ class ROAActor extends spiders_1.Actor {
         super(new ROAMirror());
     }
     test() {
-        return this.reflectOnActor().testValue;
+        return this.libs.reflectOnActor().testValue;
     }
 }
 let performROA = () => {
@@ -77,7 +77,7 @@ class InitActor extends spiders_1.Actor {
         this.testValue = 5;
     }
     test() {
-        return this.reflectOnActor().testValue + this.testValue;
+        return this.libs.reflectOnActor().testValue + this.testValue;
     }
 }
 let customInit = () => {
@@ -99,7 +99,7 @@ class CustInvocMAPActor extends spiders_1.Actor {
     }
     test() {
         this.testValue = 5;
-        return this.reflectOnActor().testValue + this.testValue;
+        return this.libs.reflectOnActor().testValue + this.testValue;
     }
 }
 let customInvocMap = () => {
@@ -145,7 +145,7 @@ class CustSendInvocMapActor extends spiders_1.Actor {
     }
     test() {
         return this.parent.testP().then((v) => {
-            return this.reflectOnActor().testValue + v;
+            return this.libs.reflectOnActor().testValue + v;
         });
     }
 }
@@ -175,7 +175,7 @@ class CustSendAccessMapActor extends spiders_1.Actor {
     }
     test() {
         return this.parent.testValue.then((v) => {
-            return this.reflectOnActor().testValue + v;
+            return this.libs.reflectOnActor().testValue + v;
         });
     }
 }
@@ -206,7 +206,7 @@ class ROOActor extends spiders_1.Actor {
     }
     test() {
         let o = new this.TestObject(this.TestMirror);
-        return this.reflectOnObject(o).testValue;
+        return this.libs.reflectOnObject(o).testValue;
     }
 }
 let ROO = () => {
@@ -239,7 +239,7 @@ class CustInvokeMOPActor extends spiders_1.Actor {
     test() {
         let o = new this.TestObject(this.TestMirror);
         let r = o.someMethod();
-        return this.reflectOnObject(o).testValue + r;
+        return this.libs.reflectOnObject(o).testValue + r;
     }
 }
 let customInvocMOP = () => {
@@ -270,7 +270,7 @@ class CustomAccessMopActor extends spiders_1.Actor {
     test() {
         let o = new this.TestObject(this.TestMirror);
         let r = o.someField;
-        return this.reflectOnObject(o).testValue + r;
+        return this.libs.reflectOnObject(o).testValue + r;
     }
 }
 let CustomAccessMop = () => {
@@ -302,7 +302,7 @@ class CustomWriteMOPActor extends spiders_1.Actor {
     test() {
         let o = new this.TestObject(this.TestMirror);
         let r = o.someField;
-        return this.reflectOnObject(o).testValue + r;
+        return this.libs.reflectOnObject(o).testValue + r;
     }
 }
 let CustomWriteMop = () => {
@@ -329,7 +329,7 @@ class CustomPassMopActor extends spiders_1.Actor {
         this.o = new CustomPassMopObject(CustomPassMopMirror);
     }
     test() {
-        return this.reflectOnObject(this.o).testValue;
+        return this.libs.reflectOnObject(this.o).testValue;
     }
 }
 let CustomPassMop = () => {
@@ -355,7 +355,7 @@ class CustomResolveMopActor extends spiders_1.Actor {
         this.o = new CustomResolveMopObject(CustomResolveMopMirror);
     }
     test() {
-        return this.reflectOnObject(this.o).testValue;
+        return this.libs.reflectOnObject(this.o).testValue;
     }
 }
 let CustomResolveMop = () => {
@@ -56397,21 +56397,110 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const SubClient_1 = require("./PubSub/SubClient");
 const SubServer_1 = require("./PubSub/SubServer");
 const SubTag_1 = require("./PubSub/SubTag");
+const MOP_1 = require("./MOP");
+class BufferedMirror extends MOP_1.SpiderObjectMirror {
+    constructor() {
+        super();
+        this.buffer = [];
+    }
+    access(fieldName) {
+        let base = this.base;
+        if (base.isConnected) {
+            return base.realRef[fieldName];
+        }
+        else {
+            var that = this;
+            let ret = function (...args) {
+                return new Promise((resolve) => {
+                    that.buffer.push(() => {
+                        resolve(base.realRef[fieldName](args));
+                    });
+                });
+            };
+            let resolver;
+            let p = new Promise((res) => {
+                resolver = res;
+            });
+            ret["then"] = function (resolve, reject) {
+                return p.then(resolve, reject);
+            };
+            ret["catch"] = function (reject) {
+                return p.catch(reject);
+            };
+            this.buffer.push(() => {
+                resolver(base.realRef[fieldName]);
+            });
+            return ret;
+        }
+    }
+    invoke(methodName, args) {
+        if (methodName == "_connected_") {
+            super.invoke(methodName, args);
+        }
+        else {
+            let base = this.base;
+            if (base.isConnected) {
+                return base.realRef[methodName](args);
+            }
+            else {
+                return new Promise((resolve) => {
+                    this.buffer.push(() => {
+                        resolve(base.realRef[methodName](args));
+                    });
+                });
+            }
+        }
+    }
+    gotConnected() {
+        this.buffer.forEach((f) => {
+            f();
+        });
+    }
+}
+class BufferedRef extends MOP_1.SpiderObject {
+    constructor() {
+        let m = new BufferedMirror();
+        super(m);
+        this.thisMirror = m;
+        this.isConnected = false;
+    }
+    _connected_(realRef) {
+        this.isConnected = true;
+        this.realRef = realRef;
+        this.thisMirror.gotConnected();
+    }
+}
 class ActorSTDLib {
     constructor(env) {
         this.environment = env;
         this.PubSubTag = SubTag_1.PubSubTag;
     }
-    setupPSClient(address, port) {
+    setupPSClient(address = "127.0.0.1", port = 8000) {
         return new SubClient_1.PSClient(this.environment.behaviourObject, address, port);
     }
     setupPSServer() {
         this.environment.behaviourObject["_PS_SERVER_"] = new SubServer_1.PSServer();
     }
+    remote(address, port) {
+        return this.environment.commMedium.connectRemote(this.environment.thisRef, address, port, this.environment.promisePool);
+    }
+    buffRemote(address, port) {
+        let ref = new BufferedRef();
+        this.environment.commMedium.connectRemote(this.environment.thisRef, address, port, this.environment.promisePool).then((realRef) => {
+            ref._connected_(realRef);
+        });
+        return ref;
+    }
+    reflectOnActor() {
+        return this.environment.actorMirror;
+    }
+    reflectOnObject(object) {
+        return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
+    }
 }
 exports.ActorSTDLib = ActorSTDLib;
 
-},{"./PubSub/SubClient":279,"./PubSub/SubServer":280,"./PubSub/SubTag":281}],271:[function(require,module,exports){
+},{"./MOP":275,"./PubSub/SubClient":279,"./PubSub/SubServer":280,"./PubSub/SubTag":281}],271:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const CommMedium_1 = require("./CommMedium");
 /**
@@ -56614,14 +56703,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
 const signal_1 = require("./Reactivivity/signal");
 const Message_1 = require("./Message");
-const MOP_1 = require("./MOP");
-const SubClient_1 = require("./PubSub/SubClient");
-const SubServer_1 = require("./PubSub/SubServer");
-const SubTag_1 = require("./PubSub/SubTag");
-const utils_1 = require("./utils");
-var PBT = SubTag_1.PubSubTag;
-var PSS = SubServer_1.PSServer;
-var PSC = SubClient_1.PSClient;
 class SpiderActorMirror {
     constructor() {
         this.CONSTRAINT_OK = "ok";
@@ -56725,32 +56806,32 @@ class SpiderActorMirror {
     }
     //Only non-app actors have a parent reference
     initialise(actSTDLib, appActor, parentRef = null) {
-        let commMedium = this.base.commMedium;
-        let thisRef = this.base.thisRef;
-        let promisePool = this.base.promisePool;
-        let signalPool = this.base.signalPool;
-        let gspInstance = this.base.gspInstance;
         let behaviourObject = this.base.objectPool.getObject(0);
         if (!appActor) {
             behaviourObject["parent"] = parentRef.proxyify();
         }
-        behaviourObject["remote"] = (address, port) => {
-            return commMedium.connectRemote(thisRef, address, port, promisePool);
-        };
-        behaviourObject["reflectOnActor"] = () => {
-            return this;
-        };
-        behaviourObject["reflectOnObject"] = (object) => {
-            return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
-        };
-        ///////////////////
-        //Actor STDL     //
-        //////////////////
         behaviourObject["libs"] = actSTDLib;
+        /*behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
+            return commMedium.connectRemote(thisRef,address,port,promisePool)
+        }
+        behaviourObject["buffRemote"]       = (address : string,port : number) : any =>{
+            let ref = new BufferedRef()
+            commMedium.connectRemote(thisRef,address,port,promisePool).then((realRef)=>{
+                ref.connected(realRef)
+            })
+            return ref
+        }
+        behaviourObject["reflectOnActor"]   = () => {
+            return this
+        }
+        behaviourObject["reflectOnObject"]  = (object : any) =>{
+            return object[SpiderObjectMirror.mirrorAccessKey]
+        }
         ///////////////////
         //Pub/Sub       //
         //////////////////
-        /*behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
+
+        behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
             let psClient                    = new PSClient(serverAddress,serverPort,behaviourObject)
             behaviourObject["publish"]      = psClient.publish.bind(psClient)
             behaviourObject["subscribe"]    = psClient.subscribe.bind(psClient)
@@ -56950,13 +57031,8 @@ class SpiderActorMirror {
     }
 }
 exports.SpiderActorMirror = SpiderActorMirror;
-let scope = new utils_1.LexScope();
-scope.addElement("PBT", PBT);
-scope.addElement("PSS", PSS);
-scope.addElement("PSC", PSC);
-utils_1.bundleScope(SpiderActorMirror, scope);
 
-},{"./FarRef":273,"./MOP":275,"./Message":276,"./PubSub/SubClient":279,"./PubSub/SubServer":280,"./PubSub/SubTag":281,"./Reactivivity/signal":283,"./utils":295}],275:[function(require,module,exports){
+},{"./FarRef":273,"./Message":276,"./Reactivivity/signal":283}],275:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
 const serialisation_1 = require("./serialisation");

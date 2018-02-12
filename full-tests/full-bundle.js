@@ -59,7 +59,7 @@ class ClientActor extends spiders_1.Actor {
     }
     init() {
         console.log(this.myId);
-        this.remote("127.0.0.1", 8080).then((serverRef) => {
+        this.libs.remote("127.0.0.1", 8080).then((serverRef) => {
             this.parent.logSucc("Connected to server via remote method");
             this.serverRef = serverRef;
             serverRef.register(this).then((ok) => {
@@ -104,7 +104,7 @@ class ClientActor extends spiders_1.Actor {
 var app = new ClientApp();
 app.spawnActor(ClientActor, [window.thisId]);
 
-},{"../src/spiders":289}],2:[function(require,module,exports){
+},{"../src/spiders":293}],2:[function(require,module,exports){
 /*!
  * accepts
  * Copyright(c) 2014 Jonathan Ong
@@ -55488,7 +55488,7 @@ class ClientActorEnvironment extends ActorEnvironment {
 }
 exports.ClientActorEnvironment = ClientActorEnvironment;
 
-},{"./ChannelManager":269,"./FarRef":271,"./ObjectPool":275,"./PromisePool":276,"./Reactivivity/signalPool":279,"./Replication/GSP":280,"./Sockets":286,"./messageHandler":287,"./serialisation":288}],268:[function(require,module,exports){
+},{"./ChannelManager":270,"./FarRef":272,"./ObjectPool":276,"./PromisePool":277,"./Reactivivity/signalPool":283,"./Replication/GSP":284,"./Sockets":290,"./messageHandler":291,"./serialisation":292}],268:[function(require,module,exports){
 (function (process){
 Object.defineProperty(exports, "__esModule", { value: true });
 const ObjectPool_1 = require("./ObjectPool");
@@ -55496,6 +55496,7 @@ const FarRef_1 = require("./FarRef");
 const serialisation_1 = require("./serialisation");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const MAP_1 = require("./MAP");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 /**
  * Created by flo on 05/12/2016.
  */
@@ -55553,11 +55554,120 @@ else {
     parentRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], parentId, address, parentPort, environment);
     var parentServer = parentRef;
     environment.commMedium.openConnection(parentServer.ownerId, parentServer.ownerAddress, parentServer.ownerPort);
-    environment.actorMirror.initialise(false, parentRef);
+    let stdLib = new ActorSTDLib_1.ActorSTDLib(environment);
+    environment.actorMirror.initialise(stdLib, false, parentRef);
 }
 
 }).call(this,require('_process'))
-},{"./ActorEnvironment":267,"./FarRef":271,"./MAP":272,"./ObjectPool":275,"./serialisation":288,"./utils":290,"_process":157}],269:[function(require,module,exports){
+},{"./ActorEnvironment":267,"./ActorSTDLib":269,"./FarRef":272,"./MAP":273,"./ObjectPool":276,"./serialisation":292,"./utils":294,"_process":157}],269:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+const SubClient_1 = require("./PubSub/SubClient");
+const SubServer_1 = require("./PubSub/SubServer");
+const SubTag_1 = require("./PubSub/SubTag");
+const MOP_1 = require("./MOP");
+class BufferedMirror extends MOP_1.SpiderObjectMirror {
+    constructor() {
+        super();
+        this.buffer = [];
+    }
+    access(fieldName) {
+        let base = this.base;
+        if (base.isConnected) {
+            return base.realRef[fieldName];
+        }
+        else {
+            var that = this;
+            let ret = function (...args) {
+                return new Promise((resolve) => {
+                    that.buffer.push(() => {
+                        resolve(base.realRef[fieldName](args));
+                    });
+                });
+            };
+            let resolver;
+            let p = new Promise((res) => {
+                resolver = res;
+            });
+            ret["then"] = function (resolve, reject) {
+                return p.then(resolve, reject);
+            };
+            ret["catch"] = function (reject) {
+                return p.catch(reject);
+            };
+            this.buffer.push(() => {
+                resolver(base.realRef[fieldName]);
+            });
+            return ret;
+        }
+    }
+    invoke(methodName, args) {
+        if (methodName == "_connected_") {
+            super.invoke(methodName, args);
+        }
+        else {
+            let base = this.base;
+            if (base.isConnected) {
+                return base.realRef[methodName](args);
+            }
+            else {
+                return new Promise((resolve) => {
+                    this.buffer.push(() => {
+                        resolve(base.realRef[methodName](args));
+                    });
+                });
+            }
+        }
+    }
+    gotConnected() {
+        this.buffer.forEach((f) => {
+            f();
+        });
+    }
+}
+class BufferedRef extends MOP_1.SpiderObject {
+    constructor() {
+        let m = new BufferedMirror();
+        super(m);
+        this.thisMirror = m;
+        this.isConnected = false;
+    }
+    _connected_(realRef) {
+        this.isConnected = true;
+        this.realRef = realRef;
+        this.thisMirror.gotConnected();
+    }
+}
+class ActorSTDLib {
+    constructor(env) {
+        this.environment = env;
+        this.PubSubTag = SubTag_1.PubSubTag;
+    }
+    setupPSClient(address = "127.0.0.1", port = 8000) {
+        return new SubClient_1.PSClient(this.environment.behaviourObject, address, port);
+    }
+    setupPSServer() {
+        this.environment.behaviourObject["_PS_SERVER_"] = new SubServer_1.PSServer();
+    }
+    remote(address, port) {
+        return this.environment.commMedium.connectRemote(this.environment.thisRef, address, port, this.environment.promisePool);
+    }
+    buffRemote(address, port) {
+        let ref = new BufferedRef();
+        this.environment.commMedium.connectRemote(this.environment.thisRef, address, port, this.environment.promisePool).then((realRef) => {
+            ref._connected_(realRef);
+        });
+        return ref;
+    }
+    reflectOnActor() {
+        return this.environment.actorMirror;
+    }
+    reflectOnObject(object) {
+        return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
+    }
+}
+exports.ActorSTDLib = ActorSTDLib;
+
+},{"./MOP":274,"./PubSub/SubClient":278,"./PubSub/SubServer":279,"./PubSub/SubTag":280}],270:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const CommMedium_1 = require("./CommMedium");
 /**
@@ -55608,7 +55718,7 @@ class ChannelManager extends CommMedium_1.CommMedium {
 }
 exports.ChannelManager = ChannelManager;
 
-},{"./CommMedium":270}],270:[function(require,module,exports){
+},{"./CommMedium":271}],271:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const FarRef_1 = require("./FarRef");
@@ -55657,7 +55767,7 @@ class CommMedium {
 }
 exports.CommMedium = CommMedium;
 
-},{"./FarRef":271,"./Message":274,"./Sockets":286,"socket.io-client":191}],271:[function(require,module,exports){
+},{"./FarRef":272,"./Message":275,"./Sockets":290,"socket.io-client":191}],272:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 21/12/2016.
@@ -55755,12 +55865,11 @@ class ServerFarReference extends FarReference {
 }
 exports.ServerFarReference = ServerFarReference;
 
-},{}],272:[function(require,module,exports){
+},{}],273:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
 const signal_1 = require("./Reactivivity/signal");
 const Message_1 = require("./Message");
-const MOP_1 = require("./MOP");
 class SpiderActorMirror {
     constructor() {
         this.CONSTRAINT_OK = "ok";
@@ -55863,29 +55972,33 @@ class SpiderActorMirror {
         this.serialise = serialise;
     }
     //Only non-app actors have a parent reference
-    initialise(appActor, parentRef = null) {
-        let commMedium = this.base.commMedium;
-        let thisRef = this.base.thisRef;
-        let promisePool = this.base.promisePool;
-        let signalPool = this.base.signalPool;
-        let gspInstance = this.base.gspInstance;
+    initialise(actSTDLib, appActor, parentRef = null) {
         let behaviourObject = this.base.objectPool.getObject(0);
         if (!appActor) {
             behaviourObject["parent"] = parentRef.proxyify();
         }
-        behaviourObject["remote"] = (address, port) => {
-            return commMedium.connectRemote(thisRef, address, port, promisePool);
-        };
-        behaviourObject["reflectOnActor"] = () => {
-            return this;
-        };
-        behaviourObject["reflectOnObject"] = (object) => {
-            return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
-        };
+        behaviourObject["libs"] = actSTDLib;
+        /*behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
+            return commMedium.connectRemote(thisRef,address,port,promisePool)
+        }
+        behaviourObject["buffRemote"]       = (address : string,port : number) : any =>{
+            let ref = new BufferedRef()
+            commMedium.connectRemote(thisRef,address,port,promisePool).then((realRef)=>{
+                ref.connected(realRef)
+            })
+            return ref
+        }
+        behaviourObject["reflectOnActor"]   = () => {
+            return this
+        }
+        behaviourObject["reflectOnObject"]  = (object : any) =>{
+            return object[SpiderObjectMirror.mirrorAccessKey]
+        }
         ///////////////////
         //Pub/Sub       //
         //////////////////
-        /*behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
+
+        behaviourObject["PSClient"]         = ((serverAddress = "127.0.0.1",serverPort = 8000) =>{
             let psClient                    = new PSClient(serverAddress,serverPort,behaviourObject)
             behaviourObject["publish"]      = psClient.publish.bind(psClient)
             behaviourObject["subscribe"]    = psClient.subscribe.bind(psClient)
@@ -56086,7 +56199,7 @@ class SpiderActorMirror {
 }
 exports.SpiderActorMirror = SpiderActorMirror;
 
-},{"./FarRef":271,"./MOP":273,"./Message":274,"./Reactivivity/signal":278}],273:[function(require,module,exports){
+},{"./FarRef":272,"./Message":275,"./Reactivivity/signal":282}],274:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
 const serialisation_1 = require("./serialisation");
@@ -56262,7 +56375,7 @@ exports.reCreateObjectClass = reCreateIsolateClass;
 exports.reCreateObjectMirrorClass = reCreateIsolateClass;
 exports.reCreateIsolateMirrorClass = reCreateIsolateClass;
 
-},{"./serialisation":288,"./utils":290}],274:[function(require,module,exports){
+},{"./serialisation":292,"./utils":294}],275:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 20/12/2016.
@@ -56444,7 +56557,7 @@ class ExternalSignalDeleteMessage extends Message {
 }
 exports.ExternalSignalDeleteMessage = ExternalSignalDeleteMessage;
 
-},{"./FarRef":271,"./ObjectPool":275,"./serialisation":288}],275:[function(require,module,exports){
+},{"./FarRef":272,"./ObjectPool":276,"./serialisation":292}],276:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by flo on 08/01/2017.
@@ -56471,7 +56584,7 @@ class ObjectPool {
 ObjectPool._BEH_OBJ_ID = 0;
 exports.ObjectPool = ObjectPool;
 
-},{}],276:[function(require,module,exports){
+},{}],277:[function(require,module,exports){
 /**
  * Created by flo on 22/12/2016.
  */
@@ -56549,7 +56662,168 @@ class PromisePool {
 }
 exports.PromisePool = PromisePool;
 
-},{}],277:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Created by flo on 22/03/2017.
+ */
+/*This might seem strange, and it is. Need to explicitly have the definition in the file scope in order to correctly bundle it.
+Otherwise typescript will prepend the lib name which will mess up the bundling
+*/
+class Subscription {
+    constructor() {
+        this.subArray = [];
+        this.listeners = [];
+        this.onceMode = false;
+        this.discovered = 0;
+    }
+    newPublishedObject(publishedObject) {
+        this.discovered++;
+        this.subArray.push(publishedObject);
+        if (this.onceMode) {
+            if (!(this.discovered > 1)) {
+                this.listeners.forEach((callback) => {
+                    callback(publishedObject);
+                });
+            }
+        }
+        else {
+            this.listeners.forEach((callback) => {
+                callback(publishedObject);
+            });
+        }
+    }
+    each(callback) {
+        this.listeners.push(callback);
+    }
+    all() {
+        return this.subArray;
+    }
+    once(callback) {
+        this.onceMode = true;
+        this.listeners.push(callback);
+    }
+    cancel() {
+        //TODO
+    }
+}
+exports.Subscription = Subscription;
+class Publication {
+    cancel() {
+        //TODO, How can server identifiy which publiciation to withdraw ? Far ref equality will probably not work
+    }
+}
+exports.Publication = Publication;
+class PSClient {
+    constructor(hostActor, serverAddress, serverPort) {
+        this.connected = false;
+        var that = this;
+        this.bufferedMessages = [];
+        hostActor.remote(serverAddress, serverPort).then((serverRef) => {
+            serverRef._PS_SERVER_.then((psServerRef) => {
+                that.serverRef = psServerRef;
+                that.connected = true;
+                if (that.bufferedMessages.length > 0) {
+                    that.bufferedMessages.forEach((f) => {
+                        f.apply(that, []);
+                    });
+                }
+            });
+        });
+        this.subscriptions = new Map();
+    }
+    publish(object, typeTag) {
+        if (this.connected) {
+            this.serverRef.addPublish(object, typeTag);
+        }
+        else {
+            this.bufferedMessages.push(() => {
+                this.serverRef.addPublish(object, typeTag);
+            });
+        }
+        //TODO return publication object
+    }
+    subscribe(typeTag) {
+        if (this.connected) {
+            this.serverRef.addSubscriber(typeTag, this);
+        }
+        else {
+            this.bufferedMessages.push(() => {
+                this.serverRef.addSubscriber(typeTag, this);
+            });
+        }
+        let sub = new Subscription();
+        if (!this.subscriptions.has(typeTag.tagVal)) {
+            this.subscriptions.set(typeTag.tagVal, []);
+        }
+        this.subscriptions.get(typeTag.tagVal).push(sub);
+        return sub;
+    }
+    newPublished(publishedObject, typeTag) {
+        //Sure to have at least one subscription, given that server only invokes this method if this actor is in the TypeTag's subscribers list
+        this.subscriptions.get(typeTag.tagVal).forEach((sub) => {
+            sub.newPublishedObject(publishedObject);
+        });
+    }
+}
+exports.PSClient = PSClient;
+
+},{}],279:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Created by flo on 22/03/2017.
+ */
+class PSServer {
+    constructor() {
+        this.subscribers = new Map();
+        this.published = new Map();
+    }
+    addPublish(published, typeTag) {
+        if (!this.published.has(typeTag.tagVal)) {
+            this.published.set(typeTag.tagVal, []);
+        }
+        this.published.get(typeTag.tagVal).push(published);
+        if (this.subscribers.has(typeTag.tagVal)) {
+            this.subscribers.get(typeTag.tagVal).forEach((subscriber) => {
+                subscriber.newPublished(published, typeTag);
+            });
+        }
+    }
+    addSubscriber(typeTag, subReference) {
+        if (!this.subscribers.has(typeTag.tagVal)) {
+            this.subscribers.set(typeTag.tagVal, []);
+        }
+        this.subscribers.get(typeTag.tagVal).push(subReference);
+        if (this.published.has(typeTag.tagVal)) {
+            this.published.get(typeTag.tagVal).forEach((publishedObject) => {
+                subReference.newPublished(publishedObject, typeTag);
+            });
+        }
+    }
+}
+exports.PSServer = PSServer;
+
+},{}],280:[function(require,module,exports){
+Object.defineProperty(exports, "__esModule", { value: true });
+const MOP_1 = require("../MOP");
+/**
+ * Created by flo on 22/03/2017.
+ */
+class PubSubTag extends MOP_1.SpiderIsolate {
+    constructor(tagVal) {
+        super();
+        this.tagVal = tagVal;
+    }
+    equals(otherTag) {
+        otherTag.tagVal == this.tagVal;
+    }
+    asString() {
+        return this.tagVal;
+    }
+}
+exports.PubSubTag = PubSubTag;
+
+},{"../MOP":274}],281:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const signal_1 = require("./signal");
 const Message_1 = require("../Message");
@@ -56581,7 +56855,7 @@ class NoGlitchFreedom {
 }
 exports.NoGlitchFreedom = NoGlitchFreedom;
 
-},{"../Message":274,"../serialisation":288,"./signal":278}],278:[function(require,module,exports){
+},{"../Message":275,"../serialisation":292,"./signal":282}],282:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const serialisation_1 = require("../serialisation");
 /**
@@ -56920,7 +57194,7 @@ function liftGarbage(func) {
 }
 exports.liftGarbage = liftGarbage;
 
-},{"../serialisation":288,"../utils":290}],279:[function(require,module,exports){
+},{"../serialisation":292,"../utils":294}],283:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("../Message");
 const NoGlitchFreedom_1 = require("./NoGlitchFreedom");
@@ -57087,7 +57361,7 @@ class SignalPool {
 }
 exports.SignalPool = SignalPool;
 
-},{"../Message":274,"./NoGlitchFreedom":277}],280:[function(require,module,exports){
+},{"../Message":275,"./NoGlitchFreedom":281}],284:[function(require,module,exports){
 /**
  * Created by flo on 16/03/2017.
  */
@@ -57336,7 +57610,7 @@ class GSP {
 }
 exports.GSP = GSP;
 
-},{"../Message":274,"../utils":290,"./Repliq":281,"./Round":285}],281:[function(require,module,exports){
+},{"../Message":275,"../utils":294,"./Repliq":285,"./Round":289}],285:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const serialisation_1 = require("../serialisation");
 const RepliqPrimitiveField_1 = require("./RepliqPrimitiveField");
@@ -57681,7 +57955,7 @@ Repliq.getRepliqOwnerPort = "_GET_REPLIQ_OWNER_PORT_";
 Repliq.getRepliqOwnerAddress = "_GET_REPLIQ_OWNER_ADDRESS_";
 exports.Repliq = Repliq;
 
-},{"../serialisation":288,"../utils":290,"./RepliqObjectField":283,"./RepliqPrimitiveField":284,"./Round":285}],282:[function(require,module,exports){
+},{"../serialisation":292,"../utils":294,"./RepliqObjectField":287,"./RepliqPrimitiveField":288,"./Round":289}],286:[function(require,module,exports){
 /**
  * Created by flo on 30/03/2017.
  */
@@ -57720,7 +57994,7 @@ class RepliqField {
 }
 exports.RepliqField = RepliqField;
 
-},{}],283:[function(require,module,exports){
+},{}],287:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const RepliqField_1 = require("./RepliqField");
 /**
@@ -57763,7 +58037,7 @@ class RepliqObjectField extends RepliqField_1.RepliqField {
 }
 exports.RepliqObjectField = RepliqObjectField;
 
-},{"../utils":290,"./RepliqField":282}],284:[function(require,module,exports){
+},{"../utils":294,"./RepliqField":286}],288:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const RepliqField_1 = require("./RepliqField");
 /**
@@ -57822,7 +58096,7 @@ exports.RepliqCountField = RepliqCountField;
 exports.LWR = makeAnnotation(RepliqPrimitiveField);
 exports.Count = makeAnnotation(RepliqCountField);
 
-},{"./RepliqField":282}],285:[function(require,module,exports){
+},{"./RepliqField":286}],289:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../spiders");
 /**
@@ -57932,7 +58206,7 @@ exports.roundUpdates = roundUpdates;
     }
 }*/ 
 
-},{"../spiders":289}],286:[function(require,module,exports){
+},{"../spiders":293}],290:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const CommMedium_1 = require("./CommMedium");
 /**
@@ -58050,12 +58324,13 @@ class ServerSocketManager extends CommMedium_1.CommMedium {
 }
 exports.ServerSocketManager = ServerSocketManager;
 
-},{"./CommMedium":270,"socket.io":215,"socket.io-client":191}],287:[function(require,module,exports){
+},{"./CommMedium":271,"socket.io":215,"socket.io-client":191}],291:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const ObjectPool_1 = require("./ObjectPool");
 const serialisation_1 = require("./serialisation");
 const FarRef_1 = require("./FarRef");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 /**
  * Created by flo on 20/12/2016.
  */
@@ -58105,7 +58380,8 @@ class MessageHandler {
             //Ports at position 0 contains main channel (i.e. channel used to communicate with application actor)
             channelManag.newConnection(id, ports[index + 1]);
         });
-        this.environment.actorMirror.initialise(false, parentRef);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.environment);
+        this.environment.actorMirror.initialise(stdLib, false, parentRef);
     }
     handleOpenPort(msg, port) {
         var channelManager = this.environment.commMedium;
@@ -58126,6 +58402,7 @@ class MessageHandler {
                     this.sendReturnClient(msg.senderId, msg, message);
                 }
             }
+            return undefined;
         });
     }
     handleMethodInvocation(msg) {
@@ -58160,6 +58437,7 @@ class MessageHandler {
                     this.sendReturnClient(msg.senderId, msg, message);
                 }
             }
+            return undefined;
         });
     }
     handlePromiseResolve(msg) {
@@ -58304,7 +58582,7 @@ class MessageHandler {
 }
 exports.MessageHandler = MessageHandler;
 
-},{"./FarRef":271,"./Message":274,"./ObjectPool":275,"./serialisation":288}],288:[function(require,module,exports){
+},{"./ActorSTDLib":269,"./FarRef":272,"./Message":275,"./ObjectPool":276,"./serialisation":292}],292:[function(require,module,exports){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const FarRef_1 = require("./FarRef");
@@ -59343,7 +59621,7 @@ function deserialise(value, environment) {
 }
 exports.deserialise = deserialise;
 
-},{"./FarRef":271,"./MOP":273,"./Message":274,"./Reactivivity/signal":278,"./Replication/Repliq":281,"./Replication/RepliqObjectField":283,"./Replication/RepliqPrimitiveField":284,"./utils":290}],289:[function(require,module,exports){
+},{"./FarRef":272,"./MOP":274,"./Message":275,"./Reactivivity/signal":282,"./Replication/Repliq":285,"./Replication/RepliqObjectField":287,"./Replication/RepliqPrimitiveField":288,"./utils":294}],293:[function(require,module,exports){
 (function (__dirname){
 Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
@@ -59353,6 +59631,7 @@ const Message_1 = require("./Message");
 const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
+const ActorSTDLib_1 = require("./ActorSTDLib");
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -59365,6 +59644,7 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
     });
     return mappings;
 }
+//TODO, will need to remove all redundant type definitions
 class Actor {
     constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
         this.actorMirror = actorMirror;
@@ -59440,6 +59720,7 @@ class ServerActor extends Actor {
 class Application {
     constructor() {
         this.appActors = 0;
+        this.self = this;
         if (this.appActors == 0) {
             this.mainId = utils_1.generateId();
         }
@@ -59449,15 +59730,17 @@ class Application {
     }
 }
 class ServerApplication extends Application {
-    constructor(mainIp = "127.0.0.1", mainPort = 8000, actorMirror = new MAP_1.SpiderActorMirror()) {
+    constructor(actorMirror = new MAP_1.SpiderActorMirror(), mainIp = "127.0.0.1", mainPort = 8000) {
         super();
         this.mainIp = mainIp;
         this.mainPort = mainPort;
         this.mainEnvironment = new ActorEnvironment_1.ServerActorEnvironment(this.mainId, mainIp, mainPort, actorMirror);
         this.mainEnvironment.objectPool.installBehaviourObject(this);
+        this.mainEnvironment.behaviourObject = this;
         this.portCounter = 8001;
         this.spawnedActors = [];
-        this.mainEnvironment.actorMirror.initialise(true);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);
@@ -59485,7 +59768,8 @@ class ClientApplication extends Application {
         this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment(actorMirror);
         this.mainEnvironment.initialise(this.mainId, this.mainId, this);
         this.spawnedActors = [];
-        this.mainEnvironment.actorMirror.initialise(true);
+        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = []) {
         var actorObject = new actorClass(...constructorArgs);
@@ -59526,7 +59810,7 @@ exports.bundleScope = utils_2.bundleScope;
 exports.LexScope = utils_2.LexScope;
 
 }).call(this,"/src")
-},{"./ActorEnvironment":267,"./ActorProto":268,"./FarRef":271,"./MAP":272,"./MOP":273,"./Message":274,"./ObjectPool":275,"./serialisation":288,"./utils":290,"child_process":55,"webworkify":264}],290:[function(require,module,exports){
+},{"./ActorEnvironment":267,"./ActorProto":268,"./ActorSTDLib":269,"./FarRef":272,"./MAP":273,"./MOP":274,"./Message":275,"./ObjectPool":276,"./serialisation":292,"./utils":294,"child_process":55,"webworkify":264}],294:[function(require,module,exports){
 (function (process){
 Object.defineProperty(exports, "__esModule", { value: true });
 /**

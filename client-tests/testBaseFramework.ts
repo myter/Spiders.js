@@ -53,7 +53,7 @@ class ROAActor extends Actor{
     }
 
     test(){
-        return (this.reflectOnActor() as ROAMirror).testValue
+        return (this.libs.reflectOnActor() as ROAMirror).testValue
     }
 }
 let performROA = () =>{
@@ -82,7 +82,7 @@ class InitActor extends Actor{
     }
 
     test(){
-        return (this.reflectOnActor() as InitMirror).testValue + this.testValue
+        return (this.libs.reflectOnActor() as InitMirror).testValue + this.testValue
     }
 }
 let customInit = ()=>{
@@ -109,7 +109,7 @@ class CustInvocMAPActor extends Actor{
     }
     test(){
         this.testValue = 5
-        return (this.reflectOnActor() as CustInvocMAPMirror).testValue + this.testValue
+        return (this.libs.reflectOnActor() as CustInvocMAPMirror).testValue + this.testValue
     }
 }
 let customInvocMap = ()=>{
@@ -160,7 +160,7 @@ class CustSendInvocMapActor extends Actor{
     }
     test(){
         return this.parent.testP().then((v)=>{
-            return (this.reflectOnActor() as CustSendInvocMapMirror).testValue + v
+            return (this.libs.reflectOnActor() as CustSendInvocMapMirror).testValue + v
         })
     }
 }
@@ -194,7 +194,7 @@ class CustSendAccessMapActor extends Actor{
 
     test(){
         return this.parent.testValue.then((v)=>{
-            return (this.reflectOnActor() as CustSendAccessMapMirror).testValue + v
+            return (this.libs.reflectOnActor() as CustSendAccessMapMirror).testValue + v
         })
     }
 }
@@ -229,7 +229,7 @@ class ROOActor extends Actor{
     }
     test(){
         let o = new this.TestObject(this.TestMirror)
-        return (this.reflectOnObject(o) as ROOMirror).testValue
+        return (this.libs.reflectOnObject(o) as ROOMirror).testValue
     }
 }
 let ROO = () => {
@@ -268,7 +268,7 @@ class CustInvokeMOPActor extends Actor{
     test(){
         let o = new this.TestObject(this.TestMirror)
         let r = o.someMethod()
-        return (this.reflectOnObject(o) as CustInvokeMOPMirror).testValue + r
+        return (this.libs.reflectOnObject(o) as CustInvokeMOPMirror).testValue + r
     }
 }
 let customInvocMOP = () => {
@@ -305,7 +305,7 @@ class CustomAccessMopActor extends Actor{
     test(){
         let o = new this.TestObject(this.TestMirror)
         let r = o.someField
-        return (this.reflectOnObject(o) as CustomAccessMopMirror).testValue + r
+        return (this.libs.reflectOnObject(o) as CustomAccessMopMirror).testValue + r
     }
 }
 let CustomAccessMop = () => {
@@ -343,7 +343,7 @@ class CustomWriteMOPActor extends Actor{
     test(){
         let o = new this.TestObject(this.TestMirror)
         let r = o.someField
-        return (this.reflectOnObject(o) as custWriteMOPMirror).testValue + r
+        return (this.libs.reflectOnObject(o) as custWriteMOPMirror).testValue + r
     }
 }
 let CustomWriteMop = () => {
@@ -375,7 +375,7 @@ class CustomPassMopActor extends Actor{
         this.o          = new CustomPassMopObject(CustomPassMopMirror)
     }
     test(){
-        return (this.reflectOnObject(this.o) as CustomPassMopMirror).testValue
+        return (this.libs.reflectOnObject(this.o) as CustomPassMopMirror).testValue
     }
 }
 let CustomPassMop = () => {
@@ -405,7 +405,7 @@ class CustomResolveMopActor extends Actor{
         this.o          = new CustomResolveMopObject(CustomResolveMopMirror)
     }
     test(){
-        return (this.reflectOnObject(this.o) as CustomResolveMopMirror).testValue
+        return (this.libs.reflectOnObject(this.o) as CustomResolveMopMirror).testValue
     }
 }
 let CustomResolveMop = () => {

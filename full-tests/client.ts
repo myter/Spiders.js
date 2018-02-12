@@ -76,7 +76,7 @@ class ClientActor extends Actor{
 
     init(){
         console.log(this.myId)
-        this.remote("127.0.0.1",8080).then((serverRef)=>{
+        this.libs.remote("127.0.0.1",8080).then((serverRef)=>{
             this.parent.logSucc("Connected to server via remote method")
             this.serverRef = serverRef
             serverRef.register(this).then((ok)=>{
