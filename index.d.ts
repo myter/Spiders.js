@@ -53,6 +53,7 @@ export class Actor{
     constructor(actorMirror? : SpiderActorMirror)
 }
 export class Application{
+    libs : ActorSTDLib
     constructor(actorMirror? : SpiderActorMirror,address? : string,port? : number)
     spawnActor(actorClass : Function,constructionArgs? : Array<any>,port? : number)
     spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
