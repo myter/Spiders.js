@@ -132,6 +132,7 @@ export class SpiderObject{
         let thisClone   = clone(this)
         objectMirror.bindBase(thisClone)
         this.mirror     = objectMirror
+        this[SpiderObjectMirror.mirrorAccessKey] = this.mirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject
@@ -151,6 +152,7 @@ export class SpiderIsolate{
         //this.constructor = construct
         objectMirror.bindBase(thisClone)
         this.mirror     = objectMirror
+        this[SpiderObjectMirror.mirrorAccessKey] = this.mirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderIsolate
@@ -162,6 +164,7 @@ export class SpiderIsolate{
         //let thisClone   = clone(this)
         objectMirror.bindBase(isolClone)
         this.mirror     = objectMirror
+        this[SpiderObjectMirror.mirrorAccessKey] = this.mirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(isolClone,this.mirror) as SpiderIsolate
