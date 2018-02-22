@@ -152,7 +152,7 @@ export class SpiderIsolate{
         //this.constructor = construct
         objectMirror.bindBase(thisClone)
         this.mirror     = objectMirror
-        this[SpiderObjectMirror.mirrorAccessKey] = this.mirror
+        thisClone[SpiderObjectMirror.mirrorAccessKey] = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderIsolate
@@ -160,11 +160,9 @@ export class SpiderIsolate{
 
     //Called by serialise on an already constructed isolate which has just been passed
     instantiate(objectMirror : SpiderIsolateMirror,isolClone,wrapPrototypes,makeSpiderObjectProxy){
-        //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
-        //let thisClone   = clone(this)
         objectMirror.bindBase(isolClone)
         this.mirror     = objectMirror
-        this[SpiderObjectMirror.mirrorAccessKey] = this.mirror
+        isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
         return makeSpiderObjectProxy(isolClone,this.mirror) as SpiderIsolate

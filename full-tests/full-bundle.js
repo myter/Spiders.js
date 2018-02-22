@@ -58449,6 +58449,7 @@ class SpiderObject {
         let thisClone = utils_1.clone(this);
         objectMirror.bindBase(thisClone);
         this.mirror = objectMirror;
+        this[SpiderObjectMirror.mirrorAccessKey] = this.mirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
         return makeSpiderObjectProxy(thisClone, this.mirror);
@@ -58467,16 +58468,16 @@ class SpiderIsolate {
         //this.constructor = construct
         objectMirror.bindBase(thisClone);
         this.mirror = objectMirror;
+        thisClone[SpiderObjectMirror.mirrorAccessKey] = objectMirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
         return makeSpiderObjectProxy(thisClone, this.mirror);
     }
     //Called by serialise on an already constructed isolate which has just been passed
     instantiate(objectMirror, isolClone, wrapPrototypes, makeSpiderObjectProxy) {
-        //Need to explicitly clone the base object, given that we are going to mess with its prototype chain etc at the end of the constructor
-        //let thisClone   = clone(this)
         objectMirror.bindBase(isolClone);
         this.mirror = objectMirror;
+        isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
         return makeSpiderObjectProxy(isolClone, this.mirror);
@@ -61353,11 +61354,13 @@ function serialise(value, receiverId, environment) {
             let baseOb = mirror.pass();
             //Remove base reference from mirror to avoid serialising the base object twice
             delete mirror.base;
+            delete baseOb[MOP_1.SpiderObjectMirror.mirrorAccessKey];
             let [vars, methods] = deconstructBehaviour(baseOb, 0, [], [], receiverId, environment, "toString");
             let [mVars, mMethods] = deconstructBehaviour(mirror, 0, [], [], receiverId, environment, "toString");
             let container = new SpiderIsolateContainer(JSON.stringify(vars), JSON.stringify(methods), JSON.stringify(mVars), JSON.stringify(mMethods));
             //Reset base object <=> mirror link
             mirror.base = baseOb;
+            baseOb[MOP_1.SpiderObjectMirror.mirrorAccessKey] = mirror;
             return container;
         }
         else if (value[RepliqContainer.checkRepliqFuncKey]) {
