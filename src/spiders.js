@@ -51,7 +51,7 @@ class ClientActor extends Actor {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainId, app.mainEnvironment);
         app.spawnedActors.push([actorId, webWorker]);
-        return ref.proxyify();
+        return ref.proxify();
     }
 }
 class ServerActor extends Actor {
@@ -73,7 +73,7 @@ class ServerActor extends Actor {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainIp, port, app.mainEnvironment);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
-        return ref.proxyify();
+        return ref.proxify();
     }
     static spawnFromFile(app, port, filePath, actorClassName, constructorArgs) {
         var socketManager = app.mainEnvironment.commMedium;
@@ -89,7 +89,7 @@ class ServerActor extends Actor {
         //Impossible to know the actor's fields and methods at this point
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, app.mainIp, port, app.mainEnvironment);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
-        return ref.proxyify();
+        return ref.proxify();
     }
 }
 class Application {

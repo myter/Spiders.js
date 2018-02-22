@@ -91,7 +91,7 @@ abstract class ClientActor extends Actor{
         let [fieldNames,methodNames]                    = getObjectNames(this,"spawn")
         var ref                                         = new ClientFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,app.mainId,app.mainEnvironment)
         app.spawnedActors.push([actorId,webWorker])
-        return ref.proxyify()
+        return ref.proxify()
     }
 }
 
@@ -115,7 +115,7 @@ abstract class ServerActor extends Actor{
         let [fieldNames,methodNames]    = getObjectNames(this,"spawn")
         var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,app.mainIp,port,app.mainEnvironment)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
-        return ref.proxyify()
+        return ref.proxify()
     }
 
     static spawnFromFile(app : ServerApplication,port :number,filePath : string,actorClassName : string,constructorArgs : Array<any>){
@@ -132,7 +132,7 @@ abstract class ServerActor extends Actor{
         //Impossible to know the actor's fields and methods at this point
         var ref             = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],actorId,app.mainIp,port,app.mainEnvironment)
         socketManager.openConnection(ref.ownerId,ref.ownerAddress,ref.ownerPort)
-        return ref.proxyify()
+        return ref.proxify()
     }
 }
 

@@ -795,7 +795,7 @@ function deserialise(value, environment) {
                 environment.commMedium.connectTransientRemote(environment.thisRef, farRef, environment.promisePool);
             }
         }
-        return farRef.proxyify();
+        return farRef.proxify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
         var farRef;
@@ -806,7 +806,7 @@ function deserialise(value, environment) {
         else {
             farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, environment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
-        return farRef.proxyify();
+        return farRef.proxify();
     }
     function deSerialiseError(errorContainer) {
         var error = new Error(errorContainer.message);

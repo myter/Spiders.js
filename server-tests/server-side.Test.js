@@ -9,8 +9,9 @@ const spiders_1 = require("../src/spiders");
 var assert = require('assert');
 var chai = require('chai');
 var expect = chai.expect;
-describe("Behaviour serialisation", () => {
-    it("From file", (done) => {
+describe("Behaviour serialisation", function () {
+    this.timeout(5000);
+    it("From file", function (done) {
         var app = new spiders_1.Application();
         var act = app.spawnActorFromFile(__dirname + '/testActorDefinition', "TestActor");
         act.getValue().then((val) => {

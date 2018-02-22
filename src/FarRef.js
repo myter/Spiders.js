@@ -12,12 +12,12 @@ class FarReference {
         this.isServer = isServer;
     }
     sendFieldAccess(fieldName) {
-        return this.environemnt.actorMirror.sendAccess(this, fieldName);
+        return this.environemnt.actorMirror.sendAccess(this.proxify(), fieldName);
     }
     sendMethodInvocation(methodName, args) {
-        return this.environemnt.actorMirror.sendInvocation(this, methodName, args);
+        return this.environemnt.actorMirror.sendInvocation(this.proxify(), methodName, args);
     }
-    proxyify() {
+    proxify() {
         var baseObject = this;
         return new Proxy({}, {
             get: function (target, property) {
@@ -79,10 +79,10 @@ class ClientFarReference extends FarReference {
         this.contactPort = contactPort;
     }
     sendFieldAccess(fieldName) {
-        return this.environemnt.actorMirror.sendAccess(this, fieldName, this.contactId, this.contactAddress, this.contactPort, this.mainId);
+        return this.environemnt.actorMirror.sendAccess(this.proxify(), fieldName, this.contactId, this.contactAddress, this.contactPort, this.mainId);
     }
     sendMethodInvocation(methodName, args) {
-        return this.environemnt.actorMirror.sendInvocation(this, methodName, args, this.contactId, this.contactAddress, this.contactPort, this.mainId);
+        return this.environemnt.actorMirror.sendInvocation(this.proxify(), methodName, args, this.contactId, this.contactAddress, this.contactPort, this.mainId);
     }
 }
 exports.ClientFarReference = ClientFarReference;

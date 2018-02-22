@@ -5,11 +5,6 @@ import {PromiseAllocation} from "./PromisePool";
 import {
     FieldAccessMessage, Message, MethodInvocationMessage, RouteMessage,
 } from "./Message";
-import {SpiderObject, SpiderObjectMirror} from "./MOP";
-import {PSClient} from "./PubSub/SubClient";
-import {PSServer} from "./PubSub/SubServer";
-import {PubSubTag} from "./PubSub/SubTag";
-import {bundleScope, LexScope} from "./utils";
 import {ActorSTDLib} from "./ActorSTDLib";
 
 export class SpiderActorMirror{
@@ -126,7 +121,7 @@ export class SpiderActorMirror{
     initialise(actSTDLib : ActorSTDLib,appActor : boolean,parentRef : FarReference = null){
         let behaviourObject = this.base.objectPool.getObject(0)
         if(!appActor){
-            behaviourObject["parent"]       = parentRef.proxyify()
+            behaviourObject["parent"]       = parentRef.proxify()
         }
         behaviourObject["libs"]             = actSTDLib
         /*behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
@@ -338,17 +333,19 @@ export class SpiderActorMirror{
     }
 
     sendInvocation(target : FarReference,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null) : Promise<any>{
-        var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
-        let serialisedArgs = args.map((arg)=>{
-            return this.serialise(arg,target.ownerId,this.base)
+        let targetRef                           = target[FarReference.farRefAccessorKey]
+        var promiseAlloc : PromiseAllocation    = this.base.promisePool.newPromise()
+        let serialisedArgs                      = args.map((arg)=>{
+            return this.serialise(arg,targetRef.ownerId,this.base)
         })
-        this.send(target,target.ownerId,new MethodInvocationMessage(this.base.thisRef,target.objectId,methodName,serialisedArgs,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
+        this.send(targetRef,targetRef.ownerId,new MethodInvocationMessage(this.base.thisRef,targetRef.objectId,methodName,serialisedArgs,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 
     sendAccess(target : FarReference,fieldName : string,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null) : Promise<any>{
+        let targetRef                        = target[FarReference.farRefAccessorKey]
         var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
-        this.send(target,target.ownerId,new FieldAccessMessage(this.base.thisRef,target.objectId,fieldName,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
+        this.send(targetRef,targetRef.ownerId,new FieldAccessMessage(this.base.thisRef,targetRef.objectId,fieldName,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
     }
 }

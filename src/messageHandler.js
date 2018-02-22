@@ -148,7 +148,7 @@ class MessageHandler {
     handleResolveConnection(msg) {
         this.environment.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
         var farRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectFields, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectMethods, msg.senderId, msg.senderAddress, msg.senderPort, this.environment);
-        this.environment.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
+        this.environment.promisePool.resolvePromise(msg.promiseId, farRef.proxify());
     }
     handleRoute(msg) {
         //Must ensure that any client references "leaking" form this server actor also have the correct contact information

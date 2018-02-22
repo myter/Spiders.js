@@ -906,7 +906,7 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
                 environment.commMedium.connectTransientRemote(environment.thisRef,farRef,environment.promisePool)
             }
         }
-        return farRef.proxyify()
+        return farRef.proxify()
     }
 
     function deSerialiseClientFarRef(farRefContainer : ClientFarRefContainer){
@@ -918,7 +918,7 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         else{
             farRef = new ClientFarReference(farRefContainer.objectId,farRefContainer.objectFields,farRefContainer.objectMethods,farRefContainer.ownerId,farRefContainer.mainId,environment,farRefContainer.contactId,farRefContainer.contactAddress,farRefContainer.contactPort)
         }
-        return farRef.proxyify()
+        return farRef.proxify()
     }
 
     function deSerialiseError(errorContainer : ErrorContainer){

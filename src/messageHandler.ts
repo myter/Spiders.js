@@ -175,7 +175,7 @@ export class MessageHandler{
     private handleResolveConnection(msg : ResolveConnectionMessage){
         this.environment.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
         var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderRef[FarReference.farRefAccessorKey].objectFields,msg.senderRef[FarReference.farRefAccessorKey].objectMethods,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
-        this.environment.promisePool.resolvePromise(msg.promiseId,farRef.proxyify())
+        this.environment.promisePool.resolvePromise(msg.promiseId,farRef.proxify())
     }
 
     private handleRoute(msg : RouteMessage){

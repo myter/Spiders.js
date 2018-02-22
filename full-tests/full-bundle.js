@@ -57917,12 +57917,12 @@ class FarReference {
         this.isServer = isServer;
     }
     sendFieldAccess(fieldName) {
-        return this.environemnt.actorMirror.sendAccess(this, fieldName);
+        return this.environemnt.actorMirror.sendAccess(this.proxify(), fieldName);
     }
     sendMethodInvocation(methodName, args) {
-        return this.environemnt.actorMirror.sendInvocation(this, methodName, args);
+        return this.environemnt.actorMirror.sendInvocation(this.proxify(), methodName, args);
     }
-    proxyify() {
+    proxify() {
         var baseObject = this;
         return new Proxy({}, {
             get: function (target, property) {
@@ -57984,10 +57984,10 @@ class ClientFarReference extends FarReference {
         this.contactPort = contactPort;
     }
     sendFieldAccess(fieldName) {
-        return this.environemnt.actorMirror.sendAccess(this, fieldName, this.contactId, this.contactAddress, this.contactPort, this.mainId);
+        return this.environemnt.actorMirror.sendAccess(this.proxify(), fieldName, this.contactId, this.contactAddress, this.contactPort, this.mainId);
     }
     sendMethodInvocation(methodName, args) {
-        return this.environemnt.actorMirror.sendInvocation(this, methodName, args, this.contactId, this.contactAddress, this.contactPort, this.mainId);
+        return this.environemnt.actorMirror.sendInvocation(this.proxify(), methodName, args, this.contactId, this.contactAddress, this.contactPort, this.mainId);
     }
 }
 exports.ClientFarReference = ClientFarReference;
@@ -58110,7 +58110,7 @@ class SpiderActorMirror {
     initialise(actSTDLib, appActor, parentRef = null) {
         let behaviourObject = this.base.objectPool.getObject(0);
         if (!appActor) {
-            behaviourObject["parent"] = parentRef.proxyify();
+            behaviourObject["parent"] = parentRef.proxify();
         }
         behaviourObject["libs"] = actSTDLib;
         /*behaviourObject["remote"]           = (address : string,port : number) : Promise<any> =>  {
@@ -58319,16 +58319,18 @@ class SpiderActorMirror {
         performAccess();
     }
     sendInvocation(target, methodName, args, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {
+        let targetRef = target[FarRef_1.FarReference.farRefAccessorKey];
         var promiseAlloc = this.base.promisePool.newPromise();
         let serialisedArgs = args.map((arg) => {
-            return this.serialise(arg, target.ownerId, this.base);
+            return this.serialise(arg, targetRef.ownerId, this.base);
         });
-        this.send(target, target.ownerId, new Message_1.MethodInvocationMessage(this.base.thisRef, target.objectId, methodName, serialisedArgs, promiseAlloc.promiseId), contactId, contactAddress, contactPort, mainId);
+        this.send(targetRef, targetRef.ownerId, new Message_1.MethodInvocationMessage(this.base.thisRef, targetRef.objectId, methodName, serialisedArgs, promiseAlloc.promiseId), contactId, contactAddress, contactPort, mainId);
         return promiseAlloc.promise;
     }
     sendAccess(target, fieldName, contactId = this.base.thisRef.ownerId, contactAddress = null, contactPort = null, mainId = null) {
+        let targetRef = target[FarRef_1.FarReference.farRefAccessorKey];
         var promiseAlloc = this.base.promisePool.newPromise();
-        this.send(target, target.ownerId, new Message_1.FieldAccessMessage(this.base.thisRef, target.objectId, fieldName, promiseAlloc.promiseId), contactId, contactAddress, contactPort, mainId);
+        this.send(targetRef, targetRef.ownerId, new Message_1.FieldAccessMessage(this.base.thisRef, targetRef.objectId, fieldName, promiseAlloc.promiseId), contactId, contactAddress, contactPort, mainId);
         return promiseAlloc.promise;
     }
 }
@@ -60610,7 +60612,7 @@ class MessageHandler {
     handleResolveConnection(msg) {
         this.environment.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
         var farRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectFields, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectMethods, msg.senderId, msg.senderAddress, msg.senderPort, this.environment);
-        this.environment.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
+        this.environment.promisePool.resolvePromise(msg.promiseId, farRef.proxify());
     }
     handleRoute(msg) {
         //Must ensure that any client references "leaking" form this server actor also have the correct contact information
@@ -61515,7 +61517,7 @@ function deserialise(value, environment) {
                 environment.commMedium.connectTransientRemote(environment.thisRef, farRef, environment.promisePool);
             }
         }
-        return farRef.proxyify();
+        return farRef.proxify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
         var farRef;
@@ -61526,7 +61528,7 @@ function deserialise(value, environment) {
         else {
             farRef = new FarRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.objectFields, farRefContainer.objectMethods, farRefContainer.ownerId, farRefContainer.mainId, environment, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
-        return farRef.proxyify();
+        return farRef.proxify();
     }
     function deSerialiseError(errorContainer) {
         var error = new Error(errorContainer.message);
@@ -61811,7 +61813,7 @@ class ClientActor extends Actor {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainId, app.mainEnvironment);
         app.spawnedActors.push([actorId, webWorker]);
-        return ref.proxyify();
+        return ref.proxify();
     }
 }
 class ServerActor extends Actor {
@@ -61833,7 +61835,7 @@ class ServerActor extends Actor {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainIp, port, app.mainEnvironment);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
-        return ref.proxyify();
+        return ref.proxify();
     }
     static spawnFromFile(app, port, filePath, actorClassName, constructorArgs) {
         var socketManager = app.mainEnvironment.commMedium;
@@ -61849,7 +61851,7 @@ class ServerActor extends Actor {
         //Impossible to know the actor's fields and methods at this point
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, app.mainIp, port, app.mainEnvironment);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
-        return ref.proxyify();
+        return ref.proxify();
     }
 }
 class Application {
