@@ -61554,6 +61554,7 @@ class MessageHandler {
 exports.MessageHandler = MessageHandler;
 
 },{"./ActorSTDLib":282,"./FarRef":285,"./Message":288,"./ObjectPool":289,"./serialisation":305}],305:[function(require,module,exports){
+(function (Buffer){
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("./Message");
 const FarRef_1 = require("./FarRef");
@@ -62153,6 +62154,9 @@ function serialise(value, receiverId, environment) {
         if (value == null) {
             return new NativeContainer(null);
         }
+        else if (value instanceof Buffer) {
+            return new NativeContainer(value);
+        }
         else if (value instanceof Promise) {
             return serialisePromise(value, receiverId, environment);
         }
@@ -62594,7 +62598,8 @@ function deserialise(value, environment) {
 }
 exports.deserialise = deserialise;
 
-},{"./FarRef":285,"./MOP":287,"./Message":288,"./Reactivivity/signal":295,"./Replication/Repliq":298,"./Replication/RepliqObjectField":300,"./Replication/RepliqPrimitiveField":301,"./utils":307}],306:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+},{"./FarRef":285,"./MOP":287,"./Message":288,"./Reactivivity/signal":295,"./Replication/Repliq":298,"./Replication/RepliqObjectField":300,"./Replication/RepliqPrimitiveField":301,"./utils":307,"buffer":60}],306:[function(require,module,exports){
 (function (__dirname){
 Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");

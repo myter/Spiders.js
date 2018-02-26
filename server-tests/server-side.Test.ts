@@ -813,6 +813,27 @@ describe("General Serialisation",() => {
             }
         })
     })
+    it("Correct serialisation of buffer values",(done)=>{
+        let app = new Application()
+        class TestBuffActor extends Actor{
+            test(){
+                return new Buffer("test")
+            }
+        }
+        let act = app.spawnActor(TestBuffActor)
+        let bb  = new Buffer("test")
+        act.test().then((b)=>{
+            try{
+                expect(b.equals(bb)).to.be.true
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
     it("User-level promise serialisation",(done) => {
         var app = new Application()
         class testActor extends Actor{

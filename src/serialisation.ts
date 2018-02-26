@@ -279,7 +279,7 @@ export abstract class ValueContainer{
     }
 }
 
-type NativeValue =  number | boolean | string | null
+type NativeValue = Buffer | number | boolean | string | null
 export class NativeContainer extends ValueContainer{
     value : NativeValue
     constructor(value : NativeValue){
@@ -706,6 +706,9 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
     if(typeof value == 'object'){
         if(value == null){
             return new NativeContainer(null)
+        }
+        else if(value instanceof Buffer){
+            return new NativeContainer(value)
         }
         else if(value instanceof Promise){
             return serialisePromise(value,receiverId,environment)

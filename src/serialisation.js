@@ -597,6 +597,9 @@ function serialise(value, receiverId, environment) {
         if (value == null) {
             return new NativeContainer(null);
         }
+        else if (value instanceof Buffer) {
+            return new NativeContainer(value);
+        }
         else if (value instanceof Promise) {
             return serialisePromise(value, receiverId, environment);
         }

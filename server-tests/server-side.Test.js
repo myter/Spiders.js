@@ -773,6 +773,27 @@ describe("General Serialisation", () => {
             }
         });
     });
+    it("Correct serialisation of buffer values", (done) => {
+        let app = new spiders_1.Application();
+        class TestBuffActor extends spiders_1.Actor {
+            test() {
+                return new Buffer("test");
+            }
+        }
+        let act = app.spawnActor(TestBuffActor);
+        let bb = new Buffer("test");
+        act.test().then((b) => {
+            try {
+                expect(b.equals(bb)).to.be.true;
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
     it("User-level promise serialisation", (done) => {
         var app = new spiders_1.Application();
         class testActor extends spiders_1.Actor {

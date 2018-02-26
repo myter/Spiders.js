@@ -1,42 +1,19 @@
 import {Actor, Application, FarRef,SpiderActorMirror,SpiderObject,SpiderObjectMirror,SpiderIsolate} from "../src/spiders";
-
-class Isol extends SpiderIsolate{
-    val
-    constructor(){
-        super()
-        this.val = 5
+class TestActor extends Actor{
+    getBuff(b){
+        console.log("got:")
+        console.log(b)
     }
 
-    within(){
-        console.log(this["_SPIDER_OBJECT_MIRROR_"])
+    sendBuff(){
+        return new Buffer("Wut")
     }
 }
 
-class Act extends Actor{
-    Isol
-
-    constructor(){
-        super()
-        this.Isol = Isol
-    }
-
-    test(){
-        let i = new this.Isol()
-        /*setTimeout(()=>{
-            i.within()
-        },2000)*/
-        return i
-    }
-}
 let app = new Application()
-let act = app.spawnActor(Act)
-act.test().then((i)=>{
-    console.log("got isol back")
-    console.log(i.val)
-    i.within()
-    act.test().then((ii)=>{
-        console.log("Got isol second time")
-        console.log(ii.val)
-        i.within()
-    })
+let act = app.spawnActor(TestActor)
+let b = new Buffer("Wut")
+act.sendBuff().then((bb)=>{
+    console.log(b.equals(bb))
+    console.log(bb.equals(b))
 })

@@ -802,8 +802,6 @@ var performBoolSer = () => {
 }
 scheduled.push(performBoolSer)
 
-
-
 class testUserPromActor extends Actor{
     async(){
         return new Promise((resolve,reject) => {
