@@ -11,6 +11,7 @@ export type PSClient    = PSClient
 export type PSServer    = PSServer
 export type PubSubTag   = PubSubTag
 export class ActorSTDLib{
+    PubSubTag : {new(tagVal : string) : PubSubTag}
     setupPSClient(address? : string,port? : number) : PSClient
     setupPSServer()
     remote(address : string,port : number) : Promise<FarRef>
