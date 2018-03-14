@@ -2,9 +2,14 @@
 // Definitions by: Florian Myter
 import {ActorEnvironment} from "./src/ActorEnvironment";
 import {PSClient} from "./src/PubSub/SubClient";
+import {PSServer} from "./src/PubSub/SubServer";
+import {PubSubTag} from "./src/PubSub/SubTag";
 
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
-export type FarRef = any
+export type FarRef      = any
+export type PSClient    = PSClient
+export type PSServer    = PSServer
+export type PubSubTag   = PubSubTag
 export class ActorSTDLib{
     setupPSClient(address? : string,port? : number) : PSClient
     setupPSServer()
