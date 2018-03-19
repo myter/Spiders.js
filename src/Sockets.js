@@ -46,6 +46,7 @@ class SocketHandler {
         });
         connection.on('disconnect', function () {
             that.disconnectedActors.push(actorId);
+            this.openConnection(actorId, actorAddress, actorPort);
         });
     }
     sendMessage(actorId, msg) {

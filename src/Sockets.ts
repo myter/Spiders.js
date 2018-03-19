@@ -12,7 +12,7 @@ import {ActorEnvironment} from "./ActorEnvironment";
 export class SocketHandler{
     disconnectedActors  : Array<string>
     pendingMessages     : Map<string,Array<Message>>
-    //TODO obviously a temp fix , problem arises in SOR  with many actors
+    //TODO obviously a temp fix , problem arises in SOR with many actors
     fuckUpMessage       : Map<string,Array<Message>>
     owner               : CommMedium
     messageHandler      : MessageHandler
@@ -43,7 +43,6 @@ export class SocketHandler{
         }
     }
 
-
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId : string,actorAddress : string,actorPort : number){
         var that = this
@@ -63,6 +62,7 @@ export class SocketHandler{
         })
         connection.on('disconnect',function(){
             that.disconnectedActors.push(actorId)
+            this.openConnection(actorId,actorAddress,actorPort)
         })
     }
 
