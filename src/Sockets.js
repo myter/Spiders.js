@@ -42,8 +42,8 @@ class SocketHandler {
                 });
             }
         });
-        connection.on('message', function (data, ackFn) {
-            ackFn();
+        connection.on('message', (data, ack) => {
+            ack();
             that.messageHandler.dispatch(data);
         });
         connection.on('disconnect', function () {
@@ -56,7 +56,7 @@ class SocketHandler {
         }
         else if (this.owner.connectedActors.has(actorId)) {
             var sock = this.owner.connectedActors.get(actorId);
-            var ack = false;
+            let ack = false;
             sock.emit('message', msg, () => {
                 ack = true;
             });
@@ -90,8 +90,8 @@ class ServerSocketManager extends CommMedium_1.CommMedium {
         this.connectedClients = new Map();
         this.socketHandler.messageHandler = environment.messageHandler;
         this.socket.on('connection', (client) => {
-            client.on('message', (data, ackFn) => {
-                ackFn();
+            client.on('message', (data, ack) => {
+                ack();
                 environment.messageHandler.dispatch(data, [], client);
             });
             client.on('close', () => {

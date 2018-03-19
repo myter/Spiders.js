@@ -1,19 +1,23 @@
 import {Actor, Application, FarRef,SpiderActorMirror,SpiderObject,SpiderObjectMirror,SpiderIsolate} from "../src/spiders";
-class TestActor extends Actor{
-    getBuff(b){
-        console.log("got:")
-        console.log(b)
-    }
+class Test extends Actor{
 
-    sendBuff(){
-        return new Buffer("Wut")
+    init(){
+        console.log("Actor init")
+    }
+    getMsg(){
+        console.log("ok")
     }
 }
 
-let app = new Application()
-let act = app.spawnActor(TestActor)
-let b = new Buffer("Wut")
-act.sendBuff().then((bb)=>{
-    console.log(b.equals(bb))
-    console.log(bb.equals(b))
-})
+class TA extends Application{
+
+    init(){
+        console.log("App init")
+    }
+    test(ref){
+        ref.getMsg()
+    }
+}
+let app = new TA()
+let act = app.spawnActor(Test)
+app.test(act)

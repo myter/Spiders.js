@@ -5,6 +5,7 @@ import {PromisePool} from "./PromisePool";
 import {Socket} from "net";
 import {SocketHandler} from "./Sockets";
 import {ActorEnvironment} from "./ActorEnvironment";
+import set = Reflect.set;
 /**
  * Created by flo on 17/01/2017.
  */
@@ -43,9 +44,18 @@ export abstract class CommMedium{
         this.pendingActors.set(connectionId,connection)
         this.pendingConnectionId    += 1
         connection.on('connect',() => {
-            connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId))
+            let ack = false
+            connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId),()=>{
+                ack = true
+            })
+            setTimeout(()=>{
+                if(!ack){
+                    this.connectRemote(sender,address,port,promisePool)
+                }
+            },1000)
         })
-        connection.on('message',(data) => {
+        connection.on('message',(data,ack) => {
+            ack()
             if(sender instanceof ServerFarReference){
                 this.messageHandler.dispatch(data)
             }

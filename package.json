@@ -23,7 +23,7 @@
     "lz-string": "^1.4.4",
     "net": "1.0.2",
     "plotly": "^1.0.6",
-    "socket.io-client": "1.7.2",
+    "socket.io-client": "^2.0.4",
     "utf-8-validate": "2.0.0",
     "webworkify": "1.4.0",
     "geocoder": "^0.2.3",
