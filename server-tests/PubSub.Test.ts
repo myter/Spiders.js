@@ -1,6 +1,9 @@
 /**
  * Created by flo on 23/03/2017.
  */
+import {FarRef} from "../index";
+
+
 var chai                        = require('chai')
 var expect                      = chai.expect
 import {Actor,Application,SpiderIsolate} from "../src/spiders"
@@ -14,7 +17,7 @@ class TestServer extends Application{
 
 describe("Publish Subscribe Functionality",() => {
     it("Each",function(done){
-        let server = new TestServer()
+        let server   = new TestServer()
         class TestClient extends Actor{
             psClient
             testTag
@@ -36,8 +39,8 @@ describe("Publish Subscribe Functionality",() => {
                 return prom
             }
         }
-        let puber = server.spawnActor(TestClient)
-        let suber = server.spawnActor(TestClient)
+        let puber : FarRef<TestClient> = server.spawnActor(TestClient)
+        let suber : FarRef<TestClient> = server.spawnActor(TestClient)
         puber.pub()
         suber.sub().then((val)=>{
             try{

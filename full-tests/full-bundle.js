@@ -59072,12 +59072,15 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
     return mappings;
 }
 //TODO, will need to remove all redundant type definitions
-class Actor {
+class ActorBase {
     constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
         this.actorMirror = actorMirror;
     }
 }
-class ClientActor extends Actor {
+class ClientActor extends ActorBase {
+    constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
+        super(actorMirror);
+    }
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
         var channelMappings = updateExistingChannels(app.mainEnvironment.thisRef, app.spawnedActors, actorId);
@@ -59106,7 +59109,10 @@ class ClientActor extends Actor {
         return ref.proxify();
     }
 }
-class ServerActor extends Actor {
+class ServerActor extends ActorBase {
+    constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
+        super(actorMirror);
+    }
     spawn(app, port, thisClass) {
         var socketManager = app.mainEnvironment.commMedium;
         var fork = require('child_process').fork;
@@ -59144,7 +59150,7 @@ class ServerActor extends Actor {
         return ref.proxify();
     }
 }
-class Application {
+class ApplicationBase {
     constructor() {
         this.appActors = 0;
         this.self = this;
@@ -59156,7 +59162,7 @@ class Application {
         }
     }
 }
-class ServerApplication extends Application {
+class ServerApplication extends ApplicationBase {
     constructor(actorMirror = new MAP_1.SpiderActorMirror(), mainIp = "127.0.0.1", mainPort = 8000) {
         super();
         this.mainIp = mainIp;
@@ -59189,7 +59195,7 @@ class ServerApplication extends Application {
         });
     }
 }
-class ClientApplication extends Application {
+class ClientApplication extends ApplicationBase {
     constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
         super();
         this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment(actorMirror);
@@ -59198,11 +59204,11 @@ class ClientApplication extends Application {
         let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
         this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
-    spawnActor(actorClass, constructorArgs = []) {
+    spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);
         return actorObject.spawn(this, actorClass);
     }
-    spawnActorFromFile(path, className, constructorArgs, port) {
+    spawnActorFromFile(path, className, constructorArgs = [], port = -1) {
         throw new Error("Cannot spawn actor from file in client-side context");
     }
     kill() {
@@ -59213,18 +59219,8 @@ class ClientApplication extends Application {
         this.spawnedActors = [];
     }
 }
-var exportActor;
-exports.Actor = exportActor;
-var exportApp;
-exports.Application = exportApp;
-if (utils_1.isBrowser()) {
-    exports.Application = exportApp = ClientApplication;
-    exports.Actor = exportActor = ClientActor;
-}
-else {
-    exports.Application = exportApp = ServerApplication;
-    exports.Actor = exportActor = ServerActor;
-}
+exports.Actor = (utils_1.isBrowser()) ? ClientActor : ServerActor;
+exports.Application = (utils_1.isBrowser()) ? ClientApplication : ServerApplication;
 var MOP_1 = require("./MOP");
 exports.SpiderIsolate = MOP_1.SpiderIsolate;
 exports.SpiderObject = MOP_1.SpiderObject;

@@ -17,7 +17,7 @@ import {ActorSTDLib} from "./ActorSTDLib";
 /**
  * Created by flo on 05/12/2016.
  */
-type ActorClass                  = {new(...args : any[]): Actor}
+type ActorClass                  = {new(...args : any[]): ActorBase}
 type SignalObjectClass           = {new(...args : any[]): SignalObject}
 function updateExistingChannels(mainRef : FarReference,existingActors : Array<any>,newActorId : string) : Array<any> {
     var mappings = [[],[]]
@@ -33,7 +33,7 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
 }
 
 //TODO, will need to remove all redundant type definitions
-abstract class Actor{
+class ActorBase{
     parent          : FarReference
     /*reflectOnActor  : () => SpiderActorMirror
     reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
@@ -65,7 +65,11 @@ abstract class Actor{
     }
 }
 
-abstract class ClientActor extends Actor{
+class ClientActor extends ActorBase{
+
+    constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
+        super(actorMirror)
+    }
     spawn(app : ClientApplication,thisClass){
         var actorId                                     = generateId()
         var channelMappings                             = updateExistingChannels(app.mainEnvironment.thisRef,app.spawnedActors,actorId)
@@ -95,7 +99,11 @@ abstract class ClientActor extends Actor{
     }
 }
 
-abstract class ServerActor extends Actor{
+class ServerActor extends ActorBase{
+
+    constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
+        super(actorMirror)
+    }
 
     spawn(app : ServerApplication,port : number,thisClass){
         var socketManager               = app.mainEnvironment.commMedium as ServerSocketManager
@@ -136,7 +144,7 @@ abstract class ServerActor extends Actor{
     }
 }
 
-abstract class Application {
+class ApplicationBase {
     mainId              : string
     mainEnvironment     : ActorEnvironment
     appActors           : number = 0
@@ -152,13 +160,13 @@ abstract class Application {
         }
     }
 
-    abstract spawnActor(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef
+    /*spawnActor<T>(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef<T>
     //Only implemented by ServerApplication
-    abstract spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
-    abstract kill()
+    spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
+    kill()*/
 }
 
-class ServerApplication extends Application{
+class ServerApplication extends ApplicationBase{
     mainIp                          : string
     mainPort                        : number
     portCounter                     : number
@@ -178,7 +186,7 @@ class ServerApplication extends Application{
         this.mainEnvironment.actorMirror.initialise(stdLib,true)
     }
 
-    spawnActor(actorClass ,constructorArgs : Array<any> = [],port : number = -1){
+    spawnActor<T>(actorClass ,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
         var actorObject = new actorClass(...constructorArgs)
         if(port == -1){
             port = this.portCounter++
@@ -186,11 +194,11 @@ class ServerApplication extends Application{
         return actorObject.spawn(this,port,actorClass)
     }
 
-    spawnActorFromFile(path : string,className : string,constructorArgs : Array<any> = [],port : number = -1){
+    spawnActorFromFile<T>(path : string,className : string,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
         if(port == -1){
             port = this.portCounter++
         }
-        return ServerActor.spawnFromFile(this,port,path,className,constructorArgs)
+        return ServerActor.spawnFromFile(this,port,path,className,constructorArgs) as T
     }
 
     kill(){
@@ -201,7 +209,7 @@ class ServerApplication extends Application{
     }
 }
 
-class ClientApplication extends Application{
+class ClientApplication extends ApplicationBase{
     spawnedActors       : Array<any>
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
@@ -213,12 +221,12 @@ class ClientApplication extends Application{
         this.mainEnvironment.actorMirror.initialise(stdLib,true)
     }
 
-    spawnActor(actorClass ,constructorArgs : Array<any> = []){
+    spawnActor<T>(actorClass ,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
         var actorObject = new actorClass(...constructorArgs)
         return actorObject.spawn(this,actorClass)
     }
 
-    spawnActorFromFile(path : string,className : string,constructorArgs : Array<any>,port : number){
+    spawnActorFromFile<T>(path : string,className : string,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
         throw new Error("Cannot spawn actor from file in client-side context")
     }
 
@@ -231,27 +239,22 @@ class ClientApplication extends Application{
     }
 
 }
-interface ActorType{
-    new(mirror? : SpiderActorMirror)
+
+interface ActInterface{
+    new(actorMirror? : SpiderActorMirror)   : ActInterface
+    libs                                    : ActorSTDLib
+    parent                                  : FarRef<any>
 }
-interface ApplicationType{
-    new(actorMirror? : SpiderActorMirror,ip? : string,port? : number)
+interface AppInterface{
+    libs : ActorSTDLib
+    spawnActor<T>(actorClass : Function,constructionArgs? : Array<any>,port? : number) : FarRef<T>
+    spawnActorFromFile<T>(path : string,className : string,constructorArgs? : Array<any>,port? : number) : FarRef<T>
     kill()
-    spawnActor(actorClass : Function,constructorArgs? : Array<any>,port? : number)
-    spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
+    new(actorMirror? : SpiderActorMirror,address? : string,port? : number)
+
 }
-var exportActor : ActorType
-var exportApp   : ApplicationType
-if(isBrowser()){
-    exportApp           = ClientApplication as any
-    exportActor         = ClientActor as any
-}
-else{
-    exportApp           = ServerApplication as any
-    exportActor         = ServerActor as any
-}
-export {exportApp as Application}
-export {exportActor as Actor}
+export const Actor  : ActInterface      = (isBrowser()) ? ClientActor as any : ServerActor as any
+export const Application  = (isBrowser()) ? ClientApplication as AppInterface : ServerApplication as AppInterface
 export {FarRef as FarRef}
 export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
 export {SpiderActorMirror} from "./MAP"

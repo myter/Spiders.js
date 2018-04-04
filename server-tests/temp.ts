@@ -1,23 +1,21 @@
-import {Actor, Application, FarRef,SpiderActorMirror,SpiderObject,SpiderObjectMirror,SpiderIsolate} from "../src/spiders";
-class Test extends Actor{
+import { Application, FarRef,Actor} from "../src/spiders";
 
-    init(){
-        console.log("Actor init")
+class TestActor extends Actor{
+    foo() : Promise<boolean>{
+        console.log("Foo invoked")
+        return true as any
     }
-    getMsg(){
-        console.log("ok")
+
+    bar() : Promise<any>{
+        return undefined
     }
 }
 
-class TA extends Application{
+class TestApp extends Application{
 
-    init(){
-        console.log("App init")
-    }
-    test(ref){
-        ref.getMsg()
-    }
 }
-let app = new TA()
-let act = app.spawnActor(Test)
-app.test(act)
+let app  = new TestApp()
+let act : FarRef<TestActor> = app.spawnActor(TestActor)
+act.foo().then((something )=>{
+    console.log("got result")
+})

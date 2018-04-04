@@ -1,22 +1,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
-class Test extends spiders_1.Actor {
-    init() {
-        console.log("Actor init");
+class TestActor extends spiders_1.Actor {
+    foo() {
+        console.log("Foo invoked");
+        return true;
     }
-    getMsg() {
-        console.log("ok");
-    }
-}
-class TA extends spiders_1.Application {
-    init() {
-        console.log("App init");
-    }
-    test(ref) {
-        ref.getMsg();
+    bar() {
+        return undefined;
     }
 }
-let app = new TA();
-let act = app.spawnActor(Test);
-app.test(act);
+class TestApp extends spiders_1.Application {
+}
+let app = new TestApp();
+let act = app.spawnActor(TestActor);
+act.foo().then((something) => {
+    console.log("got result");
+});
 //# sourceMappingURL=temp.js.map

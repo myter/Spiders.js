@@ -1,7 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Created by flo on 23/03/2017.
- */
 var chai = require('chai');
 var expect = chai.expect;
 const spiders_1 = require("../src/spiders");

@@ -3,6 +3,7 @@
  */
 
 import {Actor,Application,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,LexScope,bundleScope} from "../src/spiders";
+import {TestActor} from "./testActorDefinition";
 /**
  * Created by flo on 10/01/2017.
  */
@@ -57,8 +58,8 @@ describe("Behaviour serialisation",function(){
             msub(){
                 return 5
             }
-            m(){
-                return this.msub() + 5
+            m() : Promise<number>{
+                return this.msub() + 5 as any
             }
         }
         var actor = app.spawnActor(testActor)
@@ -220,8 +221,8 @@ describe("Behaviour serialisation",function(){
             }
         }
         class inhActor extends baseActor{
-            testInh(){
-                return this.test()
+            testInh() : Promise<number>{
+                return this.test() as any
             }
         }
         var actor = app.spawnActor(inhActor)
@@ -511,8 +512,8 @@ describe("Communication",() => {
     it("Invoking method on far reference",(done) => {
         var app = new Application()
         class testActor extends Actor{
-            m(){
-                return 10
+            m() : Promise<number>{
+                return 10 as any
             }
         }
         var actor = app.spawnActor(testActor)
@@ -588,7 +589,7 @@ describe("Communication",() => {
     it("Promise rejection handling (method invocation)",(done) => {
         var app = new Application()
         class testActor extends Actor{
-            m(){
+            m() : Promise<any>{
                 throw new Error("This is an error")
             }
         }
@@ -791,12 +792,12 @@ describe("General Serialisation",() => {
     it("Correct serialisation of boolean values",(done) => {
         var app = new Application()
         class testActor extends Actor{
-            test(bool){
+            test(bool) : Promise<boolean>{
                 if(bool){
-                    return "ok"
+                    return "ok" as any
                 }
                 else{
-                    return "nok"
+                    return "nok" as any
                 }
             }
         }
@@ -816,8 +817,8 @@ describe("General Serialisation",() => {
     it("Correct serialisation of buffer values",(done)=>{
         let app = new Application()
         class TestBuffActor extends Actor{
-            test(){
-                return new Buffer("test")
+            test() : Promise<Buffer>{
+                return new Buffer("test") as any
             }
         }
         let act = app.spawnActor(TestBuffActor)
@@ -861,8 +862,8 @@ describe("General Serialisation",() => {
     it("Method argument serialisation",(done) => {
         var app = new Application()
         class testActor extends Actor{
-            m(num,str,bool){
-                return [num,str,bool]
+            m(num,str,bool) : Promise<Array<any>>{
+                return [num,str,bool] as any
             }
         }
         var actor = app.spawnActor(testActor)

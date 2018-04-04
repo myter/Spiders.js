@@ -144,7 +144,7 @@ scheduled.push(customAccessMap)
 
 class CustSendInvocMapMirror extends SpiderActorMirror{
     testValue
-    sendInvocation(target : FarRef,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
+    sendInvocation(target : FarRef<any>,methodName : string,args : Array<any>,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
         this.testValue = 5
         return super.sendInvocation(target,methodName,args,contactId,contactAddress,contactPort,mainId)
     }
@@ -175,7 +175,7 @@ scheduled.push(custSendInvocMAP)
 
 class CustSendAccessMapMirror extends SpiderActorMirror{
     testValue
-    sendAccess(target : FarRef,fieldName : string,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
+    sendAccess(target : FarRef<any>,fieldName : string,contactId = this.base.thisRef.ownerId,contactAddress = null,contactPort = null,mainId = null){
         this.testValue = 5
         return super.sendAccess(target,fieldName,contactId,contactAddress,contactPort,mainId)
     }
