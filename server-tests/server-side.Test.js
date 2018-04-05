@@ -988,9 +988,9 @@ describe("Meta Actor Protocol", () => {
     });
     it("Custom Receive Invocation", function (done) {
         class TestMirror extends spiders_1.SpiderActorMirror {
-            receiveInvocation(sender, target, methodName, args, perform) {
+            receiveInvocation(sender, target, methodName, args, perform, send) {
                 this.testValue = 5;
-                super.receiveInvocation(sender, target, methodName, args, perform);
+                super.receiveInvocation(sender, target, methodName, args, perform, send);
             }
         }
         class TestActor extends spiders_1.Actor {

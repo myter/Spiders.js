@@ -97,9 +97,9 @@ scheduled.push(customInit)
 class CustInvocMAPMirror extends SpiderActorMirror{
     testValue
 
-    receiveInvocation(sender,target,methodName,args,perform){
+    receiveInvocation(sender,target,methodName,args,perform,send){
         this.testValue = 5
-        super.receiveInvocation(sender,target,methodName,args,perform)
+        super.receiveInvocation(sender,target,methodName,args,perform,send)
     }
 }
 class CustInvocMAPActor extends Actor{

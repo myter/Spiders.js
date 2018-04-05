@@ -324,8 +324,9 @@ export class SpiderActorMirror{
         }
     }
 
-    receiveInvocation(sender : FarReference,targetObject : Object,methodName : string,args : Array<any>,performInvocation : () => undefined = () => undefined){
-        performInvocation()
+    receiveInvocation(sender : FarReference,targetObject : Object,methodName : string,args : Array<any>,performInvocation : () => any = () => {return undefined},sendReturn : (returnVal : any) => any = ()=>{return undefined}){
+        let retVal = performInvocation()
+        sendReturn(retVal)
     }
 
     receiveAccess(sender : FarReference,targetObject : Object,fieldName : string,performAccess : () => undefined = () => undefined){

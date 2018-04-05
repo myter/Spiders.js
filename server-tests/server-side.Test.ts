@@ -1042,9 +1042,9 @@ describe("Meta Actor Protocol",() => {
         class TestMirror extends SpiderActorMirror{
             testValue
 
-            receiveInvocation(sender,target,methodName,args,perform){
+            receiveInvocation(sender,target,methodName,args,perform,send){
                 this.testValue = 5
-                super.receiveInvocation(sender,target,methodName,args,perform)
+                super.receiveInvocation(sender,target,methodName,args,perform,send)
             }
         }
         class TestActor extends Actor{

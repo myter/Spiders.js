@@ -309,8 +309,9 @@ class SpiderActorMirror {
             });
         }
     }
-    receiveInvocation(sender, targetObject, methodName, args, performInvocation = () => undefined) {
-        performInvocation();
+    receiveInvocation(sender, targetObject, methodName, args, performInvocation = () => { return undefined; }, sendReturn = () => { return undefined; }) {
+        let retVal = performInvocation();
+        sendReturn(retVal);
     }
     receiveAccess(sender, targetObject, fieldName, performAccess = () => undefined) {
         performAccess();

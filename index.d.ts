@@ -26,7 +26,7 @@ export class LexScope{
 export class SpiderActorMirror{
     base : ActorEnvironment
     initialise(stdLib : ActorSTDLib,appActor : boolean,parentRef? : FarRef<any>)
-    receiveInvocation(sender : FarRef<any>,targetObject : Object,methodName : string,args : Array<any>,performInvocation? : ()=> undefined)
+    receiveInvocation(sender : FarRef<any>,targetObject : Object,methodName : string,args : Array<any>,performInvocation? : ()=> any,sendReturn? : (returnVal : any)=>any)
     receiveAccess(sender : FarRef<any>,targetObject : Object,fieldName : string,performAcess? : ()=> undefined)
     sendInvocation(target : FarRef<any>,methodName : string,args : Array<any>,contactId? : string,contactAddress? : string,contactPort? : number,mainId? : string) : Promise<any>
     sendAccess(target : FarRef<any>,fieldName : string,contactId? : string,contactAddress? : string,contactPort? : number,mainId? : string) : Promise<any>

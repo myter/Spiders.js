@@ -88,9 +88,9 @@ let customInit = () => {
 };
 scheduled.push(customInit);
 class CustInvocMAPMirror extends spiders_1.SpiderActorMirror {
-    receiveInvocation(sender, target, methodName, args, perform) {
+    receiveInvocation(sender, target, methodName, args, perform, send) {
         this.testValue = 5;
-        super.receiveInvocation(sender, target, methodName, args, perform);
+        super.receiveInvocation(sender, target, methodName, args, perform, send);
     }
 }
 class CustInvocMAPActor extends spiders_1.Actor {
@@ -56408,8 +56408,9 @@ class SpiderActorMirror {
             });
         }
     }
-    receiveInvocation(sender, targetObject, methodName, args, performInvocation = () => undefined) {
-        performInvocation();
+    receiveInvocation(sender, targetObject, methodName, args, performInvocation = () => { return undefined; }, sendReturn = () => { return undefined; }) {
+        let retVal = performInvocation();
+        sendReturn(retVal);
     }
     receiveAccess(sender, targetObject, fieldName, performAccess = () => undefined) {
         performAccess();
@@ -58665,33 +58666,51 @@ class MessageHandler {
         var deserialisedArgs = args.map((arg) => {
             return serialisation_1.deserialise(arg, this.environment);
         });
-        this.environment.actorMirror.receiveInvocation(msg.senderRef, targetObject, methodName, deserialisedArgs, () => {
-            var retVal;
+        let performInvocation = () => {
+            let retVal;
             try {
                 retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
-                var serialised = serialisation_1.serialise(retVal, msg.senderId, this.environment);
-                var message = new Message_1.ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
-                if (msg.senderType == Message_1.Message.serverSenderType) {
-                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+                /*var serialised: ValueContainer = serialise(retVal, msg.senderId, this.environment)
+                var message: Message = new ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
+                if (msg.senderType == Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
                 }
                 else {
-                    this.sendReturnClient(msg.senderId, msg, message);
-                }
+                    this.sendReturnClient(msg.senderId, msg, message)
+                }*/
             }
             catch (reason) {
                 console.log("Went wrong for : " + methodName);
                 console.log(reason);
-                var serialised = serialisation_1.serialise(reason, msg.senderId, this.environment);
-                message = new Message_1.RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
-                if (msg.senderType == Message_1.Message.serverSenderType) {
-                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+                retVal = reason;
+                /*var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
+                message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
+                if (msg.senderType == Message.serverSenderType) {
+                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
                 }
                 else {
-                    this.sendReturnClient(msg.senderId, msg, message);
-                }
+                    this.sendReturnClient(msg.senderId, msg, message)
+                }*/
             }
-            return undefined;
-        });
+            return retVal;
+        };
+        let sendReturn = (returnVal) => {
+            let serialised = serialisation_1.serialise(returnVal, msg.senderId, this.environment);
+            let message;
+            if (returnVal instanceof Error) {
+                message = new Message_1.RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
+            }
+            else {
+                message = new Message_1.ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised);
+            }
+            if (msg.senderType == Message_1.Message.serverSenderType) {
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message);
+            }
+            else {
+                this.sendReturnClient(msg.senderId, msg, message);
+            }
+        };
+        this.environment.actorMirror.receiveInvocation(msg.senderRef, targetObject, methodName, deserialisedArgs, performInvocation, sendReturn);
     }
     handlePromiseResolve(msg) {
         let promisePool = this.environment.promisePool;

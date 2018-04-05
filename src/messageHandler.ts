@@ -108,33 +108,51 @@ export class MessageHandler{
         var deserialisedArgs = args.map((arg) => {
             return deserialise(arg, this.environment)
         })
-        this.environment.actorMirror.receiveInvocation((msg.senderRef as any), targetObject, methodName, deserialisedArgs, () => {
-            var retVal
+        let performInvocation = ()=>{
+            let retVal
             try {
                 retVal = targetObject[methodName].apply(targetObject, deserialisedArgs)
-                var serialised: ValueContainer = serialise(retVal, msg.senderId, this.environment)
+                /*var serialised: ValueContainer = serialise(retVal, msg.senderId, this.environment)
                 var message: Message = new ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
                 if (msg.senderType == Message.serverSenderType) {
                     this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
                 }
                 else {
                     this.sendReturnClient(msg.senderId, msg, message)
-                }
+                }*/
             }
             catch (reason) {
                 console.log("Went wrong for : " + methodName)
                 console.log(reason)
-                var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
+                retVal = reason
+                /*var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
                 message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
                 if (msg.senderType == Message.serverSenderType) {
                     this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
                 }
                 else {
                     this.sendReturnClient(msg.senderId, msg, message)
-                }
+                }*/
             }
-            return undefined
-        })
+            return retVal
+        }
+        let sendReturn = (returnVal : any)=>{
+            let serialised : ValueContainer = serialise(returnVal, msg.senderId, this.environment)
+            let message : Message
+            if(returnVal instanceof Error){
+                message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
+            }
+            else{
+                message = new ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
+            }
+            if (msg.senderType == Message.serverSenderType) {
+                this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
+            }
+            else {
+                this.sendReturnClient(msg.senderId, msg, message)
+            }
+        }
+        this.environment.actorMirror.receiveInvocation((msg.senderRef as any), targetObject, methodName, deserialisedArgs, performInvocation,sendReturn)
     }
 
     private handlePromiseResolve(msg : ResolvePromiseMessage){
