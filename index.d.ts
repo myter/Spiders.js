@@ -36,7 +36,7 @@ export class SpiderObjectMirror{
     invoke(methodName : PropertyKey,args : Array<any>)
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
-    pass()
+    pass(hostActorMirror : SpiderActorMirror)
     resolve(hostActorMirror : SpiderActorMirror)
 }
 export class SpiderIsolateMirror{
@@ -44,7 +44,7 @@ export class SpiderIsolateMirror{
     invoke(methodName : PropertyKey,args : Array<any>)
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
-    pass()
+    pass(hostActorMirror : SpiderActorMirror)
     resolve(hostActorMirror : SpiderActorMirror)
 }
 export class SpiderObject{

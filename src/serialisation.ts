@@ -741,7 +741,7 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
         }
         else if(value[SpiderIsolateContainer.checkIsolateFuncKey]){
             let mirror              = value[SpiderObjectMirror.mirrorAccessKey]
-            let baseOb              = mirror.pass()
+            let baseOb              = mirror.pass(environment.actorMirror)
             //Remove base reference from mirror to avoid serialising the base object twice
             delete mirror.base
             delete baseOb[SpiderObjectMirror.mirrorAccessKey]

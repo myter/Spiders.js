@@ -24,11 +24,11 @@ export class SpiderObjectMirror{
         return true
     }
 
-    pass(){
+    pass(hostActorMirror : SpiderActorMirror){
         return makeSpiderObjectProxy(this.base,this,false)
     }
 
-    resolve(){
+    resolve(hostActorMirror : SpiderActorMirror){
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }
@@ -57,7 +57,7 @@ export class SpiderIsolateMirror{
         return true
     }
 
-    pass(){
+    pass(hostActorMirror : SpiderActorMirror){
         return this.base
     }
 

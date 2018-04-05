@@ -15,10 +15,10 @@ class SpiderObjectMirror {
         this.base[fieldName] = value;
         return true;
     }
-    pass() {
+    pass(hostActorMirror) {
         return makeSpiderObjectProxy(this.base, this, false);
     }
-    resolve() {
+    resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }
@@ -41,7 +41,7 @@ class SpiderIsolateMirror {
         this.base[fieldName] = value;
         return true;
     }
-    pass() {
+    pass(hostActorMirror) {
         return this.base;
     }
     resolve(hostActorMirror) {

@@ -1,0 +1,1469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/client-tests/baseBundle.js" afterPath="$PROJECT_DIR$/client-tests/baseBundle.js" />
+      <change beforePath="$PROJECT_DIR$/full-tests/full-bundle.js" afterPath="$PROJECT_DIR$/full-tests/full-bundle.js" />
+      <change beforePath="$PROJECT_DIR$/index.d.ts" afterPath="$PROJECT_DIR$/index.d.ts" />
+      <change beforePath="$PROJECT_DIR$/src/MOP.js" afterPath="$PROJECT_DIR$/src/MOP.js" />
+      <change beforePath="$PROJECT_DIR$/src/MOP.js.map" afterPath="$PROJECT_DIR$/src/MOP.js.map" />
+      <change beforePath="$PROJECT_DIR$/src/MOP.ts" afterPath="$PROJECT_DIR$/src/MOP.ts" />
+      <change beforePath="$PROJECT_DIR$/src/serialisation.js" afterPath="$PROJECT_DIR$/src/serialisation.js" />
+      <change beforePath="$PROJECT_DIR$/src/serialisation.js.map" afterPath="$PROJECT_DIR$/src/serialisation.js.map" />
+      <change beforePath="$PROJECT_DIR$/src/serialisation.ts" afterPath="$PROJECT_DIR$/src/serialisation.ts" />
+    </list>
+    <ignored path="$PROJECT_DIR$/.tmp/" />
+    <ignored path="$PROJECT_DIR$/ChristopheExample/" />
+    <ignored path="$PROJECT_DIR$/CoCode/" />
+    <ignored path="$PROJECT_DIR$/NativePong/" />
+    <ignored path="$PROJECT_DIR$/SpiderPong/" />
+    <ignored path="$PROJECT_DIR$/benchmarks/" />
+    <ignored path="$PROJECT_DIR$/temp/" />
+    <ignored path="$PROJECT_DIR$/tmp/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="index.d.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/index.d.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="420">
+              <caret line="46" column="44" lean-forward="false" selection-start-line="46" selection-start-column="44" selection-end-line="46" selection-end-column="44" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MOP.ts" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/MOP.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="494">
+              <caret line="59" column="44" lean-forward="false" selection-start-line="59" selection-start-column="44" selection-end-line="59" selection-end-column="44" />
+              <folding>
+                <element signature="e#0#40#0" expanded="true" />
+                <element signature="n#!!block;n#resolve#0;n#SpiderIsolateMirror#0" expanded="true" />
+                <element signature="n#SpiderObject#0" expanded="false" />
+                <element signature="n#SpiderIsolate#0" expanded="false" />
+                <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
+                <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="serialisation.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="233">
+              <caret line="743" column="73" lean-forward="false" selection-start-line="743" selection-start-column="73" selection-end-line="743" selection-end-column="73" />
+              <folding>
+                <element signature="n#!!block;n#deserialise#0" expanded="true" />
+                <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="HTML File" />
+        <option value="TypeScript File" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>init</find>
+      <find>reflect</find>
+      <find>setTime</find>
+      <find>time</find>
+      <find>sendInvocation</find>
+      <find>this[SpiderObjectMirror.mirrorAccessKey] = objectMirror</find>
+      <find>PubSubTag</find>
+      <find>PSClient</find>
+      <find>PSServer</find>
+      <find>termination</find>
+      <find>lastPulse</find>
+      <find>setLastPulse</find>
+      <find>NO_CHANGE</find>
+      <find>emit</find>
+      <find>connectRemote</find>
+      <find>FarRef</find>
+      <find>remote</find>
+      <find>&lt;.*Actor&gt;</find>
+      <find>resolve</find>
+      <find>pass</find>
+    </findStrings>
+    <replaceStrings>
+      <replace />
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/node_modules/spiders.js/package.json" />
+        <option value="$PROJECT_DIR$/node_modules/spiders.js/skeletons/builder.ts" />
+        <option value="$PROJECT_DIR$/node_modules/spiders.js/skeletons/builder.js" />
+        <option value="$PROJECT_DIR$/skeletons/builder.ts" />
+        <option value="$PROJECT_DIR$/skeletons/server-only/main.ts" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubTag.js" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubServer.ts" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubTag.ts" />
+        <option value="$PROJECT_DIR$/src/ActorProto.ts" />
+        <option value="$PROJECT_DIR$/client-tests/testPS.html" />
+        <option value="$PROJECT_DIR$/client-tests/testPS.ts" />
+        <option value="$PROJECT_DIR$/spidersjs.d.ts" />
+        <option value="$PROJECT_DIR$/full-tests/client.ts" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubClient.ts" />
+        <option value="$PROJECT_DIR$/tsconfig.json" />
+        <option value="$PROJECT_DIR$/WebTest/WebTest.html" />
+        <option value="$PROJECT_DIR$/WebTest/server.ts" />
+        <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
+        <option value="$PROJECT_DIR$/WebTest/client.ts" />
+        <option value="$PROJECT_DIR$/src/FarRef.ts" />
+        <option value="$PROJECT_DIR$/server-tests/isolTest.ts" />
+        <option value="$PROJECT_DIR$/server-tests/tempIsol.ts" />
+        <option value="$PROJECT_DIR$/package.json" />
+        <option value="$PROJECT_DIR$/src/Sockets.ts" />
+        <option value="$PROJECT_DIR$/src/CommMedium.ts" />
+        <option value="$PROJECT_DIR$/server-tests/testActorDefinition.ts" />
+        <option value="$PROJECT_DIR$/src/spiders.ts" />
+        <option value="$PROJECT_DIR$/server-tests/PubSub.Test.ts" />
+        <option value="$PROJECT_DIR$/server-tests/temp.ts" />
+        <option value="$PROJECT_DIR$/src/MAP.ts" />
+        <option value="$PROJECT_DIR$/src/messageHandler.ts" />
+        <option value="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
+        <option value="$PROJECT_DIR$/server-tests/server-side.Test.ts" />
+        <option value="$PROJECT_DIR$/src/serialisation.ts" />
+        <option value="$PROJECT_DIR$/src/MOP.ts" />
+        <option value="$PROJECT_DIR$/index.d.ts" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER">
+    <package-json value="$PROJECT_DIR$/package.json" />
+  </component>
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="NodeModulesDirectoryManager">
+    <handled-path value="$PROJECT_DIR$/node_modules" />
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="y" value="23" />
+    <option name="width" value="1440" />
+    <option name="height" value="812" />
+  </component>
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+              <item name="client-tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+              <item name="server-tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="HbShouldOpenHtmlAsHb" value="" />
+    <property name="nodejs.mocha.mocha_node_package_dir" value="$PROJECT_DIR$/node_modules/mocha" />
+    <property name="settings.editor.selected.configurable" value="settings.typescriptcompiler" />
+    <property name="node.js.path.for.package.tslint" value="project" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.tslint" value="" />
+    <property name="restartRequiresConfirmation" value="false" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Multirun.TestAllClient">
+    <configuration name="client-tests" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63342/Spiders.js/testBaseFramework.html">
+      <method>
+        <option name="NpmBeforeRunTask" enabled="true">
+          <package-json value="$PROJECT_DIR$/package.json" />
+          <command value="run" />
+          <scripts>
+            <script value="build-client-tests" />
+          </scripts>
+          <node-interpreter value="project" />
+          <envs />
+        </option>
+      </method>
+    </configuration>
+    <configuration name="full-test-c1" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63342/Spiders.js/test-full1.html">
+      <method>
+        <option name="NpmBeforeRunTask" enabled="true">
+          <package-json value="$PROJECT_DIR$/package.json" />
+          <command value="run" />
+          <scripts>
+            <script value="build-full-tests-client" />
+          </scripts>
+          <node-interpreter value="project" />
+          <envs />
+        </option>
+      </method>
+    </configuration>
+    <configuration name="full-test-c2" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63342/Spiders.js/test-full2.html" />
+    <configuration name="TestAllClient" type="Multirun" factoryName="Multirun" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="true" delayTime="0">
+      <runConfiguration name="client-tests" type="JavaScript Debug" />
+      <runConfiguration name="full-test-server" type="Node.js" />
+      <runConfiguration name="full-test-c1" type="JavaScript Debug" />
+      <runConfiguration name="full-test-c2" type="JavaScript Debug" />
+    </configuration>
+    <configuration name="full-test-server" type="NodeJSConfigurationType" factoryName="Node.js" path-to-js-file="server.js" working-dir="$PROJECT_DIR$/full-tests" />
+    <configuration name="server.js" type="NodeJSConfigurationType" factoryName="Node.js" temporary="true" path-to-js-file="server.js" working-dir="$PROJECT_DIR$/WebTest" />
+    <configuration name="temp.js" type="NodeJSConfigurationType" factoryName="Node.js" temporary="true" path-to-js-file="temp.js" working-dir="$PROJECT_DIR$/server-tests" />
+    <configuration name="server-tests/PubSub.Test.ts" type="mocha-javascript-test-runner" factoryName="Mocha" nameIsGenerated="true">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <working-directory>$PROJECT_DIR$</working-directory>
+      <pass-parent-env>true</pass-parent-env>
+      <envs />
+      <ui>bdd</ui>
+      <extra-mocha-options>--require ts-node/register</extra-mocha-options>
+      <test-kind>TEST_FILE</test-kind>
+      <test-file>$PROJECT_DIR$/server-tests/PubSub.Test.js</test-file>
+    </configuration>
+    <configuration name="server-tests/server-side.Test.ts" type="mocha-javascript-test-runner" factoryName="Mocha" nameIsGenerated="true">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <working-directory>$PROJECT_DIR$</working-directory>
+      <pass-parent-env>true</pass-parent-env>
+      <envs />
+      <ui>bdd</ui>
+      <extra-mocha-options>--require ts-node/register</extra-mocha-options>
+      <test-kind>TEST_FILE</test-kind>
+      <test-file>$PROJECT_DIR$/server-tests/server-side.Test.js</test-file>
+    </configuration>
+    <list size="9">
+      <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.full-test-c1" />
+      <item index="1" class="java.lang.String" itemvalue="JavaScript Debug.full-test-c2" />
+      <item index="2" class="java.lang.String" itemvalue="JavaScript Debug.client-tests" />
+      <item index="3" class="java.lang.String" itemvalue="Mocha.server-tests/server-side.Test.ts" />
+      <item index="4" class="java.lang.String" itemvalue="Mocha.server-tests/PubSub.Test.ts" />
+      <item index="5" class="java.lang.String" itemvalue="Multirun.TestAllClient" />
+      <item index="6" class="java.lang.String" itemvalue="Node.js.full-test-server" />
+      <item index="7" class="java.lang.String" itemvalue="Node.js.temp.js" />
+      <item index="8" class="java.lang.String" itemvalue="Node.js.server.js" />
+    </list>
+    <recent_temporary>
+      <list size="2">
+        <item index="0" class="java.lang.String" itemvalue="Node.js.temp.js" />
+        <item index="1" class="java.lang.String" itemvalue="Node.js.server.js" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="" />
+      <created>1517833814777</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1517833814777</updated>
+      <workItem from="1517833815843" duration="11000" />
+      <workItem from="1517834732646" duration="452000" />
+      <workItem from="1517835386437" duration="3040000" />
+      <workItem from="1517840613893" duration="73000" />
+      <workItem from="1517840737307" duration="165000" />
+      <workItem from="1517907001354" duration="30680000" />
+      <workItem from="1518104124113" duration="12660000" />
+      <workItem from="1518427992524" duration="13000" />
+      <workItem from="1518428029353" duration="9724000" />
+      <workItem from="1518447290541" duration="38000" />
+      <workItem from="1518450664109" duration="793000" />
+      <workItem from="1518511719991" duration="750000" />
+      <workItem from="1519204610462" duration="1420000" />
+      <workItem from="1519225802234" duration="2440000" />
+      <workItem from="1519286566803" duration="3249000" />
+      <workItem from="1519301147280" duration="2479000" />
+      <workItem from="1519636345085" duration="1439000" />
+      <workItem from="1519821506895" duration="749000" />
+      <workItem from="1519832892102" duration="208000" />
+      <workItem from="1519909692351" duration="618000" />
+      <workItem from="1520001559534" duration="85000" />
+      <workItem from="1521039683654" duration="1634000" />
+      <workItem from="1521193233228" duration="9649000" />
+      <workItem from="1521378530901" duration="330000" />
+      <workItem from="1521447229128" duration="4909000" />
+      <workItem from="1521736160515" duration="728000" />
+      <workItem from="1521789946232" duration="1018000" />
+      <workItem from="1521791824781" duration="697000" />
+      <workItem from="1521792894677" duration="187000" />
+      <workItem from="1522309733745" duration="41000" />
+      <workItem from="1522309919979" duration="47000" />
+      <workItem from="1522327860523" duration="15000" />
+      <workItem from="1522395980330" duration="469000" />
+      <workItem from="1522836382514" duration="5608000" />
+      <workItem from="1522928302507" duration="2481000" />
+      <workItem from="1522932100683" duration="387000" />
+      <workItem from="1522941346535" duration="175000" />
+    </task>
+    <task id="LOCAL-00001" summary="Error in package.json">
+      <created>1517834776196</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1517834776196</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Fixed type declaration">
+      <created>1517839571214</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1517839571214</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Fixed type declaration">
+      <created>1517839661167</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1517839661167</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Implementing Skeleton script">
+      <created>1517992861990</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1517992861990</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Implementing Skeleton script">
+      <created>1517992924412</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1517992924412</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Implementing Skeleton script">
+      <created>1518006382051</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1518006382051</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Finished &quot;server only&quot; skeleton script">
+      <created>1518007356715</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1518007356715</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Finished &quot;server only&quot; skeleton script">
+      <created>1518012947505</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1518012947505</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Moved CAPtain parts to its own project">
+      <created>1518019377269</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1518019377269</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Added actor traits">
+      <created>1518082022839</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1518082022839</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Added actor traits">
+      <created>1518082893181</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1518082893181</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Removed actor traits because they didn't make sense. Moving to actor libs instead">
+      <created>1518096841187</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1518096841187</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Added actor standard lib + pub/sub functionality in STDLib">
+      <created>1518102897594</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1518102897594</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Added actor standard lib + pub/sub functionality in STDLib">
+      <created>1518104711294</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1518104711294</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Added actor standard lib + pub/sub functionality in STDLib">
+      <created>1518104816459</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1518104816459</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Added actor standard lib + pub/sub functionality in STDLib">
+      <created>1518104915995</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1518104915996</updated>
+    </task>
+    <task id="LOCAL-00017" summary=" Updated type declaration">
+      <created>1518183110841</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1518183110841</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Moved reflecting operations and remote to stdlib + added buffered remote">
+      <created>1518429770827</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1518429770827</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Added ability to serve a single page spiders.js app">
+      <created>1518443440834</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1518443440834</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Added ability to serve a single page spiders.js app">
+      <created>1518443874549</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1518443874549</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Added ability to serve a single page spiders.js app">
+      <created>1518450841380</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1518450841380</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Fixed issue with sendAccess and sendInvocation in MAP (far ref was actual ref object, not proxy)">
+      <created>1519285853289</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1519285853289</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Fixed issue with isolate mirror not being accessible within isolate">
+      <created>1519289129455</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1519289129455</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Fixed issue with isolate mirror not being accessible within isolate">
+      <created>1519302233795</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1519302233795</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Added server-side support for Buffer (i.e. Node.js buffers)">
+      <created>1519637721187</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1519637721187</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Added export for PS types">
+      <created>1521040543164</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1521040543164</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Added export for PS types">
+      <created>1521040889839</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1521040889839</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Fixing disconnection issue for actors performing long-lasting computations">
+      <created>1521447422584</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1521447422584</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Fixing disconnection issue for actors performing long-lasting computations">
+      <created>1521452809044</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1521452809044</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Added message ack to avoid message loss">
+      <created>1521456410875</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1521456410875</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Made FarRef a generic type">
+      <created>1522845604751</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1522845604751</updated>
+    </task>
+    <task id="LOCAL-00032" summary="Changed receive invocation to work with 2 continuation lambdas (i.e. split up performing the invocation and sending the return value)">
+      <created>1522931141508</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1522931141508</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Added host actor mirror to resolve (MOP)">
+      <created>1522932454066</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1522932454066</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.05 at 17h 18m 19s.xml">
+      <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.04 at 13h 57m 38s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.04 at 14h 12m 44s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.04 at 14h 22m 21s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.04 at 14h 23m 21s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.04 at 14h 35m 06s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.05 at 14h 12m 49s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.05 at 14h 23m 21s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.05 at 14h 47m 11s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.05 at 17h 18m 03s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="99461000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="23" width="1440" height="812" extended-state="0" />
+    <layout>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33285302" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32708934" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19661734" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Statistic" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28057554" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3297785" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/examples/PubSub/PubSub.js" />
+        <option value="$PROJECT_DIR$/examples/PubSub/PubSub.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/PubSub.Test.js" />
+        <option value="$PROJECT_DIR$/server-tests/PubSub.Test.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/repliq.Test.js" />
+        <option value="$PROJECT_DIR$/server-tests/repliq.Test.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/reactivity.Test.js" />
+        <option value="$PROJECT_DIR$/server-tests/reactivity.Test.js.map" />
+        <option value="$PROJECT_DIR$/src/FarRef.js" />
+        <option value="$PROJECT_DIR$/src/FarRef.js.map" />
+        <option value="$PROJECT_DIR$/src/ChannelManager.js" />
+        <option value="$PROJECT_DIR$/src/ChannelManager.js.map" />
+        <option value="$PROJECT_DIR$/src/spiders.js" />
+        <option value="$PROJECT_DIR$/src/spiders.js.map" />
+        <option value="$PROJECT_DIR$/src/messageHandler.js" />
+        <option value="$PROJECT_DIR$/src/messageHandler.js.map" />
+        <option value="$PROJECT_DIR$/src/ActorEnvironment.js" />
+        <option value="$PROJECT_DIR$/src/ActorEnvironment.js.map" />
+        <option value="$PROJECT_DIR$/src/utils.js" />
+        <option value="$PROJECT_DIR$/src/utils.js.map" />
+        <option value="$PROJECT_DIR$/src/Sockets.js" />
+        <option value="$PROJECT_DIR$/src/Sockets.js.map" />
+        <option value="$PROJECT_DIR$/src/serialisation.js" />
+        <option value="$PROJECT_DIR$/src/serialisation.js.map" />
+        <option value="$PROJECT_DIR$/src/CommMedium.js" />
+        <option value="$PROJECT_DIR$/src/CommMedium.js.map" />
+        <option value="$PROJECT_DIR$/src/ActorProto.js" />
+        <option value="$PROJECT_DIR$/src/ActorProto.js.map" />
+        <option value="$PROJECT_DIR$/src/ObjectPool.js" />
+        <option value="$PROJECT_DIR$/src/ObjectPool.js.map" />
+        <option value="$PROJECT_DIR$/src/PromisePool.js" />
+        <option value="$PROJECT_DIR$/src/PromisePool.js.map" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubServer.js" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubServer.js.map" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubTag.js" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubTag.js.map" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubClient.js" />
+        <option value="$PROJECT_DIR$/src/PubSub/SubClient.js.map" />
+        <option value="$PROJECT_DIR$/src/Replication/Round.js" />
+        <option value="$PROJECT_DIR$/src/Replication/Round.js.map" />
+        <option value="$PROJECT_DIR$/src/Replication/RepliqField.js" />
+        <option value="$PROJECT_DIR$/src/Replication/RepliqField.js.map" />
+        <option value="$PROJECT_DIR$/src/Replication/Repliq.js" />
+        <option value="$PROJECT_DIR$/src/Replication/Repliq.js.map" />
+        <option value="$PROJECT_DIR$/src/Replication/RepliqObjectField.js" />
+        <option value="$PROJECT_DIR$/src/Replication/RepliqObjectField.js.map" />
+        <option value="$PROJECT_DIR$/src/Replication/GSP.js" />
+        <option value="$PROJECT_DIR$/src/Replication/GSP.js.map" />
+        <option value="$PROJECT_DIR$/src/Replication/RepliqPrimitiveField.js" />
+        <option value="$PROJECT_DIR$/src/Replication/RepliqPrimitiveField.js.map" />
+        <option value="$PROJECT_DIR$/src/MicroService/MicroService.js" />
+        <option value="$PROJECT_DIR$/src/MicroService/MicroService.js.map" />
+        <option value="$PROJECT_DIR$/src/MicroService/ServiceMonitor.js" />
+        <option value="$PROJECT_DIR$/src/MicroService/ServiceMonitor.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/SIDUP.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/SIDUP.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/QPROP.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/QPROP.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/signalPool.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/signalPool.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/DPropAlgorithm.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/DPropAlgorithm.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/Queue.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/Queue.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/NoGlitchFreedom.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/NoGlitchFreedom.js.map" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/signal.js" />
+        <option value="$PROJECT_DIR$/src/Reactivivity/signal.js.map" />
+        <option value="$PROJECT_DIR$/examples/Replication/GroceryList.js" />
+        <option value="$PROJECT_DIR$/examples/Replication/GroceryList.js.map" />
+        <option value="$PROJECT_DIR$/examples/Replication/Replication.js" />
+        <option value="$PROJECT_DIR$/examples/Replication/Replication.js.map" />
+        <option value="$PROJECT_DIR$/examples/Replication/GroceryListReps.js" />
+        <option value="$PROJECT_DIR$/examples/Replication/GroceryListReps.js.map" />
+        <option value="$PROJECT_DIR$/examples/Replication/GroceryBenchmark.js" />
+        <option value="$PROJECT_DIR$/examples/Replication/GroceryBenchmark.js.map" />
+        <option value="$PROJECT_DIR$/examples/Replication/CarSharing.js" />
+        <option value="$PROJECT_DIR$/examples/Replication/CarSharing.js.map" />
+        <option value="$PROJECT_DIR$/examples/Replication/CarSharingReps.js" />
+        <option value="$PROJECT_DIR$/examples/Replication/CarSharingReps.js.map" />
+        <option value="$PROJECT_DIR$/FullRepTest/server.js" />
+        <option value="$PROJECT_DIR$/FullRepTest/server.js.map" />
+        <option value="$PROJECT_DIR$/FullRepTest/client.js" />
+        <option value="$PROJECT_DIR$/FullRepTest/client.js.map" />
+        <option value="$PROJECT_DIR$/client-tests/clientTestModule.js" />
+        <option value="$PROJECT_DIR$/client-tests/clientTestModule.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/temp.js" />
+        <option value="$PROJECT_DIR$/server-tests/temp.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/testModule.js" />
+        <option value="$PROJECT_DIR$/server-tests/testModule.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/server-side.Test.js" />
+        <option value="$PROJECT_DIR$/server-tests/server-side.Test.js.map" />
+        <option value="$PROJECT_DIR$/server-tests/testActorDefinition.js" />
+        <option value="$PROJECT_DIR$/server-tests/testActorDefinition.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/NativePerformanceSlave.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/NativePerformanceSlave.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/NativePerformanceMaster.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/NativePerformanceMaster.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformanceApp1.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformanceApp1.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformanceApp2.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformanceApp2.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/LoadPerformanceActor.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/LoadPerformanceActor.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformance.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformance.js.map" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/LoadPerformanceApp.js" />
+        <option value="$PROJECT_DIR$/PerformanceTest(temp)/LoadPerformanceApp.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/ExampleConfig.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/ExampleConfig.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/run.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/run.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/ConfigService.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/ConfigService.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/GeoService.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/GeoService.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/FleetMember.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/FleetMember.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/DashboardService.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/DashboardService.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/DrivingService.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/DrivingService.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/FleetData.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/FleetData.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/DataService.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/DataService.js.map" />
+        <option value="$PROJECT_DIR$/client-tests/testBaseFramework.js" />
+        <option value="$PROJECT_DIR$/client-tests/testBaseFramework.js.map" />
+        <option value="$PROJECT_DIR$/full-tests/client.js" />
+        <option value="$PROJECT_DIR$/full-tests/client.js.map" />
+        <option value="$PROJECT_DIR$/full-tests/server.js" />
+        <option value="$PROJECT_DIR$/full-tests/server.js.map" />
+        <option value="$PROJECT_DIR$/src/MOP.js" />
+        <option value="$PROJECT_DIR$/src/MOP.js.map" />
+        <option value="$PROJECT_DIR$/src/MAP.js" />
+        <option value="$PROJECT_DIR$/src/MAP.js.map" />
+        <option value="$PROJECT_DIR$/src/Message.js" />
+        <option value="$PROJECT_DIR$/src/Message.js.map" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/MyConfig.js" />
+        <option value="$PROJECT_DIR$/ReactiveMicroserviceExample/MyConfig.js.map" />
+        <option value="$PROJECT_DIR$/skeletons/server-only/main.js" />
+        <option value="$PROJECT_DIR$/skeletons/server-only/main.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/client-side/clientTestModule.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/client-side/clientTestModule.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/client-side/testBaseFramework.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/client-side/testBaseFramework.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/full-side/server.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/full-side/client.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/full-side/client.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/full-side/server.js" />
+        <option value="$PROJECT_DIR$/skeletons/builder.js.map" />
+        <option value="$PROJECT_DIR$/skeletons/builder.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/node_modules/spiders.js/skeletons/builder.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/node_modules/spiders.js/skeletons/builder.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/skeletons/main.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/src/skeletons/main.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/CAPActor.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Available.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Round.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/GSP.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Eventual.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Consistent.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Consistent.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/GSP.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/CAPActor.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Eventual.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Available.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/src/Round.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/tests/cap.Test.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/tests/cap.Test.js" />
+        <option value="$PROJECT_DIR$/../CAPtain/tests/testCapExtension.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/tests/testCapExtension.js" />
+        <option value="$PROJECT_DIR$/src/ActorSTDLib.js" />
+        <option value="$PROJECT_DIR$/src/ActorSTDLib.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/Signal.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/Signal.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/tests/temp.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/tests/temp.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveMirror.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveMirror.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/node_modules/spiders.js/src/ActorSTDLib.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/node_modules/spiders.js/src/ActorSTDLib.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/tests/reactivity.Test.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/tests/reactivity.Test.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveActor.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveActor.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveApplication.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveApplication.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveSTDLib.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/ReactiveSTDLib.js.map" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/node_modules/spiders.js/src/ActorSTDLib.js" />
+        <option value="$PROJECT_DIR$/../SpidersProdTest/node_modules/spiders.js/src/ActorSTDLib.js.map" />
+        <option value="$PROJECT_DIR$/../WebTest/src/server.js.map" />
+        <option value="$PROJECT_DIR$/../WebTest/src/server.js" />
+        <option value="$PROJECT_DIR$/WebTest/server.js.map" />
+        <option value="$PROJECT_DIR$/WebTest/server.js" />
+        <option value="$PROJECT_DIR$/WebTest/client.js" />
+        <option value="$PROJECT_DIR$/WebTest/client.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/DistGlitchPrevention.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/DistGlitchPrevention.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/NoDistGlitch.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/NoDistGlitch.js" />
+        <option value="$PROJECT_DIR$/../KevinPrototype/src/test.js.map" />
+        <option value="$PROJECT_DIR$/../KevinPrototype/src/test.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/SIDUPAdmitter.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/SIDUPAdmitter.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/PulseState.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/PulseState.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/NodePulse.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/NodePulse.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/DijkstraScholten.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/DijkstraScholten.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/Mirror.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/Mirror.js.map" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/DependencyChangePulse.js" />
+        <option value="$PROJECT_DIR$/../ReactiveSpiders/src/SID-UP/DependencyChangePulse.js.map" />
+        <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/client/InstancesObserver.js" />
+        <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/client/InstancesObserver.js.map" />
+        <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/client/DatasetsObserver.js.map" />
+        <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/client/DatasetsObserver.js" />
+        <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/ConfigsObserver.js" />
+        <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/ConfigsObserver.js.map" />
+      </list>
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <MESSAGE value="Error in package.json" />
+    <MESSAGE value="Fixed type declaration" />
+    <MESSAGE value="Implementing Skeleton script" />
+    <MESSAGE value="Finished &quot;server only&quot; skeleton script" />
+    <MESSAGE value="Moved CAPtain parts to its own project" />
+    <MESSAGE value="Added actor traits" />
+    <MESSAGE value="Removed actor traits because they didn't make sense. Moving to actor libs instead" />
+    <MESSAGE value="Added actor standard lib + pub/sub functionality in STDLib" />
+    <MESSAGE value=" Updated type declaration" />
+    <MESSAGE value="Moved reflecting operations and remote to stdlib + added buffered remote" />
+    <MESSAGE value="Added ability to serve a single page spiders.js app" />
+    <MESSAGE value="Fixed issue with sendAccess and sendInvocation in MAP (far ref was actual ref object, not proxy)" />
+    <MESSAGE value="Fixed issue with isolate mirror not being accessible within isolate" />
+    <MESSAGE value="Added server-side support for Buffer (i.e. Node.js buffers)" />
+    <MESSAGE value="Added export for PS types" />
+    <MESSAGE value="Fixing disconnection issue for actors performing long-lasting computations" />
+    <MESSAGE value="Added message ack to avoid message loss" />
+    <MESSAGE value="Made FarRef a generic type" />
+    <MESSAGE value="Changed receive invocation to work with 2 continuation lambdas (i.e. split up performing the invocation and sending the return value)" />
+    <MESSAGE value="Added host actor mirror to resolve (MOP)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added host actor mirror to resolve (MOP)" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="9" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/ActorProto.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="320">
+          <caret line="63" column="28" lean-forward="false" selection-start-line="63" selection-start-column="28" selection-end-line="63" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client-tests/testBaseFramework.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="14" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client-tests/testPS.html" />
+    <entry file="file://$PROJECT_DIR$/client-tests/testPS.ts" />
+    <entry file="file://$PROJECT_DIR$/server-tests/reactivity.Test.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="11" column="7" lean-forward="false" selection-start-line="11" selection-start-column="7" selection-end-line="11" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/full-tests/client.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="347">
+          <caret line="74" column="5" lean-forward="false" selection-start-line="74" selection-start-column="5" selection-end-line="74" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PromisePool.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.npmignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/WebTest/WebTest.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="35" lean-forward="false" selection-start-line="7" selection-start-column="35" selection-end-line="7" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/WebTest/server.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="0" lean-forward="false" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/server-side.Test.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="8" lean-forward="false" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FarRef.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-140">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PubSub/SubTag.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/isolTest.ts" />
+    <entry file="file://$PROJECT_DIR$/src/messageHandler.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="156">
+          <caret line="91" column="49" lean-forward="false" selection-start-line="91" selection-start-column="49" selection-end-line="91" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MOP.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="188">
+          <caret line="121" column="58" lean-forward="false" selection-start-line="121" selection-start-column="58" selection-end-line="121" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/serialisation.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="156">
+          <caret line="940" column="26" lean-forward="false" selection-start-line="940" selection-start-column="26" selection-end-line="940" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/tempIsol.ts" />
+    <entry file="file://$PROJECT_DIR$/WebTest/client.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="59" lean-forward="false" selection-start-line="6" selection-start-column="59" selection-end-line="6" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PubSub/SubClient.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="56" column="0" lean-forward="false" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PubSub/SubServer.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="21" column="49" lean-forward="false" selection-start-line="21" selection-start-column="49" selection-end-line="21" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PubSub/SubTag.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="35" lean-forward="false" selection-start-line="0" selection-start-column="35" selection-end-line="0" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Reactivivity/SIDUP.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1695">
+          <caret line="297" column="42" lean-forward="false" selection-start-line="297" selection-start-column="42" selection-end-line="297" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Reactivivity/signal.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="620">
+          <caret line="266" column="48" lean-forward="false" selection-start-line="266" selection-start-column="48" selection-end-line="266" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Reactivivity/signalPool.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="48" column="16" lean-forward="false" selection-start-line="48" selection-start-column="4" selection-end-line="48" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ChannelManager.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Sockets.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="188">
+          <caret line="95" column="16" lean-forward="false" selection-start-line="95" selection-start-column="16" selection-end-line="95" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorProto.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="141">
+          <caret line="23" column="20" lean-forward="false" selection-start-line="23" selection-start-column="19" selection-end-line="23" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="184">
+          <caret line="106" column="29" lean-forward="false" selection-start-line="106" selection-start-column="29" selection-end-line="106" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/utils.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="259">
+          <caret line="156" column="12" lean-forward="false" selection-start-line="156" selection-start-column="11" selection-end-line="156" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="141">
+          <caret line="21" column="13" lean-forward="false" selection-start-line="21" selection-start-column="12" selection-end-line="21" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Message.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1056">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/CommMedium.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="54" column="19" lean-forward="false" selection-start-line="54" selection-start-column="19" selection-end-line="54" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="438">
+          <caret line="108" column="42" lean-forward="false" selection-start-line="108" selection-start-column="32" selection-end-line="108" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tsconfig.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="12" lean-forward="false" selection-start-line="8" selection-start-column="12" selection-end-line="8" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Sockets.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="525">
+          <caret line="124" column="18" lean-forward="false" selection-start-line="124" selection-start-column="18" selection-end-line="124" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="36" lean-forward="false" selection-start-line="11" selection-start-column="36" selection-end-line="11" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/testActorDefinition.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="23" lean-forward="false" selection-start-line="6" selection-start-column="23" selection-end-line="6" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client-tests/clientTestModule.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/PubSub.Test.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1635">
+          <caret line="179" column="67" lean-forward="true" selection-start-line="179" selection-start-column="67" selection-end-line="179" selection-end-column="67" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/spiders.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="347">
+          <caret line="256" column="25" lean-forward="false" selection-start-line="256" selection-start-column="25" selection-end-line="256" selection-end-column="25" />
+          <folding>
+            <element signature="e#0#46#0" expanded="false" />
+            <element signature="n#!!block;n#constructor#0;n#ActorBase#0" expanded="false" />
+            <element signature="n#!!block;n#constructor#0;n#ClientActor#0" expanded="false" />
+            <element signature="n#!!block;n#constructor#0;n#ServerActor#0" expanded="false" />
+            <element signature="n#!!block;n#constructor#0;n#ApplicationBase#0" expanded="false" />
+            <element signature="n#!!block;n#spawnActor#0;n#ServerApplication#0" expanded="false" />
+            <element signature="n#!!block;n#spawnActorFromFile#0;n#ServerApplication#0" expanded="false" />
+            <element signature="n#!!block;n#spawnActor#0;n#ClientApplication#0" expanded="false" />
+            <element signature="n#!!block;n#spawnActorFromFile#0;n#ClientApplication#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MAP.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="328" column="26" lean-forward="false" selection-start-line="328" selection-start-column="26" selection-end-line="328" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/messageHandler.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="389">
+          <caret line="128" column="17" lean-forward="false" selection-start-line="128" selection-start-column="17" selection-end-line="128" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client-tests/testBaseFramework.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="617">
+          <caret line="101" column="75" lean-forward="false" selection-start-line="101" selection-start-column="75" selection-end-line="101" selection-end-column="75" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/server-side.Test.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="1178" column="2" lean-forward="true" selection-start-line="1178" selection-start-column="2" selection-end-line="1178" selection-end-column="2" />
+          <folding>
+            <element signature="e#246#286#0" expanded="false" />
+            <element signature="e#718#823#0" expanded="false" />
+            <element signature="e#844#910#0" expanded="false" />
+            <element signature="e#1045#1196#0" expanded="false" />
+            <element signature="e#1290#1395#0" expanded="false" />
+            <element signature="e#1416#1482#0" expanded="false" />
+            <element signature="e#1587#1781#0" expanded="false" />
+            <element signature="e#1875#1979#0" expanded="false" />
+            <element signature="e#2000#2066#0" expanded="false" />
+            <element signature="e#2187#2408#0" expanded="false" />
+            <element signature="e#2505#2613#0" expanded="false" />
+            <element signature="e#2634#2700#0" expanded="false" />
+            <element signature="e#2789#2901#0" expanded="false" />
+            <element signature="e#2910#3207#0" expanded="false" />
+            <element signature="e#3418#3523#0" expanded="false" />
+            <element signature="e#3544#3611#0" expanded="false" />
+            <element signature="e#3710#3925#0" expanded="false" />
+            <element signature="e#4020#4124#0" expanded="false" />
+            <element signature="e#4145#4211#0" expanded="false" />
+            <element signature="e#4317#4533#0" expanded="false" />
+            <element signature="e#4543#4662#0" expanded="false" />
+            <element signature="e#4750#4854#0" expanded="false" />
+            <element signature="e#4875#4941#0" expanded="false" />
+            <element signature="e#5001#5046#0" expanded="false" />
+            <element signature="e#5087#5209#0" expanded="false" />
+            <element signature="e#5305#5416#0" expanded="false" />
+            <element signature="e#5437#5503#0" expanded="false" />
+            <element signature="e#5608#5707#0" expanded="false" />
+            <element signature="e#5716#5856#0" expanded="false" />
+            <element signature="e#5955#6058#0" expanded="false" />
+            <element signature="e#6079#6145#0" expanded="false" />
+            <element signature="e#6250#6412#0" expanded="false" />
+            <element signature="e#6421#6465#0" expanded="false" />
+            <element signature="e#6564#6667#0" expanded="false" />
+            <element signature="e#6688#6754#0" expanded="false" />
+            <element signature="e#6778#8915#0" expanded="false" />
+            <element signature="e#9027#9397#0" expanded="false" />
+            <element signature="e#9496#9599#0" expanded="false" />
+            <element signature="e#9620#9686#0" expanded="false" />
+            <element signature="e#9777#9993#0" expanded="false" />
+            <element signature="e#10002#10104#0" expanded="false" />
+            <element signature="e#10254#10357#0" expanded="false" />
+            <element signature="e#10378#10444#0" expanded="false" />
+            <element signature="e#10575#11115#0" expanded="false" />
+            <element signature="e#11124#11344#0" expanded="false" />
+            <element signature="e#11494#11723#0" expanded="false" />
+            <element signature="e#11744#11810#0" expanded="false" />
+            <element signature="e#11943#12109#0" expanded="false" />
+            <element signature="e#12118#12552#0" expanded="false" />
+            <element signature="e#12621#12730#0" expanded="false" />
+            <element signature="e#12751#12817#0" expanded="false" />
+            <element signature="e#12973#13128#0" expanded="false" />
+            <element signature="e#13228#13336#0" expanded="false" />
+            <element signature="e#13357#13423#0" expanded="false" />
+            <element signature="e#13541#13663#0" expanded="false" />
+            <element signature="e#13762#13871#0" expanded="false" />
+            <element signature="e#13892#13958#0" expanded="false" />
+            <element signature="e#14047#14518#0" expanded="false" />
+            <element signature="e#14254#14389#0" expanded="false" />
+            <element signature="e#14414#14493#0" expanded="false" />
+            <element signature="e#14559#14760#0" expanded="false" />
+            <element signature="e#14893#15204#0" expanded="false" />
+            <element signature="e#14964#15075#0" expanded="false" />
+            <element signature="e#15100#15179#0" expanded="false" />
+            <element signature="e#15245#15353#0" expanded="false" />
+            <element signature="e#15542#15680#0" expanded="false" />
+            <element signature="e#15780#15913#0" expanded="false" />
+            <element signature="e#15934#16000#0" expanded="false" />
+            <element signature="e#16082#16241#0" expanded="false" />
+            <element signature="e#16282#16396#0" expanded="false" />
+            <element signature="e#16494#16600#0" expanded="false" />
+            <element signature="e#16621#16687#0" expanded="false" />
+            <element signature="e#16774#16877#0" expanded="false" />
+            <element signature="e#16918#17032#0" expanded="false" />
+            <element signature="e#17130#17236#0" expanded="false" />
+            <element signature="e#17257#17323#0" expanded="false" />
+            <element signature="e#17387#17604#0" expanded="false" />
+            <element signature="e#17649#17899#0" expanded="false" />
+            <element signature="e#18005#18162#0" expanded="false" />
+            <element signature="e#18183#18249#0" expanded="false" />
+            <element signature="e#18320#18357#0" expanded="false" />
+            <element signature="e#18366#18542#0" expanded="false" />
+            <element signature="e#18551#18969#0" expanded="false" />
+            <element signature="e#19012#19270#0" expanded="false" />
+            <element signature="e#19377#19570#0" expanded="false" />
+            <element signature="e#19591#19658#0" expanded="false" />
+            <element signature="e#19827#19938#0" expanded="false" />
+            <element signature="e#20042#20148#0" expanded="false" />
+            <element signature="e#20169#20235#0" expanded="false" />
+            <element signature="e#20358#20468#0" expanded="false" />
+            <element signature="e#20573#20681#0" expanded="false" />
+            <element signature="e#20702#20768#0" expanded="false" />
+            <element signature="e#20892#21152#0" expanded="false" />
+            <element signature="e#20990#21048#0" expanded="false" />
+            <element signature="e#21069#21128#0" expanded="false" />
+            <element signature="e#21257#21366#0" expanded="false" />
+            <element signature="e#21387#21453#0" expanded="false" />
+            <element signature="e#21574#21719#0" expanded="false" />
+            <element signature="e#21851#21964#0" expanded="false" />
+            <element signature="e#21985#22051#0" expanded="false" />
+            <element signature="e#22168#22420#0" expanded="false" />
+            <element signature="e#22520#22625#0" expanded="false" />
+            <element signature="e#22646#22712#0" expanded="false" />
+            <element signature="e#22826#22976#0" expanded="false" />
+            <element signature="e#23085#23293#0" expanded="false" />
+            <element signature="e#23314#23380#0" expanded="false" />
+            <element signature="e#23522#23555#0" expanded="false" />
+            <element signature="e#23564#23796#0" expanded="false" />
+            <element signature="e#23893#24003#0" expanded="false" />
+            <element signature="e#24024#24090#0" expanded="false" />
+            <element signature="e#24196#24353#0" expanded="false" />
+            <element signature="e#24362#24490#0" expanded="false" />
+            <element signature="e#24663#24768#0" expanded="false" />
+            <element signature="e#24789#24855#0" expanded="false" />
+            <element signature="e#24955#25391#0" expanded="false" />
+            <element signature="e#25482#25586#0" expanded="false" />
+            <element signature="e#25607#25673#0" expanded="false" />
+            <element signature="e#25788#25963#0" expanded="false" />
+            <element signature="e#25972#26204#0" expanded="false" />
+            <element signature="e#26331#26434#0" expanded="false" />
+            <element signature="e#26455#26521#0" expanded="false" />
+            <element signature="e#26585#26820#0" expanded="false" />
+            <element signature="e#26829#27170#0" expanded="false" />
+            <element signature="e#27297#27401#0" expanded="false" />
+            <element signature="e#27422#27488#0" expanded="false" />
+            <element signature="e#27566#27850#0" expanded="false" />
+            <element signature="e#27859#28164#0" expanded="false" />
+            <element signature="e#28291#28395#0" expanded="false" />
+            <element signature="e#28416#28482#0" expanded="false" />
+            <element signature="e#28556#28790#0" expanded="false" />
+            <element signature="e#28799#28977#0" expanded="false" />
+            <element signature="e#29107#29211#0" expanded="false" />
+            <element signature="e#29232#29298#0" expanded="false" />
+            <element signature="e#29373#29617#0" expanded="false" />
+            <element signature="e#29626#29729#0" expanded="false" />
+            <element signature="e#29738#30050#0" expanded="false" />
+            <element signature="e#30173#30277#0" expanded="false" />
+            <element signature="e#30298#30364#0" expanded="false" />
+            <element signature="e#30435#30659#0" expanded="false" />
+            <element signature="e#30668#30834#0" expanded="false" />
+            <element signature="e#30843#31159#0" expanded="false" />
+            <element signature="e#31282#31386#0" expanded="false" />
+            <element signature="e#31407#31473#0" expanded="false" />
+            <element signature="e#31588#31764#0" expanded="false" />
+            <element signature="e#31773#31914#0" expanded="false" />
+            <element signature="e#31923#32337#0" expanded="false" />
+            <element signature="e#32464#32567#0" expanded="false" />
+            <element signature="e#32588#32654#0" expanded="false" />
+            <element signature="e#32720#32935#0" expanded="false" />
+            <element signature="e#32944#33151#0" expanded="false" />
+            <element signature="e#33160#33617#0" expanded="false" />
+            <element signature="e#33744#33848#0" expanded="false" />
+            <element signature="e#33869#33935#0" expanded="false" />
+            <element signature="e#34001#34205#0" expanded="false" />
+            <element signature="e#34214#34412#0" expanded="false" />
+            <element signature="e#34421#34875#0" expanded="false" />
+            <element signature="e#35002#35106#0" expanded="false" />
+            <element signature="e#35127#35193#0" expanded="false" />
+            <element signature="e#35258#35497#0" expanded="false" />
+            <element signature="e#35506#35704#0" expanded="false" />
+            <element signature="e#35713#36167#0" expanded="false" />
+            <element signature="e#36294#36398#0" expanded="false" />
+            <element signature="e#36419#36485#0" expanded="false" />
+            <element signature="e#36549#36732#0" expanded="false" />
+            <element signature="e#36741#36883#0" expanded="false" />
+            <element signature="e#36892#37182#0" expanded="false" />
+            <element signature="e#37309#37412#0" expanded="false" />
+            <element signature="e#37433#37499#0" expanded="false" />
+            <element signature="e#37566#37716#0" expanded="false" />
+            <element signature="e#37725#37867#0" expanded="false" />
+            <element signature="e#37876#38173#0" expanded="false" />
+            <element signature="e#38300#38403#0" expanded="false" />
+            <element signature="e#38424#38490#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="233">
+          <caret line="743" column="73" lean-forward="false" selection-start-line="743" selection-start-column="73" selection-end-line="743" selection-end-column="73" />
+          <folding>
+            <element signature="n#!!block;n#deserialise#0" expanded="true" />
+            <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="46" column="44" lean-forward="false" selection-start-line="46" selection-start-column="44" selection-end-line="46" selection-end-column="44" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MOP.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="494">
+          <caret line="59" column="44" lean-forward="false" selection-start-line="59" selection-start-column="44" selection-end-line="59" selection-end-column="44" />
+          <folding>
+            <element signature="e#0#40#0" expanded="true" />
+            <element signature="n#!!block;n#resolve#0;n#SpiderIsolateMirror#0" expanded="true" />
+            <element signature="n#SpiderObject#0" expanded="false" />
+            <element signature="n#SpiderIsolate#0" expanded="false" />
+            <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
+            <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

@@ -56451,10 +56451,10 @@ class SpiderObjectMirror {
         this.base[fieldName] = value;
         return true;
     }
-    pass() {
+    pass(hostActorMirror) {
         return makeSpiderObjectProxy(this.base, this, false);
     }
-    resolve() {
+    resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }
@@ -56477,10 +56477,10 @@ class SpiderIsolateMirror {
         this.base[fieldName] = value;
         return true;
     }
-    pass() {
+    pass(hostActorMirror) {
         return this.base;
     }
-    resolve() {
+    resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }
@@ -59489,7 +59489,7 @@ function serialise(value, receiverId, environment) {
         }
         else if (value[SpiderIsolateContainer.checkIsolateFuncKey]) {
             let mirror = value[MOP_1.SpiderObjectMirror.mirrorAccessKey];
-            let baseOb = mirror.pass();
+            let baseOb = mirror.pass(environment.actorMirror);
             //Remove base reference from mirror to avoid serialising the base object twice
             delete mirror.base;
             delete baseOb[MOP_1.SpiderObjectMirror.mirrorAccessKey];
@@ -59800,7 +59800,7 @@ function deserialise(value, environment) {
         var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
         var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), environment);
         let ret = isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy);
-        mirror.resolve();
+        mirror.resolve(environment.actorMirror);
         return ret;
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {
