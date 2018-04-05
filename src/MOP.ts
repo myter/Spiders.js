@@ -1,5 +1,6 @@
 import {clone, LexScope} from "./utils";
 import {SpiderIsolateContainer} from "./serialisation";
+import {SpiderActorMirror} from "./MAP";
 
 
 export class SpiderObjectMirror{
@@ -60,7 +61,7 @@ export class SpiderIsolateMirror{
         return this.base
     }
 
-    resolve(){
+    resolve(hostActorMirror : SpiderActorMirror){
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }
@@ -151,7 +152,7 @@ export class SpiderIsolate{
         this.constructor[LexScope._LEX_SCOPE_KEY_] = lex
         //this.constructor = construct
         objectMirror.bindBase(thisClone)
-        this.mirror     = objectMirror
+        this.mirror     = objectMirror as any
         thisClone[SpiderObjectMirror.mirrorAccessKey] = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
@@ -161,7 +162,7 @@ export class SpiderIsolate{
     //Called by serialise on an already constructed isolate which has just been passed
     instantiate(objectMirror : SpiderIsolateMirror,isolClone,wrapPrototypes,makeSpiderObjectProxy){
         objectMirror.bindBase(isolClone)
-        this.mirror     = objectMirror
+        this.mirror     = objectMirror as any
         isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)

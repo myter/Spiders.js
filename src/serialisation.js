@@ -942,7 +942,7 @@ function deserialise(value, environment) {
         var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
         var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), environment);
         let ret = isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy);
-        mirror.resolve();
+        mirror.resolve(environment.actorMirror);
         return ret;
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {

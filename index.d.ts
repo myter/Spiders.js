@@ -37,7 +37,7 @@ export class SpiderObjectMirror{
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
     pass()
-    resolve()
+    resolve(hostActorMirror : SpiderActorMirror)
 }
 export class SpiderIsolateMirror{
     base : SpiderIsolate
@@ -45,7 +45,7 @@ export class SpiderIsolateMirror{
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
     pass()
-    resolve()
+    resolve(hostActorMirror : SpiderActorMirror)
 }
 export class SpiderObject{
     constructor(objectMirror? : SpiderObjectMirror)

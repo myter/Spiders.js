@@ -44,7 +44,7 @@ class SpiderIsolateMirror {
     pass() {
         return this.base;
     }
-    resolve() {
+    resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
     }
 }

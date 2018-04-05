@@ -1374,7 +1374,7 @@ describe("Meta Object Protocol",()=>{
                 this.o          = new TestObject(TestMirror)
             }
             test(){
-                return (this.libs.reflectOnObject(this.o) as TestMirror).testValue
+                return (this.libs.reflectOnObject(this.o) as any).testValue
             }
         }
         let app = new Application()
