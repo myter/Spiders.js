@@ -1,23 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="">
+    <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.js" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.js" />
-      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.js.map" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.js.map" />
-      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.ts" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.ts" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.js" afterPath="$PROJECT_DIR$/server-tests/temp.js" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.js.map" afterPath="$PROJECT_DIR$/server-tests/temp.js.map" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.ts" afterPath="$PROJECT_DIR$/server-tests/temp.ts" />
-      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js" />
-      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js.map" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.ts" afterPath="$PROJECT_DIR$/src/ActorSTDLib.ts" />
-      <change beforePath="$PROJECT_DIR$/src/MOP.js" afterPath="$PROJECT_DIR$/src/MOP.js" />
-      <change beforePath="$PROJECT_DIR$/src/MOP.js.map" afterPath="$PROJECT_DIR$/src/MOP.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/MOP.ts" afterPath="$PROJECT_DIR$/src/MOP.ts" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js" afterPath="$PROJECT_DIR$/src/serialisation.js" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js.map" afterPath="$PROJECT_DIR$/src/serialisation.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.ts" afterPath="$PROJECT_DIR$/src/serialisation.ts" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -401,7 +386,7 @@
       <workItem from="1522946513800" duration="71000" />
       <workItem from="1523016071798" duration="11000" />
       <workItem from="1523018282217" duration="1808000" />
-      <workItem from="1523266440492" duration="2792000" />
+      <workItem from="1523266440492" duration="2853000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -634,7 +619,14 @@
       <option name="project" value="LOCAL" />
       <updated>1522932454066</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
+      <created>1523275851450</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1523275851450</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -670,7 +662,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="104196000" />
+    <option name="totallyTimeSpent" value="104257000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="812" extended-state="0" />
@@ -951,7 +943,8 @@
     <MESSAGE value="Made FarRef a generic type" />
     <MESSAGE value="Changed receive invocation to work with 2 continuation lambdas (i.e. split up performing the invocation and sending the return value)" />
     <MESSAGE value="Added host actor mirror to resolve (MOP)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added host actor mirror to resolve (MOP)" />
+    <MESSAGE value="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
