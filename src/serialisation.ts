@@ -788,7 +788,7 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
         }
         else if(value[SpiderObject.spiderObjectKey]){
             let objectMirror : SpiderObjectMirror = value[SpiderObjectMirror.mirrorAccessKey]
-            return serialise(objectMirror.pass(),receiverId,environment)
+            return serialise(objectMirror.pass(environment.actorMirror),receiverId,environment)
         }
         else {
             return serialiseObject(value,environment.thisRef,environment.objectPool)

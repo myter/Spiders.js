@@ -1277,9 +1277,9 @@ describe("Meta Object Protocol", () => {
     });
     it("Custom Pass", function (done) {
         class TestMirror extends spiders_1.SpiderIsolateMirror {
-            pass() {
+            pass(arg) {
                 this.testValue = 5;
-                return super.pass();
+                return super.pass(arg);
             }
         }
         class TestObject extends spiders_1.SpiderIsolate {

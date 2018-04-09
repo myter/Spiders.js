@@ -113,7 +113,13 @@ class SpiderObject {
         this[SpiderObjectMirror.mirrorAccessKey] = this.mirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
-        return makeSpiderObjectProxy(thisClone, this.mirror);
+        let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
+        for (var i in thisClone) {
+            if (typeof thisClone[i] == 'function' && i != "constructor") {
+                thisClone[i] = thisClone[i].bind(proxied);
+            }
+        }
+        return proxied;
     }
 }
 SpiderObject.spiderObjectKey = "_SPIDER_OBJECT_";
@@ -132,7 +138,13 @@ class SpiderIsolate {
         thisClone[SpiderObjectMirror.mirrorAccessKey] = objectMirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
-        return makeSpiderObjectProxy(thisClone, this.mirror);
+        let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
+        for (var i in thisClone) {
+            if (typeof thisClone[i] == 'function') {
+                thisClone[i] = thisClone[i].bind(proxied);
+            }
+        }
+        return proxied;
     }
     //Called by serialise on an already constructed isolate which has just been passed
     instantiate(objectMirror, isolClone, wrapPrototypes, makeSpiderObjectProxy) {
@@ -141,7 +153,13 @@ class SpiderIsolate {
         isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
-        return makeSpiderObjectProxy(isolClone, this.mirror);
+        let proxied = makeSpiderObjectProxy(isolClone, this.mirror);
+        for (var i in isolClone) {
+            if (typeof isolClone[i] == 'function') {
+                isolClone[i] = isolClone[i].bind(proxied);
+            }
+        }
+        return proxied;
     }
 }
 exports.SpiderIsolate = SpiderIsolate;

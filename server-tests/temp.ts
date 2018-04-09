@@ -1,21 +1,33 @@
-import { Application, FarRef,Actor} from "../src/spiders";
+import {Actor, Application} from "../src/spiders";
 
-class TestActor extends Actor{
-    foo() : Promise<boolean>{
-        console.log("Foo invoked")
-        return true as any
-    }
-
-    bar() : Promise<any>{
-        return undefined
+var app = new Application()
+class testActor1 extends Actor{
+    getAndAccess(){
+        return new Promise((resolve)=>{
+            let rem = this.libs.buffRemote("127.0.0.1",8082)
+            let ps  = []
+            ps[0]   = rem.getVal()
+            ps[1]   = rem.someVal
+            setTimeout(()=>{
+                ps[2] = rem.getVal()
+                ps[3] = rem.someVal
+                resolve(Promise.all(ps))
+            },2000)
+        })
     }
 }
-
-class TestApp extends Application{
-
+class testActor2 extends Actor{
+    someVal
+    constructor(){
+        super()
+        this.someVal = 6
+    }
+    getVal(){
+        return 5
+    }
 }
-let app  = new TestApp()
-let act : FarRef<TestActor> = app.spawnActor(TestActor)
-act.foo().then((something )=>{
-    console.log("got result")
+app.spawnActor(testActor2,[],8082)
+var actor  = app.spawnActor(testActor1)
+actor.getAndAccess().then((v) => {
+    console.log(v)
 })

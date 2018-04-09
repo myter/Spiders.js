@@ -16,7 +16,10 @@ class BufferedMirror extends SpiderObjectMirror{
 
     access(fieldName){
         let base = this.base as BufferedRef
-        if(base.isConnected){
+        if(fieldName == "thisMirror"){
+            return base.thisMirror
+        }
+        else if(base.isConnected){
             return base.realRef[fieldName]
         }
         else{

@@ -10,7 +10,10 @@ class BufferedMirror extends MOP_1.SpiderObjectMirror {
     }
     access(fieldName) {
         let base = this.base;
-        if (base.isConnected) {
+        if (fieldName == "thisMirror") {
+            return base.thisMirror;
+        }
+        else if (base.isConnected) {
             return base.realRef[fieldName];
         }
         else {

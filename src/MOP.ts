@@ -136,7 +136,13 @@ export class SpiderObject{
         this[SpiderObjectMirror.mirrorAccessKey] = this.mirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
-        return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject
+        let proxied = makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject
+        for(var i in thisClone){
+            if(typeof thisClone[i] == 'function' && i != "constructor"){
+                thisClone[i] = thisClone[i].bind(proxied)
+            }
+        }
+        return proxied
     }
 }
 
@@ -156,7 +162,13 @@ export class SpiderIsolate{
         thisClone[SpiderObjectMirror.mirrorAccessKey] = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
-        return makeSpiderObjectProxy(thisClone,this.mirror) as SpiderIsolate
+        let proxied = makeSpiderObjectProxy(thisClone,this.mirror) as SpiderIsolate
+        for(var i in thisClone){
+            if(typeof thisClone[i] == 'function'){
+                thisClone[i] = thisClone[i].bind(proxied)
+            }
+        }
+        return proxied
     }
 
     //Called by serialise on an already constructed isolate which has just been passed
@@ -166,7 +178,13 @@ export class SpiderIsolate{
         isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this,this.mirror)
-        return makeSpiderObjectProxy(isolClone,this.mirror) as SpiderIsolate
+        let proxied = makeSpiderObjectProxy(isolClone,this.mirror) as SpiderIsolate
+        for(var i in isolClone){
+            if(typeof isolClone[i] == 'function'){
+                isolClone[i] = isolClone[i].bind(proxied)
+            }
+        }
+        return proxied
     }
 }
 

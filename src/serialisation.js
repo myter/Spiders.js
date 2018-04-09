@@ -678,7 +678,7 @@ function serialise(value, receiverId, environment) {
         }
         else if (value[MOP_1.SpiderObject.spiderObjectKey]) {
             let objectMirror = value[MOP_1.SpiderObjectMirror.mirrorAccessKey];
-            return serialise(objectMirror.pass(), receiverId, environment);
+            return serialise(objectMirror.pass(environment.actorMirror), receiverId, environment);
         }
         else {
             return serialiseObject(value, environment.thisRef, environment.objectPool);
