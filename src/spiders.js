@@ -74,7 +74,7 @@ class ServerActor extends ActorBase {
         var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment, "toString");
         var actorMirrorVariables = deconActorMirror[0];
         var actorMirrorMethods = deconActorMirror[1];
-        var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
+        var actor = fork(__dirname + '/ActorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
         app.spawnedActors.push(actor);
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainIp, port, app.mainEnvironment);
@@ -90,7 +90,7 @@ class ServerActor extends ActorBase {
         constructorArgs.forEach((constructorArg) => {
             serialisedArgs.push(serialisation_1.serialise(constructorArg, actorId, app.mainEnvironment));
         });
-        var actor = fork(__dirname + '/actorProto.js', [true, app.mainIp, port, actorId, app.mainId, app.mainPort, filePath, actorClassName, JSON.stringify(serialisedArgs)]);
+        var actor = fork(__dirname + '/ActorProto.js', [true, app.mainIp, port, actorId, app.mainId, app.mainPort, filePath, actorClassName, JSON.stringify(serialisedArgs)]);
         app.spawnedActors.push(actor);
         //Impossible to know the actor's fields and methods at this point
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, app.mainIp, port, app.mainEnvironment);

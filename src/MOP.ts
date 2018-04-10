@@ -6,9 +6,14 @@ import {SpiderActorMirror} from "./MAP";
 export class SpiderObjectMirror{
     static mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_"
     base : SpiderObject
+    proxyBase
 
     bindBase(base){
         this.base = base
+    }
+
+    bindProxy(proxy){
+        this.proxyBase = proxy
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
@@ -35,6 +40,7 @@ export class SpiderObjectMirror{
 
 export class SpiderIsolateMirror{
     base : SpiderIsolate
+    proxyBase
 
     constructor(){
         this[SpiderIsolateContainer.checkIsolateFuncKey] = true
@@ -42,6 +48,10 @@ export class SpiderIsolateMirror{
 
     bindBase(base){
         this.base = base
+    }
+
+    bindProxy(proxy){
+        this.proxyBase = proxy
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
@@ -142,6 +152,7 @@ export class SpiderObject{
                 thisClone[i] = thisClone[i].bind(proxied)
             }
         }
+        objectMirror.bindProxy(proxied)
         return proxied
     }
 }
@@ -168,6 +179,7 @@ export class SpiderIsolate{
                 thisClone[i] = thisClone[i].bind(proxied)
             }
         }
+        objectMirror.bindProxy(proxied)
         return proxied
     }
 
@@ -184,6 +196,7 @@ export class SpiderIsolate{
                 isolClone[i] = isolClone[i].bind(proxied)
             }
         }
+        objectMirror.bindProxy(proxied)
         return proxied
     }
 }

@@ -5,6 +5,9 @@ class SpiderObjectMirror {
     bindBase(base) {
         this.base = base;
     }
+    bindProxy(proxy) {
+        this.proxyBase = proxy;
+    }
     invoke(methodName, args) {
         return this.base[methodName](...args);
     }
@@ -30,6 +33,9 @@ class SpiderIsolateMirror {
     }
     bindBase(base) {
         this.base = base;
+    }
+    bindProxy(proxy) {
+        this.proxyBase = proxy;
     }
     invoke(methodName, args) {
         return this.base[methodName](...args);
@@ -119,6 +125,7 @@ class SpiderObject {
                 thisClone[i] = thisClone[i].bind(proxied);
             }
         }
+        objectMirror.bindProxy(proxied);
         return proxied;
     }
 }
@@ -144,6 +151,7 @@ class SpiderIsolate {
                 thisClone[i] = thisClone[i].bind(proxied);
             }
         }
+        objectMirror.bindProxy(proxied);
         return proxied;
     }
     //Called by serialise on an already constructed isolate which has just been passed
@@ -159,6 +167,7 @@ class SpiderIsolate {
                 isolClone[i] = isolClone[i].bind(proxied);
             }
         }
+        objectMirror.bindProxy(proxied);
         return proxied;
     }
 }

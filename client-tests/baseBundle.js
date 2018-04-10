@@ -55773,7 +55773,10 @@ class BufferedMirror extends MOP_1.SpiderObjectMirror {
     }
     access(fieldName) {
         let base = this.base;
-        if (base.isConnected) {
+        if (fieldName == "thisMirror") {
+            return base.thisMirror;
+        }
+        else if (base.isConnected) {
             return base.realRef[fieldName];
         }
         else {
@@ -56441,6 +56444,9 @@ class SpiderObjectMirror {
     bindBase(base) {
         this.base = base;
     }
+    bindProxy(proxy) {
+        this.proxyBase = proxy;
+    }
     invoke(methodName, args) {
         return this.base[methodName](...args);
     }
@@ -56466,6 +56472,9 @@ class SpiderIsolateMirror {
     }
     bindBase(base) {
         this.base = base;
+    }
+    bindProxy(proxy) {
+        this.proxyBase = proxy;
     }
     invoke(methodName, args) {
         return this.base[methodName](...args);
@@ -56549,7 +56558,14 @@ class SpiderObject {
         this[SpiderObjectMirror.mirrorAccessKey] = this.mirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
-        return makeSpiderObjectProxy(thisClone, this.mirror);
+        let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
+        for (var i in thisClone) {
+            if (typeof thisClone[i] == 'function' && i != "constructor") {
+                thisClone[i] = thisClone[i].bind(proxied);
+            }
+        }
+        objectMirror.bindProxy(proxied);
+        return proxied;
     }
 }
 SpiderObject.spiderObjectKey = "_SPIDER_OBJECT_";
@@ -56568,7 +56584,14 @@ class SpiderIsolate {
         thisClone[SpiderObjectMirror.mirrorAccessKey] = objectMirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
-        return makeSpiderObjectProxy(thisClone, this.mirror);
+        let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
+        for (var i in thisClone) {
+            if (typeof thisClone[i] == 'function') {
+                thisClone[i] = thisClone[i].bind(proxied);
+            }
+        }
+        objectMirror.bindProxy(proxied);
+        return proxied;
     }
     //Called by serialise on an already constructed isolate which has just been passed
     instantiate(objectMirror, isolClone, wrapPrototypes, makeSpiderObjectProxy) {
@@ -56577,7 +56600,14 @@ class SpiderIsolate {
         isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror;
         //Make sure the object's prototypes are wrapped as well
         wrapPrototypes(this, this.mirror);
-        return makeSpiderObjectProxy(isolClone, this.mirror);
+        let proxied = makeSpiderObjectProxy(isolClone, this.mirror);
+        for (var i in isolClone) {
+            if (typeof isolClone[i] == 'function') {
+                isolClone[i] = isolClone[i].bind(proxied);
+            }
+        }
+        objectMirror.bindProxy(proxied);
+        return proxied;
     }
 }
 exports.SpiderIsolate = SpiderIsolate;
@@ -59490,14 +59520,17 @@ function serialise(value, receiverId, environment) {
         else if (value[SpiderIsolateContainer.checkIsolateFuncKey]) {
             let mirror = value[MOP_1.SpiderObjectMirror.mirrorAccessKey];
             let baseOb = mirror.pass(environment.actorMirror);
+            let proxyBase = mirror.proxyBase;
             //Remove base reference from mirror to avoid serialising the base object twice
             delete mirror.base;
             delete baseOb[MOP_1.SpiderObjectMirror.mirrorAccessKey];
+            delete mirror.proxyBase;
             let [vars, methods] = deconstructBehaviour(baseOb, 0, [], [], receiverId, environment, "toString");
             let [mVars, mMethods] = deconstructBehaviour(mirror, 0, [], [], receiverId, environment, "toString");
             let container = new SpiderIsolateContainer(JSON.stringify(vars), JSON.stringify(methods), JSON.stringify(mVars), JSON.stringify(mMethods));
             //Reset base object <=> mirror link
             mirror.base = baseOb;
+            mirror.proxyBase = proxyBase;
             baseOb[MOP_1.SpiderObjectMirror.mirrorAccessKey] = mirror;
             return container;
         }
@@ -59536,7 +59569,7 @@ function serialise(value, receiverId, environment) {
         }
         else if (value[MOP_1.SpiderObject.spiderObjectKey]) {
             let objectMirror = value[MOP_1.SpiderObjectMirror.mirrorAccessKey];
-            return serialise(objectMirror.pass(), receiverId, environment);
+            return serialise(objectMirror.pass(environment.actorMirror), receiverId, environment);
         }
         else {
             return serialiseObject(value, environment.thisRef, environment.objectPool);
@@ -59978,7 +60011,7 @@ class ServerActor extends ActorBase {
         var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment, "toString");
         var actorMirrorVariables = deconActorMirror[0];
         var actorMirrorMethods = deconActorMirror[1];
-        var actor = fork(__dirname + '/actorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
+        var actor = fork(__dirname + '/ActorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
         app.spawnedActors.push(actor);
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainIp, port, app.mainEnvironment);
@@ -59994,7 +60027,7 @@ class ServerActor extends ActorBase {
         constructorArgs.forEach((constructorArg) => {
             serialisedArgs.push(serialisation_1.serialise(constructorArg, actorId, app.mainEnvironment));
         });
-        var actor = fork(__dirname + '/actorProto.js', [true, app.mainIp, port, actorId, app.mainId, app.mainPort, filePath, actorClassName, JSON.stringify(serialisedArgs)]);
+        var actor = fork(__dirname + '/ActorProto.js', [true, app.mainIp, port, actorId, app.mainId, app.mainPort, filePath, actorClassName, JSON.stringify(serialisedArgs)]);
         app.spawnedActors.push(actor);
         //Impossible to know the actor's fields and methods at this point
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, app.mainIp, port, app.mainEnvironment);

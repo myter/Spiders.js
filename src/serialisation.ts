@@ -742,14 +742,17 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
         else if(value[SpiderIsolateContainer.checkIsolateFuncKey]){
             let mirror              = value[SpiderObjectMirror.mirrorAccessKey]
             let baseOb              = mirror.pass(environment.actorMirror)
+            let proxyBase           = mirror.proxyBase
             //Remove base reference from mirror to avoid serialising the base object twice
             delete mirror.base
             delete baseOb[SpiderObjectMirror.mirrorAccessKey]
+            delete mirror.proxyBase
             let [vars,methods]      = deconstructBehaviour(baseOb,0,[],[],receiverId,environment,"toString")
             let [mVars,mMethods]    = deconstructBehaviour(mirror,0,[],[],receiverId,environment,"toString")
             let container           = new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods),JSON.stringify(mVars),JSON.stringify(mMethods))
             //Reset base object <=> mirror link
             mirror.base             = baseOb
+            mirror.proxyBase        = proxyBase
             baseOb[SpiderObjectMirror.mirrorAccessKey] = mirror
             return container
         }
