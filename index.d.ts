@@ -32,7 +32,8 @@ export class SpiderActorMirror{
     sendAccess(target : FarRef<any>,fieldName : string,contactId? : string,contactAddress? : string,contactPort? : number,mainId? : string) : Promise<any>
 }
 export class SpiderObjectMirror{
-    base : SpiderObject
+    base        : SpiderObject
+    proxyBase   : SpiderObject
     invoke(methodName : PropertyKey,args : Array<any>)
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
@@ -40,7 +41,8 @@ export class SpiderObjectMirror{
     resolve(hostActorMirror : SpiderActorMirror)
 }
 export class SpiderIsolateMirror{
-    base : SpiderIsolate
+    base        : SpiderIsolate
+    proxyBase   : SpiderObject
     invoke(methodName : PropertyKey,args : Array<any>)
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
