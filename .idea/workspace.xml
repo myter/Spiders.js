@@ -3,7 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/index.d.ts" afterPath="$PROJECT_DIR$/index.d.ts" />
+      <change beforePath="$PROJECT_DIR$/src/MOP.js" afterPath="$PROJECT_DIR$/src/MOP.js" />
+      <change beforePath="$PROJECT_DIR$/src/MOP.js.map" afterPath="$PROJECT_DIR$/src/MOP.js.map" />
+      <change beforePath="$PROJECT_DIR$/src/MOP.ts" afterPath="$PROJECT_DIR$/src/MOP.ts" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -21,13 +23,18 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="index.d.ts" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/index.d.ts">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="MOP.ts" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/MOP.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="381">
-              <caret line="44" column="16" lean-forward="false" selection-start-line="44" selection-start-column="16" selection-end-line="44" selection-end-column="16" />
-              <folding />
+            <state relative-caret-position="1051">
+              <caret line="214" column="29" lean-forward="false" selection-start-line="214" selection-start-column="29" selection-end-line="214" selection-end-column="29" />
+              <folding>
+                <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
+                <element signature="e#6364#6583#0" expanded="true" />
+                <element signature="e#6688#6751#0" expanded="true" />
+                <element signature="e#7588#7807#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -109,9 +116,9 @@
         <option value="$PROJECT_DIR$/server-tests/temp.ts" />
         <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
         <option value="$PROJECT_DIR$/src/spiders.ts" />
-        <option value="$PROJECT_DIR$/src/MOP.ts" />
         <option value="$PROJECT_DIR$/src/serialisation.ts" />
         <option value="$PROJECT_DIR$/index.d.ts" />
+        <option value="$PROJECT_DIR$/src/MOP.ts" />
       </list>
     </option>
   </component>
@@ -156,6 +163,7 @@
     </navigator>
     <panes>
       <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -171,24 +179,18 @@
             <path>
               <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
               <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
-              <item name="server-tests" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
               <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="ActorSTDLib.ts" type="620a8d5e:NestingTreeNode" />
+              <item name="Replication" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -347,7 +349,8 @@
       <workItem from="1523266440492" duration="2991000" />
       <workItem from="1523286036686" duration="1893000" />
       <workItem from="1523291929266" duration="7000" />
-      <workItem from="1523295704525" duration="2639000" />
+      <workItem from="1523295704525" duration="2713000" />
+      <workItem from="1523428153515" duration="699000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -623,7 +626,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="108934000" />
+    <option name="totallyTimeSpent" value="109707000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="812" extended-state="0" />
@@ -631,7 +634,7 @@
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33285302" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33285302" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -877,6 +880,8 @@
         <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/client/DatasetsObserver.js" />
         <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/ConfigsObserver.js" />
         <option value="$USER_HOME$/Desktop/Research/EmixisAI/FuelAI/src/WebApp/ConfigsObserver.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/tests/EVDefinition.js.map" />
+        <option value="$PROJECT_DIR$/../CAPtain/tests/EVDefinition.js" />
       </list>
     </option>
   </component>
@@ -915,7 +920,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/client-tests/testPS.html" />
     <entry file="file://$PROJECT_DIR$/client-tests/testPS.ts" />
     <entry file="file://$PROJECT_DIR$/server-tests/reactivity.Test.ts">
       <provider selected="true" editor-type-id="text-editor">
@@ -1170,10 +1174,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="92" selection-end-column="1" />
-          <folding>
-            <element signature="n#!!block;n#cloneDR#0" expanded="false" />
-            <element signature="e#1305#1357#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1208,7 +1208,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-79">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1216,12 +1215,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
           <caret line="5" column="38" lean-forward="false" selection-start-line="5" selection-start-column="38" selection-end-line="5" selection-end-column="38" />
-          <folding>
-            <element signature="e#170#499#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#testActor2#0" expanded="true" />
-            <element signature="n#!!block;n#getVal#0;n#testActor2#0" expanded="true" />
-            <element signature="e#766#788#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1236,7 +1229,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="146">
           <caret line="638" column="36" lean-forward="false" selection-start-line="638" selection-start-column="36" selection-end-line="638" selection-end-column="36" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1244,30 +1236,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="316">
           <caret line="754" column="47" lean-forward="false" selection-start-line="754" selection-start-column="47" selection-end-line="754" selection-end-column="47" />
-          <folding>
-            <element signature="n#!!block;n#deserialise#0" expanded="true" />
-            <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/MOP.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2079">
-          <caret line="198" column="39" lean-forward="false" selection-start-line="198" selection-start-column="39" selection-end-line="198" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#40#0" expanded="true" />
-            <element signature="n#!!block;n#bindBase#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#bindProxy#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#bindProxy#0;n#SpiderIsolateMirror#0" expanded="true" />
-            <element signature="n#!!block;n#resolve#0;n#SpiderIsolateMirror#0" expanded="true" />
-            <element signature="n#!!block;n#makeSpiderObjectProxy#0" expanded="true" />
-            <element signature="e#2522#3534#0" expanded="true" />
-            <element signature="e#2959#3044#0" expanded="true" />
-            <element signature="e#3318#3401#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#SpiderObject#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1276,7 +1244,7 @@
         <state relative-caret-position="1095">
           <caret line="137" column="50" lean-forward="false" selection-start-line="137" selection-start-column="50" selection-end-line="137" selection-end-column="50" />
           <folding>
-            <element signature="e#0#46#0" expanded="true" />
+            <element signature="e#0#46#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1286,6 +1254,30 @@
         <state relative-caret-position="381">
           <caret line="44" column="16" lean-forward="false" selection-start-line="44" selection-start-column="16" selection-end-line="44" selection-end-column="16" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Replication/Repliq.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="18" selection-end-column="1" />
+          <folding>
+            <element signature="e#0#49#0" expanded="true" />
+            <element signature="n#!!block;n#atomic#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MOP.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1051">
+          <caret line="214" column="29" lean-forward="false" selection-start-line="214" selection-start-column="29" selection-end-line="214" selection-end-column="29" />
+          <folding>
+            <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
+            <element signature="e#6364#6583#0" expanded="true" />
+            <element signature="e#6688#6751#0" expanded="true" />
+            <element signature="e#7588#7807#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

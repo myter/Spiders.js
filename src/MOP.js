@@ -148,7 +148,17 @@ class SpiderIsolate {
         let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
         for (var i in thisClone) {
             if (typeof thisClone[i] == 'function') {
+                let original = thisClone[i];
+                let toCopy = [];
+                Reflect.ownKeys(original).forEach((key) => {
+                    if (key != "length" && key != "name" && key != "arguments" && key != "caller" && key != "prototype") {
+                        toCopy.push([key, original[key]]);
+                    }
+                });
                 thisClone[i] = thisClone[i].bind(proxied);
+                toCopy.forEach(([key, val]) => {
+                    thisClone[i][key] = val;
+                });
             }
         }
         objectMirror.bindProxy(proxied);
@@ -164,7 +174,17 @@ class SpiderIsolate {
         let proxied = makeSpiderObjectProxy(isolClone, this.mirror);
         for (var i in isolClone) {
             if (typeof isolClone[i] == 'function') {
+                let original = isolClone[i];
+                let toCopy = [];
+                Reflect.ownKeys(original).forEach((key) => {
+                    if (key != "length" && key != "name" && key != "arguments" && key != "caller" && key != "prototype") {
+                        toCopy.push([key, original[key]]);
+                    }
+                });
                 isolClone[i] = isolClone[i].bind(proxied);
+                toCopy.forEach(([key, val]) => {
+                    isolClone[i][key] = val;
+                });
             }
         }
         objectMirror.bindProxy(proxied);
