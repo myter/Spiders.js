@@ -3,9 +3,20 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/client-tests/baseBundle.js" afterPath="$PROJECT_DIR$/client-tests/baseBundle.js" />
+      <change beforePath="$PROJECT_DIR$/client-tests/testBaseFramework.js" afterPath="$PROJECT_DIR$/client-tests/testBaseFramework.js" />
+      <change beforePath="$PROJECT_DIR$/client-tests/testBaseFramework.js.map" afterPath="$PROJECT_DIR$/client-tests/testBaseFramework.js.map" />
+      <change beforePath="$PROJECT_DIR$/client-tests/testBaseFramework.ts" afterPath="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
+      <change beforePath="$PROJECT_DIR$/full-tests/full-bundle.js" afterPath="$PROJECT_DIR$/full-tests/full-bundle.js" />
+      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.js" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.js" />
+      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.js.map" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.js.map" />
+      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.ts" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.ts" />
       <change beforePath="$PROJECT_DIR$/src/MOP.js" afterPath="$PROJECT_DIR$/src/MOP.js" />
       <change beforePath="$PROJECT_DIR$/src/MOP.js.map" afterPath="$PROJECT_DIR$/src/MOP.js.map" />
       <change beforePath="$PROJECT_DIR$/src/MOP.ts" afterPath="$PROJECT_DIR$/src/MOP.ts" />
+      <change beforePath="$PROJECT_DIR$/src/serialisation.js" afterPath="$PROJECT_DIR$/src/serialisation.js" />
+      <change beforePath="$PROJECT_DIR$/src/serialisation.js.map" afterPath="$PROJECT_DIR$/src/serialisation.js.map" />
+      <change beforePath="$PROJECT_DIR$/src/serialisation.ts" afterPath="$PROJECT_DIR$/src/serialisation.ts" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -23,23 +34,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="MOP.ts" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/MOP.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1051">
-              <caret line="214" column="29" lean-forward="false" selection-start-line="214" selection-start-column="29" selection-end-line="214" selection-end-column="29" />
-              <folding>
-                <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-                <element signature="e#6364#6583#0" expanded="true" />
-                <element signature="e#6688#6751#0" expanded="true" />
-                <element signature="e#7588#7807#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -69,9 +64,10 @@
       <find>FarRef</find>
       <find>remote</find>
       <find>&lt;.*Actor&gt;</find>
-      <find>resolve</find>
       <find>pass</find>
       <find>proto</find>
+      <find>require</find>
+      <find>resolve</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -111,14 +107,14 @@
         <option value="$PROJECT_DIR$/server-tests/PubSub.Test.ts" />
         <option value="$PROJECT_DIR$/src/MAP.ts" />
         <option value="$PROJECT_DIR$/src/messageHandler.ts" />
-        <option value="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
-        <option value="$PROJECT_DIR$/server-tests/server-side.Test.ts" />
         <option value="$PROJECT_DIR$/server-tests/temp.ts" />
         <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
         <option value="$PROJECT_DIR$/src/spiders.ts" />
-        <option value="$PROJECT_DIR$/src/serialisation.ts" />
         <option value="$PROJECT_DIR$/index.d.ts" />
+        <option value="$PROJECT_DIR$/src/serialisation.ts" />
         <option value="$PROJECT_DIR$/src/MOP.ts" />
+        <option value="$PROJECT_DIR$/server-tests/server-side.Test.ts" />
+        <option value="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
       </list>
     </option>
   </component>
@@ -162,7 +158,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
@@ -179,6 +174,11 @@
             <path>
               <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
               <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+              <item name="server-tests" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -191,6 +191,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -350,7 +351,14 @@
       <workItem from="1523286036686" duration="1893000" />
       <workItem from="1523291929266" duration="7000" />
       <workItem from="1523295704525" duration="2713000" />
-      <workItem from="1523428153515" duration="699000" />
+      <workItem from="1523428153515" duration="747000" />
+      <workItem from="1523437046669" duration="638000" />
+      <workItem from="1523440100953" duration="528000" />
+      <workItem from="1523521138837" duration="620000" />
+      <workItem from="1523538259270" duration="33000" />
+      <workItem from="1523538355130" duration="119000" />
+      <workItem from="1523538801541" duration="234000" />
+      <workItem from="1523544932724" duration="405000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -594,20 +602,8 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.10 at 07h 02m 47s.xml">
+    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.12 at 17h 01m 58s.xml">
       <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.05 at 14h 47m 11s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.05 at 17h 18m 03s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.09 at 13h 50m 10s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.09 at 13h 51m 29s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.09 at 13h 53m 19s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
@@ -624,17 +620,28 @@
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.10 at 07h 02m 34s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.12 at 16h 57m 20s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.12 at 16h 59m 26s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.12 at 17h 00m 28s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.12 at 17h 01m 48s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="109707000" />
+    <option name="totallyTimeSpent" value="112332000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="812" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33285302" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33285302" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1149,24 +1156,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server-tests/PubSub.Test.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1635">
-          <caret line="179" column="67" lean-forward="true" selection-start-line="179" selection-start-column="67" selection-end-line="179" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/messageHandler.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="389">
           <caret line="128" column="17" lean-forward="false" selection-start-line="128" selection-start-column="17" selection-end-line="128" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/client-tests/testBaseFramework.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="617">
-          <caret line="101" column="75" lean-forward="false" selection-start-line="101" selection-start-column="75" selection-end-line="101" selection-end-column="75" />
         </state>
       </provider>
     </entry>
@@ -1188,19 +1181,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/server-tests/server-side.Test.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="446" column="10" lean-forward="false" selection-start-line="404" selection-start-column="8" selection-end-line="446" selection-end-column="10" />
-          <folding>
-            <element signature="e#31532#38516#0" expanded="false" />
-            <element signature="e#31578#32671#0" expanded="false" />
-            <element signature="e#36539#37522#0" expanded="false" />
-            <element signature="e#36639#36728#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1232,13 +1212,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="316">
-          <caret line="754" column="47" lean-forward="false" selection-start-line="754" selection-start-column="47" selection-end-line="754" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/spiders.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1095">
@@ -1249,34 +1222,86 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.d.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="381">
-          <caret line="44" column="16" lean-forward="false" selection-start-line="44" selection-start-column="16" selection-end-line="44" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Replication/Repliq.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
           <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="18" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="617">
+          <caret line="44" column="16" lean-forward="false" selection-start-line="44" selection-start-column="16" selection-end-line="44" selection-end-column="16" />
           <folding>
-            <element signature="e#0#49#0" expanded="true" />
-            <element signature="n#!!block;n#atomic#0" expanded="true" />
+            <element signature="e#68#124#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="233">
+          <caret line="1068" column="54" lean-forward="false" selection-start-line="1068" selection-start-column="54" selection-end-line="1068" selection-end-column="54" />
+          <folding>
+            <element signature="n#!!block;n#deconstructBehaviour#0" expanded="false" />
+            <element signature="n#!!block;n#serialise#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/PubSub.Test.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="11" column="17" lean-forward="false" selection-start-line="11" selection-start-column="17" selection-end-line="11" selection-end-column="17" />
+          <folding>
+            <element signature="n#!!block;n#constructor#0;n#TestServer#0" expanded="false" />
+            <element signature="e#2811#5425#0" expanded="false" />
+            <element signature="e#4008#5422#0" expanded="false" />
+            <element signature="e#4352#4438#0" expanded="false" />
+            <element signature="e#4458#4592#0" expanded="false" />
+            <element signature="e#4722#5022#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/client-tests/testBaseFramework.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="231">
+          <caret line="393" column="34" lean-forward="false" selection-start-line="393" selection-start-column="34" selection-end-line="393" selection-end-column="34" />
+          <folding>
+            <element signature="n#!!block;n#pass#0;n#CustomPassMopMirror#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/server-side.Test.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="151">
+          <caret line="1398" column="34" lean-forward="false" selection-start-line="1398" selection-start-column="34" selection-end-line="1398" selection-end-column="34" />
+          <folding>
+            <element signature="e#10502#11827#0" expanded="false" />
+            <element signature="e#11201#11273#0" expanded="false" />
+            <element signature="e#11294#11334#0" expanded="false" />
+            <element signature="e#11477#11820#0" expanded="false" />
+            <element signature="e#25733#31493#0" expanded="false" />
+            <element signature="e#31578#32671#0" expanded="false" />
+            <element signature="e#36539#37522#0" expanded="false" />
+            <element signature="e#38118#38216#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MOP.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1051">
-          <caret line="214" column="29" lean-forward="false" selection-start-line="214" selection-start-column="29" selection-end-line="214" selection-end-column="29" />
+        <state relative-caret-position="330">
+          <caret line="37" column="29" lean-forward="false" selection-start-line="37" selection-start-column="29" selection-end-line="37" selection-end-column="29" />
           <folding>
-            <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-            <element signature="e#6364#6583#0" expanded="true" />
-            <element signature="e#6688#6751#0" expanded="true" />
-            <element signature="e#7588#7807#0" expanded="true" />
+            <element signature="n#!!block;n#resolve#0;n#SpiderIsolateMirror#0" expanded="true" />
+            <element signature="n#SpiderObject#0" expanded="false" />
+            <element signature="n#SpiderIsolate#0" expanded="false" />
+            <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
+            <element signature="e#7972#8035#0" expanded="true" />
           </folding>
         </state>
       </provider>

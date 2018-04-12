@@ -358,9 +358,9 @@ scheduled.push(CustomWriteMop)
 class CustomPassMopMirror extends SpiderIsolateMirror{
     testValue
 
-    pass(){
+    pass(arg){
         this.testValue = 5
-        return super.pass()
+        return super.pass(arg)
     }
 }
 class CustomPassMopObject extends SpiderIsolate{
@@ -389,8 +389,9 @@ scheduled.push(CustomPassMop)
 class CustomResolveMopMirror extends SpiderIsolateMirror{
     testValue
 
-    resolve(){
+    resolve(mirr){
         this.testValue = 5
+        return super.resolve(mirr)
     }
 }
 class CustomResolveMopObject extends SpiderIsolate{

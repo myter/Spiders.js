@@ -23,6 +23,7 @@ class SpiderObjectMirror {
     }
     resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
+        return this.proxyBase;
     }
 }
 SpiderObjectMirror.mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_";
@@ -52,6 +53,7 @@ class SpiderIsolateMirror {
     }
     resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
+        return this.proxyBase;
     }
 }
 exports.SpiderIsolateMirror = SpiderIsolateMirror;

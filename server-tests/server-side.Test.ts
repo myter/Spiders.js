@@ -1395,8 +1395,9 @@ describe("Meta Object Protocol",()=>{
         class TestMirror extends SpiderIsolateMirror{
             testValue
 
-            resolve(){
+            resolve(mirr){
                 this.testValue = 5
+                return super.resolve(mirr)
             }
         }
         class TestObject extends SpiderIsolate{

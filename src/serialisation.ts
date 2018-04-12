@@ -1065,9 +1065,8 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         var isolate     = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),environment)
         var isolClone   = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),environment)
         var mirror      = reconstructBehaviour({},JSON.parse(isolateContainer.mirrorVars),JSON.parse(isolateContainer.mirrorMethods),environment)
-        let ret         = isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy)
-        mirror.resolve(environment.actorMirror)
-        return ret
+        isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy)
+        return mirror.resolve(environment.actorMirror)
     }
 
     function deSerialiseSpiderObjectMirrorDefintion(def : SpiderObjectMirrorDefinitionContainer){

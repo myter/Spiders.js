@@ -302,9 +302,9 @@ let CustomWriteMop = () => {
 };
 scheduled.push(CustomWriteMop);
 class CustomPassMopMirror extends spiders_1.SpiderIsolateMirror {
-    pass() {
+    pass(arg) {
         this.testValue = 5;
-        return super.pass();
+        return super.pass(arg);
     }
 }
 class CustomPassMopObject extends spiders_1.SpiderIsolate {
@@ -329,8 +329,9 @@ let CustomPassMop = () => {
 };
 scheduled.push(CustomPassMop);
 class CustomResolveMopMirror extends spiders_1.SpiderIsolateMirror {
-    resolve() {
+    resolve(mirr) {
         this.testValue = 5;
+        return super.resolve(mirr);
     }
 }
 class CustomResolveMopObject extends spiders_1.SpiderIsolate {

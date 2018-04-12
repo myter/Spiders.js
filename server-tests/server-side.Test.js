@@ -1312,8 +1312,9 @@ describe("Meta Object Protocol", () => {
     });
     it("Custom Resolve", function (done) {
         class TestMirror extends spiders_1.SpiderIsolateMirror {
-            resolve() {
+            resolve(mirr) {
                 this.testValue = 5;
+                return super.resolve(mirr);
             }
         }
         class TestObject extends spiders_1.SpiderIsolate {

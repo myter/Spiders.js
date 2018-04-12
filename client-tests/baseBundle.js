@@ -313,9 +313,9 @@ let CustomWriteMop = () => {
 };
 scheduled.push(CustomWriteMop);
 class CustomPassMopMirror extends spiders_1.SpiderIsolateMirror {
-    pass() {
+    pass(arg) {
         this.testValue = 5;
-        return super.pass();
+        return super.pass(arg);
     }
 }
 class CustomPassMopObject extends spiders_1.SpiderIsolate {
@@ -340,8 +340,9 @@ let CustomPassMop = () => {
 };
 scheduled.push(CustomPassMop);
 class CustomResolveMopMirror extends spiders_1.SpiderIsolateMirror {
-    resolve() {
+    resolve(mirr) {
         this.testValue = 5;
+        return super.resolve(mirr);
     }
 }
 class CustomResolveMopObject extends spiders_1.SpiderIsolate {
@@ -56462,6 +56463,7 @@ class SpiderObjectMirror {
     }
     resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
+        return this.proxyBase;
     }
 }
 SpiderObjectMirror.mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_";
@@ -56491,6 +56493,7 @@ class SpiderIsolateMirror {
     }
     resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
+        return this.proxyBase;
     }
 }
 exports.SpiderIsolateMirror = SpiderIsolateMirror;
@@ -56587,7 +56590,17 @@ class SpiderIsolate {
         let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
         for (var i in thisClone) {
             if (typeof thisClone[i] == 'function') {
+                let original = thisClone[i];
+                let toCopy = [];
+                Reflect.ownKeys(original).forEach((key) => {
+                    if (key != "length" && key != "name" && key != "arguments" && key != "caller" && key != "prototype") {
+                        toCopy.push([key, original[key]]);
+                    }
+                });
                 thisClone[i] = thisClone[i].bind(proxied);
+                toCopy.forEach(([key, val]) => {
+                    thisClone[i][key] = val;
+                });
             }
         }
         objectMirror.bindProxy(proxied);
@@ -56603,7 +56616,17 @@ class SpiderIsolate {
         let proxied = makeSpiderObjectProxy(isolClone, this.mirror);
         for (var i in isolClone) {
             if (typeof isolClone[i] == 'function') {
+                let original = isolClone[i];
+                let toCopy = [];
+                Reflect.ownKeys(original).forEach((key) => {
+                    if (key != "length" && key != "name" && key != "arguments" && key != "caller" && key != "prototype") {
+                        toCopy.push([key, original[key]]);
+                    }
+                });
                 isolClone[i] = isolClone[i].bind(proxied);
+                toCopy.forEach(([key, val]) => {
+                    isolClone[i][key] = val;
+                });
             }
         }
         objectMirror.bindProxy(proxied);
@@ -59832,9 +59855,8 @@ function deserialise(value, environment) {
         var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
         var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
         var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), environment);
-        let ret = isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy);
-        mirror.resolve(environment.actorMirror);
-        return ret;
+        isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy);
+        return mirror.resolve(environment.actorMirror);
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {
         let scopes = def.scopes.map((scope) => {
