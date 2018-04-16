@@ -56500,6 +56500,20 @@ exports.SpiderIsolateMirror = SpiderIsolateMirror;
 function isInternal(property) {
     return property == "_FAR_REF_" || property == "_PROXY_WRAPPER_" || property == "SPIDER_SERVER_TYPE" || property == "SPIDER_CLIENT_TYPE" || property == "_SERVER_" || property == "_CLIENT_" || property == "_INSTANCEOF_Signal_" || property == "_INSTANCEOF_ISOLATE_" || property == "_INSTANCEOF_ARRAY_ISOLATE_" || property == "_INSTANCEOF_REPLIQ_" || property == "_INSTANCEOF_Signal_" || property == "setEnv" || property == "_SPIDER_OBJECT_" || property == "hasOwnProperty";
 }
+//Taken from the following thread:
+//https://stackoverflow.com/questions/34255580/bind-that-does-not-return-native-code-in-javascript
+//Binding using Javascript's bind messes up the function's toString() method (returns [native code])
+//Might need the function's source for serialisation etc
+function simpleBind(fun, ctx) {
+    var newFun = function () {
+        return fun.apply(ctx, arguments);
+    };
+    newFun.toString = function () {
+        return fun.toString();
+    };
+    return newFun;
+}
+exports.simpleBind = simpleBind;
 function makeSpiderObjectProxy(baseObject, mirror, considerAsObject = true) {
     return new Proxy(baseObject, {
         get: function (target, property) {
@@ -56564,7 +56578,8 @@ class SpiderObject {
         let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
         for (var i in thisClone) {
             if (typeof thisClone[i] == 'function' && i != "constructor") {
-                thisClone[i] = thisClone[i].bind(proxied);
+                thisClone[i] = simpleBind(thisClone[i], proxied);
+                //thisClone[i] = thisClone[i].bind(proxied)
             }
         }
         objectMirror.bindProxy(proxied);
@@ -56597,7 +56612,8 @@ class SpiderIsolate {
                         toCopy.push([key, original[key]]);
                     }
                 });
-                thisClone[i] = thisClone[i].bind(proxied);
+                thisClone[i] = simpleBind(thisClone[i], proxied);
+                //thisClone[i] = thisClone[i].bind(proxied);
                 toCopy.forEach(([key, val]) => {
                     thisClone[i][key] = val;
                 });
@@ -56607,7 +56623,7 @@ class SpiderIsolate {
         return proxied;
     }
     //Called by serialise on an already constructed isolate which has just been passed
-    instantiate(objectMirror, isolClone, wrapPrototypes, makeSpiderObjectProxy) {
+    instantiate(objectMirror, isolClone, wrapPrototypes, makeSpiderObjectProxy, simpleBind) {
         objectMirror.bindBase(isolClone);
         this.mirror = objectMirror;
         isolClone["_SPIDER_OBJECT_MIRROR_"] = objectMirror;
@@ -56623,7 +56639,8 @@ class SpiderIsolate {
                         toCopy.push([key, original[key]]);
                     }
                 });
-                isolClone[i] = isolClone[i].bind(proxied);
+                isolClone[i] = simpleBind(isolClone[i], proxied);
+                //isolClone[i] = isolClone[i].bind(proxied);
                 toCopy.forEach(([key, val]) => {
                     isolClone[i][key] = val;
                 });
@@ -59855,7 +59872,7 @@ function deserialise(value, environment) {
         var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
         var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
         var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), environment);
-        isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy);
+        isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy, MOP_1.simpleBind);
         return mirror.resolve(environment.actorMirror);
     }
     function deSerialiseSpiderObjectMirrorDefintion(def) {

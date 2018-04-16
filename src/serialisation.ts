@@ -15,7 +15,7 @@ import {
     getClassDefinitionChain, getSerialiableClassDefinition, hasLexScope, LexScope,
     reconstructClassDefinitionChain
 } from "./utils";
-import {makeSpiderObjectProxy, SpiderObject, SpiderObjectMirror, wrapPrototypes} from "./MOP";
+import {makeSpiderObjectProxy, simpleBind, SpiderObject, SpiderObjectMirror, wrapPrototypes} from "./MOP";
 
 var Signal      = require("./Reactivivity/signal").Signal
 /**
@@ -1065,7 +1065,7 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         var isolate     = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),environment)
         var isolClone   = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),environment)
         var mirror      = reconstructBehaviour({},JSON.parse(isolateContainer.mirrorVars),JSON.parse(isolateContainer.mirrorMethods),environment)
-        isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy)
+        isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy,simpleBind)
         return mirror.resolve(environment.actorMirror)
     }
 

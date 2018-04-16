@@ -6,7 +6,7 @@ import {FarRef} from "../spiders"
 
 
 export class PSServer{
-    private subscribers : Map<string,Array<FarRef>>
+    private subscribers : Map<string,Array<FarRef<any>>>
     private published   : Map<string,Array<any>>
 
     constructor(){
@@ -20,13 +20,13 @@ export class PSServer{
         }
         this.published.get(typeTag.tagVal).push(published)
         if(this.subscribers.has(typeTag.tagVal)){
-            this.subscribers.get(typeTag.tagVal).forEach((subscriber : FarRef)=>{
+            this.subscribers.get(typeTag.tagVal).forEach((subscriber : FarRef<any>)=>{
                 subscriber.newPublished(published,typeTag)
             })
         }
     }
 
-    addSubscriber(typeTag : PubSubTag,subReference : FarRef){
+    addSubscriber(typeTag : PubSubTag,subReference : FarRef<any>){
         if(!this.subscribers.has(typeTag.tagVal)){
             this.subscribers.set(typeTag.tagVal,[])
         }

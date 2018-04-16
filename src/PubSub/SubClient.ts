@@ -63,15 +63,15 @@ export class Publication{
 
 export class PSClient{
     private connected           : boolean = false
-    private serverRef           : FarRef
+    private serverRef           : FarRef<any>
     private bufferedMessages    : Array<Function>
     protected subscriptions     : Map<string,Array<Subscription>>
 
     constructor(hostActor,serverAddress,serverPort){
         var that                = this
         this.bufferedMessages   = []
-        hostActor.libs.remote(serverAddress,serverPort).then((serverRef : FarRef)=>{
-            serverRef._PS_SERVER_.then((psServerRef : FarRef)=>{
+        hostActor.libs.remote(serverAddress,serverPort).then((serverRef : FarRef<any>)=>{
+            serverRef._PS_SERVER_.then((psServerRef : FarRef<any>)=>{
                 that.serverRef = psServerRef
                 that.connected = true
                 if(that.bufferedMessages.length > 0){
