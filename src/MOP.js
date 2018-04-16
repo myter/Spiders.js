@@ -71,6 +71,9 @@ function simpleBind(fun, ctx) {
     newFun.toString = function () {
         return fun.toString();
     };
+    newFun.unBind = function () {
+        return fun;
+    };
     return newFun;
 }
 exports.simpleBind = simpleBind;

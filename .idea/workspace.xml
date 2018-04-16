@@ -3,18 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/client-tests/baseBundle.js" afterPath="$PROJECT_DIR$/client-tests/baseBundle.js" />
-      <change beforePath="$PROJECT_DIR$/full-tests/full-bundle.js" afterPath="$PROJECT_DIR$/full-tests/full-bundle.js" />
       <change beforePath="$PROJECT_DIR$/src/MOP.js" afterPath="$PROJECT_DIR$/src/MOP.js" />
       <change beforePath="$PROJECT_DIR$/src/MOP.js.map" afterPath="$PROJECT_DIR$/src/MOP.js.map" />
       <change beforePath="$PROJECT_DIR$/src/MOP.ts" afterPath="$PROJECT_DIR$/src/MOP.ts" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubClient.js.map" afterPath="$PROJECT_DIR$/src/PubSub/SubClient.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubClient.ts" afterPath="$PROJECT_DIR$/src/PubSub/SubClient.ts" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubServer.js.map" afterPath="$PROJECT_DIR$/src/PubSub/SubServer.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubServer.ts" afterPath="$PROJECT_DIR$/src/PubSub/SubServer.ts" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js" afterPath="$PROJECT_DIR$/src/serialisation.js" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js.map" afterPath="$PROJECT_DIR$/src/serialisation.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.ts" afterPath="$PROJECT_DIR$/src/serialisation.ts" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -37,7 +28,7 @@
         <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="360">
-              <caret line="35" column="22" lean-forward="false" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
+              <caret line="35" column="22" lean-forward="true" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
               <folding>
                 <element signature="e#1374#4072#0" expanded="true" />
                 <element signature="n#!!block;n#sendMethodInvocation#0;n#ClientFarReference#0" expanded="true" />
@@ -46,20 +37,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MOP.ts" pinned="false" current-in-tab="false">
+      <file leaf-file-name="MOP.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/MOP.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="90" column="7" lean-forward="false" selection-start-line="90" selection-start-column="7" selection-end-line="90" selection-end-column="7" />
+            <state relative-caret-position="282">
+              <caret line="96" column="6" lean-forward="false" selection-start-line="96" selection-start-column="6" selection-end-line="96" selection-end-column="6" />
               <folding>
                 <element signature="n#!!block;n#invoke#0;n#SpiderObjectMirror#0" expanded="true" />
                 <element signature="n#!!block;n#resolve#0;n#SpiderObjectMirror#0" expanded="true" />
                 <element signature="n#!!block;n#invoke#0;n#SpiderIsolateMirror#0" expanded="true" />
                 <element signature="e#2749#2798#0" expanded="true" />
                 <element signature="e#2831#2869#0" expanded="true" />
+                <element signature="e#2910#2936#0" expanded="true" />
                 <element signature="n#!!block;n#constructor#0;n#SpiderObject#0" expanded="true" />
                 <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-                <element signature="e#7380#7443#0" expanded="true" />
+                <element signature="e#7447#7510#0" expanded="true" />
                 <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
               </folding>
             </state>
@@ -76,11 +68,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="serialisation.ts" pinned="false" current-in-tab="true">
+      <file leaf-file-name="serialisation.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1860">
-              <caret line="1067" column="93" lean-forward="false" selection-start-line="1067" selection-start-column="93" selection-end-line="1067" selection-end-column="93" />
+            <state relative-caret-position="330">
+              <caret line="131" column="8" lean-forward="false" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
               <folding>
                 <element signature="n#!!doc;n#getObjectVars#0" expanded="false" />
                 <element signature="e#1270#1551#0" expanded="false" />
@@ -104,7 +96,6 @@
                 <element signature="e#4708#4820#0" expanded="false" />
                 <element signature="e#4903#5064#0" expanded="false" />
                 <element signature="e#5110#5174#0" expanded="false" />
-                <element signature="e#5183#5255#0" expanded="false" />
                 <element signature="e#6084#6227#0" expanded="false" />
                 <element signature="e#6593#7274#0" expanded="false" />
                 <element signature="e#6701#7053#0" expanded="false" />
@@ -113,7 +104,10 @@
                 <element signature="e#7615#7862#0" expanded="false" />
                 <element signature="e#7773#7852#0" expanded="false" />
                 <element signature="e#8089#8136#0" expanded="false" />
+                <element signature="n#!!block;n#reconstructBehaviour#0" expanded="true" />
                 <element signature="e#8353#8534#0" expanded="false" />
+                <element signature="e#8980#9312#0" expanded="true" />
+                <element signature="e#9124#9305#0" expanded="true" />
                 <element signature="e#9434#9469#0" expanded="false" />
                 <element signature="n#ValueContainer#0" expanded="false" />
                 <element signature="n#NativeContainer#0" expanded="false" />
@@ -197,6 +191,7 @@
                 <element signature="e#37658#37710#0" expanded="false" />
                 <element signature="e#37952#38053#0" expanded="false" />
                 <element signature="e#38069#38118#0" expanded="false" />
+                <element signature="n#!!block;n#deserialise#0" expanded="true" />
                 <element signature="e#38768#38973#0" expanded="false" />
                 <element signature="e#38841#38963#0" expanded="false" />
                 <element signature="e#38986#39198#0" expanded="false" />
@@ -208,29 +203,12 @@
                 <element signature="e#44886#45070#0" expanded="false" />
                 <element signature="e#45083#45243#0" expanded="false" />
                 <element signature="e#45807#46148#0" expanded="false" />
+                <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
                 <element signature="e#49169#49761#0" expanded="false" />
                 <element signature="e#49478#49611#0" expanded="false" />
                 <element signature="e#49778#50068#0" expanded="false" />
                 <element signature="e#49805#49938#0" expanded="false" />
                 <element signature="e#50733#52896#0" expanded="false" />
-                <element signature="e#50761#50845#0" expanded="false" />
-                <element signature="e#50854#50951#0" expanded="false" />
-                <element signature="e#50960#51072#0" expanded="false" />
-                <element signature="e#51081#51193#0" expanded="false" />
-                <element signature="e#51202#51293#0" expanded="false" />
-                <element signature="e#51302#51393#0" expanded="false" />
-                <element signature="e#51402#51496#0" expanded="false" />
-                <element signature="e#51505#51625#0" expanded="false" />
-                <element signature="e#51634#51728#0" expanded="false" />
-                <element signature="e#51737#51857#0" expanded="false" />
-                <element signature="e#51866#51997#0" expanded="false" />
-                <element signature="e#52006#52148#0" expanded="false" />
-                <element signature="e#52157#52288#0" expanded="false" />
-                <element signature="e#52297#52406#0" expanded="false" />
-                <element signature="e#52415#52558#0" expanded="false" />
-                <element signature="e#52567#52681#0" expanded="false" />
-                <element signature="e#52690#52775#0" expanded="false" />
-                <element signature="e#52784#52890#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -315,8 +293,8 @@
         <option value="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubServer.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubClient.ts" />
-        <option value="$PROJECT_DIR$/src/MOP.ts" />
         <option value="$PROJECT_DIR$/src/serialisation.ts" />
+        <option value="$PROJECT_DIR$/src/MOP.ts" />
       </list>
     </option>
   </component>
@@ -360,7 +338,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -399,6 +376,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -425,7 +403,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Multirun.TestAllClient">
+  <component name="RunManager" selected="Mocha.server-tests/server-side.Test.ts">
     <configuration name="client-tests" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63342/Spiders.js/testBaseFramework.html">
       <method>
         <option name="NpmBeforeRunTask" enabled="true">
@@ -572,6 +550,8 @@
       <workItem from="1523799010902" duration="84000" />
       <workItem from="1523881227293" duration="14000" />
       <workItem from="1523882471526" duration="533000" />
+      <workItem from="1523883192744" duration="49000" />
+      <workItem from="1523884683278" duration="102000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -815,9 +795,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.16 at 14h 50m 02s.xml">
-      <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.10 at 06h 59m 02s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
@@ -845,19 +822,22 @@
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.16 at 14h 49m 52s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.16 at 15h 19m 48s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="114449000" />
+    <option name="totallyTimeSpent" value="114600000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="815" extended-state="6" />
+    <frame x="0" y="23" width="1440" height="817" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32998565" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32904148" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TypeScript" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32708934" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.10923185" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -1316,7 +1296,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
           <caret line="8" column="12" lean-forward="false" selection-start-line="8" selection-start-column="12" selection-end-line="8" selection-end-column="12" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1454,17 +1433,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="35" column="22" lean-forward="false" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
-          <folding>
-            <element signature="e#1374#4072#0" expanded="true" />
-            <element signature="n#!!block;n#sendMethodInvocation#0;n#ClientFarReference#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Sockets.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="525">
@@ -1473,28 +1441,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/MOP.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="90" column="7" lean-forward="false" selection-start-line="90" selection-start-column="7" selection-end-line="90" selection-end-column="7" />
-          <folding>
-            <element signature="n#!!block;n#invoke#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#resolve#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#invoke#0;n#SpiderIsolateMirror#0" expanded="true" />
-            <element signature="e#2749#2798#0" expanded="true" />
-            <element signature="e#2831#2869#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#SpiderObject#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-            <element signature="e#7380#7443#0" expanded="true" />
-            <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1860">
-          <caret line="1067" column="93" lean-forward="false" selection-start-line="1067" selection-start-column="93" selection-end-line="1067" selection-end-column="93" />
+        <state relative-caret-position="330">
+          <caret line="131" column="8" lean-forward="false" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
           <folding>
             <element signature="n#!!doc;n#getObjectVars#0" expanded="false" />
             <element signature="e#1270#1551#0" expanded="false" />
@@ -1518,7 +1468,6 @@
             <element signature="e#4708#4820#0" expanded="false" />
             <element signature="e#4903#5064#0" expanded="false" />
             <element signature="e#5110#5174#0" expanded="false" />
-            <element signature="e#5183#5255#0" expanded="false" />
             <element signature="e#6084#6227#0" expanded="false" />
             <element signature="e#6593#7274#0" expanded="false" />
             <element signature="e#6701#7053#0" expanded="false" />
@@ -1527,7 +1476,10 @@
             <element signature="e#7615#7862#0" expanded="false" />
             <element signature="e#7773#7852#0" expanded="false" />
             <element signature="e#8089#8136#0" expanded="false" />
+            <element signature="n#!!block;n#reconstructBehaviour#0" expanded="true" />
             <element signature="e#8353#8534#0" expanded="false" />
+            <element signature="e#8980#9312#0" expanded="true" />
+            <element signature="e#9124#9305#0" expanded="true" />
             <element signature="e#9434#9469#0" expanded="false" />
             <element signature="n#ValueContainer#0" expanded="false" />
             <element signature="n#NativeContainer#0" expanded="false" />
@@ -1611,6 +1563,7 @@
             <element signature="e#37658#37710#0" expanded="false" />
             <element signature="e#37952#38053#0" expanded="false" />
             <element signature="e#38069#38118#0" expanded="false" />
+            <element signature="n#!!block;n#deserialise#0" expanded="true" />
             <element signature="e#38768#38973#0" expanded="false" />
             <element signature="e#38841#38963#0" expanded="false" />
             <element signature="e#38986#39198#0" expanded="false" />
@@ -1622,29 +1575,42 @@
             <element signature="e#44886#45070#0" expanded="false" />
             <element signature="e#45083#45243#0" expanded="false" />
             <element signature="e#45807#46148#0" expanded="false" />
+            <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
             <element signature="e#49169#49761#0" expanded="false" />
             <element signature="e#49478#49611#0" expanded="false" />
             <element signature="e#49778#50068#0" expanded="false" />
             <element signature="e#49805#49938#0" expanded="false" />
             <element signature="e#50733#52896#0" expanded="false" />
-            <element signature="e#50761#50845#0" expanded="false" />
-            <element signature="e#50854#50951#0" expanded="false" />
-            <element signature="e#50960#51072#0" expanded="false" />
-            <element signature="e#51081#51193#0" expanded="false" />
-            <element signature="e#51202#51293#0" expanded="false" />
-            <element signature="e#51302#51393#0" expanded="false" />
-            <element signature="e#51402#51496#0" expanded="false" />
-            <element signature="e#51505#51625#0" expanded="false" />
-            <element signature="e#51634#51728#0" expanded="false" />
-            <element signature="e#51737#51857#0" expanded="false" />
-            <element signature="e#51866#51997#0" expanded="false" />
-            <element signature="e#52006#52148#0" expanded="false" />
-            <element signature="e#52157#52288#0" expanded="false" />
-            <element signature="e#52297#52406#0" expanded="false" />
-            <element signature="e#52415#52558#0" expanded="false" />
-            <element signature="e#52567#52681#0" expanded="false" />
-            <element signature="e#52690#52775#0" expanded="false" />
-            <element signature="e#52784#52890#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="35" column="22" lean-forward="true" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
+          <folding>
+            <element signature="e#1374#4072#0" expanded="true" />
+            <element signature="n#!!block;n#sendMethodInvocation#0;n#ClientFarReference#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MOP.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="282">
+          <caret line="96" column="6" lean-forward="false" selection-start-line="96" selection-start-column="6" selection-end-line="96" selection-end-column="6" />
+          <folding>
+            <element signature="n#!!block;n#invoke#0;n#SpiderObjectMirror#0" expanded="true" />
+            <element signature="n#!!block;n#resolve#0;n#SpiderObjectMirror#0" expanded="true" />
+            <element signature="n#!!block;n#invoke#0;n#SpiderIsolateMirror#0" expanded="true" />
+            <element signature="e#2749#2798#0" expanded="true" />
+            <element signature="e#2831#2869#0" expanded="true" />
+            <element signature="e#2910#2936#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#SpiderObject#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
+            <element signature="e#7447#7510#0" expanded="true" />
+            <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
           </folding>
         </state>
       </provider>

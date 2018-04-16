@@ -94,6 +94,9 @@ export function simpleBind(fun, ctx){
     }
     newFun.toString = function(){
         return fun.toString();
+    };
+    (newFun as any).unBind = function(){
+        return fun
     }
     return newFun;
 }
