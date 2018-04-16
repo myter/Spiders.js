@@ -25,7 +25,12 @@ export class SpiderObjectMirror{
     }
 
     write(fieldName,value) : boolean{
-        this.base[fieldName] = value
+        if(typeof value == 'function'){
+            Reflect.getPrototypeOf(this.base)[fieldName] = value
+        }
+        else{
+            this.base[fieldName] = value
+        }
         return true
     }
 
@@ -64,7 +69,12 @@ export class SpiderIsolateMirror{
     }
 
     write(fieldName,value) : boolean{
-        this.base[fieldName] = value
+        if(typeof value == 'function'){
+            Reflect.getPrototypeOf(this.base)[fieldName] = value
+        }
+        else{
+            this.base[fieldName] = value
+        }
         return true
     }
 

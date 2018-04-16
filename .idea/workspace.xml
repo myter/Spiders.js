@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/client-tests/baseBundle.js" afterPath="$PROJECT_DIR$/client-tests/baseBundle.js" />
+      <change beforePath="$PROJECT_DIR$/full-tests/full-bundle.js" afterPath="$PROJECT_DIR$/full-tests/full-bundle.js" />
       <change beforePath="$PROJECT_DIR$/src/MOP.js" afterPath="$PROJECT_DIR$/src/MOP.js" />
       <change beforePath="$PROJECT_DIR$/src/MOP.js.map" afterPath="$PROJECT_DIR$/src/MOP.js.map" />
       <change beforePath="$PROJECT_DIR$/src/MOP.ts" afterPath="$PROJECT_DIR$/src/MOP.ts" />
@@ -28,7 +30,7 @@
         <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="360">
-              <caret line="35" column="22" lean-forward="true" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
+              <caret line="35" column="22" lean-forward="false" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
               <folding>
                 <element signature="e#1374#4072#0" expanded="true" />
                 <element signature="n#!!block;n#sendMethodInvocation#0;n#ClientFarReference#0" expanded="true" />
@@ -40,18 +42,20 @@
       <file leaf-file-name="MOP.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/MOP.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="282">
-              <caret line="96" column="6" lean-forward="false" selection-start-line="96" selection-start-column="6" selection-end-line="96" selection-end-column="6" />
+            <state relative-caret-position="319">
+              <caret line="33" column="19" lean-forward="false" selection-start-line="33" selection-start-column="19" selection-end-line="33" selection-end-column="19" />
               <folding>
                 <element signature="n#!!block;n#invoke#0;n#SpiderObjectMirror#0" expanded="true" />
                 <element signature="n#!!block;n#resolve#0;n#SpiderObjectMirror#0" expanded="true" />
                 <element signature="n#!!block;n#invoke#0;n#SpiderIsolateMirror#0" expanded="true" />
-                <element signature="e#2749#2798#0" expanded="true" />
-                <element signature="e#2831#2869#0" expanded="true" />
-                <element signature="e#2910#2936#0" expanded="true" />
+                <element signature="n#!!block;n#write#0;n#SpiderIsolateMirror#0" expanded="true" />
+                <element signature="n#!!block;n#simpleBind#0" expanded="true" />
+                <element signature="e#3035#3084#0" expanded="true" />
+                <element signature="e#3117#3155#0" expanded="true" />
+                <element signature="e#3196#3222#0" expanded="true" />
                 <element signature="n#!!block;n#constructor#0;n#SpiderObject#0" expanded="true" />
                 <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-                <element signature="e#7447#7510#0" expanded="true" />
+                <element signature="e#7733#7796#0" expanded="true" />
                 <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
               </folding>
             </state>
@@ -338,6 +342,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -376,8 +382,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -403,7 +407,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Mocha.server-tests/server-side.Test.ts">
+  <component name="RunManager" selected="Multirun.TestAllClient">
     <configuration name="client-tests" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63342/Spiders.js/testBaseFramework.html">
       <method>
         <option name="NpmBeforeRunTask" enabled="true">
@@ -551,7 +555,8 @@
       <workItem from="1523881227293" duration="14000" />
       <workItem from="1523882471526" duration="533000" />
       <workItem from="1523883192744" duration="49000" />
-      <workItem from="1523884683278" duration="102000" />
+      <workItem from="1523884683278" duration="142000" />
+      <workItem from="1523885765670" duration="759000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -795,14 +800,8 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.10 at 06h 59m 02s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.10 at 07h 00m 12s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.10 at 07h 02m 34s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.16 at 15h 48m 17s.xml">
+      <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.12 at 16h 57m 20s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
@@ -825,17 +824,23 @@
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.16 at 15h 19m 48s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.16 at 15h 47m 08s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.16 at 15h 47m 58s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="114600000" />
+    <option name="totallyTimeSpent" value="115399000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="817" extended-state="6" />
+    <frame x="0" y="23" width="1440" height="815" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32904148" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32855093" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1441,6 +1446,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="35" column="22" lean-forward="false" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
+          <folding>
+            <element signature="e#1374#4072#0" expanded="true" />
+            <element signature="n#!!block;n#sendMethodInvocation#0;n#ClientFarReference#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
@@ -1585,31 +1601,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FarRef.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="35" column="22" lean-forward="true" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
-          <folding>
-            <element signature="e#1374#4072#0" expanded="true" />
-            <element signature="n#!!block;n#sendMethodInvocation#0;n#ClientFarReference#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/MOP.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="282">
-          <caret line="96" column="6" lean-forward="false" selection-start-line="96" selection-start-column="6" selection-end-line="96" selection-end-column="6" />
+        <state relative-caret-position="319">
+          <caret line="33" column="19" lean-forward="false" selection-start-line="33" selection-start-column="19" selection-end-line="33" selection-end-column="19" />
           <folding>
             <element signature="n#!!block;n#invoke#0;n#SpiderObjectMirror#0" expanded="true" />
             <element signature="n#!!block;n#resolve#0;n#SpiderObjectMirror#0" expanded="true" />
             <element signature="n#!!block;n#invoke#0;n#SpiderIsolateMirror#0" expanded="true" />
-            <element signature="e#2749#2798#0" expanded="true" />
-            <element signature="e#2831#2869#0" expanded="true" />
-            <element signature="e#2910#2936#0" expanded="true" />
+            <element signature="n#!!block;n#write#0;n#SpiderIsolateMirror#0" expanded="true" />
+            <element signature="n#!!block;n#simpleBind#0" expanded="true" />
+            <element signature="e#3035#3084#0" expanded="true" />
+            <element signature="e#3117#3155#0" expanded="true" />
+            <element signature="e#3196#3222#0" expanded="true" />
             <element signature="n#!!block;n#constructor#0;n#SpiderObject#0" expanded="true" />
             <element signature="n#!!block;n#constructor#0;n#SpiderIsolate#0" expanded="true" />
-            <element signature="e#7447#7510#0" expanded="true" />
+            <element signature="e#7733#7796#0" expanded="true" />
             <element signature="n#!!block;n#instantiate#0;n#SpiderIsolate#0" expanded="true" />
           </folding>
         </state>

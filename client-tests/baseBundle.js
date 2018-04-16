@@ -56455,7 +56455,12 @@ class SpiderObjectMirror {
         return this.base[fieldName];
     }
     write(fieldName, value) {
-        this.base[fieldName] = value;
+        if (typeof value == 'function') {
+            Reflect.getPrototypeOf(this.base)[fieldName] = value;
+        }
+        else {
+            this.base[fieldName] = value;
+        }
         return true;
     }
     pass(hostActorMirror) {
@@ -56485,7 +56490,12 @@ class SpiderIsolateMirror {
         return this.base[fieldName];
     }
     write(fieldName, value) {
-        this.base[fieldName] = value;
+        if (typeof value == 'function') {
+            Reflect.getPrototypeOf(this.base)[fieldName] = value;
+        }
+        else {
+            this.base[fieldName] = value;
+        }
         return true;
     }
     pass(hostActorMirror) {
@@ -56510,6 +56520,9 @@ function simpleBind(fun, ctx) {
     };
     newFun.toString = function () {
         return fun.toString();
+    };
+    newFun.unBind = function () {
+        return fun;
     };
     return newFun;
 }
