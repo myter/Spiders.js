@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)" />
+    <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/index.d.ts" afterPath="$PROJECT_DIR$/index.d.ts" />
+    </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
     <ignored path="$PROJECT_DIR$/CoCode/" />
@@ -22,8 +25,8 @@
       <file leaf-file-name="utils.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/utils.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="197">
-              <caret line="199" column="87" lean-forward="true" selection-start-line="199" selection-start-column="87" selection-end-line="199" selection-end-column="87" />
+            <state relative-caret-position="720">
+              <caret line="199" column="87" lean-forward="false" selection-start-line="199" selection-start-column="87" selection-end-line="199" selection-end-column="87" />
               <folding>
                 <element signature="n#!!block;n#reconstructClassDefinitionChain#0" expanded="true" />
                 <element signature="e#4793#5334#0" expanded="true" />
@@ -36,8 +39,8 @@
       <file leaf-file-name="index.d.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.d.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="286">
-              <caret line="51" column="41" lean-forward="false" selection-start-line="51" selection-start-column="41" selection-end-line="51" selection-end-column="41" />
+            <state relative-caret-position="58">
+              <caret line="8" column="154" lean-forward="false" selection-start-line="8" selection-start-column="154" selection-end-line="8" selection-end-column="154" />
               <folding />
             </state>
           </provider>
@@ -374,7 +377,8 @@
       <workItem from="1524726597689" duration="64000" />
       <workItem from="1524727071544" duration="31000" />
       <workItem from="1524727328499" duration="1115000" />
-      <workItem from="1524741879170" duration="330000" />
+      <workItem from="1524741879170" duration="378000" />
+      <workItem from="1524742511998" duration="10000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -650,7 +654,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="131226000" />
+    <option name="totallyTimeSpent" value="131284000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="812" extended-state="6" />
@@ -658,7 +662,7 @@
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.370317" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.370317" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1291,8 +1295,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/utils.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="199" column="87" lean-forward="true" selection-start-line="199" selection-start-column="87" selection-end-line="199" selection-end-column="87" />
+        <state relative-caret-position="720">
+          <caret line="199" column="87" lean-forward="false" selection-start-line="199" selection-start-column="87" selection-end-line="199" selection-end-column="87" />
           <folding>
             <element signature="n#!!block;n#reconstructClassDefinitionChain#0" expanded="true" />
             <element signature="e#4793#5334#0" expanded="true" />
@@ -1307,12 +1311,12 @@
           <caret line="79" column="0" lean-forward="false" selection-start-line="79" selection-start-column="0" selection-end-line="89" selection-end-column="5" />
           <folding>
             <element signature="n#SpiderObjectMirror#0" expanded="false" />
-            <element signature="n#!!block;n#isAnnotated#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#getAnnotationCall#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#getAnnotationTag#0;n#SpiderObjectMirror#0" expanded="true" />
-            <element signature="n#!!block;n#isAnnotated#0;n#SpiderIsolateMirror#0" expanded="true" />
-            <element signature="n#!!block;n#getAnnotationCall#0;n#SpiderIsolateMirror#0" expanded="true" />
-            <element signature="n#!!block;n#getAnnotationTag#0;n#SpiderIsolateMirror#0" expanded="true" />
+            <element signature="n#!!block;n#isAnnotated#0;n#SpiderObjectMirror#0" expanded="false" />
+            <element signature="n#!!block;n#getAnnotationCall#0;n#SpiderObjectMirror#0" expanded="false" />
+            <element signature="n#!!block;n#getAnnotationTag#0;n#SpiderObjectMirror#0" expanded="false" />
+            <element signature="n#!!block;n#isAnnotated#0;n#SpiderIsolateMirror#0" expanded="false" />
+            <element signature="n#!!block;n#getAnnotationCall#0;n#SpiderIsolateMirror#0" expanded="false" />
+            <element signature="n#!!block;n#getAnnotationTag#0;n#SpiderIsolateMirror#0" expanded="false" />
             <element signature="n#SpiderObject#0" expanded="false" />
             <element signature="n#SpiderIsolate#0" expanded="false" />
           </folding>
@@ -1333,8 +1337,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.d.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="51" column="41" lean-forward="false" selection-start-line="51" selection-start-column="41" selection-end-line="51" selection-end-column="41" />
+        <state relative-caret-position="58">
+          <caret line="8" column="154" lean-forward="false" selection-start-line="8" selection-start-column="154" selection-end-line="8" selection-end-column="154" />
           <folding />
         </state>
       </provider>
