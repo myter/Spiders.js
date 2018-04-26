@@ -6,6 +6,7 @@ import {PSServer} from "./src/PubSub/SubServer";
 import {PubSubTag} from "./src/PubSub/SubTag";
 
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
+export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror)=>any) : Function
 export type FarRef<T>   = T
 export type PSClient    = PSClient
 export type PSServer    = PSServer

@@ -37,17 +37,19 @@ class ClientActor extends ActorBase {
         webWorker.addEventListener('message', (event) => {
             app.mainEnvironment.messageHandler.dispatch(event);
         });
-        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment, "spawn");
+        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], [], actorId, app.mainEnvironment, "spawn");
         var actorVariables = decon[0];
         var actorMethods = decon[1];
+        var actorMethAnnots = decon[2];
         var staticProperties = serialisation_1.deconstructStatic(thisClass, actorId, [], app.mainEnvironment);
-        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment, "toString");
+        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], [], actorId, app.mainEnvironment, "toString");
         var actorMirrorVariables = deconActorMirror[0];
         var actorMirrorMethods = deconActorMirror[1];
+        var actorMirrorMethAnnots = deconActorMirror[2];
         var mainChannel = new MessageChannel();
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels = [mainChannel.port1].concat(channelMappings[1]);
-        var installMessage = new Message_1.InstallBehaviourMessage(app.mainEnvironment.thisRef, app.mainId, actorId, actorVariables, actorMethods, actorMirrorVariables, actorMirrorMethods, staticProperties, channelMappings[0]);
+        var installMessage = new Message_1.InstallBehaviourMessage(app.mainEnvironment.thisRef, app.mainId, actorId, actorVariables, actorMethods, actorMethAnnots, actorMirrorVariables, actorMirrorMethods, actorMirrorMethAnnots, staticProperties, channelMappings[0]);
         webWorker.postMessage(JSON.stringify(installMessage), newActorChannels);
         var channelManager = app.mainEnvironment.commMedium;
         channelManager.newConnection(actorId, mainChannel.port2);
@@ -65,16 +67,18 @@ class ServerActor extends ActorBase {
         var socketManager = app.mainEnvironment.commMedium;
         var fork = require('child_process').fork;
         var actorId = utils_1.generateId();
-        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], actorId, app.mainEnvironment, "spawn");
+        var decon = serialisation_1.deconstructBehaviour(this, 0, [], [], [], actorId, app.mainEnvironment, "spawn");
         var actorVariables = decon[0];
         var actorMethods = decon[1];
+        var actorMethAnnots = decon[2];
         var staticProperties = serialisation_1.deconstructStatic(thisClass, actorId, [], app.mainEnvironment);
         //Uncomment to debug (huray for webstorms)
         //var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], actorId, app.mainEnvironment, "toString");
+        var deconActorMirror = serialisation_1.deconstructBehaviour(this.actorMirror, 0, [], [], [], actorId, app.mainEnvironment, "toString");
         var actorMirrorVariables = deconActorMirror[0];
         var actorMirrorMethods = deconActorMirror[1];
-        var actor = fork(__dirname + '/ActorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods)]);
+        var actorMirrMethAnnots = deconActorMirror[2];
+        var actor = fork(__dirname + '/ActorProto.js', [false, app.mainIp, port, actorId, app.mainId, app.mainPort, JSON.stringify(actorVariables), JSON.stringify(actorMethods), JSON.stringify(staticProperties), JSON.stringify(actorMirrorVariables), JSON.stringify(actorMirrorMethods), JSON.stringify(actorMethAnnots), JSON.stringify(actorMirrMethAnnots)]);
         app.spawnedActors.push(actor);
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(this, "spawn");
         var ref = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, app.mainIp, port, app.mainEnvironment);
@@ -179,4 +183,5 @@ exports.SpiderActorMirror = MAP_2.SpiderActorMirror;
 var utils_2 = require("./utils");
 exports.bundleScope = utils_2.bundleScope;
 exports.LexScope = utils_2.LexScope;
+exports.makeMethodAnnotation = utils_2.makeMethodAnnotation;
 //# sourceMappingURL=spiders.js.map

@@ -1,6 +1,12 @@
 /**
  * Created by flo on 06/02/2017.
  */
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
 /**
@@ -9,6 +15,82 @@ const spiders_1 = require("../src/spiders");
 var assert = require('assert');
 var chai = require('chai');
 var expect = chai.expect;
+/*it("Static Fields & methods",(done)=>{
+    var app = new Application()
+    class StaticActor extends Actor{
+        static _STATIC_FIELD_ = 5
+        static _STATIC_METHOD_(){
+            return 6
+        }
+        getField(){
+            return this.StaticActor._STATIC_FIELD_
+        }
+        getMethod(){
+            return this.StaticActor._STATIC_METHOD_()
+        }
+    }
+    var act = app.spawnActor(StaticActor)
+    act.getField().then((fieldVal)=>{
+        try{
+            expect(fieldVal).to.equal(StaticActor._STATIC_FIELD_)
+            act.getMethod().then((methodVal)=>{
+                try{
+                    expect(methodVal).to.equal(StaticActor._STATIC_METHOD_())
+                    app.kill()
+                    done()
+                }
+                catch(e){
+                    app.kill()
+                    done(e)
+                }
+            })
+        }
+        catch(e){
+            app.kill()
+            done(e)
+        }
+    })
+})
+
+it("Static inheritance",(done)=>{
+    var app = new Application()
+    class SuperActor extends Actor{
+        static _SUPER_STATIC_ = 5
+    }
+    class BaseActor extends SuperActor{
+        getField(){
+            return SuperActor._SUPER_STATIC_
+        }
+    }
+    var act = app.spawnActor(BaseActor)
+    act.getField().then((v)=>{
+        try{
+            expect(v).to.equal(SuperActor._SUPER_STATIC_)
+            app.kill()
+            done()
+        }
+        catch(e){
+            app.kill()
+            done(e)
+        }
+    })
+})
+
+it("Static immutable",(done)=>{
+    var app = new Application()
+    class StaticActor extends Actor{
+        static _FIELD_ = 5
+        changeField(){
+            return StaticActor._FIELD_ = 6
+        }
+    }
+    var act = app.spawnActor(StaticActor)
+    act.changeField().catch((error)=>{
+        app.kill()
+        done()
+    })
+
+})*/
 describe("Behaviour serialisation", function () {
     this.timeout(5000);
     it("From file", function (done) {
@@ -249,82 +331,6 @@ describe("Behaviour serialisation", function () {
             }
         });
     });
-    /*it("Static Fields & methods",(done)=>{
-        var app = new Application()
-        class StaticActor extends Actor{
-            static _STATIC_FIELD_ = 5
-            static _STATIC_METHOD_(){
-                return 6
-            }
-            getField(){
-                return this.StaticActor._STATIC_FIELD_
-            }
-            getMethod(){
-                return this.StaticActor._STATIC_METHOD_()
-            }
-        }
-        var act = app.spawnActor(StaticActor)
-        act.getField().then((fieldVal)=>{
-            try{
-                expect(fieldVal).to.equal(StaticActor._STATIC_FIELD_)
-                act.getMethod().then((methodVal)=>{
-                    try{
-                        expect(methodVal).to.equal(StaticActor._STATIC_METHOD_())
-                        app.kill()
-                        done()
-                    }
-                    catch(e){
-                        app.kill()
-                        done(e)
-                    }
-                })
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-
-    it("Static inheritance",(done)=>{
-        var app = new Application()
-        class SuperActor extends Actor{
-            static _SUPER_STATIC_ = 5
-        }
-        class BaseActor extends SuperActor{
-            getField(){
-                return SuperActor._SUPER_STATIC_
-            }
-        }
-        var act = app.spawnActor(BaseActor)
-        act.getField().then((v)=>{
-            try{
-                expect(v).to.equal(SuperActor._SUPER_STATIC_)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-
-    it("Static immutable",(done)=>{
-        var app = new Application()
-        class StaticActor extends Actor{
-            static _FIELD_ = 5
-            changeField(){
-                return StaticActor._FIELD_ = 6
-            }
-        }
-        var act = app.spawnActor(StaticActor)
-        act.changeField().catch((error)=>{
-            app.kill()
-            done()
-        })
-
-    })*/
 });
 describe("Functionality", () => {
     it("Require", (done) => {
@@ -1118,6 +1124,16 @@ describe("Meta Actor Protocol", () => {
     });
 });
 describe("Meta Object Protocol", () => {
+    let annot = spiders_1.makeMethodAnnotation((mirror) => {
+        mirror.value = 666;
+    });
+    class TestObject extends spiders_1.SpiderIsolate {
+        meth() {
+        }
+    }
+    __decorate([
+        annot
+    ], TestObject.prototype, "meth", null);
     it("Reflecting on Object", function (done) {
         class TestMirror extends spiders_1.SpiderObjectMirror {
             constructor() {
@@ -1336,6 +1352,58 @@ describe("Meta Object Protocol", () => {
         act.test().then((v) => {
             try {
                 expect(v).to.equal(5);
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
+    it("Annotations", function (done) {
+        class TestActor extends spiders_1.Actor {
+            constructor() {
+                super();
+                this.TestObject = TestObject;
+            }
+            test() {
+                let t = new this.TestObject();
+                t.meth();
+                return this.libs.reflectOnObject(t).value;
+            }
+        }
+        let app = new spiders_1.Application();
+        let act = app.spawnActor(TestActor);
+        act.test().then((v) => {
+            try {
+                expect(v).to.equal(666);
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
+    it("Annotated method serialisation", function (done) {
+        class App extends spiders_1.Application {
+            send(toRef) {
+                return toRef.getIsol(new TestObject());
+            }
+        }
+        class Act extends spiders_1.Actor {
+            getIsol(i) {
+                i.meth();
+                return this.libs.reflectOnObject(i).value;
+            }
+        }
+        let app = new App();
+        let act = app.spawnActor(Act);
+        app.send(act).then((v) => {
+            try {
+                expect(v).to.equal(666);
                 app.kill();
                 done();
             }

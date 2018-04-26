@@ -78,17 +78,19 @@ class ClientActor extends ActorBase{
         webWorker.addEventListener('message',(event) => {
             app.mainEnvironment.messageHandler.dispatch(event)
         })
-        var decon                                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment,"spawn")
+        var decon                                       = deconstructBehaviour(this,0,[],[],[],actorId,app.mainEnvironment,"spawn")
         var actorVariables                              = decon[0]
         var actorMethods                                = decon[1]
+        var actorMethAnnots                             = decon[2]
         var staticProperties                            = deconstructStatic(thisClass,actorId,[],app.mainEnvironment)
-        var deconActorMirror                            = deconstructBehaviour(this.actorMirror,0,[],[],actorId,app.mainEnvironment,"toString")
+        var deconActorMirror                            = deconstructBehaviour(this.actorMirror,0,[],[],[],actorId,app.mainEnvironment,"toString")
         var actorMirrorVariables                        = deconActorMirror[0]
         var actorMirrorMethods                          = deconActorMirror[1]
+        var actorMirrorMethAnnots                       = deconActorMirror[2]
         var mainChannel                                 = new MessageChannel()
         //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
         var newActorChannels                            = [mainChannel.port1].concat(channelMappings[1])
-        var installMessage                              = new InstallBehaviourMessage(app.mainEnvironment.thisRef,app.mainId,actorId,actorVariables,actorMethods,actorMirrorVariables,actorMirrorMethods,staticProperties,channelMappings[0])
+        var installMessage                              = new InstallBehaviourMessage(app.mainEnvironment.thisRef,app.mainId,actorId,actorVariables,actorMethods,actorMethAnnots,actorMirrorVariables,actorMirrorMethods,actorMirrorMethAnnots,staticProperties,channelMappings[0])
         webWorker.postMessage(JSON.stringify(installMessage),newActorChannels)
         var channelManager                              = (app.mainEnvironment.commMedium as ChannelManager)
         channelManager.newConnection(actorId,mainChannel.port2)
@@ -109,16 +111,18 @@ class ServerActor extends ActorBase{
         var socketManager               = app.mainEnvironment.commMedium as ServerSocketManager
         var fork                        = require('child_process').fork
         var actorId: string             = generateId()
-        var decon                       = deconstructBehaviour(this,0,[],[],actorId,app.mainEnvironment,"spawn")
+        var decon                       = deconstructBehaviour(this,0,[],[],[],actorId,app.mainEnvironment,"spawn")
         var actorVariables              = decon[0]
         var actorMethods                = decon[1]
+        var actorMethAnnots             = decon[2]
         var staticProperties            = deconstructStatic(thisClass,actorId,[],app.mainEnvironment)
         //Uncomment to debug (huray for webstorms)
         //var actor                       = fork(__dirname + '/actorProto.js',[app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods)],{execArgv: ['--debug-brk=8787']})
-        var deconActorMirror            = deconstructBehaviour(this.actorMirror,0,[],[],actorId,app.mainEnvironment,"toString")
+        var deconActorMirror            = deconstructBehaviour(this.actorMirror,0,[],[],[],actorId,app.mainEnvironment,"toString")
         var actorMirrorVariables        = deconActorMirror[0]
         var actorMirrorMethods          = deconActorMirror[1]
-        var actor                       = fork(__dirname + '/ActorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties),JSON.stringify(actorMirrorVariables),JSON.stringify(actorMirrorMethods)])
+        var actorMirrMethAnnots         = deconActorMirror[2]
+        var actor                       = fork(__dirname + '/ActorProto.js',[false,app.mainIp,port,actorId,app.mainId,app.mainPort,JSON.stringify(actorVariables),JSON.stringify(actorMethods),JSON.stringify(staticProperties),JSON.stringify(actorMirrorVariables),JSON.stringify(actorMirrorMethods),JSON.stringify(actorMethAnnots),JSON.stringify(actorMirrMethAnnots)])
         app.spawnedActors.push(actor)
         let [fieldNames,methodNames]    = getObjectNames(this,"spawn")
         var ref                         = new ServerFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,app.mainIp,port,app.mainEnvironment)
@@ -258,7 +262,7 @@ export const Application  = (isBrowser()) ? ClientApplication as AppInterface : 
 export {FarRef as FarRef}
 export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
 export {SpiderActorMirror} from "./MAP"
-export {bundleScope,LexScope} from "./utils"
+export {bundleScope,LexScope,makeMethodAnnotation} from "./utils"
 
 
 

@@ -52,9 +52,11 @@ else{
         var methods             = JSON.parse(process.argv[9])
         let actorMirrVars       = JSON.parse(process.argv[11])
         let actorMirrMethods    = JSON.parse(process.argv[12])
-        let actorMirror         = reconstructBehaviour({},actorMirrVars,actorMirrMethods,environment)
+        let methAnnots          = JSON.parse(process.argv[13])
+        let mirrMethAnnots      = JSON.parse(process.argv[14])
+        let actorMirror         = reconstructBehaviour({},actorMirrVars,actorMirrMethods,mirrMethAnnots,environment)
         environment             = new ServerActorEnvironment(thisId,address,port,actorMirror)
-        behaviourObject         = reconstructBehaviour({},variables,methods,environment)
+        behaviourObject         = reconstructBehaviour({},variables,methods,methAnnots,environment)
         //reconstructStatic(behaviourObject,JSON.parse(process.argv[10]),thisRef,promisePool,socketManager,objectPool,gspInstance)
     }
     environment.objectPool.installBehaviourObject(behaviourObject)

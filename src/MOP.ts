@@ -1,4 +1,4 @@
-import {clone, LexScope} from "./utils";
+import {clone, isAnnotatedMethod, LexScope} from "./utils";
 import {SpiderIsolateContainer} from "./serialisation";
 import {SpiderActorMirror} from "./MAP";
 
@@ -17,6 +17,11 @@ export class SpiderObjectMirror{
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
+        let method = this.base[methodName]
+        let annot  = isAnnotatedMethod(method)
+        if(annot){
+            annot(this)
+        }
         return this.base[methodName](...args)
     }
 
@@ -61,6 +66,11 @@ export class SpiderIsolateMirror{
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
+        let method = this.base[methodName]
+        let annot  = isAnnotatedMethod(method)
+        if(annot){
+            annot(this)
+        }
         return this.base[methodName](...args)
     }
 
@@ -178,8 +188,17 @@ export class SpiderObject{
         let proxied = makeSpiderObjectProxy(thisClone,this.mirror) as SpiderObject
         for(var i in thisClone){
             if(typeof thisClone[i] == 'function' && i != "constructor"){
+                let original = thisClone[i]
+                let toCopy   = []
+                Reflect.ownKeys(original).forEach((key)=>{
+                    if(key != "length" && key != "name" && key != "arguments" && key != "caller" && key != "prototype"){
+                        toCopy.push([key,original[key]])
+                    }
+                })
                 thisClone[i] = simpleBind(thisClone[i],proxied)
-                //thisClone[i] = thisClone[i].bind(proxied)
+                toCopy.forEach(([key,val])=>{
+                    thisClone[i][key] = val
+                })
             }
         }
         objectMirror.bindProxy(proxied)
@@ -214,7 +233,6 @@ export class SpiderIsolate{
                     }
                 })
                 thisClone[i] = simpleBind(thisClone[i],proxied)
-                //thisClone[i] = thisClone[i].bind(proxied);
                 toCopy.forEach(([key,val])=>{
                     thisClone[i][key] = val
                 })
@@ -242,7 +260,6 @@ export class SpiderIsolate{
                     }
                 })
                 isolClone[i] = simpleBind(isolClone[i],proxied)
-                //isolClone[i] = isolClone[i].bind(proxied);
                 toCopy.forEach(([key,val])=>{
                     isolClone[i][key] = val
                 })

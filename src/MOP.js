@@ -9,6 +9,11 @@ class SpiderObjectMirror {
         this.proxyBase = proxy;
     }
     invoke(methodName, args) {
+        let method = this.base[methodName];
+        let annot = utils_1.isAnnotatedMethod(method);
+        if (annot) {
+            annot(this);
+        }
         return this.base[methodName](...args);
     }
     access(fieldName) {
@@ -44,6 +49,11 @@ class SpiderIsolateMirror {
         this.proxyBase = proxy;
     }
     invoke(methodName, args) {
+        let method = this.base[methodName];
+        let annot = utils_1.isAnnotatedMethod(method);
+        if (annot) {
+            annot(this);
+        }
         return this.base[methodName](...args);
     }
     access(fieldName) {
@@ -151,8 +161,17 @@ class SpiderObject {
         let proxied = makeSpiderObjectProxy(thisClone, this.mirror);
         for (var i in thisClone) {
             if (typeof thisClone[i] == 'function' && i != "constructor") {
+                let original = thisClone[i];
+                let toCopy = [];
+                Reflect.ownKeys(original).forEach((key) => {
+                    if (key != "length" && key != "name" && key != "arguments" && key != "caller" && key != "prototype") {
+                        toCopy.push([key, original[key]]);
+                    }
+                });
                 thisClone[i] = simpleBind(thisClone[i], proxied);
-                //thisClone[i] = thisClone[i].bind(proxied)
+                toCopy.forEach(([key, val]) => {
+                    thisClone[i][key] = val;
+                });
             }
         }
         objectMirror.bindProxy(proxied);
@@ -186,7 +205,6 @@ class SpiderIsolate {
                     }
                 });
                 thisClone[i] = simpleBind(thisClone[i], proxied);
-                //thisClone[i] = thisClone[i].bind(proxied);
                 toCopy.forEach(([key, val]) => {
                     thisClone[i][key] = val;
                 });
@@ -213,7 +231,6 @@ class SpiderIsolate {
                     }
                 });
                 isolClone[i] = simpleBind(isolClone[i], proxied);
-                //isolClone[i] = isolClone[i].bind(proxied);
                 toCopy.forEach(([key, val]) => {
                     isolClone[i][key] = val;
                 });

@@ -1,6 +1,6 @@
 import {
     Application, Actor, SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror, SpiderActorMirror,
-    bundleScope, LexScope, FarRef
+    bundleScope, LexScope, FarRef, makeMethodAnnotation
 } from "../src/spiders"
 /**
  * Created by flo on 10/01/2017.
@@ -39,6 +39,63 @@ function log(testName,result,expected){
     }
     ul.appendChild(li);
 }
+
+let annot = makeMethodAnnotation((mirror)=>{
+        (mirror as any).value = 666
+    }
+)
+class TestObject extends SpiderIsolate{
+
+    @annot
+    meth(){
+
+    }
+}
+
+class AnnotSerApp extends Application{
+    send(toRef){
+        return toRef.getIsol(new TestObject())
+    }
+}
+
+class AnnotSerActor extends Actor{
+    getIsol(i){
+        i.meth()
+        return (this.libs.reflectOnObject(i) as any).value
+    }
+}
+let annotSer = ()=>{
+    let app = new AnnotSerApp()
+    let act = app.spawnActor(AnnotSerActor)
+    return app.send(act).then((v)=>{
+        log("Annotation Serialisation",v,666)
+    })
+}
+scheduled.push(annotSer)
+
+
+class AnnotActor extends Actor{
+    TestObject
+
+    constructor(){
+        super()
+        this.TestObject = TestObject
+    }
+
+    test(){
+        let t = new this.TestObject()
+        t.meth()
+        return (this.libs.reflectOnObject(t) as any).value
+    }
+}
+let annotRun = ()=>{
+    let act = app.spawnActor(AnnotActor)
+    return act.test().then((v)=>{
+        log("Annotations",v,666)
+    })
+}
+scheduled.push(annotRun)
+
 
 class ROAMirror extends SpiderActorMirror{
     testValue

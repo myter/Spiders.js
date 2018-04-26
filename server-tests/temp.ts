@@ -1,33 +1,31 @@
-import {Actor, Application} from "../src/spiders";
+import {makeMethodAnnotation} from "../src/utils";
+import {Application, SpiderIsolate, SpiderObject,SpiderObjectMirror,Actor} from "../src/spiders";
 
-var app = new Application()
-class testActor1 extends Actor{
-    getAndAccess(){
-        return new Promise((resolve)=>{
-            let rem = this.libs.buffRemote("127.0.0.1",8082)
-            let ps  = []
-            ps[0]   = rem.getVal()
-            ps[1]   = rem.someVal
-            setTimeout(()=>{
-                ps[2] = rem.getVal()
-                ps[3] = rem.someVal
-                resolve(Promise.all(ps))
-            },2000)
-        })
+
+let foo = makeMethodAnnotation((mirr : SpiderObjectMirror)=>{console.log("annot triggered")})
+class Test extends SpiderIsolate{
+    @foo
+    meth(){
+        console.log("Original called")
     }
 }
-class testActor2 extends Actor{
-    someVal
-    constructor(){
-        super()
-        this.someVal = 6
-    }
-    getVal(){
-        return 5
+
+class App extends Application{
+    send(){
+        let t = new Test()
+        console.log("Invoking in app")
+        t.meth()
+        act.getIsol(t)
     }
 }
-app.spawnActor(testActor2,[],8082)
-var actor  = app.spawnActor(testActor1)
-actor.getAndAccess().then((v) => {
-    console.log(v)
-})
+
+class Act extends Actor{
+    getIsol(i){
+        console.log("Invoking in Actor")
+        i.meth()
+    }
+}
+
+let app = new App()
+let act = app.spawnActor(Act)
+app.send()

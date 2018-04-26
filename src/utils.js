@@ -1,7 +1,4 @@
 Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Created by flo on 05/12/2016.
- */
 function isBrowser() {
     var isNode = false;
     if (typeof process === 'object') {
@@ -99,13 +96,29 @@ class ClassDefinitionChain {
     constructor() {
         this.serialisedClass = [];
         this.classScopes = [];
+        this.methodAnnotations = [];
     }
-    addClass(classDefinition, classScope) {
+    addClass(classDefinition, classScope, methodAnnotations) {
         this.serialisedClass.push(classDefinition);
         this.classScopes.push(classScope);
+        this.methodAnnotations.push(methodAnnotations);
     }
 }
 exports.ClassDefinitionChain = ClassDefinitionChain;
+function getMethodAnnotations(classDefinition) {
+    let ret = new Map();
+    let classProto = classDefinition.prototype;
+    Reflect.ownKeys(classProto).forEach((key) => {
+        if (key != "constructor") {
+            let meth = classProto[key];
+            if (isAnnotatedMethod(meth)) {
+                ret.set(key.toString(), meth["_ANNOT_"].toString());
+            }
+        }
+    });
+    return ret;
+}
+exports.getMethodAnnotations = getMethodAnnotations;
 function getClassDefinitionChain(classDefinition, ignoreLast = true) {
     let classDefChain = new ClassDefinitionChain();
     let loop = (currentClass) => {
@@ -120,7 +133,7 @@ function getClassDefinitionChain(classDefinition, ignoreLast = true) {
             if (hasLexScope(currentClass)) {
                 classScope = currentClass[LexScope._LEX_SCOPE_KEY_];
             }
-            classDefChain.addClass(getSerialiableClassDefinition(currentClass), classScope);
+            classDefChain.addClass(getSerialiableClassDefinition(currentClass), classScope, getMethodAnnotations(currentClass));
             loop(Reflect.getPrototypeOf(currentClass));
         }
     };
@@ -128,14 +141,19 @@ function getClassDefinitionChain(classDefinition, ignoreLast = true) {
     return classDefChain;
 }
 exports.getClassDefinitionChain = getClassDefinitionChain;
-function reconstructClassDefinitionChain(classes, scopes, topClass, recreate) {
+function reconstructClassDefinitionChain(classes, scopes, methodAnnotations, topClass, recreate) {
     let loop = (currentIndex, parentClass) => {
+        let classDef = recreate(classes[currentIndex], scopes[currentIndex], parentClass);
+        let classDefProto = classDef.prototype;
+        methodAnnotations[currentIndex].forEach((annotFunc, methName) => {
+            let method = classDefProto[methName];
+            method["_ANNOT_"] = annotFunc;
+        });
         if (currentIndex == 0) {
-            return recreate(classes[currentIndex], scopes[currentIndex], parentClass);
+            return classDef;
         }
         else {
-            let newParent = recreate(classes[currentIndex], scopes[currentIndex], parentClass);
-            return loop(--currentIndex, newParent);
+            return loop(--currentIndex, classDef);
         }
     };
     return loop(classes.length - 1, topClass);
@@ -159,4 +177,18 @@ function hasLexScope(classDefinition) {
     return Reflect.has(classDefinition, LexScope._LEX_SCOPE_KEY_);
 }
 exports.hasLexScope = hasLexScope;
+function isAnnotatedMethod(meth) {
+    return meth["_ANNOT_"];
+}
+exports.isAnnotatedMethod = isAnnotatedMethod;
+function makeMethodAnnotation(onCall) {
+    return function (target, propertyKey, descriptor) {
+        let originalMethod = descriptor.value;
+        originalMethod["_ANNOT_"] = onCall;
+        return {
+            value: originalMethod
+        };
+    };
+}
+exports.makeMethodAnnotation = makeMethodAnnotation;
 //# sourceMappingURL=utils.js.map

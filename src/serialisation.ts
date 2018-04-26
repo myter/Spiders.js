@@ -12,7 +12,7 @@ import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
 import {
     ClassDefinitionChain,
-    getClassDefinitionChain, getSerialiableClassDefinition, hasLexScope, LexScope,
+    getClassDefinitionChain, getSerialiableClassDefinition, hasLexScope, isAnnotatedMethod, LexScope,
     reconstructClassDefinitionChain
 } from "./utils";
 import {makeSpiderObjectProxy, simpleBind, SpiderObject, SpiderObjectMirror, wrapPrototypes} from "./MOP";
@@ -129,6 +129,9 @@ function constructMethod(functionSource){
     if(functionSource.startsWith("function")){
         var method =  eval( "(" +  functionSource +")" )
     }
+    else if(functionSource.startsWith("(")){
+        var method = eval(functionSource)
+    }
     else{
         var method =  eval("(function " + functionSource + ")" )
     }
@@ -160,7 +163,7 @@ export function reconstructStatic(behaviourObject : Object,staticProperties : Ar
     })
 }
 
-export function deconstructBehaviour(object : any,currentLevel : number,accumVars : Array<any>,accumMethods : Array<any>,receiverId : string,environment : ActorEnvironment,lastProp : string){
+export function deconstructBehaviour(object : any,currentLevel : number,accumVars : Array<any>,accumMethods : Array<any>,accumMethodAnnots : Array<any>,receiverId : string,environment : ActorEnvironment,lastProp : string){
     var properties          = Reflect.ownKeys(object)
     var localAccumVars      = []
     for(var i in properties){
@@ -178,6 +181,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
     localAccumVars.unshift(currentLevel)
     accumVars.push(localAccumVars)
     var localAccumMethods   = []
+    var localAccumMethAnnot = []
     var proto               = Reflect.getPrototypeOf(object)
     properties              = Reflect.ownKeys(proto)
     var lastProto           = properties.indexOf(lastProp) != -1
@@ -186,19 +190,24 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
             var key     = properties[i]
             var method  = Reflect.get(proto,key)
             if(typeof method == 'function' && key != "constructor"){
+                if(isAnnotatedMethod(method)){
+                    localAccumMethAnnot.push([key,method["_ANNOT_"].toString()])
+                }
                 localAccumMethods.push([key,method.toString()])
             }
         }
         localAccumMethods.unshift(currentLevel + 1)
+        localAccumMethAnnot.unshift(currentLevel + 1)
         accumMethods.push(localAccumMethods)
-        return deconstructBehaviour(proto,currentLevel + 1,accumVars,accumMethods,receiverId,environment,lastProp)
+        accumMethodAnnots.push(localAccumMethAnnot)
+        return deconstructBehaviour(proto,currentLevel + 1,accumVars,accumMethods,accumMethodAnnots,receiverId,environment,lastProp)
     }
     else{
-        return [accumVars,accumMethods]
+        return [accumVars,accumMethods,accumMethodAnnots]
     }
 }
 
-export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,environment : ActorEnvironment) {
+export function reconstructBehaviour(baseObject : any,variables :Array<any>, methods : Array<any>,methodAnnotations : Array<any>,environment : ActorEnvironment) {
     var amountOfProtos = methods.length
     for(var i = 0;i < amountOfProtos;i++){
         var copy                = baseObject.__proto__
@@ -223,6 +232,16 @@ export function reconstructBehaviour(baseObject : any,variables :Array<any>, met
             var key               = methodEntry[0]
             var functionSource    = methodEntry[1]
             installIn[key]        = constructMethod(functionSource)
+        })
+    })
+    methodAnnotations.forEach((levelAnnotations)=>{
+        let installIn = getProtoForLevel(levelAnnotations[0],baseObject)
+        levelAnnotations.shift()
+        levelAnnotations.forEach((annot)=>{
+            let methName    = annot[0]
+            let annotF      = annot[1]
+            let meth        = installIn[methName]
+            meth["_ANNOT_"] = constructMethod(annotF)
         })
     })
     return baseObject
@@ -362,64 +381,83 @@ export class ArrayContainer extends ValueContainer{
 export class SpiderObjectDefinitionContainer extends ValueContainer{
     definitions : Array<string>
     scopes      : Array<ValueContainer>
-    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
+    methodAnnot : Array<ValueContainer>
+
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>,methodAnnotations : Array<ValueContainer>){
         super(ValueContainer.spiderObjectDef)
         this.definitions    = definitions
         this.scopes         = scopes
+        this.methodAnnot    = methodAnnotations
     }
 }
 
 export class SpiderIsolateDefinitionContainer extends ValueContainer{
     definitions : Array<string>
     scopes      : Array<ValueContainer>
-    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
+    methodAnnot : Array<ValueContainer>
+
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>,methodAnnotations : Array<ValueContainer>){
         super(ValueContainer.spiderIsolDef)
         this.definitions    = definitions
         this.scopes         = scopes
+        this.methodAnnot    = methodAnnotations
     }
 }
 
 export class SpiderIsolateContainer extends ValueContainer{
     static checkIsolateFuncKey = "_INSTANCEOF_ISOLATE_"
-    vars            : string
-    methods         : string
-    mirrorVars      : string
-    mirrorMethods   : string
-    constructor(vars : string,methods : string,mirrorVars : string,mirrorMethods : string){
+    vars                : string
+    methods             : string
+    methAnnots          : string
+    mirrorVars          : string
+    mirrorMethods       : string
+    mirrorMethAnnots    : string
+    constructor(vars : string,methods : string,methAnnots : string,mirrorVars : string,mirrorMethods : string,mirrorMethAnnots: string){
         super(ValueContainer.isolateType)
-        this.vars           = vars
-        this.methods        = methods
-        this.mirrorVars     = mirrorVars
-        this.mirrorMethods  = mirrorMethods
+        this.vars               = vars
+        this.methods            = methods
+        this.methAnnots         = methAnnots
+        this.mirrorVars         = mirrorVars
+        this.mirrorMethods      = mirrorMethods
+        this.mirrorMethAnnots   = mirrorMethAnnots
     }
 }
 
 export class SpiderObjectMirrorDefinitionContainer extends ValueContainer{
     definitions : Array<string>
     scopes      : Array<ValueContainer>
-    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
+    methodAnnot : Array<ValueContainer>
+
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>,methodAnnotations : Array<ValueContainer>){
         super(ValueContainer.objectMirrorDef)
         this.definitions    = definitions
         this.scopes         = scopes
+        this.methodAnnot    = methodAnnotations
     }
 }
 
 export class SpiderIsolateMirrorDefinitionContainer extends ValueContainer{
     definitions : Array<string>
     scopes      : Array<ValueContainer>
-    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
+    methodAnnot : Array<ValueContainer>
+
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>,methodAnnotations : Array<ValueContainer>){
         super(ValueContainer.isolMirrorDef)
         this.definitions    = definitions
         this.scopes         = scopes
+        this.methodAnnot    = methodAnnotations
     }
 }
 export class ClassDefinitionContainer extends ValueContainer{
     definitions : Array<string>
     scopes      : Array<ValueContainer>
-    constructor(definitions : Array<string>,scopes : Array<ValueContainer>){
+    methodAnnot : Array<ValueContainer>
+
+    constructor(definitions : Array<string>,scopes : Array<ValueContainer>,methodAnnotations : Array<ValueContainer>){
         super(ValueContainer.classDefType)
         this.definitions    = definitions
         this.scopes         = scopes
+        this.methodAnnot    = methodAnnotations
     }
 }
 export class RepliqContainer extends ValueContainer{
@@ -740,19 +778,19 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             return new ArrayContainer(values)
         }
         else if(value[SpiderIsolateContainer.checkIsolateFuncKey]){
-            let mirror              = value[SpiderObjectMirror.mirrorAccessKey]
-            let baseOb              = mirror.pass(environment.actorMirror)
-            let proxyBase           = mirror.proxyBase
+            let mirror                              = value[SpiderObjectMirror.mirrorAccessKey]
+            let baseOb                              = mirror.pass(environment.actorMirror)
+            let proxyBase                           = mirror.proxyBase
             //Remove base reference from mirror to avoid serialising the base object twice
             delete mirror.base
             delete baseOb[SpiderObjectMirror.mirrorAccessKey]
             delete mirror.proxyBase
-            let [vars,methods]      = deconstructBehaviour(baseOb,0,[],[],receiverId,environment,"toString")
-            let [mVars,mMethods]    = deconstructBehaviour(mirror,0,[],[],receiverId,environment,"toString")
-            let container           = new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods),JSON.stringify(mVars),JSON.stringify(mMethods))
+            let [vars,methods,methodAnnots]         = deconstructBehaviour(baseOb,0,[],[],[],receiverId,environment,"toString")
+            let [mVars,mMethods,mMethodAnnots]      = deconstructBehaviour(mirror,0,[],[],[],receiverId,environment,"toString")
+            let container                           = new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods),JSON.stringify(methodAnnots),JSON.stringify(mVars),JSON.stringify(mMethods),JSON.stringify(mMethodAnnots))
             //Reset base object <=> mirror link
-            mirror.base             = baseOb
-            mirror.proxyBase        = proxyBase
+            mirror.base                             = baseOb
+            mirror.proxyBase                        = proxyBase
             baseOb[SpiderObjectMirror.mirrorAccessKey] = mirror
             return container
         }
@@ -813,7 +851,8 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                 }
             })
             let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
-            return new SpiderObjectMirrorDefinitionContainer(chain.serialisedClass,serScopes)
+            let serAnnot  : Array<ValueContainer>   = chain.methodAnnotations.map((annots)=>{return serialise(annots,receiverId,environment)})
+            return new SpiderObjectMirrorDefinitionContainer(chain.serialisedClass,serScopes,serAnnot)
         }
         else if(isClass(value) && isIsolateMirrorClass(value)){
             let chain : ClassDefinitionChain = getClassDefinitionChain(value)
@@ -826,11 +865,12 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                 }
             })
             let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
-            return new SpiderIsolateMirrorDefinitionContainer(chain.serialisedClass,serScopes)
+            let serAnnot  : Array<ValueContainer>   = chain.methodAnnotations.map((annots)=>{return serialise(annots,receiverId,environment)})
+            return new SpiderIsolateMirrorDefinitionContainer(chain.serialisedClass,serScopes,serAnnot)
         }
         else if(isClass(value) && isSpiderObjectClass(value)){
-            let chain : ClassDefinitionChain = getClassDefinitionChain(value)
-            let scopes    = chain.classScopes.map((scope : LexScope)=>{
+            let chain : ClassDefinitionChain        = getClassDefinitionChain(value)
+            let scopes                              = chain.classScopes.map((scope : LexScope)=>{
                 if(scope){
                     return scope.scopeObjects
                 }
@@ -838,8 +878,9 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                     return scope
                 }
             })
-            let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
-            return new SpiderObjectDefinitionContainer(chain.serialisedClass,serScopes)
+            let serScopes : Array<ValueContainer>   = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
+            let serAnnot  : Array<ValueContainer>   = chain.methodAnnotations.map((annots)=>{return serialise(annots,receiverId,environment)})
+            return new SpiderObjectDefinitionContainer(chain.serialisedClass,serScopes,serAnnot)
         }
         else if(isClass(value) && isSpiderIsolateClass(value)){
             let chain : ClassDefinitionChain       = getClassDefinitionChain(value)
@@ -854,7 +895,8 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{
                 return serialise(scope,receiverId,environment)
             })
-            return new SpiderIsolateDefinitionContainer(chain.serialisedClass,serScopes)
+            let serAnnot  : Array<ValueContainer>   = chain.methodAnnotations.map((annots)=>{return serialise(annots,receiverId,environment)})
+            return new SpiderIsolateDefinitionContainer(chain.serialisedClass,serScopes,serAnnot)
         }
         else if(isClass(value) && isRepliqClass(value)){
             //TODO might need to extract annotations in same way that is done for signals
@@ -886,7 +928,8 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
                 }
             })
             let serScopes : Array<ValueContainer>  = scopes.map((scope)=>{return serialise(scope,receiverId,environment)})
-            return new ClassDefinitionContainer(chain.serialisedClass,serScopes)
+            let serAnnot  : Array<ValueContainer>   = chain.methodAnnotations.map((annots)=>{return serialise(annots,receiverId,environment)})
+            return new ClassDefinitionContainer(chain.serialisedClass,serScopes,serAnnot)
         }
         else{
             throw new Error("Serialisation of functions disallowed: " + value.toString())
@@ -1048,23 +1091,39 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
     }
 
     function deSerialiseSpiderObjectDefinition(def : SpiderObjectDefinitionContainer){
-        let scopes = def.scopes.map((scope)=>{
+        let scopes      = def.scopes.map((scope)=>{
             return deserialise(scope,environment)
         })
-        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderObject,require("./MOP").reCreateObjectClass)
+        let methAnnots  = def.methodAnnot.map((annots)=>{
+            return deserialise(annots,environment)
+        })
+        methAnnots.forEach((annots : Map<string,string>)=>{
+            annots.forEach((annotFunc : String,methName : string)=>{
+                annots.set(methName,constructMethod(annotFunc))
+            })
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderObject,require("./MOP").reCreateObjectClass)
     }
 
     function deSerialiseSpiderIsolateDefinition(def : SpiderIsolateDefinitionContainer){
         let scopes = def.scopes.map((scope)=>{
             return deserialise(scope,environment)
         })
-        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderIsolate,require("./MOP").reCreateIsolateClass)
+        let methAnnots  = def.methodAnnot.map((annots)=>{
+            return deserialise(annots,environment)
+        })
+        methAnnots.forEach((annots : Map<string,string>)=>{
+            annots.forEach((annotFunc : String,methName : string)=>{
+                annots.set(methName,constructMethod(annotFunc))
+            })
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderIsolate,require("./MOP").reCreateIsolateClass)
     }
 
     function deSerialiseSpiderIsolate(isolateContainer : SpiderIsolateContainer){
-        var isolate     = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),environment)
-        var isolClone   = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),environment)
-        var mirror      = reconstructBehaviour({},JSON.parse(isolateContainer.mirrorVars),JSON.parse(isolateContainer.mirrorMethods),environment)
+        var isolate     = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),JSON.parse(isolateContainer.methAnnots),environment)
+        var isolClone   = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),JSON.parse(isolateContainer.methAnnots),environment)
+        var mirror      = reconstructBehaviour({},JSON.parse(isolateContainer.mirrorVars),JSON.parse(isolateContainer.mirrorMethods),JSON.parse(isolateContainer.mirrorMethAnnots),environment)
         isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy,simpleBind)
         return mirror.resolve(environment.actorMirror)
     }
@@ -1073,14 +1132,30 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let scopes = def.scopes.map((scope)=>{
             return deserialise(scope,environment)
         })
-        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderObjectMirror,require("./MOP").reCreateObjectMirrorClass)
+        let methAnnots  = def.methodAnnot.map((annots)=>{
+            return deserialise(annots,environment)
+        })
+        methAnnots.forEach((annots : Map<string,string>)=>{
+            annots.forEach((annotFunc : String,methName : string)=>{
+                annots.set(methName,constructMethod(annotFunc))
+            })
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderObjectMirror,require("./MOP").reCreateObjectMirrorClass)
     }
 
     function deSerialiseSpiderIsolateMirrorDefinition(def : SpiderIsolateMirrorDefinitionContainer){
         let scopes = def.scopes.map((scope)=>{
             return deserialise(scope,environment)
         })
-        return reconstructClassDefinitionChain(def.definitions,scopes,require("./MOP").SpiderIsolateMirror,require("./MOP").reCreateIsolateMirrorClass)
+        let methAnnots  = def.methodAnnot.map((annots)=>{
+            return deserialise(annots,environment)
+        })
+        methAnnots.forEach((annots : Map<string,string>)=>{
+            annots.forEach((annotFunc : String,methName : string)=>{
+                annots.set(methName,constructMethod(annotFunc))
+            })
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderIsolateMirror,require("./MOP").reCreateIsolateMirrorClass)
     }
 
     function deSerialiseClassDefinition(def : ClassDefinitionContainer){
@@ -1110,7 +1185,15 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let scopes = def.scopes.map((scope)=>{
             return deserialise(scope,environment)
         })
-        return reconstructClassDefinitionChain(def.definitions,scopes,null,reCreateClass)
+        let methAnnots  = def.methodAnnot.map((annots)=>{
+            return deserialise(annots,environment)
+        })
+        methAnnots.forEach((annots : Map<string,string>)=>{
+            annots.forEach((annotFunc : String,methName : string)=>{
+                annots.set(methName,constructMethod(annotFunc))
+            })
+        })
+        return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,null,reCreateClass)
     }
 
     function deSerialiseMap(mapContainer : MapContainer){

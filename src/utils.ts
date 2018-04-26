@@ -1,6 +1,8 @@
 /**
  * Created by flo on 05/12/2016.
  */
+import {SpiderIsolateMirror, SpiderObjectMirror} from "./MOP";
+
 export function isBrowser() : boolean {
     var isNode = false;
     if (typeof process === 'object') {
@@ -97,17 +99,34 @@ export function getSerialiableClassDefinition(classDefinition){
 }
 
 export class ClassDefinitionChain{
-    serialisedClass : Array<string>
-    classScopes     : Array<LexScope>
+    serialisedClass     : Array<string>
+    classScopes         : Array<LexScope>
+    methodAnnotations   : Array<Map<string,string>>
     constructor(){
         this.serialisedClass    = []
         this.classScopes        = []
+        this.methodAnnotations  = []
     }
 
-    addClass(classDefinition : string,classScope){
+    addClass(classDefinition : string,classScope,methodAnnotations : Map<string,string>){
         this.serialisedClass.push(classDefinition)
         this.classScopes.push(classScope)
+        this.methodAnnotations.push(methodAnnotations)
     }
+}
+
+export function getMethodAnnotations(classDefinition) : Map<string,string>{
+    let ret         = new Map()
+    let classProto  = classDefinition.prototype
+    Reflect.ownKeys(classProto).forEach((key)=>{
+        if(key != "constructor"){
+            let meth = classProto[key]
+            if(isAnnotatedMethod(meth)){
+                ret.set(key.toString(),meth["_ANNOT_"].toString())
+            }
+        }
+    })
+    return ret
 }
 
 export function getClassDefinitionChain(classDefinition,ignoreLast = true) : ClassDefinitionChain{
@@ -124,7 +143,7 @@ export function getClassDefinitionChain(classDefinition,ignoreLast = true) : Cla
             if(hasLexScope(currentClass)){
                 classScope = currentClass[LexScope._LEX_SCOPE_KEY_]
             }
-            classDefChain.addClass(getSerialiableClassDefinition(currentClass),classScope)
+            classDefChain.addClass(getSerialiableClassDefinition(currentClass),classScope,getMethodAnnotations(currentClass))
             loop(Reflect.getPrototypeOf(currentClass))
         }
     }
@@ -133,14 +152,19 @@ export function getClassDefinitionChain(classDefinition,ignoreLast = true) : Cla
 
 }
 
-export function reconstructClassDefinitionChain(classes : Array<string>,scopes : Array<Map<string,any>>,topClass,recreate){
+export function reconstructClassDefinitionChain(classes : Array<string>,scopes : Array<Map<string,any>>,methodAnnotations : Array<Map<string,Function>>,topClass,recreate){
     let loop =  (currentIndex,parentClass)=>{
+        let classDef        = recreate(classes[currentIndex],scopes[currentIndex],parentClass)
+        let classDefProto   = classDef.prototype
+        methodAnnotations[currentIndex].forEach((annotFunc,methName)=>{
+            let method = classDefProto[methName]
+            method["_ANNOT_"] = annotFunc
+        })
         if(currentIndex == 0){
-            return recreate(classes[currentIndex],scopes[currentIndex],parentClass)
+            return classDef
         }
         else{
-            let newParent = recreate(classes[currentIndex],scopes[currentIndex],parentClass)
-            return loop(--currentIndex,newParent)
+            return loop(--currentIndex,classDef)
         }
     }
     return loop(classes.length-1,topClass)
@@ -165,4 +189,18 @@ export function bundleScope(classDefinition : Function, scope : LexScope){
 
 export function hasLexScope(classDefinition){
     return Reflect.has(classDefinition,LexScope._LEX_SCOPE_KEY_)
+}
+
+export function isAnnotatedMethod(meth) {
+    return meth["_ANNOT_"]
+}
+
+export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror)=>any){
+    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        let originalMethod = descriptor.value
+        originalMethod["_ANNOT_"] = onCall
+        return {
+            value : originalMethod
+        }
+    };
 }

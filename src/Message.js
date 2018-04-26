@@ -30,14 +30,16 @@ Message.clientSenderType = "_CLIENT_";
 exports.Message = Message;
 exports._INSTALL_BEHAVIOUR_ = 0;
 class InstallBehaviourMessage extends Message {
-    constructor(senderRef, mainId, actorId, vars, methods, mirrorVars, mirrorMethods, staticProperties, otherActorIds) {
+    constructor(senderRef, mainId, actorId, vars, methods, methAnnots, mirrorVars, mirrorMethods, mirrorMethAnnots, staticProperties, otherActorIds) {
         super(exports._INSTALL_BEHAVIOUR_, senderRef);
         this.mainId = mainId;
         this.actorId = actorId;
         this.vars = vars;
         this.methods = methods;
+        this.methAnnots = methAnnots;
         this.mirrorVars = mirrorVars;
         this.mirrorMethods = mirrorMethods;
+        this.mirrorMethAnnots = mirrorMethAnnots;
         this.staticProperties = staticProperties;
         this.otherActorIds = otherActorIds;
     }

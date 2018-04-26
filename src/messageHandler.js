@@ -38,8 +38,8 @@ class MessageHandler {
     handleInstall(msg, ports) {
         var thisId = msg.actorId;
         var mainId = msg.mainId;
-        var behaviourObject = serialisation_1.reconstructBehaviour({}, msg.vars, msg.methods, this.environment);
-        var actorMirror = serialisation_1.reconstructBehaviour({}, msg.mirrorVars, msg.mirrorMethods, this.environment);
+        var behaviourObject = serialisation_1.reconstructBehaviour({}, msg.vars, msg.methods, msg.methAnnots, this.environment);
+        var actorMirror = serialisation_1.reconstructBehaviour({}, msg.mirrorVars, msg.mirrorMethods, msg.mirrorMethAnnots, this.environment);
         actorMirror.bindBase(this.environment, serialisation_1.serialise);
         this.environment.actorMirror = actorMirror;
         serialisation_1.reconstructStatic(behaviourObject, msg.staticProperties, this.environment);

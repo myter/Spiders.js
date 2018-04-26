@@ -1,3 +1,9 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
 /**
@@ -31,6 +37,53 @@ function log(testName, result, expected) {
     }
     ul.appendChild(li);
 }
+let annot = spiders_1.makeMethodAnnotation((mirror) => {
+    mirror.value = 666;
+});
+class TestObject extends spiders_1.SpiderIsolate {
+    meth() {
+    }
+}
+__decorate([
+    annot
+], TestObject.prototype, "meth", null);
+class AnnotSerApp extends spiders_1.Application {
+    send(toRef) {
+        return toRef.getIsol(new TestObject());
+    }
+}
+class AnnotSerActor extends spiders_1.Actor {
+    getIsol(i) {
+        i.meth();
+        return this.libs.reflectOnObject(i).value;
+    }
+}
+let annotSer = () => {
+    let app = new AnnotSerApp();
+    let act = app.spawnActor(AnnotSerActor);
+    return app.send(act).then((v) => {
+        log("Annotation Serialisation", v, 666);
+    });
+};
+scheduled.push(annotSer);
+class AnnotActor extends spiders_1.Actor {
+    constructor() {
+        super();
+        this.TestObject = TestObject;
+    }
+    test() {
+        let t = new this.TestObject();
+        t.meth();
+        return this.libs.reflectOnObject(t).value;
+    }
+}
+let annotRun = () => {
+    let act = app.spawnActor(AnnotActor);
+    return act.test().then((v) => {
+        log("Annotations", v, 666);
+    });
+};
+scheduled.push(annotRun);
 class ROAMirror extends spiders_1.SpiderActorMirror {
     constructor() {
         super();

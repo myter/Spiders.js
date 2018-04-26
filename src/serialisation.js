@@ -116,6 +116,9 @@ function constructMethod(functionSource) {
     if (functionSource.startsWith("function")) {
         var method = eval("(" + functionSource + ")");
     }
+    else if (functionSource.startsWith("(")) {
+        var method = eval(functionSource);
+    }
     else {
         var method = eval("(function " + functionSource + ")");
     }
@@ -146,7 +149,7 @@ function reconstructStatic(behaviourObject, staticProperties, environment) {
     });
 }
 exports.reconstructStatic = reconstructStatic;
-function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, receiverId, environment, lastProp) {
+function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, accumMethodAnnots, receiverId, environment, lastProp) {
     var properties = Reflect.ownKeys(object);
     var localAccumVars = [];
     for (var i in properties) {
@@ -164,6 +167,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
     localAccumVars.unshift(currentLevel);
     accumVars.push(localAccumVars);
     var localAccumMethods = [];
+    var localAccumMethAnnot = [];
     var proto = Reflect.getPrototypeOf(object);
     properties = Reflect.ownKeys(proto);
     var lastProto = properties.indexOf(lastProp) != -1;
@@ -172,19 +176,24 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, rec
             var key = properties[i];
             var method = Reflect.get(proto, key);
             if (typeof method == 'function' && key != "constructor") {
+                if (utils_1.isAnnotatedMethod(method)) {
+                    localAccumMethAnnot.push([key, method["_ANNOT_"].toString()]);
+                }
                 localAccumMethods.push([key, method.toString()]);
             }
         }
         localAccumMethods.unshift(currentLevel + 1);
+        localAccumMethAnnot.unshift(currentLevel + 1);
         accumMethods.push(localAccumMethods);
-        return deconstructBehaviour(proto, currentLevel + 1, accumVars, accumMethods, receiverId, environment, lastProp);
+        accumMethodAnnots.push(localAccumMethAnnot);
+        return deconstructBehaviour(proto, currentLevel + 1, accumVars, accumMethods, accumMethodAnnots, receiverId, environment, lastProp);
     }
     else {
-        return [accumVars, accumMethods];
+        return [accumVars, accumMethods, accumMethodAnnots];
     }
 }
 exports.deconstructBehaviour = deconstructBehaviour;
-function reconstructBehaviour(baseObject, variables, methods, environment) {
+function reconstructBehaviour(baseObject, variables, methods, methodAnnotations, environment) {
     var amountOfProtos = methods.length;
     for (var i = 0; i < amountOfProtos; i++) {
         var copy = baseObject.__proto__;
@@ -209,6 +218,16 @@ function reconstructBehaviour(baseObject, variables, methods, environment) {
             var key = methodEntry[0];
             var functionSource = methodEntry[1];
             installIn[key] = constructMethod(functionSource);
+        });
+    });
+    methodAnnotations.forEach((levelAnnotations) => {
+        let installIn = getProtoForLevel(levelAnnotations[0], baseObject);
+        levelAnnotations.shift();
+        levelAnnotations.forEach((annot) => {
+            let methName = annot[0];
+            let annotF = annot[1];
+            let meth = installIn[methName];
+            meth["_ANNOT_"] = constructMethod(annotF);
         });
     });
     return baseObject;
@@ -319,53 +338,60 @@ class ArrayContainer extends ValueContainer {
 }
 exports.ArrayContainer = ArrayContainer;
 class SpiderObjectDefinitionContainer extends ValueContainer {
-    constructor(definitions, scopes) {
+    constructor(definitions, scopes, methodAnnotations) {
         super(ValueContainer.spiderObjectDef);
         this.definitions = definitions;
         this.scopes = scopes;
+        this.methodAnnot = methodAnnotations;
     }
 }
 exports.SpiderObjectDefinitionContainer = SpiderObjectDefinitionContainer;
 class SpiderIsolateDefinitionContainer extends ValueContainer {
-    constructor(definitions, scopes) {
+    constructor(definitions, scopes, methodAnnotations) {
         super(ValueContainer.spiderIsolDef);
         this.definitions = definitions;
         this.scopes = scopes;
+        this.methodAnnot = methodAnnotations;
     }
 }
 exports.SpiderIsolateDefinitionContainer = SpiderIsolateDefinitionContainer;
 class SpiderIsolateContainer extends ValueContainer {
-    constructor(vars, methods, mirrorVars, mirrorMethods) {
+    constructor(vars, methods, methAnnots, mirrorVars, mirrorMethods, mirrorMethAnnots) {
         super(ValueContainer.isolateType);
         this.vars = vars;
         this.methods = methods;
+        this.methAnnots = methAnnots;
         this.mirrorVars = mirrorVars;
         this.mirrorMethods = mirrorMethods;
+        this.mirrorMethAnnots = mirrorMethAnnots;
     }
 }
 SpiderIsolateContainer.checkIsolateFuncKey = "_INSTANCEOF_ISOLATE_";
 exports.SpiderIsolateContainer = SpiderIsolateContainer;
 class SpiderObjectMirrorDefinitionContainer extends ValueContainer {
-    constructor(definitions, scopes) {
+    constructor(definitions, scopes, methodAnnotations) {
         super(ValueContainer.objectMirrorDef);
         this.definitions = definitions;
         this.scopes = scopes;
+        this.methodAnnot = methodAnnotations;
     }
 }
 exports.SpiderObjectMirrorDefinitionContainer = SpiderObjectMirrorDefinitionContainer;
 class SpiderIsolateMirrorDefinitionContainer extends ValueContainer {
-    constructor(definitions, scopes) {
+    constructor(definitions, scopes, methodAnnotations) {
         super(ValueContainer.isolMirrorDef);
         this.definitions = definitions;
         this.scopes = scopes;
+        this.methodAnnot = methodAnnotations;
     }
 }
 exports.SpiderIsolateMirrorDefinitionContainer = SpiderIsolateMirrorDefinitionContainer;
 class ClassDefinitionContainer extends ValueContainer {
-    constructor(definitions, scopes) {
+    constructor(definitions, scopes, methodAnnotations) {
         super(ValueContainer.classDefType);
         this.definitions = definitions;
         this.scopes = scopes;
+        this.methodAnnot = methodAnnotations;
     }
 }
 exports.ClassDefinitionContainer = ClassDefinitionContainer;
@@ -637,9 +663,9 @@ function serialise(value, receiverId, environment) {
             delete mirror.base;
             delete baseOb[MOP_1.SpiderObjectMirror.mirrorAccessKey];
             delete mirror.proxyBase;
-            let [vars, methods] = deconstructBehaviour(baseOb, 0, [], [], receiverId, environment, "toString");
-            let [mVars, mMethods] = deconstructBehaviour(mirror, 0, [], [], receiverId, environment, "toString");
-            let container = new SpiderIsolateContainer(JSON.stringify(vars), JSON.stringify(methods), JSON.stringify(mVars), JSON.stringify(mMethods));
+            let [vars, methods, methodAnnots] = deconstructBehaviour(baseOb, 0, [], [], [], receiverId, environment, "toString");
+            let [mVars, mMethods, mMethodAnnots] = deconstructBehaviour(mirror, 0, [], [], [], receiverId, environment, "toString");
+            let container = new SpiderIsolateContainer(JSON.stringify(vars), JSON.stringify(methods), JSON.stringify(methodAnnots), JSON.stringify(mVars), JSON.stringify(mMethods), JSON.stringify(mMethodAnnots));
             //Reset base object <=> mirror link
             mirror.base = baseOb;
             mirror.proxyBase = proxyBase;
@@ -703,7 +729,8 @@ function serialise(value, receiverId, environment) {
                 }
             });
             let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
-            return new SpiderObjectMirrorDefinitionContainer(chain.serialisedClass, serScopes);
+            let serAnnot = chain.methodAnnotations.map((annots) => { return serialise(annots, receiverId, environment); });
+            return new SpiderObjectMirrorDefinitionContainer(chain.serialisedClass, serScopes, serAnnot);
         }
         else if (isClass(value) && isIsolateMirrorClass(value)) {
             let chain = utils_1.getClassDefinitionChain(value);
@@ -716,7 +743,8 @@ function serialise(value, receiverId, environment) {
                 }
             });
             let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
-            return new SpiderIsolateMirrorDefinitionContainer(chain.serialisedClass, serScopes);
+            let serAnnot = chain.methodAnnotations.map((annots) => { return serialise(annots, receiverId, environment); });
+            return new SpiderIsolateMirrorDefinitionContainer(chain.serialisedClass, serScopes, serAnnot);
         }
         else if (isClass(value) && isSpiderObjectClass(value)) {
             let chain = utils_1.getClassDefinitionChain(value);
@@ -729,7 +757,8 @@ function serialise(value, receiverId, environment) {
                 }
             });
             let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
-            return new SpiderObjectDefinitionContainer(chain.serialisedClass, serScopes);
+            let serAnnot = chain.methodAnnotations.map((annots) => { return serialise(annots, receiverId, environment); });
+            return new SpiderObjectDefinitionContainer(chain.serialisedClass, serScopes, serAnnot);
         }
         else if (isClass(value) && isSpiderIsolateClass(value)) {
             let chain = utils_1.getClassDefinitionChain(value);
@@ -744,7 +773,8 @@ function serialise(value, receiverId, environment) {
             let serScopes = scopes.map((scope) => {
                 return serialise(scope, receiverId, environment);
             });
-            return new SpiderIsolateDefinitionContainer(chain.serialisedClass, serScopes);
+            let serAnnot = chain.methodAnnotations.map((annots) => { return serialise(annots, receiverId, environment); });
+            return new SpiderIsolateDefinitionContainer(chain.serialisedClass, serScopes, serAnnot);
         }
         else if (isClass(value) && isRepliqClass(value)) {
             //TODO might need to extract annotations in same way that is done for signals
@@ -776,7 +806,8 @@ function serialise(value, receiverId, environment) {
                 }
             });
             let serScopes = scopes.map((scope) => { return serialise(scope, receiverId, environment); });
-            return new ClassDefinitionContainer(chain.serialisedClass, serScopes);
+            let serAnnot = chain.methodAnnotations.map((annots) => { return serialise(annots, receiverId, environment); });
+            return new ClassDefinitionContainer(chain.serialisedClass, serScopes, serAnnot);
         }
         else {
             throw new Error("Serialisation of functions disallowed: " + value.toString());
@@ -932,18 +963,34 @@ function deserialise(value, environment) {
         let scopes = def.scopes.map((scope) => {
             return deserialise(scope, environment);
         });
-        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
+        let methAnnots = def.methodAnnot.map((annots) => {
+            return deserialise(annots, environment);
+        });
+        methAnnots.forEach((annots) => {
+            annots.forEach((annotFunc, methName) => {
+                annots.set(methName, constructMethod(annotFunc));
+            });
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
     }
     function deSerialiseSpiderIsolateDefinition(def) {
         let scopes = def.scopes.map((scope) => {
             return deserialise(scope, environment);
         });
-        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
+        let methAnnots = def.methodAnnot.map((annots) => {
+            return deserialise(annots, environment);
+        });
+        methAnnots.forEach((annots) => {
+            annots.forEach((annotFunc, methName) => {
+                annots.set(methName, constructMethod(annotFunc));
+            });
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
     }
     function deSerialiseSpiderIsolate(isolateContainer) {
-        var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
-        var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), environment);
-        var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), environment);
+        var isolate = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), JSON.parse(isolateContainer.methAnnots), environment);
+        var isolClone = reconstructBehaviour({}, JSON.parse(isolateContainer.vars), JSON.parse(isolateContainer.methods), JSON.parse(isolateContainer.methAnnots), environment);
+        var mirror = reconstructBehaviour({}, JSON.parse(isolateContainer.mirrorVars), JSON.parse(isolateContainer.mirrorMethods), JSON.parse(isolateContainer.mirrorMethAnnots), environment);
         isolate.instantiate(mirror, isolClone, MOP_1.wrapPrototypes, MOP_1.makeSpiderObjectProxy, MOP_1.simpleBind);
         return mirror.resolve(environment.actorMirror);
     }
@@ -951,13 +998,29 @@ function deserialise(value, environment) {
         let scopes = def.scopes.map((scope) => {
             return deserialise(scope, environment);
         });
-        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
+        let methAnnots = def.methodAnnot.map((annots) => {
+            return deserialise(annots, environment);
+        });
+        methAnnots.forEach((annots) => {
+            annots.forEach((annotFunc, methName) => {
+                annots.set(methName, constructMethod(annotFunc));
+            });
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
     }
     function deSerialiseSpiderIsolateMirrorDefinition(def) {
         let scopes = def.scopes.map((scope) => {
             return deserialise(scope, environment);
         });
-        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
+        let methAnnots = def.methodAnnot.map((annots) => {
+            return deserialise(annots, environment);
+        });
+        methAnnots.forEach((annots) => {
+            annots.forEach((annotFunc, methName) => {
+                annots.set(methName, constructMethod(annotFunc));
+            });
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
     }
     function deSerialiseClassDefinition(def) {
         function reCreateClass(classDefinition, scope, superClass) {
@@ -986,7 +1049,15 @@ function deserialise(value, environment) {
         let scopes = def.scopes.map((scope) => {
             return deserialise(scope, environment);
         });
-        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, null, reCreateClass);
+        let methAnnots = def.methodAnnot.map((annots) => {
+            return deserialise(annots, environment);
+        });
+        methAnnots.forEach((annots) => {
+            annots.forEach((annotFunc, methName) => {
+                annots.set(methName, constructMethod(annotFunc));
+            });
+        });
+        return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, null, reCreateClass);
     }
     function deSerialiseMap(mapContainer) {
         let keys = JSON.parse(mapContainer.keys).map((key) => {

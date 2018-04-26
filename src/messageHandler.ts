@@ -58,8 +58,8 @@ export class MessageHandler{
     private handleInstall(msg : InstallBehaviourMessage,ports : Array<MessagePort>){
         var thisId                      = msg.actorId
         var mainId                      = msg.mainId;
-        var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,this.environment)
-        var actorMirror                 = reconstructBehaviour({},msg.mirrorVars,msg.mirrorMethods,this.environment)
+        var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,msg.methAnnots,this.environment)
+        var actorMirror                 = reconstructBehaviour({},msg.mirrorVars,msg.mirrorMethods,msg.mirrorMethAnnots,this.environment)
         actorMirror.bindBase(this.environment,serialise)
         this.environment.actorMirror    = actorMirror
         reconstructStatic(behaviourObject,msg.staticProperties,this.environment);
