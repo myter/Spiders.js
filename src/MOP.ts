@@ -28,6 +28,11 @@ export class SpiderObjectMirror{
         return this.base[methodName]["_ANNOT_TAG_"]
     }
 
+    annotate(methodName,annotationCall,annotationTag){
+        this.base[methodName]["_ANNOT_CALL_"]   = annotationCall
+        this.base[methodName]["_ANNOT_TAG_"]    = annotationTag
+    }
+
     invoke(methodName : PropertyKey,args : Array<any>){
         let method = this.base[methodName]
         let annot  = isAnnotatedMethod(method)
@@ -87,6 +92,11 @@ export class SpiderIsolateMirror{
 
     getAnnotationTag(methodName){
         return this.base[methodName]["_ANNOT_TAG_"]
+    }
+
+    annotate(methodName,annotationCall,annotationTag){
+        this.base[methodName]["_ANNOT_CALL_"]   = annotationCall
+        this.base[methodName]["_ANNOT_TAG_"]    = annotationTag
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){
