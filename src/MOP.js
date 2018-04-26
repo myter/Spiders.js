@@ -52,7 +52,7 @@ class SpiderIsolateMirror {
         let method = this.base[methodName];
         let annot = utils_1.isAnnotatedMethod(method);
         if (annot) {
-            annot(this);
+            annot(this, methodName, args);
         }
         return this.base[methodName](...args);
     }
