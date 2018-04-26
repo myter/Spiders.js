@@ -17,7 +17,7 @@ export class SpiderObjectMirror{
     }
 
     isAnnotated(methodName){
-        return this.base[methodName]["_ANNOT_CALL"]
+        return this.base[methodName]["_ANNOT_CALL_"]
     }
 
     getAnnotationCall(methodName){

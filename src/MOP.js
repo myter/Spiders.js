@@ -9,7 +9,7 @@ class SpiderObjectMirror {
         this.proxyBase = proxy;
     }
     isAnnotated(methodName) {
-        return this.base[methodName]["_ANNOT_CALL"];
+        return this.base[methodName]["_ANNOT_CALL_"];
     }
     getAnnotationCall(methodName) {
         return this.base[methodName]["_ANNOT_CALL_"];
