@@ -195,7 +195,7 @@ export function isAnnotatedMethod(meth) {
     return meth["_ANNOT_"]
 }
 
-export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror)=>any){
+export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any){
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         let originalMethod = descriptor.value
         originalMethod["_ANNOT_"] = onCall
