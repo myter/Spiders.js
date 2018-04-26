@@ -122,7 +122,7 @@ export function getMethodAnnotations(classDefinition) : Map<string,string>{
         if(key != "constructor"){
             let meth = classProto[key]
             if(isAnnotatedMethod(meth)){
-                ret.set(key.toString(),meth["_ANNOT_"].toString())
+                ret.set(key.toString(),[meth["_ANNOT_CALL_"].toString(),meth["_ANNOT_TAG_"]])
             }
         }
     })
@@ -155,10 +155,11 @@ export function getClassDefinitionChain(classDefinition,ignoreLast = true) : Cla
 export function reconstructClassDefinitionChain(classes : Array<string>,scopes : Array<Map<string,any>>,methodAnnotations : Array<Map<string,Function>>,topClass,recreate){
     let loop =  (currentIndex,parentClass)=>{
         let classDef        = recreate(classes[currentIndex],scopes[currentIndex],parentClass)
-        let classDefProto   = classDef.prototype
-        methodAnnotations[currentIndex].forEach((annotFunc,methName)=>{
+        let classDefProto   = classDef.prototype;
+        (methodAnnotations[currentIndex] as any).forEach(([annotFunc,annotTag],methName)=>{
             let method = classDefProto[methName]
-            method["_ANNOT_"] = annotFunc
+            method["_ANNOT_CALL_"]  = annotFunc
+            method["_ANNOT_TAG_"]   = annotTag
         })
         if(currentIndex == 0){
             return classDef
@@ -192,13 +193,14 @@ export function hasLexScope(classDefinition){
 }
 
 export function isAnnotatedMethod(meth) {
-    return meth["_ANNOT_"]
+    return meth["_ANNOT_CALL_"]
 }
 
-export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any){
+export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any,tag : string = ""){
     return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
         let originalMethod = descriptor.value
-        originalMethod["_ANNOT_"] = onCall
+        originalMethod["_ANNOT_CALL_"]  = onCall
+        originalMethod["_ANNOT_TAG_"]   = tag
         return {
             value : originalMethod
         }

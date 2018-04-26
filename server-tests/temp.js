@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("../src/utils");
 const spiders_1 = require("../src/spiders");
-let foo = utils_1.makeMethodAnnotation((mirr) => { console.log("annot triggered"); });
+let foo = utils_1.makeMethodAnnotation((mirr) => { console.log("annot triggered"); }, "foo");
 class Test extends spiders_1.SpiderIsolate {
     meth() {
         console.log("Original called");
@@ -22,12 +22,26 @@ class App extends spiders_1.Application {
         console.log("Invoking in app");
         t.meth();
         act.getIsol(t);
+        let mirr = this.libs.reflectOnObject(t);
+        if (mirr.isAnnotated("meth")) {
+            console.log("Meth annotated");
+        }
+        else {
+            console.log("Meth not annotated");
+        }
+        console.log(mirr.isAnnotated("meth"));
+        console.log(mirr.getAnnotationTag("meth"));
+        console.log(mirr.getAnnotationCall("meth").toString());
     }
 }
 class Act extends spiders_1.Actor {
     getIsol(i) {
         console.log("Invoking in Actor");
         i.meth();
+        let mirr = this.libs.reflectOnObject(i);
+        console.log(mirr.isAnnotated("meth"));
+        console.log(mirr.getAnnotationTag("meth"));
+        console.log(mirr.getAnnotationCall("meth").toString());
     }
 }
 let app = new App();

@@ -177,7 +177,7 @@ function deconstructBehaviour(object, currentLevel, accumVars, accumMethods, acc
             var method = Reflect.get(proto, key);
             if (typeof method == 'function' && key != "constructor") {
                 if (utils_1.isAnnotatedMethod(method)) {
-                    localAccumMethAnnot.push([key, method["_ANNOT_"].toString()]);
+                    localAccumMethAnnot.push([key, method["_ANNOT_CALL_"].toString(), method["_ANNOT_TAG_"]]);
                 }
                 localAccumMethods.push([key, method.toString()]);
             }
@@ -226,8 +226,10 @@ function reconstructBehaviour(baseObject, variables, methods, methodAnnotations,
         levelAnnotations.forEach((annot) => {
             let methName = annot[0];
             let annotF = annot[1];
+            let annotTag = annot[2];
             let meth = installIn[methName];
-            meth["_ANNOT_"] = constructMethod(annotF);
+            meth["_ANNOT_CALL_"] = constructMethod(annotF);
+            meth["_ANNOT_TAG_"] = annotTag;
         });
     });
     return baseObject;
@@ -967,8 +969,8 @@ function deserialise(value, environment) {
             return deserialise(annots, environment);
         });
         methAnnots.forEach((annots) => {
-            annots.forEach((annotFunc, methName) => {
-                annots.set(methName, constructMethod(annotFunc));
+            annots.forEach(([annotFunc, annotTag], methName) => {
+                annots.set(methName, [constructMethod(annotFunc), annotTag]);
             });
         });
         return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderObject, require("./MOP").reCreateObjectClass);
@@ -981,8 +983,8 @@ function deserialise(value, environment) {
             return deserialise(annots, environment);
         });
         methAnnots.forEach((annots) => {
-            annots.forEach((annotFunc, methName) => {
-                annots.set(methName, constructMethod(annotFunc));
+            annots.forEach(([annotFunc, annotTag], methName) => {
+                annots.set(methName, [constructMethod(annotFunc), annotTag]);
             });
         });
         return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderIsolate, require("./MOP").reCreateIsolateClass);
@@ -1002,8 +1004,8 @@ function deserialise(value, environment) {
             return deserialise(annots, environment);
         });
         methAnnots.forEach((annots) => {
-            annots.forEach((annotFunc, methName) => {
-                annots.set(methName, constructMethod(annotFunc));
+            annots.forEach(([annotFunc, annotTag], methName) => {
+                annots.set(methName, [constructMethod(annotFunc), annotTag]);
             });
         });
         return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderObjectMirror, require("./MOP").reCreateObjectMirrorClass);
@@ -1016,8 +1018,8 @@ function deserialise(value, environment) {
             return deserialise(annots, environment);
         });
         methAnnots.forEach((annots) => {
-            annots.forEach((annotFunc, methName) => {
-                annots.set(methName, constructMethod(annotFunc));
+            annots.forEach(([annotFunc, annotTag], methName) => {
+                annots.set(methName, [constructMethod(annotFunc), annotTag]);
             });
         });
         return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, require("./MOP").SpiderIsolateMirror, require("./MOP").reCreateIsolateMirrorClass);
@@ -1053,8 +1055,8 @@ function deserialise(value, environment) {
             return deserialise(annots, environment);
         });
         methAnnots.forEach((annots) => {
-            annots.forEach((annotFunc, methName) => {
-                annots.set(methName, constructMethod(annotFunc));
+            annots.forEach(([annotFunc, annotTag], methName) => {
+                annots.set(methName, [constructMethod(annotFunc), annotTag]);
             });
         });
         return utils_1.reconstructClassDefinitionChain(def.definitions, scopes, methAnnots, null, reCreateClass);

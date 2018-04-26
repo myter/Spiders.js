@@ -191,7 +191,7 @@ export function deconstructBehaviour(object : any,currentLevel : number,accumVar
             var method  = Reflect.get(proto,key)
             if(typeof method == 'function' && key != "constructor"){
                 if(isAnnotatedMethod(method)){
-                    localAccumMethAnnot.push([key,method["_ANNOT_"].toString()])
+                    localAccumMethAnnot.push([key,method["_ANNOT_CALL_"].toString(),method["_ANNOT_TAG_"]])
                 }
                 localAccumMethods.push([key,method.toString()])
             }
@@ -238,10 +238,12 @@ export function reconstructBehaviour(baseObject : any,variables :Array<any>, met
         let installIn = getProtoForLevel(levelAnnotations[0],baseObject)
         levelAnnotations.shift()
         levelAnnotations.forEach((annot)=>{
-            let methName    = annot[0]
-            let annotF      = annot[1]
-            let meth        = installIn[methName]
-            meth["_ANNOT_"] = constructMethod(annotF)
+            let methName            = annot[0]
+            let annotF              = annot[1]
+            let annotTag            = annot[2]
+            let meth                = installIn[methName]
+            meth["_ANNOT_CALL_"]    = constructMethod(annotF)
+            meth["_ANNOT_TAG_"]     = annotTag
         })
     })
     return baseObject
@@ -1097,9 +1099,9 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let methAnnots  = def.methodAnnot.map((annots)=>{
             return deserialise(annots,environment)
         })
-        methAnnots.forEach((annots : Map<string,string>)=>{
-            annots.forEach((annotFunc : String,methName : string)=>{
-                annots.set(methName,constructMethod(annotFunc))
+        methAnnots.forEach((annots : Map<string,Array<string>>)=>{
+            annots.forEach(([annotFunc,annotTag],methName : string)=>{
+                annots.set(methName,[constructMethod(annotFunc),annotTag])
             })
         })
         return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderObject,require("./MOP").reCreateObjectClass)
@@ -1112,9 +1114,9 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let methAnnots  = def.methodAnnot.map((annots)=>{
             return deserialise(annots,environment)
         })
-        methAnnots.forEach((annots : Map<string,string>)=>{
-            annots.forEach((annotFunc : String,methName : string)=>{
-                annots.set(methName,constructMethod(annotFunc))
+        methAnnots.forEach((annots : Map<string,Array<string>>)=>{
+            annots.forEach(([annotFunc,annotTag],methName : string)=>{
+                annots.set(methName,[constructMethod(annotFunc),annotTag])
             })
         })
         return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderIsolate,require("./MOP").reCreateIsolateClass)
@@ -1135,9 +1137,9 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let methAnnots  = def.methodAnnot.map((annots)=>{
             return deserialise(annots,environment)
         })
-        methAnnots.forEach((annots : Map<string,string>)=>{
-            annots.forEach((annotFunc : String,methName : string)=>{
-                annots.set(methName,constructMethod(annotFunc))
+        methAnnots.forEach((annots : Map<string,Array<string>>)=>{
+            annots.forEach(([annotFunc,annotTag],methName : string)=>{
+                annots.set(methName,[constructMethod(annotFunc),annotTag])
             })
         })
         return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderObjectMirror,require("./MOP").reCreateObjectMirrorClass)
@@ -1150,9 +1152,9 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let methAnnots  = def.methodAnnot.map((annots)=>{
             return deserialise(annots,environment)
         })
-        methAnnots.forEach((annots : Map<string,string>)=>{
-            annots.forEach((annotFunc : String,methName : string)=>{
-                annots.set(methName,constructMethod(annotFunc))
+        methAnnots.forEach((annots : Map<string,Array<string>>)=>{
+            annots.forEach(([annotFunc,annotTag],methName : string)=>{
+                annots.set(methName,[constructMethod(annotFunc),annotTag])
             })
         })
         return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,require("./MOP").SpiderIsolateMirror,require("./MOP").reCreateIsolateMirrorClass)
@@ -1188,9 +1190,9 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         let methAnnots  = def.methodAnnot.map((annots)=>{
             return deserialise(annots,environment)
         })
-        methAnnots.forEach((annots : Map<string,string>)=>{
-            annots.forEach((annotFunc : String,methName : string)=>{
-                annots.set(methName,constructMethod(annotFunc))
+        methAnnots.forEach((annots : Map<string,Array<string>>)=>{
+            annots.forEach(([annotFunc,annotTag],methName : string)=>{
+                annots.set(methName,[constructMethod(annotFunc),annotTag])
             })
         })
         return reconstructClassDefinitionChain(def.definitions,scopes,methAnnots,null,reCreateClass)

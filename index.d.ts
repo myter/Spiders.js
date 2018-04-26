@@ -35,6 +35,9 @@ export class SpiderActorMirror{
 export class SpiderObjectMirror{
     base        : SpiderObject
     proxyBase   : SpiderObject
+    isAnnotated(methodName : string)
+    getAnnotationCall(methodName : string)
+    getAnnotationTag(methodName : string)
     invoke(methodName : PropertyKey,args : Array<any>)
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)
@@ -44,6 +47,9 @@ export class SpiderObjectMirror{
 export class SpiderIsolateMirror{
     base        : SpiderIsolate
     proxyBase   : SpiderObject
+    isAnnotated(methodName : string)
+    getAnnotationCall(methodName : string)
+    getAnnotationTag(methodName : string)
     invoke(methodName : PropertyKey,args : Array<any>)
     access(fieldName : PropertyKey)
     write(fieldName : PropertyKey,value : any)

@@ -16,6 +16,18 @@ export class SpiderObjectMirror{
         this.proxyBase = proxy
     }
 
+    isAnnotated(methodName){
+        return this.base[methodName]["_ANNOT_CALL"]
+    }
+
+    getAnnotationCall(methodName){
+        return this.base[methodName]["_ANNOT_CALL_"]
+    }
+
+    getAnnotationTag(methodName){
+        return this.base[methodName]["_ANNOT_TAG_"]
+    }
+
     invoke(methodName : PropertyKey,args : Array<any>){
         let method = this.base[methodName]
         let annot  = isAnnotatedMethod(method)
@@ -63,6 +75,18 @@ export class SpiderIsolateMirror{
 
     bindProxy(proxy){
         this.proxyBase = proxy
+    }
+
+    isAnnotated(methodName){
+        return this.base[methodName]["_ANNOT_CALL_"]
+    }
+
+    getAnnotationCall(methodName){
+        return this.base[methodName]["_ANNOT_CALL_"]
+    }
+
+    getAnnotationTag(methodName){
+        return this.base[methodName]["_ANNOT_TAG_"]
     }
 
     invoke(methodName : PropertyKey,args : Array<any>){

@@ -112,7 +112,7 @@ function getMethodAnnotations(classDefinition) {
         if (key != "constructor") {
             let meth = classProto[key];
             if (isAnnotatedMethod(meth)) {
-                ret.set(key.toString(), meth["_ANNOT_"].toString());
+                ret.set(key.toString(), [meth["_ANNOT_CALL_"].toString(), meth["_ANNOT_TAG_"]]);
             }
         }
     });
@@ -145,9 +145,10 @@ function reconstructClassDefinitionChain(classes, scopes, methodAnnotations, top
     let loop = (currentIndex, parentClass) => {
         let classDef = recreate(classes[currentIndex], scopes[currentIndex], parentClass);
         let classDefProto = classDef.prototype;
-        methodAnnotations[currentIndex].forEach((annotFunc, methName) => {
+        methodAnnotations[currentIndex].forEach(([annotFunc, annotTag], methName) => {
             let method = classDefProto[methName];
-            method["_ANNOT_"] = annotFunc;
+            method["_ANNOT_CALL_"] = annotFunc;
+            method["_ANNOT_TAG_"] = annotTag;
         });
         if (currentIndex == 0) {
             return classDef;
@@ -178,13 +179,14 @@ function hasLexScope(classDefinition) {
 }
 exports.hasLexScope = hasLexScope;
 function isAnnotatedMethod(meth) {
-    return meth["_ANNOT_"];
+    return meth["_ANNOT_CALL_"];
 }
 exports.isAnnotatedMethod = isAnnotatedMethod;
-function makeMethodAnnotation(onCall) {
+function makeMethodAnnotation(onCall, tag = "") {
     return function (target, propertyKey, descriptor) {
         let originalMethod = descriptor.value;
-        originalMethod["_ANNOT_"] = onCall;
+        originalMethod["_ANNOT_CALL_"] = onCall;
+        originalMethod["_ANNOT_TAG_"] = tag;
         return {
             value: originalMethod
         };
