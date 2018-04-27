@@ -3,6 +3,7 @@ const SubClient_1 = require("./PubSub/SubClient");
 const SubServer_1 = require("./PubSub/SubServer");
 const SubTag_1 = require("./PubSub/SubTag");
 const MOP_1 = require("./MOP");
+const utils_1 = require("./utils");
 class BufferedMirror extends MOP_1.SpiderObjectMirror {
     constructor() {
         super();
@@ -80,6 +81,7 @@ class BufferedRef extends MOP_1.SpiderObject {
 }
 class ActorSTDLib {
     constructor(env) {
+        this.clone = utils_1.clone;
         this.environment = env;
         this.PubSubTag = SubTag_1.PubSubTag;
     }

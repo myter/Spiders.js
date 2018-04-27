@@ -5,6 +5,7 @@ import {PubSubTag} from "./PubSub/SubTag";
 import {FarRef} from "spiders.js";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderObject, SpiderObjectMirror} from "./MOP";
+import {clone} from "./utils";
 
 class BufferedMirror extends SpiderObjectMirror{
     buffer : Array<Function>
@@ -95,6 +96,8 @@ class BufferedRef extends SpiderObject{
 export class ActorSTDLib{
     environment : ActorEnvironment
     PubSubTag   : {new(tagVal : string) : PubSubTag}
+    clone       : (Object) => Object      = clone
+
     constructor(env){
         this.environment = env
         this.PubSubTag   = PubSubTag

@@ -15,6 +15,7 @@ export class ActorSTDLib{
     PubSubTag : {new(tagVal : string) : PubSubTag}
     setupPSClient(address? : string,port? : number) : PSClient
     setupPSServer()
+    clone(toClone : Object) : Object
     remote(address : string,port : number) : Promise<FarRef<any>>
     buffRemote(address : string,port : number) : FarRef<any>
     reflectOnActor() : SpiderActorMirror

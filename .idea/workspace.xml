@@ -3,12 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.js" afterPath="$PROJECT_DIR$/server-tests/temp.js" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.js.map" afterPath="$PROJECT_DIR$/server-tests/temp.js.map" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.ts" afterPath="$PROJECT_DIR$/server-tests/temp.ts" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js" afterPath="$PROJECT_DIR$/src/serialisation.js" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js.map" afterPath="$PROJECT_DIR$/src/serialisation.js.map" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.ts" afterPath="$PROJECT_DIR$/src/serialisation.ts" />
+      <change beforePath="$PROJECT_DIR$/index.d.ts" afterPath="$PROJECT_DIR$/index.d.ts" />
+      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js" />
+      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js.map" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js.map" />
+      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.ts" afterPath="$PROJECT_DIR$/src/ActorSTDLib.ts" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -27,6 +25,29 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="utils.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/utils.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="195">
+              <caret line="83" column="17" lean-forward="false" selection-start-line="83" selection-start-column="16" selection-end-line="83" selection-end-column="21" />
+              <folding>
+                <element signature="n#!!block;n#clone#0" expanded="true" />
+                <element signature="n#!!block;n#makeMethodAnnotation#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="index.d.ts" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/index.d.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="120">
+              <caret line="12" column="35" lean-forward="false" selection-start-line="12" selection-start-column="35" selection-end-line="12" selection-end-column="35" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="temp.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
           <provider selected="true" editor-type-id="text-editor">
@@ -43,14 +64,14 @@
       <file leaf-file-name="ActorProto.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ActorProto.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="426">
+            <state relative-caret-position="630">
               <caret line="58" column="87" lean-forward="false" selection-start-line="58" selection-start-column="87" selection-end-line="58" selection-end-column="87" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="serialisation.ts" pinned="false" current-in-tab="true">
+      <file leaf-file-name="serialisation.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="346">
@@ -71,6 +92,16 @@
                 <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
                 <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ActorSTDLib.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="405">
+              <caret line="99" column="0" lean-forward="false" selection-start-line="99" selection-start-column="0" selection-end-line="99" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -144,7 +175,6 @@
         <option value="$PROJECT_DIR$/server-tests/testActorDefinition.ts" />
         <option value="$PROJECT_DIR$/server-tests/PubSub.Test.ts" />
         <option value="$PROJECT_DIR$/src/MAP.ts" />
-        <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubServer.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubClient.ts" />
         <option value="$PROJECT_DIR$/src/Message.ts" />
@@ -154,10 +184,11 @@
         <option value="$PROJECT_DIR$/server-tests/server-side.Test.ts" />
         <option value="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
         <option value="$PROJECT_DIR$/src/utils.ts" />
-        <option value="$PROJECT_DIR$/index.d.ts" />
         <option value="$PROJECT_DIR$/src/MOP.ts" />
         <option value="$PROJECT_DIR$/server-tests/temp.ts" />
         <option value="$PROJECT_DIR$/src/serialisation.ts" />
+        <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
+        <option value="$PROJECT_DIR$/index.d.ts" />
       </list>
     </option>
   </component>
@@ -202,6 +233,7 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -223,7 +255,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -410,7 +441,8 @@
       <workItem from="1524742511998" duration="72000" />
       <workItem from="1524743523348" duration="75000" />
       <workItem from="1524761065992" duration="94000" />
-      <workItem from="1524815615183" duration="1471000" />
+      <workItem from="1524815615183" duration="1534000" />
+      <workItem from="1524825758636" duration="227000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -654,14 +686,11 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.27 at 10h 22m 42s.xml">
+    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.27 at 12h 45m 14s.xml">
       <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.25 at 18h 16m 53s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
-    <history-entry file="server-tests_server-side_Test_ts - 2018.04.26 at 08h 36m 50s.xml">
-      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.27 at 12h 46m 39s.xml">
+      <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.26 at 08h 38m 15s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
@@ -684,17 +713,20 @@
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.27 at 10h 22m 29s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.04.27 at 12h 46m 18s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="132986000" />
+    <option name="totallyTimeSpent" value="133276000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="2560" height="1336" extended-state="6" />
+    <frame x="0" y="23" width="2560" height="1337" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36945814" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36915505" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -702,6 +734,7 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.107522644" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Statistic" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Docker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32711622" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23884892" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -710,7 +743,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32711622" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1164,13 +1196,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="617">
-          <caret line="103" column="73" lean-forward="false" selection-start-line="103" selection-start-column="69" selection-end-line="103" selection-end-column="73" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/PubSub/SubClient.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="318">
@@ -1306,30 +1331,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/MAP.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="328" column="26" lean-forward="false" selection-start-line="328" selection-start-column="26" selection-end-line="328" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/index.d.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="676">
-          <caret line="53" column="53" lean-forward="false" selection-start-line="53" selection-start-column="53" selection-end-line="53" selection-end-column="53" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/utils.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="915">
-          <caret line="199" column="87" lean-forward="false" selection-start-line="199" selection-start-column="87" selection-end-line="199" selection-end-column="87" />
+        <state relative-caret-position="195">
+          <caret line="83" column="17" lean-forward="false" selection-start-line="83" selection-start-column="16" selection-end-line="83" selection-end-column="21" />
           <folding>
-            <element signature="n#!!block;n#reconstructClassDefinitionChain#0" expanded="false" />
-            <element signature="e#4793#5334#0" expanded="false" />
-            <element signature="e#6206#6416#0" expanded="false" />
+            <element signature="n#!!block;n#clone#0" expanded="true" />
+            <element signature="n#!!block;n#makeMethodAnnotation#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1345,20 +1353,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="23" column="27" lean-forward="false" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="27" />
-          <folding>
-            <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ActorProto.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="426">
+        <state relative-caret-position="630">
           <caret line="58" column="87" lean-forward="false" selection-start-line="58" selection-start-column="87" selection-end-line="58" selection-end-column="87" />
           <folding />
         </state>
@@ -1371,6 +1368,44 @@
           <folding>
             <element signature="n#!!block;n#deSerialiseClassDefinition#0;n#!!block;n#deserialise#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="23" column="27" lean-forward="false" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="27" />
+          <folding>
+            <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="99" column="0" lean-forward="false" selection-start-line="99" selection-start-column="0" selection-end-line="99" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MAP.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="120" column="90" lean-forward="true" selection-start-line="120" selection-start-column="90" selection-end-line="120" selection-end-column="90" />
+          <folding>
+            <element signature="n#!!block;n#initialise#0;n#SpiderActorMirror#0" expanded="false" />
+            <element signature="n#!!block;n#receiveInvocation#0;n#SpiderActorMirror#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="12" column="35" lean-forward="false" selection-start-line="12" selection-start-column="35" selection-end-line="12" selection-end-column="35" />
+          <folding />
         </state>
       </provider>
     </entry>
