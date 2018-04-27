@@ -1127,7 +1127,13 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         var isolClone   = reconstructBehaviour({},JSON.parse(isolateContainer.vars),JSON.parse(isolateContainer.methods),JSON.parse(isolateContainer.methAnnots),environment)
         var mirror      = reconstructBehaviour({},JSON.parse(isolateContainer.mirrorVars),JSON.parse(isolateContainer.mirrorMethods),JSON.parse(isolateContainer.mirrorMethAnnots),environment)
         isolate.instantiate(mirror,isolClone,wrapPrototypes,makeSpiderObjectProxy,simpleBind)
-        return mirror.resolve(environment.actorMirror)
+        //There's an edge case where an actor mirror contains an isolate, when the mirror is deserialised by the ActorProto (i.e. upon creation) the environment is not created yet (ugly but needed)
+        if(environment){
+            return mirror.resolve(environment.actorMirror)
+        }
+        else{
+            return mirror.resolve()
+        }
     }
 
     function deSerialiseSpiderObjectMirrorDefintion(def : SpiderObjectMirrorDefinitionContainer){

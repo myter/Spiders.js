@@ -1,45 +1,25 @@
 import {makeMethodAnnotation} from "../src/utils";
-import {Application, SpiderIsolate, SpiderObject,SpiderObjectMirror,Actor} from "../src/spiders";
+import {Application, SpiderIsolate, SpiderObject,SpiderObjectMirror,Actor,SpiderActorMirror} from "../src/spiders";
 
 
-let foo = makeMethodAnnotation((mirr : SpiderObjectMirror)=>{console.log("annot triggered")},"foo")
-class Test extends SpiderIsolate{
-    @foo
-    meth(){
-        console.log("Original called")
+class TestIsol extends SpiderIsolate{
+
+}
+
+class TestMirror extends SpiderActorMirror{
+    isol
+    constructor(someIsol){
+        super()
+        this.isol = someIsol
     }
 }
 
-class App extends Application{
-    send(){
-        let t = new Test()
-        console.log("Invoking in app")
-        t.meth()
-        act.getIsol(t)
-        let mirr = this.libs.reflectOnObject(t)
-        if(mirr.isAnnotated("meth")){
-            console.log("Meth annotated")
-        }
-        else{
-            console.log("Meth not annotated")
-        }
-        console.log(mirr.isAnnotated("meth"))
-        console.log(mirr.getAnnotationTag("meth"))
-        console.log(mirr.getAnnotationCall("meth").toString())
+class TestActor extends Actor{
+    constructor(){
+        super(new TestMirror(new TestIsol()))
     }
 }
 
-class Act extends Actor{
-    getIsol(i){
-        console.log("Invoking in Actor")
-        i.meth()
-        let mirr = this.libs.reflectOnObject(i)
-        console.log(mirr.isAnnotated("meth"))
-        console.log(mirr.getAnnotationTag("meth"))
-        console.log(mirr.getAnnotationCall("meth").toString())
-    }
-}
+let app = new Application()
+app.spawnActor(TestActor)
 
-let app = new App()
-let act = app.spawnActor(Act)
-app.send()
