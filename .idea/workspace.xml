@@ -3,6 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/server-tests/temp.js" afterPath="$PROJECT_DIR$/server-tests/temp.js" />
+      <change beforePath="$PROJECT_DIR$/server-tests/temp.js.map" afterPath="$PROJECT_DIR$/server-tests/temp.js.map" />
+      <change beforePath="$PROJECT_DIR$/server-tests/temp.ts" afterPath="$PROJECT_DIR$/server-tests/temp.ts" />
       <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js" />
       <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js.map" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js.map" />
       <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.ts" afterPath="$PROJECT_DIR$/src/ActorSTDLib.ts" />
@@ -38,7 +41,7 @@
         <entry file="file://$PROJECT_DIR$/src/spiders.ts">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="255">
-              <caret line="109" column="58" lean-forward="true" selection-start-line="109" selection-start-column="58" selection-end-line="109" selection-end-column="58" />
+              <caret line="109" column="58" lean-forward="false" selection-start-line="109" selection-start-column="58" selection-end-line="109" selection-end-column="58" />
               <folding>
                 <element signature="n#ActorBase#0" expanded="false" />
                 <element signature="n#ClientActor#0" expanded="false" />
@@ -51,11 +54,39 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="temp.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="330">
+              <caret line="23" column="0" lean-forward="true" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+              <folding>
+                <element signature="n#!!block;n#constructor#0;n#TestIsol#0" expanded="true" />
+                <element signature="n#!!block;n#constructor#0;n#TestMirror#0" expanded="true" />
+                <element signature="n#!!block;n#constructor#0;n#TestActor#0" expanded="true" />
+                <element signature="n#!!block;n#init#0;n#TestActor#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ActorEnvironment.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="195">
+              <caret line="23" column="27" lean-forward="false" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="27" />
+              <folding>
+                <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
+                <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="serialisation.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="832">
-              <caret line="1125" column="26" lean-forward="true" selection-start-line="1125" selection-start-column="26" selection-end-line="1125" selection-end-column="173" />
+            <state relative-caret-position="292">
+              <caret line="783" column="22" lean-forward="false" selection-start-line="783" selection-start-column="16" selection-end-line="783" selection-end-column="22" />
               <folding>
                 <element signature="n#!!doc;n#getObjectVars#0" expanded="false" />
                 <element signature="e#1289#1570#0" expanded="false" />
@@ -131,7 +162,6 @@
                 <element signature="e#28641#28953#0" expanded="false" />
                 <element signature="e#29076#29249#0" expanded="false" />
                 <element signature="e#29405#29440#0" expanded="false" />
-                <element signature="n#!!block;n#serialise#0" expanded="true" />
                 <element signature="e#30003#30059#0" expanded="false" />
                 <element signature="e#30100#30157#0" expanded="false" />
                 <element signature="e#30199#30276#0" expanded="false" />
@@ -149,6 +179,7 @@
                 <element signature="e#34151#34536#0" expanded="false" />
                 <element signature="e#34671#34856#0" expanded="false" />
                 <element signature="e#35158#35278#0" expanded="false" />
+                <element signature="e#35341#35542#0" expanded="false" />
                 <element signature="e#35556#35652#0" expanded="false" />
                 <element signature="e#35698#40990#0" expanded="false" />
                 <element signature="e#35887#35964#0" expanded="false" />
@@ -171,6 +202,7 @@
                 <element signature="e#40351#40416#0" expanded="false" />
                 <element signature="e#40437#40489#0" expanded="false" />
                 <element signature="e#40883#40984#0" expanded="false" />
+                <element signature="n#!!block;n#deserialise#0" expanded="true" />
                 <element signature="e#41699#41904#0" expanded="false" />
                 <element signature="e#41772#41894#0" expanded="false" />
                 <element signature="e#41917#42129#0" expanded="false" />
@@ -182,6 +214,7 @@
                 <element signature="e#47817#48001#0" expanded="false" />
                 <element signature="e#48014#48174#0" expanded="false" />
                 <element signature="e#48738#49079#0" expanded="false" />
+                <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
                 <element signature="e#52208#52278#0" expanded="false" />
                 <element signature="e#52291#52338#0" expanded="false" />
                 <element signature="e#54008#54600#0" expanded="false" />
@@ -189,37 +222,6 @@
                 <element signature="e#54617#54907#0" expanded="false" />
                 <element signature="e#54644#54777#0" expanded="false" />
                 <element signature="e#55942#58105#0" expanded="false" />
-                <element signature="e#55970#56054#0" expanded="false" />
-                <element signature="e#56063#56160#0" expanded="false" />
-                <element signature="e#56169#56281#0" expanded="false" />
-                <element signature="e#56290#56402#0" expanded="false" />
-                <element signature="e#56411#56502#0" expanded="false" />
-                <element signature="e#56511#56602#0" expanded="false" />
-                <element signature="e#56611#56705#0" expanded="false" />
-                <element signature="e#56714#56834#0" expanded="false" />
-                <element signature="e#56843#56937#0" expanded="false" />
-                <element signature="e#56946#57066#0" expanded="false" />
-                <element signature="e#57075#57206#0" expanded="false" />
-                <element signature="e#57215#57357#0" expanded="false" />
-                <element signature="e#57366#57497#0" expanded="false" />
-                <element signature="e#57506#57615#0" expanded="false" />
-                <element signature="e#57624#57767#0" expanded="false" />
-                <element signature="e#57776#57890#0" expanded="false" />
-                <element signature="e#57899#57984#0" expanded="false" />
-                <element signature="e#57993#58099#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ActorEnvironment.ts" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="23" column="27" lean-forward="false" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="27" />
-              <folding>
-                <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
-                <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -228,8 +230,8 @@
       <file leaf-file-name="ActorSTDLib.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="450">
-              <caret line="106" column="81" lean-forward="false" selection-start-line="106" selection-start-column="81" selection-end-line="106" selection-end-column="81" />
+            <state relative-caret-position="465">
+              <caret line="107" column="55" lean-forward="false" selection-start-line="107" selection-start-column="55" selection-end-line="107" selection-end-column="55" />
               <folding />
             </state>
           </provider>
@@ -314,9 +316,9 @@
         <option value="$PROJECT_DIR$/client-tests/testBaseFramework.ts" />
         <option value="$PROJECT_DIR$/src/utils.ts" />
         <option value="$PROJECT_DIR$/src/MOP.ts" />
-        <option value="$PROJECT_DIR$/server-tests/temp.ts" />
         <option value="$PROJECT_DIR$/src/serialisation.ts" />
         <option value="$PROJECT_DIR$/index.d.ts" />
+        <option value="$PROJECT_DIR$/server-tests/temp.ts" />
         <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
       </list>
     </option>
@@ -339,10 +341,9 @@
     <handled-path value="$PROJECT_DIR$/node_modules" />
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="267" />
-    <option name="y" value="48" />
+    <option name="y" value="23" />
     <option name="width" value="2560" />
-    <option name="height" value="1337" />
+    <option name="height" value="1336" />
   </component>
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -410,7 +411,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Mocha.server-tests/server-side.Test.ts">
+  <component name="RunManager" selected="Node.js.temp.js">
     <configuration name="client-tests" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63343/Spiders.js/testBaseFramework.html">
       <method>
         <option name="NpmBeforeRunTask" enabled="true">
@@ -573,7 +574,7 @@
       <workItem from="1524761065992" duration="94000" />
       <workItem from="1524815615183" duration="1534000" />
       <workItem from="1524825758636" duration="267000" />
-      <workItem from="1524826321620" duration="216000" />
+      <workItem from="1524826321620" duration="504000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -849,15 +850,15 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="133532000" />
+    <option name="totallyTimeSpent" value="133820000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="2560" height="1337" extended-state="6" />
+    <frame x="0" y="23" width="2560" height="1336" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.36915505" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3686371" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="npm" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.046043165" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -1306,13 +1307,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-79">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Replication/Repliq.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
@@ -1412,13 +1406,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/serialisation.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="137">
-          <caret line="984" column="19" lean-forward="false" selection-start-line="984" selection-start-column="19" selection-end-line="984" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/MOP.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="829">
@@ -1435,31 +1422,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="23" column="27" lean-forward="false" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="27" />
-          <folding>
-            <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/MAP.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
           <caret line="120" column="90" lean-forward="true" selection-start-line="120" selection-start-column="90" selection-end-line="120" selection-end-column="90" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="12" column="28" lean-forward="false" selection-start-line="12" selection-start-column="28" selection-end-line="12" selection-end-column="28" />
           <folding>
-            <element signature="e#0#50#0" expanded="true" />
-            <element signature="n#!!block;n#constructor#0;n#TestActor#0" expanded="true" />
+            <element signature="n#!!block;n#initialise#0;n#SpiderActorMirror#0" expanded="false" />
+            <element signature="n#!!block;n#receiveInvocation#0;n#SpiderActorMirror#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1477,8 +1446,8 @@
         <state relative-caret-position="195">
           <caret line="83" column="17" lean-forward="false" selection-start-line="83" selection-start-column="16" selection-end-line="83" selection-end-column="21" />
           <folding>
-            <element signature="n#!!block;n#clone#0" expanded="true" />
-            <element signature="n#!!block;n#makeMethodAnnotation#0" expanded="true" />
+            <element signature="n#!!block;n#clone#0" expanded="false" />
+            <element signature="n#!!block;n#makeMethodAnnotation#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1494,7 +1463,7 @@
     <entry file="file://$PROJECT_DIR$/src/spiders.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
-          <caret line="109" column="58" lean-forward="true" selection-start-line="109" selection-start-column="58" selection-end-line="109" selection-end-column="58" />
+          <caret line="109" column="58" lean-forward="false" selection-start-line="109" selection-start-column="58" selection-end-line="109" selection-end-column="58" />
           <folding>
             <element signature="n#ActorBase#0" expanded="false" />
             <element signature="n#ClientActor#0" expanded="false" />
@@ -1506,10 +1475,54 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/serialisation.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2751">
+          <caret line="661" column="31" lean-forward="false" selection-start-line="661" selection-start-column="31" selection-end-line="661" selection-end-column="31" />
+          <folding>
+            <element signature="n#!!block;n#deconstructBehaviour#0" expanded="false" />
+            <element signature="n#!!block;n#deserialise#0" expanded="false" />
+            <element signature="n#!!block;n#deSerialiseSpiderIsolateDefinition#0;n#!!block;n#deserialise#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="87" column="60" lean-forward="false" selection-start-line="87" selection-start-column="60" selection-end-line="87" selection-end-column="60" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="23" column="0" lean-forward="true" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!block;n#constructor#0;n#TestIsol#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#TestMirror#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#TestActor#0" expanded="true" />
+            <element signature="n#!!block;n#init#0;n#TestActor#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="23" column="27" lean-forward="false" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="27" />
+          <folding>
+            <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="832">
-          <caret line="1125" column="26" lean-forward="true" selection-start-line="1125" selection-start-column="26" selection-end-line="1125" selection-end-column="173" />
+        <state relative-caret-position="292">
+          <caret line="783" column="22" lean-forward="false" selection-start-line="783" selection-start-column="16" selection-end-line="783" selection-end-column="22" />
           <folding>
             <element signature="n#!!doc;n#getObjectVars#0" expanded="false" />
             <element signature="e#1289#1570#0" expanded="false" />
@@ -1585,7 +1598,6 @@
             <element signature="e#28641#28953#0" expanded="false" />
             <element signature="e#29076#29249#0" expanded="false" />
             <element signature="e#29405#29440#0" expanded="false" />
-            <element signature="n#!!block;n#serialise#0" expanded="true" />
             <element signature="e#30003#30059#0" expanded="false" />
             <element signature="e#30100#30157#0" expanded="false" />
             <element signature="e#30199#30276#0" expanded="false" />
@@ -1603,6 +1615,7 @@
             <element signature="e#34151#34536#0" expanded="false" />
             <element signature="e#34671#34856#0" expanded="false" />
             <element signature="e#35158#35278#0" expanded="false" />
+            <element signature="e#35341#35542#0" expanded="false" />
             <element signature="e#35556#35652#0" expanded="false" />
             <element signature="e#35698#40990#0" expanded="false" />
             <element signature="e#35887#35964#0" expanded="false" />
@@ -1625,6 +1638,7 @@
             <element signature="e#40351#40416#0" expanded="false" />
             <element signature="e#40437#40489#0" expanded="false" />
             <element signature="e#40883#40984#0" expanded="false" />
+            <element signature="n#!!block;n#deserialise#0" expanded="true" />
             <element signature="e#41699#41904#0" expanded="false" />
             <element signature="e#41772#41894#0" expanded="false" />
             <element signature="e#41917#42129#0" expanded="false" />
@@ -1636,6 +1650,7 @@
             <element signature="e#47817#48001#0" expanded="false" />
             <element signature="e#48014#48174#0" expanded="false" />
             <element signature="e#48738#49079#0" expanded="false" />
+            <element signature="n#!!block;n#deSerialiseSpiderIsolate#0;n#!!block;n#deserialise#0" expanded="true" />
             <element signature="e#52208#52278#0" expanded="false" />
             <element signature="e#52291#52338#0" expanded="false" />
             <element signature="e#54008#54600#0" expanded="false" />
@@ -1643,32 +1658,14 @@
             <element signature="e#54617#54907#0" expanded="false" />
             <element signature="e#54644#54777#0" expanded="false" />
             <element signature="e#55942#58105#0" expanded="false" />
-            <element signature="e#55970#56054#0" expanded="false" />
-            <element signature="e#56063#56160#0" expanded="false" />
-            <element signature="e#56169#56281#0" expanded="false" />
-            <element signature="e#56290#56402#0" expanded="false" />
-            <element signature="e#56411#56502#0" expanded="false" />
-            <element signature="e#56511#56602#0" expanded="false" />
-            <element signature="e#56611#56705#0" expanded="false" />
-            <element signature="e#56714#56834#0" expanded="false" />
-            <element signature="e#56843#56937#0" expanded="false" />
-            <element signature="e#56946#57066#0" expanded="false" />
-            <element signature="e#57075#57206#0" expanded="false" />
-            <element signature="e#57215#57357#0" expanded="false" />
-            <element signature="e#57366#57497#0" expanded="false" />
-            <element signature="e#57506#57615#0" expanded="false" />
-            <element signature="e#57624#57767#0" expanded="false" />
-            <element signature="e#57776#57890#0" expanded="false" />
-            <element signature="e#57899#57984#0" expanded="false" />
-            <element signature="e#57993#58099#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="106" column="81" lean-forward="false" selection-start-line="106" selection-start-column="81" selection-end-line="106" selection-end-column="81" />
+        <state relative-caret-position="465">
+          <caret line="107" column="55" lean-forward="false" selection-start-line="107" selection-start-column="55" selection-end-line="107" selection-end-column="55" />
           <folding />
         </state>
       </provider>

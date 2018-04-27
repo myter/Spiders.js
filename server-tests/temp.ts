@@ -3,7 +3,12 @@ import {Application, SpiderIsolate, SpiderObject,SpiderObjectMirror,Actor,Spider
 
 
 class TestIsol extends SpiderIsolate{
+    value
 
+    constructor(){
+        super()
+        this.value = 5
+    }
 }
 
 class TestMirror extends SpiderActorMirror{
@@ -15,8 +20,16 @@ class TestMirror extends SpiderActorMirror{
 }
 
 class TestActor extends Actor{
+    TestIsol
+
     constructor(){
-        super(new TestMirror(new TestIsol()))
+        super()
+        this.TestIsol = TestIsol
+    }
+
+    init(){
+        let t = new this.TestIsol()
+        let tt = this.libs.clone(t)
     }
 }
 

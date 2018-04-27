@@ -85,8 +85,8 @@ class ActorSTDLib {
         this.PubSubTag = SubTag_1.PubSubTag;
     }
     clone(toClone) {
-        let [vars, methods, methodAnnots] = serialisation_1.deconstructBehaviour(toClone, 0, [], [], [], null, this.environment, "toString");
-        return serialisation_1.reconstructBehaviour({}, vars, methods, methodAnnots, this.environment);
+        let serialised = serialisation_1.serialise(toClone, null, this.environment);
+        return serialisation_1.deserialise(serialised, this.environment);
     }
     setupPSClient(address = "127.0.0.1", port = 8000) {
         return new SubClient_1.PSClient(this.environment.behaviourObject, address, port);
