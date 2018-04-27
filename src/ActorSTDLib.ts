@@ -6,6 +6,7 @@ import {FarRef} from "spiders.js";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderObject, SpiderObjectMirror} from "./MOP";
 import {clone} from "./utils";
+import {deconstructBehaviour, reconstructBehaviour} from "./serialisation";
 
 class BufferedMirror extends SpiderObjectMirror{
     buffer : Array<Function>
@@ -96,11 +97,15 @@ class BufferedRef extends SpiderObject{
 export class ActorSTDLib{
     environment : ActorEnvironment
     PubSubTag   : {new(tagVal : string) : PubSubTag}
-    clone       : (Object) => Object      = clone
 
     constructor(env){
         this.environment = env
         this.PubSubTag   = PubSubTag
+    }
+
+    clone(toClone){
+        let [vars,methods,methodAnnots]         = deconstructBehaviour(toClone,0,[],[],[],null,this.environment,"toString")
+        return reconstructBehaviour({},vars,methods,methodAnnots,this.environment)
     }
 
     setupPSClient(address : string = "127.0.0.1",port : number = 8000) : PSClient{

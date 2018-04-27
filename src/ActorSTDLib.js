@@ -3,7 +3,7 @@ const SubClient_1 = require("./PubSub/SubClient");
 const SubServer_1 = require("./PubSub/SubServer");
 const SubTag_1 = require("./PubSub/SubTag");
 const MOP_1 = require("./MOP");
-const utils_1 = require("./utils");
+const serialisation_1 = require("./serialisation");
 class BufferedMirror extends MOP_1.SpiderObjectMirror {
     constructor() {
         super();
@@ -81,9 +81,12 @@ class BufferedRef extends MOP_1.SpiderObject {
 }
 class ActorSTDLib {
     constructor(env) {
-        this.clone = utils_1.clone;
         this.environment = env;
         this.PubSubTag = SubTag_1.PubSubTag;
+    }
+    clone(toClone) {
+        let [vars, methods, methodAnnots] = serialisation_1.deconstructBehaviour(toClone, 0, [], [], [], null, this.environment, "toString");
+        return serialisation_1.reconstructBehaviour({}, vars, methods, methodAnnots, this.environment);
     }
     setupPSClient(address = "127.0.0.1", port = 8000) {
         return new SubClient_1.PSClient(this.environment.behaviourObject, address, port);
