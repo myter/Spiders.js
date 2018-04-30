@@ -13,7 +13,7 @@ export class PubSubTag extends SpiderIsolate{
     }
 
     equals(otherTag : PubSubTag){
-        otherTag.tagVal == this.tagVal
+        return otherTag.tagVal == this.tagVal
     }
 
     asString(){

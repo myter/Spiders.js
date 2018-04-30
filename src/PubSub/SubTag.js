@@ -9,7 +9,7 @@ class PubSubTag extends MOP_1.SpiderIsolate {
         this.tagVal = tagVal;
     }
     equals(otherTag) {
-        otherTag.tagVal == this.tagVal;
+        return otherTag.tagVal == this.tagVal;
     }
     asString() {
         return this.tagVal;
