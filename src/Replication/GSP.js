@@ -225,6 +225,7 @@ class GSP {
                         this.environment.commMedium.sendMessage(slaveId, new Message_1.GSPRoundMessage(this.environment.thisRef, round));
                     });
                 }
+                //Slave has yielded a round, forward it to the original master
                 else {
                     let originalOwner = this.forwardingM.get(Round_1.roundMasterObjectId(round));
                     this.environment.commMedium.sendMessage(originalOwner, new Message_1.GSPRoundMessage(this.environment.thisRef, round));

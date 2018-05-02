@@ -1,1 +1,1 @@
-{"version":3,"file":"testActorDefinition.js","sourceRoot":"","sources":["testActorDefinition.ts"],"names":[],"mappings":";AAAA,4CAAoC;AACpC;;GAEG;AACH,eAAuB,SAAQ,eAAK;IAChC,QAAQ;QACJ,MAAM,CAAC,CAAQ,CAAA;IACnB,CAAC;CACJ;AAJD,8BAIC"}
+{"version":3,"file":"testActorDefinition.js","sourceRoot":"","sources":["testActorDefinition.ts"],"names":[],"mappings":";AAAA,4CAAoC;AACpC;;GAEG;AACH,eAAuB,SAAQ,eAAK;IAEhC,YAAY,OAAO;QACf,KAAK,EAAE,CAAA;QACP,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAA;IACxB,CAAC;IACD,QAAQ;QACJ,OAAO,CAAQ,CAAA;IACnB,CAAC;CACJ;AATD,8BASC"}

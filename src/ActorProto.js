@@ -37,13 +37,14 @@ else {
         var className = process.argv[9];
         var serialisedArgs = JSON.parse(process.argv[10]);
         var constructorArgs = [];
+        environment = new ActorEnvironment_1.ServerActorEnvironment(thisId, address, port, undefined);
         serialisedArgs.forEach((serArg) => {
             constructorArgs.push(serialisation_1.deserialise(serArg, environment));
         });
         var actorClass = require(filePath)[className];
-        behaviourObject = new actorClass();
+        behaviourObject = new actorClass(...constructorArgs);
         let actorMirror = behaviourObject.actorMirror;
-        environment = new ActorEnvironment_1.ServerActorEnvironment(thisId, address, port, actorMirror);
+        environment.rebind();
     }
     else {
         var variables = JSON.parse(process.argv[8]);

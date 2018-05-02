@@ -189,18 +189,21 @@ class Signal {
         if (val == Signal.NO_CHANGE) {
             this.propagate(val);
         }
+        //Can only happen if a remote signal changed which wasn't a source signal (i.e. result of lifted function)
         else if (val instanceof SignalFunction) {
             this.clock++;
             this.value.lastVal = val.lastVal;
             this.propagate(val.lastVal);
             this.triggerExternal();
         }
+        //Remote signal changed the object representing the signal's state
         else if (val instanceof SignalObject) {
             this.clock++;
             this.value = val;
             this.propagate(this.value);
             this.triggerExternal();
         }
+        //Local change, object (i.e. this.value) has been mutated
         else {
             this.clock++;
             this.propagate(this.value);

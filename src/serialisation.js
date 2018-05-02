@@ -480,6 +480,7 @@ function isXClass(func, className) {
     if (func.toString().search(regex) != -1) {
         return true;
     }
+    //Reached the end of class prototype chain
     else if (Reflect.ownKeys(func).includes("apply")) {
         return false;
     }
@@ -600,12 +601,14 @@ function serialiseRepliq(repliqProxy, receiverId, environment, innerName = "") {
             ret.ownerPort = environment.thisRef.ownerPort;
             ret.isClient = false;
         }
+        //Repliq is created server-side. This is the first actor to serialise it
         else if (ret.ownerAddress == null) {
             ret.ownerAddress = environment.thisRef.ownerAddress;
             ret.ownerPort = environment.thisRef.ownerPort;
             ret.isClient = false;
         }
     }
+    //A client is serialising a repliq. The only information is the actor id which will be used by the receiving server or client-side actor
     else {
         ret.isClient = true;
     }

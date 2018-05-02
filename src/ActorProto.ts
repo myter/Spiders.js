@@ -1,6 +1,6 @@
 import {ObjectPool} from "./ObjectPool";
 import {FarReference, ServerFarReference} from "./FarRef";
-import {deserialise, getObjectNames, reconstructBehaviour} from "./serialisation";
+import {deserialise, getObjectNames, reconstructBehaviour, serialise} from "./serialisation";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {SpiderActorMirror} from "./MAP";
 import {ActorSTDLib} from "./ActorSTDLib";
@@ -22,7 +22,7 @@ if(utils.isBrowser()){
         environment = new ClientActorEnvironment(mirror)
         self.addEventListener('message',function (ev : MessageEvent){
             //For performance reasons, all messages sent between web workers are stringified (see https://nolanlawson.com/2016/02/29/high-performance-web-worker-messages/)
-            environment.messageHandler.dispatch(JSON.parse(ev.data),ev.ports)
+            environment.messageHandler.dispatch(JSON.parse(ev.data),ev.ports as any)
         });
     };
 }
@@ -39,13 +39,14 @@ else{
         var className       = process.argv[9]
         var serialisedArgs  = JSON.parse(process.argv[10])
         var constructorArgs = []
+        environment         = new ServerActorEnvironment(thisId,address,port,undefined)
         serialisedArgs.forEach((serArg)=>{
             constructorArgs.push(deserialise(serArg,environment))
         })
         var actorClass      = require(filePath)[className]
-        behaviourObject     = new actorClass()
-        let actorMirror     = behaviourObject.actorMirror
-        environment         = new ServerActorEnvironment(thisId,address,port,actorMirror)
+        behaviourObject     = new actorClass(...constructorArgs)
+        let actorMirror     = behaviourObject.actorMirror;
+        (environment as ServerActorEnvironment).rebind()
     }
     else{
         var variables           = JSON.parse(process.argv[8])

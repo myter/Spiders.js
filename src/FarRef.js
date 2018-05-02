@@ -25,12 +25,14 @@ class FarReference {
                 if (property == FarReference.farRefAccessorKey) {
                     return baseObject;
                 }
+                //Similarly, needed to check whether an object is a proxy to a far reference in serialisation (i.e. a far ref is being passed around between actors)
                 else if (property == FarReference.ClientProxyTypeKey) {
                     return !(baseObject.isServer);
                 }
                 else if (property == FarReference.ServerProxyTypeKey) {
                     return baseObject.isServer;
                 }
+                //ES6 proxies don't allow to catch method invocation on objects. To solve this a far reference returns a "callable" promise as the return of a "get"
                 else {
                     if (baseObject.objectFields.includes(property.toString())) {
                         return baseObject.sendFieldAccess(property.toString());
