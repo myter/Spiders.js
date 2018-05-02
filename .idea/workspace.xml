@@ -3,71 +3,12 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FullRepTest/client.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/FullRepTest/client.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FullRepTest/server.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/FullRepTest/server.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformanceApp2.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/PerformanceTest(temp)/SpiderPerformanceApp2.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ReactiveMicroserviceExample/DashboardService.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/ReactiveMicroserviceExample/DashboardService.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ReactiveMicroserviceExample/DataService.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/ReactiveMicroserviceExample/DataService.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ReactiveMicroserviceExample/DrivingService.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/ReactiveMicroserviceExample/DrivingService.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ReactiveMicroserviceExample/GeoService.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/ReactiveMicroserviceExample/GeoService.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-tests/clientTestModule.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/client-tests/clientTestModule.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client-tests/testBaseFramework.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/client-tests/testBaseFramework.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Replication/CarSharingReps.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Replication/CarSharingReps.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Replication/GroceryBenchmark.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Replication/GroceryBenchmark.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Replication/GroceryList.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Replication/GroceryList.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Replication/GroceryListReps.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Replication/GroceryListReps.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/PubSub.Test.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/PubSub.Test.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/reactivity.Test.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/reactivity.Test.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/repliq.Test.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/repliq.Test.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/server-side.Test.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/server-side.Test.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.js" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/temp.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/temp.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/temp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/temp.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/testActorDefinition.js" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/testActorDefinition.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/testActorDefinition.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/testActorDefinition.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/testActorDefinition.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/testActorDefinition.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server-tests/testModule.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/testModule.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ActorEnvironment.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorEnvironment.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ActorEnvironment.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorEnvironment.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ActorEnvironment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorEnvironment.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ActorProto.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorProto.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ActorProto.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorProto.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ActorProto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorProto.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ActorSTDLib.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/ActorSTDLib.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ChannelManager.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/ChannelManager.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CommMedium.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/CommMedium.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FarRef.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/FarRef.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/FarRef.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/FarRef.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MAP.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/MAP.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MOP.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/MOP.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Message.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Message.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MicroService/MicroService.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/MicroService/MicroService.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MicroService/ServiceMonitor.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/MicroService/ServiceMonitor.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ObjectPool.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/ObjectPool.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/PromisePool.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/PromisePool.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubClient.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/PubSub/SubClient.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubServer.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/PubSub/SubServer.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/PubSub/SubTag.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/PubSub/SubTag.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/NoGlitchFreedom.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/NoGlitchFreedom.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/QPROP.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/QPROP.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/Queue.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/Queue.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/SIDUP.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/SIDUP.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/signal.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/signal.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/signal.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/signal.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/signalPool.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/signalPool.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reactivivity/signalPool.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reactivivity/signalPool.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Replication/GSP.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/Replication/GSP.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Replication/GSP.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Replication/GSP.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Replication/Repliq.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Replication/Repliq.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Replication/RepliqObjectField.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Replication/RepliqObjectField.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Replication/RepliqPrimitiveField.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Replication/RepliqPrimitiveField.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Replication/Round.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Replication/Round.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Sockets.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Sockets.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/messageHandler.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/messageHandler.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/serialisation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/serialisation.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/serialisation.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/spiders.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/spiders.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils.js.map" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -98,11 +39,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="testActorDefinition.ts" pinned="false" current-in-tab="false">
+      <file leaf-file-name="testActorDefinition.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server-tests/testActorDefinition.ts">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="120">
-              <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
+              <caret line="8" column="28" selection-start-line="8" selection-start-column="28" selection-end-line="8" selection-end-column="28" />
               <folding>
                 <element signature="n#!!block;n#getValue#0;n#TestActor#0" expanded="true" />
               </folding>
@@ -110,11 +51,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ActorProto.ts" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ActorProto.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ActorProto.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="195">
-              <caret line="47" column="58" selection-start-line="47" selection-start-column="58" selection-end-line="47" selection-end-column="58" />
+            <state relative-caret-position="210">
+              <caret line="48" column="67" selection-start-line="48" selection-start-column="67" selection-end-line="48" selection-end-column="67" />
               <folding>
                 <element signature="e#616#1447#0" expanded="true" />
                 <element signature="e#1178#1439#0" expanded="true" />
@@ -127,7 +68,7 @@
       <file leaf-file-name="MAP.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/MAP.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="117">
+            <state relative-caret-position="424">
               <caret line="339" column="33" selection-start-line="339" selection-start-column="19" selection-end-line="339" selection-end-column="33" />
               <folding>
                 <element signature="n#!!block;n#bindBase#0;n#SpiderActorMirror#0" expanded="true" />
@@ -139,8 +80,8 @@
       <file leaf-file-name="ActorEnvironment.ts" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="308">
-              <caret line="49" column="49" selection-start-line="49" selection-start-column="49" selection-end-line="49" selection-end-column="49" />
+            <state relative-caret-position="444">
+              <caret line="49" column="36" selection-start-line="49" selection-start-column="36" selection-end-line="49" selection-end-column="36" />
               <folding>
                 <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
                 <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
@@ -166,7 +107,7 @@
       <find>setTime</find>
       <find>time</find>
       <find>sendInvocation</find>
-      <find />
+      <find>this[SpiderObjectMirror.mirrorAccessKey] = objectMirror</find>
       <find>PubSubTag</find>
       <find>PSClient</find>
       <find>PSServer</find>
@@ -231,10 +172,10 @@
         <option value="$PROJECT_DIR$/index.d.ts" />
         <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubTag.ts" />
-        <option value="$PROJECT_DIR$/server-tests/testActorDefinition.ts" />
         <option value="$PROJECT_DIR$/server-tests/temp.ts" />
-        <option value="$PROJECT_DIR$/src/ActorEnvironment.ts" />
         <option value="$PROJECT_DIR$/src/ActorProto.ts" />
+        <option value="$PROJECT_DIR$/src/ActorEnvironment.ts" />
+        <option value="$PROJECT_DIR$/server-tests/testActorDefinition.ts" />
       </list>
     </option>
   </component>
@@ -261,10 +202,9 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="649" />
-    <option name="y" value="325" />
+    <option name="y" value="23" />
     <option name="width" value="1440" />
-    <option name="height" value="899" />
+    <option name="height" value="812" />
   </component>
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -518,7 +458,7 @@
       <workItem from="1525272934509" duration="9000" />
       <workItem from="1525274735818" duration="190000" />
       <workItem from="1525275027056" duration="99000" />
-      <workItem from="1525277494876" duration="1847000" />
+      <workItem from="1525277494876" duration="2167000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -762,9 +702,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="server-tests_PubSub_Test_ts - 2018.04.27 at 12h 45m 14s.xml">
-      <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
-    </history-entry>
     <history-entry file="server-tests_PubSub_Test_ts - 2018.04.27 at 12h 46m 39s.xml">
       <configuration name="server-tests/PubSub.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
@@ -792,9 +729,12 @@
     <history-entry file="server-tests_server-side_Test_ts - 2018.04.27 at 12h 46m 18s.xml">
       <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
     </history-entry>
+    <history-entry file="server-tests_server-side_Test_ts - 2018.05.02 at 19h 35m 57s.xml">
+      <configuration name="server-tests/server-side.Test.ts" configurationId="mocha-javascript-test-runner" />
+    </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="146531000" />
+    <option name="totallyTimeSpent" value="146851000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="812" extended-state="6" />
@@ -802,12 +742,12 @@
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.44364163" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.44364163" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="7" weight="0.046043165" />
       <window_info anchor="bottom" id="TypeScript" order="7" weight="0.32708934" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.23467231" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23467231" />
       <window_info anchor="bottom" id="Statistic" order="7" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -1424,26 +1364,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server-tests/testActorDefinition.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" column="27" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="27" />
-          <folding>
-            <element signature="n#!!block;n#getValue#0;n#TestActor#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
-          <folding>
-            <element signature="e#0#50#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/MAP.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="120">
@@ -1460,7 +1380,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MAP.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="117">
+        <state relative-caret-position="424">
           <caret line="339" column="33" selection-start-line="339" selection-start-column="19" selection-end-line="339" selection-end-column="33" />
           <folding>
             <element signature="n#!!block;n#bindBase#0;n#SpiderActorMirror#0" expanded="true" />
@@ -1470,8 +1390,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/ActorEnvironment.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="49" column="49" selection-start-line="49" selection-start-column="49" selection-end-line="49" selection-end-column="49" />
+        <state relative-caret-position="444">
+          <caret line="49" column="36" selection-start-line="49" selection-start-column="36" selection-end-line="49" selection-end-column="36" />
           <folding>
             <element signature="n#!!block;n#constructor#0;n#ActorEnvironment#0" expanded="true" />
             <element signature="n#!!block;n#constructor#0;n#ServerActorEnvironment#0" expanded="true" />
@@ -1481,12 +1401,32 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/ActorProto.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="47" column="58" selection-start-line="47" selection-start-column="58" selection-end-line="47" selection-end-column="58" />
+        <state relative-caret-position="210">
+          <caret line="48" column="67" selection-start-line="48" selection-start-column="67" selection-end-line="48" selection-end-column="67" />
           <folding>
             <element signature="e#616#1447#0" expanded="true" />
             <element signature="e#1178#1439#0" expanded="true" />
             <element signature="e#2036#2113#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+          <folding>
+            <element signature="e#0#50#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/testActorDefinition.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="28" selection-start-line="8" selection-start-column="28" selection-end-line="8" selection-end-column="28" />
+          <folding>
+            <element signature="n#!!block;n#getValue#0;n#TestActor#0" expanded="true" />
           </folding>
         </state>
       </provider>

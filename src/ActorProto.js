@@ -44,7 +44,7 @@ else {
         var actorClass = require(filePath)[className];
         behaviourObject = new actorClass(...constructorArgs);
         let actorMirror = behaviourObject.actorMirror;
-        environment.rebind();
+        environment.rebind(actorMirror);
     }
     else {
         var variables = JSON.parse(process.argv[8]);

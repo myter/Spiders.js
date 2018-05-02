@@ -46,7 +46,8 @@ export class ServerActorEnvironment extends ActorEnvironment {
         this.gspInstance        = new GSP(actorId,this)
     }
 
-    rebind(){
+    rebind(newMirror){
+        this.actorMirror = newMirror
         this.actorMirror.bindBase(this,serialise)
     }
 }

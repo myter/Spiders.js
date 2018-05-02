@@ -34,7 +34,8 @@ class ServerActorEnvironment extends ActorEnvironment {
         this.signalPool = new signalPool_1.SignalPool(this);
         this.gspInstance = new GSP_1.GSP(actorId, this);
     }
-    rebind() {
+    rebind(newMirror) {
+        this.actorMirror = newMirror;
         this.actorMirror.bindBase(this, serialisation_1.serialise);
     }
 }
