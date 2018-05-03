@@ -1,6 +1,6 @@
 {
   "name": "spiders.js",
-  "version": "2.6.5",
+  "version": "2.6.6",
   "main": "./src/spiders.js",
   "typings": "./index.d.ts",
   "scripts": {
