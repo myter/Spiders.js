@@ -4,9 +4,6 @@
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/index.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/spiders.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/spiders.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/spiders.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/spiders.js.map" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/spiders.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/spiders.ts" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -45,8 +42,8 @@
       <file leaf-file-name="index.d.ts" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/index.d.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="4" column="48" selection-start-line="4" selection-start-column="48" selection-end-line="4" selection-end-column="48" />
+            <state relative-caret-position="150">
+              <caret line="11" column="44" selection-start-line="11" selection-start-column="44" selection-end-line="11" selection-end-column="44" />
               <folding>
                 <element signature="e#68#124#0" expanded="true" />
               </folding>
@@ -417,7 +414,7 @@
       <workItem from="1525275027056" duration="99000" />
       <workItem from="1525277494876" duration="2804000" />
       <workItem from="1525330304240" duration="350000" />
-      <workItem from="1525355557376" duration="794000" />
+      <workItem from="1525355557376" duration="1399000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -693,7 +690,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="148632000" />
+    <option name="totallyTimeSpent" value="149237000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="813" extended-state="6" />
@@ -1370,8 +1367,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.d.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="4" column="48" selection-start-line="4" selection-start-column="48" selection-end-line="4" selection-end-column="48" />
+        <state relative-caret-position="150">
+          <caret line="11" column="44" selection-start-line="11" selection-start-column="44" selection-end-line="11" selection-end-column="44" />
           <folding>
             <element signature="e#68#124#0" expanded="true" />
           </folding>

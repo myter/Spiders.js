@@ -9,7 +9,7 @@ export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | Spi
 export type FarRef<T>   = T
 export type PSClient    = PSClient
 export type PSServer    = PSServer
-export class PubSubTag{
+export class PubSubTag extends SpiderIsolate{
     tagVal : string
 
     constructor(tagVal : string)
