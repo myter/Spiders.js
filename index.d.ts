@@ -3,14 +3,21 @@
 import {ActorEnvironment} from "./src/ActorEnvironment";
 import {PSClient} from "./src/PubSub/SubClient";
 import {PSServer} from "./src/PubSub/SubServer";
-import {PubSubTag} from "./src/PubSub/SubTag";
 
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any,tag? : string) : Function
 export type FarRef<T>   = T
 export type PSClient    = PSClient
 export type PSServer    = PSServer
-export type PubSubTag   = PubSubTag
+export class PubSubTag{
+    tagVal : string
+
+    constructor(tagVal : string)
+
+    equals(otherTag : PubSubTag)
+
+    asString()
+}
 export class ActorSTDLib{
     PubSubTag : {new(tagVal : string) : PubSubTag}
     setupPSClient(address? : string,port? : number) : PSClient

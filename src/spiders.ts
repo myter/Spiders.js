@@ -263,6 +263,7 @@ export {FarRef as FarRef}
 export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
 export {SpiderActorMirror} from "./MAP"
 export {bundleScope,LexScope,makeMethodAnnotation} from "./utils"
+export {PubSubTag} from "./PubSub/SubTag"
 
 
 

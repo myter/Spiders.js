@@ -184,4 +184,6 @@ var utils_2 = require("./utils");
 exports.bundleScope = utils_2.bundleScope;
 exports.LexScope = utils_2.LexScope;
 exports.makeMethodAnnotation = utils_2.makeMethodAnnotation;
+var SubTag_1 = require("./PubSub/SubTag");
+exports.PubSubTag = SubTag_1.PubSubTag;
 //# sourceMappingURL=spiders.js.map
