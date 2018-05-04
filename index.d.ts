@@ -3,19 +3,17 @@
 import {ActorEnvironment} from "./src/ActorEnvironment";
 import {PSClient} from "./src/PubSub/SubClient";
 import {PSServer} from "./src/PubSub/SubServer";
+import {SpiderIsolate as SI} from "./src/MOP"
 
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any,tag? : string) : Function
 export type FarRef<T>   = T
 export type PSClient    = PSClient
 export type PSServer    = PSServer
-export class PubSubTag extends SpiderIsolate{
+export class PubSubTag extends SI{
     tagVal : string
-
     constructor(tagVal : string)
-
     equals(otherTag : PubSubTag)
-
     asString()
 }
 export class ActorSTDLib{
