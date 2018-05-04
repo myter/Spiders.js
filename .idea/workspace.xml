@@ -3,7 +3,15 @@
   <component name="ChangeListManager">
     <list default="true" id="ca28081c-46a8-457a-bb65-11a4a16418e2" name="Default" comment="Fixed issue where meta traps didn't trigger for internal method calls (i.e. this.X)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/index.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server-tests/temp.js" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/temp.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server-tests/temp.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/temp.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server-tests/temp.ts" beforeDir="false" afterPath="$PROJECT_DIR$/server-tests/temp.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CommMedium.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/CommMedium.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CommMedium.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/CommMedium.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CommMedium.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/CommMedium.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Sockets.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/Sockets.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Sockets.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/src/Sockets.js.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Sockets.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/Sockets.ts" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/ChristopheExample/" />
@@ -22,62 +30,55 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="spiders.ts" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/spiders.ts">
+      <file leaf-file-name="temp.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="929">
-              <caret line="265" selection-start-line="265" selection-end-line="265" selection-end-column="41" />
+            <state relative-caret-position="317">
+              <caret line="34" column="16" selection-start-line="34" selection-start-column="16" selection-end-line="34" selection-end-column="16" />
               <folding>
-                <element signature="n#!!block;n#spawnFromFile#0;n#ServerActor#0" expanded="true" />
-                <element signature="e#8489#8587#0" expanded="true" />
-                <element signature="n#!!block;n#spawnActor#0;n#ServerApplication#0" expanded="true" />
-                <element signature="n#!!block;n#spawnActorFromFile#0;n#ServerApplication#0" expanded="true" />
-                <element signature="n#!!block;n#kill#0;n#ServerApplication#0" expanded="true" />
-                <element signature="e#11667#11703#0" expanded="true" />
+                <element signature="e#0#50#0" expanded="true" />
+                <element signature="n#!!block;n#constructor#0;n#App#0" expanded="true" />
+                <element signature="n#!!block;n#constructor#0;n#Act#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="index.d.ts" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/index.d.ts">
+      <file leaf-file-name="ActorSTDLib.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="17" column="1" lean-forward="true" selection-start-line="17" selection-start-column="1" selection-end-line="17" selection-end-column="1" />
+            <state relative-caret-position="466">
+              <caret line="122" column="55" lean-forward="true" selection-start-line="122" selection-start-column="55" selection-end-line="122" selection-end-column="55" />
               <folding>
-                <element signature="e#68#124#0" expanded="true" />
+                <element signature="n#!!block;n#clone#0;n#ActorSTDLib#0" expanded="true" />
+                <element signature="n#!!block;n#remote#0;n#ActorSTDLib#0" expanded="true" />
+                <element signature="n#!!block;n#buffRemote#0;n#ActorSTDLib#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SubClient.ts" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/PubSub/SubClient.ts">
+      <file leaf-file-name="Sockets.ts" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Sockets.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="69" column="52" lean-forward="true" selection-start-line="69" selection-start-column="52" selection-end-line="69" selection-end-column="52" />
+            <state relative-caret-position="450">
+              <caret line="74" column="21" selection-start-line="74" selection-start-column="18" selection-end-line="74" selection-end-column="21" />
               <folding>
-                <element signature="e#2022#2394#0" expanded="true" />
-                <element signature="n#!!block;n#publish#0;n#PSClient#0" expanded="true" />
+                <element signature="n#!!block;n#sendMessage#0;n#ServerSocketManager#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/package.json">
+      <file leaf-file-name="CommMedium.ts" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/CommMedium.ts">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="406">
-              <caret line="31" column="24" selection-start-line="31" selection-start-column="24" selection-end-line="31" selection-end-column="24" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SubTag.ts" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/PubSub/SubTag.ts">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="21" column="1" lean-forward="true" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+            <state relative-caret-position="166">
+              <caret line="40" selection-start-line="40" selection-end-line="40" />
+              <folding>
+                <element signature="e#2321#2745#0" expanded="true" />
+                <element signature="e#2793#3088#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -118,6 +119,7 @@
       <find>resolve</find>
       <find>addDependency</find>
       <find>this.serialise</find>
+      <find>ack</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -146,8 +148,6 @@
         <option value="$PROJECT_DIR$/src/FarRef.ts" />
         <option value="$PROJECT_DIR$/server-tests/isolTest.ts" />
         <option value="$PROJECT_DIR$/server-tests/tempIsol.ts" />
-        <option value="$PROJECT_DIR$/src/Sockets.ts" />
-        <option value="$PROJECT_DIR$/src/CommMedium.ts" />
         <option value="$PROJECT_DIR$/server-tests/PubSub.Test.ts" />
         <option value="$PROJECT_DIR$/src/MAP.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubServer.ts" />
@@ -161,13 +161,15 @@
         <option value="$PROJECT_DIR$/src/serialisation.ts" />
         <option value="$PROJECT_DIR$/src/ActorSTDLib.ts" />
         <option value="$PROJECT_DIR$/src/PubSub/SubTag.ts" />
-        <option value="$PROJECT_DIR$/server-tests/temp.ts" />
         <option value="$PROJECT_DIR$/src/ActorProto.ts" />
         <option value="$PROJECT_DIR$/src/ActorEnvironment.ts" />
         <option value="$PROJECT_DIR$/server-tests/testActorDefinition.ts" />
         <option value="$PROJECT_DIR$/src/spiders.ts" />
         <option value="$PROJECT_DIR$/package.json" />
         <option value="$PROJECT_DIR$/index.d.ts" />
+        <option value="$PROJECT_DIR$/src/Sockets.ts" />
+        <option value="$PROJECT_DIR$/server-tests/temp.ts" />
+        <option value="$PROJECT_DIR$/src/CommMedium.ts" />
       </list>
     </option>
   </component>
@@ -194,9 +196,9 @@
     </packageJsonPaths>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="563" />
-    <option name="width" value="1440" />
-    <option name="height" value="812" />
+    <option name="y" value="23" />
+    <option name="width" value="2560" />
+    <option name="height" value="1336" />
   </component>
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -213,6 +215,11 @@
             <path>
               <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
               <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Spiders.js" type="462c0819:PsiDirectoryNode" />
+              <item name="server-tests" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="Spiders.js" type="b2602c69:ProjectViewProjectNode" />
@@ -268,7 +275,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Mocha.server-tests/server-side.Test.ts">
+  <component name="RunManager" selected="Node.js.temp.js">
     <configuration name="client-tests" type="JavascriptDebugType" factoryName="JavaScript Debug" uri="http://localhost:63343/Spiders.js/testBaseFramework.html">
       <method>
         <option name="NpmBeforeRunTask" enabled="true">
@@ -437,7 +444,7 @@
       <workItem from="1525275027056" duration="99000" />
       <workItem from="1525277494876" duration="2804000" />
       <workItem from="1525330304240" duration="350000" />
-      <workItem from="1525355557376" duration="3493000" />
+      <workItem from="1525355557376" duration="5866000" />
     </task>
     <task id="LOCAL-00001" summary="Error in package.json">
       <created>1517834776196</created>
@@ -713,7 +720,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="151331000" />
+    <option name="totallyTimeSpent" value="153704000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="2560" height="1336" extended-state="6" />
@@ -721,12 +728,12 @@
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.44300145" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.44243422" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="7" weight="0.046043165" />
       <window_info anchor="bottom" id="TypeScript" order="7" weight="0.32708934" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.131154" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.131154" />
       <window_info anchor="bottom" id="Statistic" order="7" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -1077,13 +1084,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/CommMedium.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="54" column="19" selection-start-line="54" selection-start-column="19" selection-end-line="54" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Replication/Repliq.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
@@ -1102,13 +1102,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
           <caret line="8" column="54" selection-start-line="8" selection-start-column="54" selection-end-line="8" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Sockets.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="124" column="18" selection-start-line="124" selection-start-column="18" selection-end-line="124" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -1182,13 +1175,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="107" column="55" selection-start-line="107" selection-start-column="55" selection-end-line="107" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/serialisation.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1142">
@@ -1208,13 +1194,6 @@
         <state relative-caret-position="-1681" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Reactivivity/QPROP.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="550">
-          <caret line="346" column="39" selection-start-line="346" selection-start-column="39" selection-end-line="346" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/benchmarks/ReactivityBenchmarks/Plotting/PlotProcessing.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="285">
@@ -1231,13 +1210,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="609">
           <caret line="434" column="57" selection-start-line="434" selection-start-column="57" selection-end-line="434" selection-end-column="57" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/benchmarks/ReactivityBenchmarks/UseCase/BerthaResults/Throughput/qprop300.csv">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="5" selection-end-column="5" />
         </state>
       </provider>
     </entry>
@@ -1321,16 +1293,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" selection-start-line="6" selection-end-line="6" />
-          <folding>
-            <element signature="e#0#50#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/benchmarks/ReactivityBenchmarks/UseCase/UseCase.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="395">
@@ -1352,20 +1314,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/package.json">
+    <entry file="file://$PROJECT_DIR$/benchmarks/ReactivityBenchmarks/UseCase/BerthaResults/Throughput/qprop300.csv">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="406">
-          <caret line="31" column="24" selection-start-line="31" selection-start-column="24" selection-end-line="31" selection-end-column="24" />
+        <state>
+          <caret column="5" selection-end-column="5" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/PubSub/SubClient.ts">
+    <entry file="file://$PROJECT_DIR$/src/Reactivivity/QPROP.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="69" column="52" lean-forward="true" selection-start-line="69" selection-start-column="52" selection-end-line="69" selection-end-column="52" />
+        <state relative-caret-position="760">
+          <caret line="258" column="69" lean-forward="true" selection-start-line="258" selection-start-column="69" selection-end-line="258" selection-end-column="69" />
           <folding>
-            <element signature="e#2022#2394#0" expanded="true" />
-            <element signature="n#!!block;n#publish#0;n#PSClient#0" expanded="true" />
+            <element signature="e#8739#9265#0" expanded="true" />
+            <element signature="e#8811#9254#0" expanded="true" />
+            <element signature="e#9399#9881#0" expanded="true" />
+            <element signature="n#!!block;n#dynamicDependencyAddition#0;n#QPROPNode#0" expanded="true" />
+            <element signature="e#12267#13635#0" expanded="true" />
+            <element signature="e#12536#13624#0" expanded="true" />
+            <element signature="e#13149#13495#0" expanded="true" />
+            <element signature="e#13259#13476#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1385,6 +1353,23 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/index.d.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="16" column="14" lean-forward="true" selection-start-line="16" selection-start-column="14" selection-end-line="16" selection-end-column="14" />
+          <folding>
+            <element signature="e#68#124#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="465">
+          <caret line="31" column="24" selection-start-line="31" selection-start-column="24" selection-end-line="31" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/PubSub/SubTag.ts">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
@@ -1392,12 +1377,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.d.ts">
+    <entry file="file://$PROJECT_DIR$/src/PubSub/SubClient.ts">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="17" column="1" lean-forward="true" selection-start-line="17" selection-start-column="1" selection-end-line="17" selection-end-column="1" />
+        <state relative-caret-position="540">
+          <caret line="69" column="52" lean-forward="true" selection-start-line="69" selection-start-column="52" selection-end-line="69" selection-end-column="52" />
           <folding>
-            <element signature="e#68#124#0" expanded="true" />
+            <element signature="e#2022#2394#0" expanded="true" />
+            <element signature="n#!!block;n#publish#0;n#PSClient#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server-tests/temp.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="317">
+          <caret line="34" column="16" selection-start-line="34" selection-start-column="16" selection-end-line="34" selection-end-column="16" />
+          <folding>
+            <element signature="e#0#50#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#App#0" expanded="true" />
+            <element signature="n#!!block;n#constructor#0;n#Act#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ActorSTDLib.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="466">
+          <caret line="122" column="55" lean-forward="true" selection-start-line="122" selection-start-column="55" selection-end-line="122" selection-end-column="55" />
+          <folding>
+            <element signature="n#!!block;n#clone#0;n#ActorSTDLib#0" expanded="true" />
+            <element signature="n#!!block;n#remote#0;n#ActorSTDLib#0" expanded="true" />
+            <element signature="n#!!block;n#buffRemote#0;n#ActorSTDLib#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Sockets.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="74" column="21" selection-start-line="74" selection-start-column="18" selection-end-line="74" selection-end-column="21" />
+          <folding>
+            <element signature="n#!!block;n#sendMessage#0;n#ServerSocketManager#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/CommMedium.ts">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="166">
+          <caret line="40" selection-start-line="40" selection-end-line="40" />
+          <folding>
+            <element signature="e#2321#2745#0" expanded="true" />
+            <element signature="e#2793#3088#0" expanded="true" />
           </folding>
         </state>
       </provider>

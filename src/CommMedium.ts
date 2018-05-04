@@ -44,18 +44,14 @@ export abstract class CommMedium{
         this.pendingActors.set(connectionId,connection)
         this.pendingConnectionId    += 1
         connection.on('connect',() => {
-            let ack = false
-            connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId),()=>{
-                ack = true
-            })
-            setTimeout(()=>{
+            connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId))
+            /*setTimeout(()=>{
                 if(!ack){
                     this.connectRemote(sender,address,port,promisePool)
                 }
-            },1000)
+            },1000)*/
         })
-        connection.on('message',(data,ack) => {
-            ack()
+        connection.on('message',(data) => {
             if(sender instanceof ServerFarReference){
                 this.messageHandler.dispatch(data)
             }

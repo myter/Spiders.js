@@ -58,8 +58,7 @@ export class SocketHandler{
                 })
             }
         })
-        connection.on('message',(data,ack)=>{
-            ack()
+        connection.on('message',(data)=>{
             that.messageHandler.dispatch(data)
         })
         connection.on('disconnect',function(){
@@ -73,7 +72,7 @@ export class SocketHandler{
         }
         else if(this.owner.connectedActors.has(actorId)){
             var sock = this.owner.connectedActors.get(actorId)
-            let ack  = false
+            /*let ack  = false
             sock.emit('message',msg,()=>{
                 ack = true
             })
@@ -81,7 +80,8 @@ export class SocketHandler{
                 if(!ack){
                     this.sendMessage(actorId,msg)
                 }
-            },1000)
+            },1000)*/
+            sock.emit('message',msg)
         }
         else{
             //TODO TEMP
@@ -112,8 +112,7 @@ export class ServerSocketManager extends CommMedium{
         this.connectedClients       = new Map<string,Socket>()
         this.socketHandler.messageHandler = environment.messageHandler
         this.socket.on('connection',(client) => {
-            client.on('message',(data,ack)=>{
-                ack()
+            client.on('message',(data)=>{
                 environment.messageHandler.dispatch(data,[],client)
             })
             client.on('close',() => {
@@ -133,7 +132,8 @@ export class ServerSocketManager extends CommMedium{
 
     sendMessage(actorId : string,msg : Message) : void{
         if(this.connectedClients.has(actorId)){
-            let ack = false
+            //TODO ack heavily impacts performance
+            /*let ack = false
             this.connectedClients.get(actorId).emit('message',JSON.stringify(msg),()=>{
                 ack = true
             })
@@ -141,7 +141,8 @@ export class ServerSocketManager extends CommMedium{
                 if(!ack){
                     this.sendMessage(actorId,msg)
                 }
-            },1000)
+            },1000)*/
+            this.connectedClients.get(actorId).emit('message',JSON.stringify(msg))
         }
         else{
             this.socketHandler.sendMessage(actorId,msg)

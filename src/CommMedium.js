@@ -26,18 +26,14 @@ class CommMedium {
         this.pendingActors.set(connectionId, connection);
         this.pendingConnectionId += 1;
         connection.on('connect', () => {
-            let ack = false;
-            connection.emit('message', new Message_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId), () => {
-                ack = true;
-            });
-            setTimeout(() => {
-                if (!ack) {
-                    this.connectRemote(sender, address, port, promisePool);
+            connection.emit('message', new Message_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
+            /*setTimeout(()=>{
+                if(!ack){
+                    this.connectRemote(sender,address,port,promisePool)
                 }
-            }, 1000);
+            },1000)*/
         });
-        connection.on('message', (data, ack) => {
-            ack();
+        connection.on('message', (data) => {
             if (sender instanceof FarRef_1.ServerFarReference) {
                 this.messageHandler.dispatch(data);
             }

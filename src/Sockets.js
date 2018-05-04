@@ -42,8 +42,7 @@ class SocketHandler {
                 });
             }
         });
-        connection.on('message', (data, ack) => {
-            ack();
+        connection.on('message', (data) => {
             that.messageHandler.dispatch(data);
         });
         connection.on('disconnect', function () {
@@ -56,15 +55,16 @@ class SocketHandler {
         }
         else if (this.owner.connectedActors.has(actorId)) {
             var sock = this.owner.connectedActors.get(actorId);
-            let ack = false;
-            sock.emit('message', msg, () => {
-                ack = true;
-            });
-            setTimeout(() => {
-                if (!ack) {
-                    this.sendMessage(actorId, msg);
+            /*let ack  = false
+            sock.emit('message',msg,()=>{
+                ack = true
+            })
+            setTimeout(()=>{
+                if(!ack){
+                    this.sendMessage(actorId,msg)
                 }
-            }, 1000);
+            },1000)*/
+            sock.emit('message', msg);
         }
         else {
             //TODO TEMP
@@ -90,8 +90,7 @@ class ServerSocketManager extends CommMedium_1.CommMedium {
         this.connectedClients = new Map();
         this.socketHandler.messageHandler = environment.messageHandler;
         this.socket.on('connection', (client) => {
-            client.on('message', (data, ack) => {
-                ack();
+            client.on('message', (data) => {
                 environment.messageHandler.dispatch(data, [], client);
             });
             client.on('close', () => {
@@ -108,15 +107,17 @@ class ServerSocketManager extends CommMedium_1.CommMedium {
     }
     sendMessage(actorId, msg) {
         if (this.connectedClients.has(actorId)) {
-            let ack = false;
-            this.connectedClients.get(actorId).emit('message', JSON.stringify(msg), () => {
-                ack = true;
-            });
-            setTimeout(() => {
-                if (!ack) {
-                    this.sendMessage(actorId, msg);
+            //TODO ack heavily impacts performance
+            /*let ack = false
+            this.connectedClients.get(actorId).emit('message',JSON.stringify(msg),()=>{
+                ack = true
+            })
+            setTimeout(()=>{
+                if(!ack){
+                    this.sendMessage(actorId,msg)
                 }
-            }, 1000);
+            },1000)*/
+            this.connectedClients.get(actorId).emit('message', JSON.stringify(msg));
         }
         else {
             this.socketHandler.sendMessage(actorId, msg);
