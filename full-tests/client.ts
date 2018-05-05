@@ -62,7 +62,7 @@ class TestObject extends SpiderObject{
 }
 
 class ClientActor extends Actor{
-    serverRef : FarRef
+    serverRef : FarRef<any>
     myId
     TestIsolate
     TestObject

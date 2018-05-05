@@ -1,7 +1,7 @@
 import {Actor,Application,FarRef} from "../src/spiders"
 var app = new Application()
 class ServerActor1 extends Actor{
-    clients : Array<FarRef>
+    clients : Array<FarRef<any>>
     act2Ref
     constructor(act2Ref){
         super()
