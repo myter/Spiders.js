@@ -9961,7 +9961,7 @@ class MessageHandler {
     handleResolveConnection(msg) {
         this.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
         var farRef = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderId, msg.senderAddress, msg.senderPort, this.thisRef, this.commMedium, this.promisePool, this.objectPool, this.gspInstance);
-        this.promisePool.resolvePromise(msg.promiseId, farRef.proxyify());
+        this.promisePool.resolvePromise(msg.promiseId, farRef.proxify());
     }
     handleRoute(msg) {
         //TODO temp fix , works but should be refactored
@@ -10859,7 +10859,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
                 commMedium.connectTransientRemote(thisRef, farRef, promisePool);
             }
         }
-        return farRef.proxyify();
+        return farRef.proxify();
     }
     function deSerialiseClientFarRef(farRefContainer) {
         var farRef;
@@ -10870,7 +10870,7 @@ function deserialise(thisRef, value, promisePool, commMedium, objectPool, gspIns
         else {
             farRef = new farRef_1.ClientFarReference(farRefContainer.objectId, farRefContainer.ownerId, farRefContainer.mainId, thisRef, commMedium, promisePool, objectPool, gspInstance, farRefContainer.contactId, farRefContainer.contactAddress, farRefContainer.contactPort);
         }
-        return farRef.proxyify();
+        return farRef.proxify();
     }
     function deSerialiseError(errorContainer) {
         var error = new Error(errorContainer.message);
@@ -11224,7 +11224,7 @@ class ClientActor extends Actor {
         channelManager.newConnection(actorId, mainChannel.port2);
         var ref = new farRef_1.ClientFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainId, app.mainRef, app.channelManager, app.mainPromisePool, app.mainObjectPool, app.gspInstance);
         app.spawnedActors.push([actorId, webWorker]);
-        return ref.proxyify();
+        return ref.proxify();
     }
 }
 class ServerActor extends Actor {
@@ -11243,7 +11243,7 @@ class ServerActor extends Actor {
         app.spawnedActors.push(actor);
         var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool, app.gspInstance);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
-        return ref.proxyify();
+        return ref.proxify();
     }
     static spawnFromFile(app, port, filePath, actorClassName, constructorArgs) {
         var socketManager = app.mainCommMedium;
@@ -11258,7 +11258,7 @@ class ServerActor extends Actor {
         app.spawnedActors.push(actor);
         var ref = new farRef_1.ServerFarReference(objectPool_1.ObjectPool._BEH_OBJ_ID, actorId, app.mainIp, port, app.mainRef, app.mainCommMedium, app.mainPromisePool, app.mainObjectPool, app.gspInstance);
         socketManager.openConnection(ref.ownerId, ref.ownerAddress, ref.ownerPort);
-        return ref.proxyify();
+        return ref.proxify();
     }
 }
 class Application {
@@ -11509,7 +11509,7 @@ function checkStrongLiftConstraints(...liftArgs) {
 }
 function installSTDLib(appActor, thisRef, parentRef, behaviourObject, commMedium, promisePool, gspInstance, signalPool) {
     if (!appActor) {
-        behaviourObject["parent"] = parentRef.proxyify();
+        behaviourObject["parent"] = parentRef.proxify();
     }
     behaviourObject["remote"] = (address, port) => {
         return commMedium.connectRemote(thisRef, address, port, promisePool);

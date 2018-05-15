@@ -26,14 +26,14 @@ export abstract class FarReference {
     }
 
     sendFieldAccess(fieldName: string): Promise<any> {
-        return this.environemnt.actorMirror.sendAccess(this, fieldName)
+        return this.environemnt.actorMirror.sendAccess(this.proxify() as FarReference, fieldName)
     }
 
     sendMethodInvocation(methodName: string, args: Array<any>): Promise<any> {
-        return this.environemnt.actorMirror.sendInvocation(this, methodName, args)
+        return this.environemnt.actorMirror.sendInvocation(this.proxify() as FarReference, methodName, args)
     }
 
-    proxyify(): Object {
+    proxify(): Object {
         var baseObject = this
         return new Proxy({}, {
             get: function (target, property) {
@@ -100,11 +100,11 @@ export class ClientFarReference extends FarReference {
     }
 
     sendFieldAccess(fieldName: string): Promise<any> {
-        return this.environemnt.actorMirror.sendAccess(this,fieldName,this.contactId,this.contactAddress,this.contactPort,this.mainId)
+        return this.environemnt.actorMirror.sendAccess(this.proxify() as FarReference,fieldName,this.contactId,this.contactAddress,this.contactPort,this.mainId)
     }
 
     sendMethodInvocation(methodName: string, args: Array<any>): Promise<any> {
-        return this.environemnt.actorMirror.sendInvocation(this,methodName,args,this.contactId,this.contactAddress,this.contactPort,this.mainId)
+        return this.environemnt.actorMirror.sendInvocation(this.proxify() as FarReference,methodName,args,this.contactId,this.contactAddress,this.contactPort,this.mainId)
     }
 }
 

@@ -65,6 +65,7 @@ class SignalPool {
                     //console.log("Lease failed but signal is strong so its ok ! ")
                 }
             }
+            //Node might have been garbage collected while the lease expired (do not renew lease obviously)
             else if (!this.garbageCollected.includes(signalId)) {
                 this.trackLease(signalId, bound);
             }
