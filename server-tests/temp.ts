@@ -1,4 +1,4 @@
-import {makeMethodAnnotation} from "../src/utils";
+
 import {
     Application,
     SpiderIsolate,
@@ -13,15 +13,29 @@ import {
 var app = new Application()
 class PrintActor extends Actor{
     someField
+    TestIsolate
     constructor(){
         super()
         this.someField = "foo"
+        this.TestIsolate = TestIsolate
     }
 
-    someMethod(){
-
+    test(isol){
+        let x = new this.TestIsolate()
+        console.log(isol.toString())
     }
 }
 
-let t = app.spawnActor(PrintActor)
-console.log(t)
+class TestIsolate extends SpiderIsolate{
+    hello(){
+        return "isolate"
+    }
+
+    toString(){
+        return "TESTISOLATE TO STRING METHOD"
+    }
+}
+
+let act = app.spawnActor(PrintActor)
+let iso = new TestIsolate()
+act.test(new TestIsolate())

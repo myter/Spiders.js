@@ -691,8 +691,8 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             delete mirror.base
             delete baseOb[SpiderObjectMirror.mirrorAccessKey]
             delete mirror.proxyBase
-            let [vars,methods,methodAnnots]         = deconstructBehaviour(baseOb,0,[],[],[],receiverId,environment,"toString")
-            let [mVars,mMethods,mMethodAnnots]      = deconstructBehaviour(mirror,0,[],[],[],receiverId,environment,"toString")
+            let [vars,methods,methodAnnots]         = deconstructBehaviour(baseOb,0,[],[],[],receiverId,environment,"__defineGetter__")
+            let [mVars,mMethods,mMethodAnnots]      = deconstructBehaviour(mirror,0,[],[],[],receiverId,environment,"__defineGetter__")
             let container                           = new SpiderIsolateContainer(JSON.stringify(vars),JSON.stringify(methods),JSON.stringify(methodAnnots),JSON.stringify(mVars),JSON.stringify(mMethods),JSON.stringify(mMethodAnnots))
             //Reset base object <=> mirror link
             mirror.base                             = baseOb
