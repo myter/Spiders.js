@@ -116,11 +116,11 @@ export class ActorSTDLib{
         this.environment.behaviourObject["_PS_SERVER_"] = new PSServer()
     }
 
-    remote(address : string,port : number) : Promise<FarRef>{
+    remote(address : string,port : number) : Promise<FarRef<any>>{
         return this.environment.commMedium.connectRemote(this.environment.thisRef,address,port,this.environment.promisePool)
     }
 
-    buffRemote(address : string,port : number) : FarRef{
+    buffRemote(address : string,port : number) : FarRef<any>{
         let ref = new BufferedRef()
         this.environment.commMedium.connectRemote(this.environment.thisRef,address,port,this.environment.promisePool).then((realRef)=>{
             ref._connected_(realRef)

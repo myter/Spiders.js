@@ -2,8 +2,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const FarRef_1 = require("./FarRef");
 const ObjectPool_1 = require("./ObjectPool");
 const PromisePool_1 = require("./PromisePool");
-const signalPool_1 = require("./Reactivivity/signalPool");
-const GSP_1 = require("./Replication/GSP");
 const Sockets_1 = require("./Sockets");
 const ChannelManager_1 = require("./ChannelManager");
 const messageHandler_1 = require("./messageHandler");
@@ -31,8 +29,6 @@ class ServerActorEnvironment extends ActorEnvironment {
         //Object fields and methods will be filled-in once known
         this.thisRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, [], [], actorId, actorAddress, actorPort, this);
         this.commMedium = new Sockets_1.ServerSocketManager(actorAddress, actorPort, this);
-        this.signalPool = new signalPool_1.SignalPool(this);
-        this.gspInstance = new GSP_1.GSP(actorId, this);
     }
     rebind(newMirror) {
         this.actorMirror = newMirror;
@@ -50,9 +46,7 @@ class ClientActorEnvironment extends ActorEnvironment {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(behaviourObject, "toString");
         this.behaviourObject = behaviourObject;
         this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, mainId, this);
-        this.gspInstance = new GSP_1.GSP(actorId, this);
         this.objectPool = new ObjectPool_1.ObjectPool(behaviourObject);
-        this.signalPool = new signalPool_1.SignalPool(this);
     }
 }
 exports.ClientActorEnvironment = ClientActorEnvironment;

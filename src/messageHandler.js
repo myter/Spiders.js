@@ -186,36 +186,6 @@ class MessageHandler {
         }
         this.environment.commMedium.sendMessage(msg.targetId, msg.message);
     }
-    handleGSPRound(msg) {
-        this.environment.gspInstance.roundReceived(msg.round, msg.senderId);
-    }
-    handleGSPSync(msg) {
-        this.environment.gspInstance.receiveSync(msg.requesterId, msg.repliqId);
-    }
-    handleGSPRegister(msg) {
-        let commMedium = this.environment.commMedium;
-        if (!commMedium.hasConnection(msg.holderId)) {
-            commMedium.openConnection(msg.holderId, msg.holderAddress, msg.holderPort);
-        }
-        this.environment.gspInstance.registerReplicaHolder(msg.replicaId, msg.holderId, msg.roundNr);
-    }
-    handleRegisterExternalSignal(msg) {
-        let commMedium = this.environment.commMedium;
-        if (!commMedium.hasConnection(msg.requesterId)) {
-            commMedium.openConnection(msg.requesterId, msg.requesterAddress, msg.requesterPort);
-        }
-        //console.log("External listener added for signal: " + msg.signalId + " from : " + msg.requesterId)
-        this.environment.signalPool.registerExternalListener(msg.signalId, msg.requesterId);
-    }
-    handleExternalSignalChange(msg) {
-        //console.log("External signal changed received")
-        let newVal = serialisation_1.deserialise(msg.newVal, this.environment);
-        this.environment.signalPool.externalChangeReceived(msg.senderId, msg.signalId, newVal);
-        //this.environment.signalPool.sourceChanged(msg.signalId,newVal)
-    }
-    handleExternalSignalDelete(msg) {
-        this.environment.signalPool.garbageCollect(msg.signalId);
-    }
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
     dispatch(msg, ports = [], clientSocket = null) {
@@ -247,24 +217,6 @@ class MessageHandler {
                 break;
             case Message_1._ROUTE_:
                 this.handleRoute(msg);
-                break;
-            case Message_1._GSP_ROUND_:
-                this.handleGSPRound(msg);
-                break;
-            case Message_1._GSP_SYNC_:
-                this.handleGSPSync(msg);
-                break;
-            case Message_1._GSP_REGISTER_:
-                this.handleGSPRegister(msg);
-                break;
-            case Message_1._REGISTER_EXTERNAL_SIGNAL_:
-                this.handleRegisterExternalSignal(msg);
-                break;
-            case Message_1._EXTERNAL_SIGNAL_CHANGE_:
-                this.handleExternalSignalChange(msg);
-                break;
-            case Message_1._EXTERNAL_SIGNAL_DELETE_:
-                this.handleExternalSignalDelete(msg);
                 break;
             default:
                 throw "Unknown message in actor : " + msg.toString();

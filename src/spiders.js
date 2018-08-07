@@ -7,6 +7,7 @@ const ActorEnvironment_1 = require("./ActorEnvironment");
 const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
 const ActorSTDLib_1 = require("./ActorSTDLib");
+var work = require('webworkify');
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {
@@ -19,7 +20,6 @@ function updateExistingChannels(mainRef, existingActors, newActorId) {
     });
     return mappings;
 }
-//TODO, will need to remove all redundant type definitions
 class ActorBase {
     constructor(actorMirror = new MAP_1.SpiderActorMirror()) {
         this.actorMirror = actorMirror;
@@ -32,7 +32,6 @@ class ClientActor extends ActorBase {
     spawn(app, thisClass) {
         var actorId = utils_1.generateId();
         var channelMappings = updateExistingChannels(app.mainEnvironment.thisRef, app.spawnedActors, actorId);
-        var work = require('webworkify');
         var webWorker = work(require('./ActorProto'));
         webWorker.addEventListener('message', (event) => {
             app.mainEnvironment.messageHandler.dispatch(event);

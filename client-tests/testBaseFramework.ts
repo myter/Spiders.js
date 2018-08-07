@@ -1057,6 +1057,19 @@ var performInitChaining = () =>{
 }
 scheduled.push(performInitChaining)
 
+
+
+function performAll(nextTest){
+    nextTest().then(() => {
+        if(scheduled.length > 0) {
+            performAll(scheduled.pop())
+        }
+    })
+}
+performAll(scheduled.pop())
+
+
+
 /*class StaticActor extends Actor{
     static _STATIC_FIELD = 5
     static _STATIC_METHOD_(){
@@ -1111,14 +1124,5 @@ var performStaticError = () =>{
     })
 }
 scheduled.push(performStaticError)*/
-
-function performAll(nextTest){
-    nextTest().then(() => {
-        if(scheduled.length > 0) {
-            performAll(scheduled.pop())
-        }
-    })
-}
-performAll(scheduled.pop())
 
 

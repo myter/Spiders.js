@@ -2,8 +2,6 @@ import {ClientFarReference, FarReference, ServerFarReference} from "./FarRef";
 import {ObjectPool} from "./ObjectPool";
 import {CommMedium} from "./CommMedium";
 import {PromisePool} from "./PromisePool";
-import {SignalPool} from "./Reactivivity/signalPool";
-import {GSP} from "./Replication/GSP";
 import {ServerSocketManager} from "./Sockets";
 import {ChannelManager} from "./ChannelManager";
 import {MessageHandler} from "./messageHandler";
@@ -15,8 +13,6 @@ export abstract class ActorEnvironment{
     public objectPool       : ObjectPool
     public commMedium       : CommMedium
     public promisePool      : PromisePool
-    public signalPool       : SignalPool
-    public gspInstance      : GSP
     public messageHandler   : MessageHandler
     public actorMirror      : SpiderActorMirror
     public behaviourObject  : object
@@ -42,8 +38,6 @@ export class ServerActorEnvironment extends ActorEnvironment {
         //Object fields and methods will be filled-in once known
         this.thisRef            = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],actorId,actorAddress,actorPort,this)
         this.commMedium         = new ServerSocketManager(actorAddress,actorPort,this)
-        this.signalPool         = new SignalPool(this)
-        this.gspInstance        = new GSP(actorId,this)
     }
 
     rebind(newMirror){
@@ -63,8 +57,6 @@ export class ClientActorEnvironment extends ActorEnvironment{
         let [fieldNames,methodNames]    = getObjectNames(behaviourObject,"toString")
         this.behaviourObject            = behaviourObject
         this.thisRef                    = new ClientFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,mainId,this)
-        this.gspInstance                = new GSP(actorId,this)
         this.objectPool                 = new ObjectPool(behaviourObject)
-        this.signalPool                 = new SignalPool(this)
     }
 }

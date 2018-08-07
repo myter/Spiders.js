@@ -88,6 +88,147 @@ it("Static immutable",(done)=>{
 
 })*/
 
+describe("Functionality",() => {
+    it("Require",(done) => {
+        var app = new Application()
+        class testActor extends Actor{
+            directory
+            mod
+            constructor(){
+                super()
+                this.directory = __dirname
+            }
+            init(){
+                this.mod = require(this.directory + '/testModule')
+            }
+            invoke(){
+                return this.mod.testFunction()
+            }
+        }
+        var actor = app.spawnActor(testActor)
+        actor.invoke().then((v) => {
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Remote",(done) => {
+        var app = new Application()
+        class testActor1 extends Actor{
+            getAndAccess(){
+                return this.libs.remote("127.0.0.1",8082).then((ref) => {
+                    return ref.getVal()
+                })
+            }
+        }
+        class testActor2 extends Actor{
+            getVal(){
+                return 5
+            }
+        }
+        app.spawnActor(testActor2,[],8082)
+        var actor  = app.spawnActor(testActor1)
+        actor.getAndAccess().then((v) => {
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Buffered Remote",function(done){
+        this.timeout(4000)
+        var app = new Application()
+        class testActor1 extends Actor{
+            getAndAccess(){
+                return new Promise((resolve)=>{
+                    let rem = this.libs.buffRemote("127.0.0.1",8082)
+                    let ps  = []
+                    ps[0]   = rem.getVal()
+                    ps[1]   = rem.someVal
+                    setTimeout(()=>{
+                        ps[2] = rem.getVal()
+                        ps[3] = rem.someVal
+                        resolve(Promise.all(ps))
+                    },2000)
+                })
+            }
+        }
+        class testActor2 extends Actor{
+            someVal
+            constructor(){
+                super()
+                this.someVal = 6
+            }
+            getVal(){
+                return 5
+            }
+        }
+        app.spawnActor(testActor2,[],8082)
+        var actor  = app.spawnActor(testActor1)
+        actor.getAndAccess().then((v) => {
+            try{
+                expect(v[0]).to.equal(5)
+                expect(v[1]).to.equal(6)
+                expect(v[2]).to.equal(5)
+                expect(v[3]).to.equal(6)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Scope Bundling",(done)=>{
+        let app         = new Application()
+        let someVar     = 5
+        class TestIsolate extends SpiderIsolate{
+            val
+            constructor(){
+                super()
+                this.val = someVar
+            }
+        }
+        class TestActor extends Actor{
+            TestIsolate
+            constructor(){
+                super()
+                let scope = new LexScope()
+                scope.addElement("someVar",someVar)
+                bundleScope(TestIsolate,scope)
+                this.TestIsolate = TestIsolate
+            }
+            test(){
+                let isol = new this.TestIsolate()
+                return isol.val
+            }
+        }
+        app.spawnActor(TestActor).test().then((v)=>{
+            try{
+                expect(v).to.equal(someVar)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+})
+
 describe("Behaviour serialisation",function(){
     this.timeout(5000)
     it("From file",function(done){
@@ -331,147 +472,6 @@ describe("Behaviour serialisation",function(){
         actor.baseField.then((v) => {
             try{
                 expect(v).to.equal(5)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-})
-
-describe("Functionality",() => {
-    it("Require",(done) => {
-        var app = new Application()
-        class testActor extends Actor{
-            directory
-            mod
-            constructor(){
-                super()
-                this.directory = __dirname
-            }
-            init(){
-                this.mod = require(this.directory + '/testModule')
-            }
-            invoke(){
-                return this.mod.testFunction()
-            }
-        }
-        var actor = app.spawnActor(testActor)
-        actor.invoke().then((v) => {
-            try{
-                expect(v).to.equal(5)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Remote",(done) => {
-        var app = new Application()
-        class testActor1 extends Actor{
-            getAndAccess(){
-                return this.libs.remote("127.0.0.1",8082).then((ref) => {
-                    return ref.getVal()
-                })
-            }
-        }
-        class testActor2 extends Actor{
-            getVal(){
-                return 5
-            }
-        }
-        app.spawnActor(testActor2,[],8082)
-        var actor  = app.spawnActor(testActor1)
-        actor.getAndAccess().then((v) => {
-            try{
-                expect(v).to.equal(5)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Buffered Remote",function(done){
-        this.timeout(4000)
-        var app = new Application()
-        class testActor1 extends Actor{
-            getAndAccess(){
-                return new Promise((resolve)=>{
-                    let rem = this.libs.buffRemote("127.0.0.1",8082)
-                    let ps  = []
-                    ps[0]   = rem.getVal()
-                    ps[1]   = rem.someVal
-                    setTimeout(()=>{
-                        ps[2] = rem.getVal()
-                        ps[3] = rem.someVal
-                        resolve(Promise.all(ps))
-                    },2000)
-                })
-            }
-        }
-        class testActor2 extends Actor{
-            someVal
-            constructor(){
-                super()
-                this.someVal = 6
-            }
-            getVal(){
-                return 5
-            }
-        }
-        app.spawnActor(testActor2,[],8082)
-        var actor  = app.spawnActor(testActor1)
-        actor.getAndAccess().then((v) => {
-            try{
-                expect(v[0]).to.equal(5)
-                expect(v[1]).to.equal(6)
-                expect(v[2]).to.equal(5)
-                expect(v[3]).to.equal(6)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Scope Bundling",(done)=>{
-        let app         = new Application()
-        let someVar     = 5
-        class TestIsolate extends SpiderIsolate{
-            val
-            constructor(){
-                super()
-                this.val = someVar
-            }
-        }
-        class TestActor extends Actor{
-            TestIsolate
-            constructor(){
-                super()
-                let scope = new LexScope()
-                scope.addElement("someVar",someVar)
-                bundleScope(TestIsolate,scope)
-                this.TestIsolate = TestIsolate
-            }
-            test(){
-                let isol = new this.TestIsolate()
-                return isol.val
-            }
-        }
-        app.spawnActor(TestActor).test().then((v)=>{
-            try{
-                expect(v).to.equal(someVar)
                 app.kill()
                 done()
             }

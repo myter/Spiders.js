@@ -5,10 +5,10 @@ import {ActorEnvironment} from "./ActorEnvironment";
  */
 
 export abstract class FarReference {
-    static farRefAccessorKey = "_FAR_REF_"
-    static proxyWrapperAccessorKey = "_PROXY_WRAPPER_"
-    static ServerProxyTypeKey = "SPIDER_SERVER_TYPE"
-    static ClientProxyTypeKey = "SPIDER_CLIENT_TYPE"
+    static farRefAccessorKey        = "_FAR_REF_"
+    static proxyWrapperAccessorKey  = "_PROXY_WRAPPER_"
+    static ServerProxyTypeKey       = "SPIDER_SERVER_TYPE"
+    static ClientProxyTypeKey       = "SPIDER_CLIENT_TYPE"
     ownerId: string
     objectFields: Array<string>
     objectMethods: Array<string>
@@ -33,12 +33,32 @@ export abstract class FarReference {
         return this.environemnt.actorMirror.sendInvocation(this.proxify() as FarReference, methodName, args)
     }
 
+    stringify(){
+        return "<FAR REFERENCE T0 : {" + this.objectFields + "," + this.objectMethods + "}>"
+    }
+
     proxify(): Object {
-        var baseObject = this
-        return new Proxy({}, {
+        var baseObject  = this
+        let t           = {};
+        //Overwrite way far references are printed to console (in node.js)
+        if(this.isServer){
+            (t as any).__proto__.inspect = function(depth, opts) {
+                return baseObject.stringify()
+            };
+        }
+        return new Proxy(t, {
             get: function (target, property) {
+                //If the property is a symbol this is a native call (for example as part of console.log)
+                if(typeof property != "string"){
+                    return baseObject[property]
+                }
+                else if (property == "toString"){
+                    return ()=>{
+                        return baseObject.stringify()
+                    }
+                }
                 //Ugly but needed to acquire the proxied far reference
-                if (property == FarReference.farRefAccessorKey) {
+                else if (property == FarReference.farRefAccessorKey) {
                     return baseObject
                 }
                 //Similarly, needed to check whether an object is a proxy to a far reference in serialisation (i.e. a far ref is being passed around between actors)
@@ -49,7 +69,7 @@ export abstract class FarReference {
                     return baseObject.isServer
                 }
                 //ES6 proxies don't allow to catch method invocation on objects. To solve this a far reference returns a "callable" promise as the return of a "get"
-                else {
+                else{
                     if ((baseObject.objectFields as any).includes(property.toString())) {
                         return baseObject.sendFieldAccess(property.toString())
                     }

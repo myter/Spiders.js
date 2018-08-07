@@ -2,10 +2,7 @@ import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
     RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
-    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_, _GSP_ROUND_,
-    GSPRoundMessage, _GSP_SYNC_, GSPSyncMessage, _GSP_REGISTER_, GSPRegisterMessage, RegisterExternalSignalMessage,
-    _REGISTER_EXTERNAL_SIGNAL_, ExternalSignalChangeMessage, _EXTERNAL_SIGNAL_CHANGE_, ExternalSignalDeleteMessage,
-    _EXTERNAL_SIGNAL_DELETE_
+    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_
 } from "./Message";
 import {ServerSocketManager} from "./Sockets";
 import {ObjectPool} from "./ObjectPool";
@@ -55,7 +52,7 @@ export class MessageHandler{
     }
 
     //Only received as first message by a web worker (i.e. newly spawned client side actor)
-    private handleInstall(msg : InstallBehaviourMessage,ports : Array<MessagePort>){
+    private handleInstall(msg : InstallBehaviourMessage,ports : ReadonlyArray<MessagePort>){
         var thisId                      = msg.actorId
         var mainId                      = msg.mainId;
         var behaviourObject             = reconstructBehaviour({},msg.vars,msg.methods,msg.methAnnots,this.environment)
@@ -215,45 +212,9 @@ export class MessageHandler{
         this.environment.commMedium.sendMessage(msg.targetId,msg.message)
     }
 
-    private handleGSPRound(msg : GSPRoundMessage){
-        this.environment.gspInstance.roundReceived(msg.round,msg.senderId)
-    }
-
-    private handleGSPSync(msg : GSPSyncMessage){
-        this.environment.gspInstance.receiveSync(msg.requesterId,msg.repliqId)
-    }
-
-    private handleGSPRegister(msg : GSPRegisterMessage){
-        let commMedium = this.environment.commMedium
-        if(!commMedium.hasConnection(msg.holderId)){
-            commMedium.openConnection(msg.holderId,msg.holderAddress,msg.holderPort)
-        }
-        this.environment.gspInstance.registerReplicaHolder(msg.replicaId,msg.holderId,msg.roundNr)
-    }
-
-    private handleRegisterExternalSignal(msg : RegisterExternalSignalMessage){
-        let commMedium = this.environment.commMedium
-        if(!commMedium.hasConnection(msg.requesterId)){
-            commMedium.openConnection(msg.requesterId,msg.requesterAddress,msg.requesterPort)
-        }
-        //console.log("External listener added for signal: " + msg.signalId + " from : " + msg.requesterId)
-        this.environment.signalPool.registerExternalListener(msg.signalId,msg.requesterId)
-    }
-
-    private handleExternalSignalChange(msg : ExternalSignalChangeMessage){
-        //console.log("External signal changed received")
-        let newVal = deserialise(msg.newVal,this.environment)
-        this.environment.signalPool.externalChangeReceived(msg.senderId,msg.signalId,newVal)
-        //this.environment.signalPool.sourceChanged(msg.signalId,newVal)
-    }
-
-    private handleExternalSignalDelete(msg : ExternalSignalDeleteMessage){
-        this.environment.signalPool.garbageCollect(msg.signalId)
-    }
-
     //Ports are needed for client side actor communication and cannot be serialised together with message objects (is always empty for server-side code)
     //Client socket is provided by server-side implementation and is used whenever a client connects remotely to a server actor
-    dispatch(msg : Message,ports : Array<MessagePort> = [],clientSocket : Socket = null) : void {
+    dispatch(msg : Message,ports : ReadonlyArray<MessagePort> = [],clientSocket : Socket = null) : void {
         msg.senderRef = deserialise(msg.senderRef as any,this.environment)
         switch(msg.typeTag){
             case _INSTALL_BEHAVIOUR_:
@@ -282,24 +243,6 @@ export class MessageHandler{
                 break
             case _ROUTE_:
                 this.handleRoute(msg as RouteMessage)
-                break
-            case _GSP_ROUND_:
-                this.handleGSPRound(msg as GSPRoundMessage)
-                break
-            case _GSP_SYNC_:
-                this.handleGSPSync(msg as GSPSyncMessage)
-                break
-            case _GSP_REGISTER_:
-                this.handleGSPRegister(msg as GSPRegisterMessage)
-                break
-            case _REGISTER_EXTERNAL_SIGNAL_:
-                this.handleRegisterExternalSignal(msg as RegisterExternalSignalMessage)
-                break
-            case _EXTERNAL_SIGNAL_CHANGE_:
-                this.handleExternalSignalChange(msg as ExternalSignalChangeMessage)
-                break
-            case _EXTERNAL_SIGNAL_DELETE_:
-                this.handleExternalSignalDelete(msg as ExternalSignalDeleteMessage)
                 break
             default:
                 throw "Unknown message in actor : " + msg.toString()

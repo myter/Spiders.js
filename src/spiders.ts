@@ -7,18 +7,17 @@ import {
 } from "./serialisation";
 import {ChannelManager} from "./ChannelManager";
 import {InstallBehaviourMessage, OpenPortMessage} from "./Message";
-import {Signal, SignalObject} from "./Reactivivity/signal";
 import {ActorEnvironment, ClientActorEnvironment, ServerActorEnvironment} from "./ActorEnvironment";
 import {bundleScope, generateId, isBrowser, LexScope} from "./utils";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderIsolateMirror, SpiderObject, SpiderObjectMirror} from "./MOP";
 import {FarRef} from "../index";
 import {ActorSTDLib} from "./ActorSTDLib";
+var work                                        = require('webworkify')
 /**
  * Created by flo on 05/12/2016.
  */
 type ActorClass                  = {new(...args : any[]): ActorBase}
-type SignalObjectClass           = {new(...args : any[]): SignalObject}
 function updateExistingChannels(mainRef : FarReference,existingActors : Array<any>,newActorId : string) : Array<any> {
     var mappings = [[],[]]
     existingActors.forEach((actorPair)=> {
@@ -32,32 +31,9 @@ function updateExistingChannels(mainRef : FarReference,existingActors : Array<an
     return mappings
 }
 
-//TODO, will need to remove all redundant type definitions
 class ActorBase{
     parent          : FarReference
-    /*reflectOnActor  : () => SpiderActorMirror
-    reflectOnObject : (object : SpiderObject) => SpiderObjectMirror
-    remote          : (string,number)=> Promise<FarReference>*/
     libs            : ActorSTDLib
-    //Pub-sub
-    /*PSClient        : (string?,number?) => null
-    PSServer        : (string?,number?) => null
-    publish         : (Object,PubSubTag) => null
-    subscribe       : (PubSubTag) => Subscription
-    newPSTag        : (string) => PubSubTag
-    //Replication
-    newRepliq       : (RepliqClass,... any) => Object
-    //Reactivity
-    QPROP           : (ownType : PubSubTag,directParents : Array<PubSubTag>,directChildren : Array<PubSubTag>,defaultValue : any) => Signal
-    addDependency   : (fromType : PubSubTag,toType : PubSubTag) => null
-    SIDUP           : (ownType : PubSubTag,parents : Array<PubSubTag>, admitterType: PubSubTag,isSink?:boolean) => Signal
-    SIDUPAdmitter   : (admitterType : PubSubTag,sources : number,sinks : number,idleListener?:Function,changeListener?:Function,admitListener?:Function) => null
-    publishSignal   : (signal) => null
-    newSignal       : (signalClass : SignalObjectClass,...  any) => Signal
-    lift            : Function
-    liftStrong      : Function
-    liftWeak        : Function
-    liftFailure     : Function*/
     actorMirror     : SpiderActorMirror
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
@@ -73,7 +49,7 @@ class ClientActor extends ActorBase{
     spawn(app : ClientApplication,thisClass){
         var actorId                                     = generateId()
         var channelMappings                             = updateExistingChannels(app.mainEnvironment.thisRef,app.spawnedActors,actorId)
-        var work                                        = require('webworkify')
+
         var webWorker                                   = work(require('./ActorProto'))
         webWorker.addEventListener('message',(event) => {
             app.mainEnvironment.messageHandler.dispatch(event)

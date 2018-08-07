@@ -17,12 +17,31 @@ class FarReference {
     sendMethodInvocation(methodName, args) {
         return this.environemnt.actorMirror.sendInvocation(this.proxify(), methodName, args);
     }
+    stringify() {
+        return "<FAR REFERENCE T0 : {" + this.objectFields + "," + this.objectMethods + "}>";
+    }
     proxify() {
         var baseObject = this;
-        return new Proxy({}, {
+        let t = {};
+        //Overwrite way far references are printed to console (in node.js)
+        if (this.isServer) {
+            t.__proto__.inspect = function (depth, opts) {
+                return baseObject.stringify();
+            };
+        }
+        return new Proxy(t, {
             get: function (target, property) {
+                //If the property is a symbol this is a native call (for example as part of console.log)
+                if (typeof property != "string") {
+                    return baseObject[property];
+                }
+                else if (property == "toString") {
+                    return () => {
+                        return baseObject.stringify();
+                    };
+                }
                 //Ugly but needed to acquire the proxied far reference
-                if (property == FarReference.farRefAccessorKey) {
+                else if (property == FarReference.farRefAccessorKey) {
                     return baseObject;
                 }
                 //Similarly, needed to check whether an object is a proxy to a far reference in serialisation (i.e. a far ref is being passed around between actors)

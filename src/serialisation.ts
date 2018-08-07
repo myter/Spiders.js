@@ -1,14 +1,9 @@
 
 
 import {PromiseAllocation} from "./PromisePool";
-import {ResolvePromiseMessage, RejectPromiseMessage, RegisterExternalSignalMessage} from "./Message";
+import {ResolvePromiseMessage, RejectPromiseMessage} from "./Message";
 import {ObjectPool} from "./ObjectPool";
 import {ServerFarReference, FarReference, ClientFarReference} from "./FarRef";
-import {Repliq} from "./Replication/Repliq";
-import {RepliqPrimitiveField} from "./Replication/RepliqPrimitiveField";
-import {RepliqField} from "./Replication/RepliqField";
-import {RepliqObjectField} from "./Replication/RepliqObjectField";
-import {SignalFunction, SignalObject, SignalValue} from "./Reactivivity/signal";
 import {ActorEnvironment} from "./ActorEnvironment";
 import {
     ClassDefinitionChain,
@@ -16,8 +11,6 @@ import {
     reconstructClassDefinitionChain
 } from "./utils";
 import {makeSpiderObjectProxy, simpleBind, SpiderObject, SpiderObjectMirror, wrapPrototypes} from "./MOP";
-
-var Signal      = require("./Reactivivity/signal").Signal
 /**
  * Created by flo on 19/12/2016.
  */
@@ -643,95 +636,6 @@ function serialiseObject(object : Object,thisRef : FarReference,objectPool : Obj
     }
 }
 
-function serialiseRepliqFields(fields : Map<string,RepliqField<any>>,receiverId : string,environment : ActorEnvironment){
-    let primitives = []
-    let objects    = []
-    let innerReps  = []
-    let ret        = [primitives,objects,innerReps]
-    fields.forEach((repliqField : RepliqField<any>,fieldName)=>{
-        if(repliqField instanceof RepliqPrimitiveField){
-            primitives.push(new RepliqFieldContainer(fieldName,repliqField.tentative,repliqField.commited,repliqField.read.toString(),repliqField.writeField.toString(),repliqField.resetToCommit.toString(),repliqField.commit.toString(),repliqField.update.toString()))
-        }
-        else if(repliqField as any instanceof RepliqObjectField){
-            let field       = repliqField as RepliqObjectField
-            let tentMethods
-            let commMethods
-            //Avoid copying over Object prototype methods containing native javascript code (cannot be evalled by deserialiser)
-            if(Object.getPrototypeOf(field.tentative) == Object.getPrototypeOf({})){
-                tentMethods = []
-                commMethods = []
-            }
-            else{
-                tentMethods = getObjectMethods(field.tentative)
-                commMethods = getObjectMethods(field.commited)
-            }
-            let tentative   = JSON.stringify([JSON.stringify(getObjectVars(field.tentative,receiverId,environment)),JSON.stringify(tentMethods)])
-            let commited    = JSON.stringify([JSON.stringify(getObjectVars(field.commited,receiverId,environment)),JSON.stringify(commMethods)])
-            objects.push(new RepliqFieldContainer(fieldName,tentative,commited,field.read.toString(),field.writeField.toString(),field.resetToCommit.toString(),field.commit.toString(),field.update.toString()))
-        }
-        else if(repliqField[RepliqContainer.checkRepliqFuncKey]){
-            innerReps.push(serialiseRepliq(repliqField,receiverId,environment,fieldName))
-        }
-        else{
-            throw new Error("Unknown Repliq field type in serialisation")
-        }
-    })
-    return ret
-}
-
-function serialiseRepliq(repliqProxy,receiverId : string,environment : ActorEnvironment,innerName = "") : RepliqContainer{
-    let fields          = repliqProxy[Repliq.getRepliqFields]
-    let fieldsArr       = serialiseRepliqFields(fields,receiverId,environment)
-    let primitiveFields = fieldsArr[0]
-    let objectFields    = fieldsArr[1]
-    let innerReps       = fieldsArr[2]
-    let methods         = repliqProxy[Repliq.getRepliqOriginalMethods]
-    let methodArr       = []
-    let atomicArr       = []
-    methods.forEach((method,methodName)=>{
-        if(method[Repliq.isAtomic]){
-            atomicArr.push([methodName,method.toString()])
-        }
-        else{
-            methodArr.push([methodName,method.toString()])
-        }
-    })
-    let repliqId        = repliqProxy[Repliq.getRepliqID]
-    let repliqOwnerId   = repliqProxy[Repliq.getRepliqOwnerID]
-    let isClient        = repliqProxy[Repliq.isClientMaster]
-    let ownerAddress    = repliqProxy[Repliq.getRepliqOwnerAddress]
-    let ownerPort       = repliqProxy[Repliq.getRepliqOwnerPort]
-    let roundNr
-    //Possible that repliq has not yet been modified at serialisation time
-    if(environment.gspInstance.roundNumbers.has(repliqId)){
-        roundNr = environment.gspInstance.roundNumbers.get(repliqId)
-    }
-    else{
-        roundNr = 0
-    }
-    let ret             = new RepliqContainer(JSON.stringify(primitiveFields),JSON.stringify(objectFields),JSON.stringify(innerReps),JSON.stringify(methodArr),JSON.stringify(atomicArr),repliqId,repliqOwnerId,isClient,ownerAddress,ownerPort,roundNr,innerName)
-    if(environment.thisRef instanceof  ServerFarReference){
-        if(ret.isClient){
-            environment.gspInstance.addForward(ret.repliqId,ret.masterOwnerId)
-            ret.masterOwnerId = environment.thisRef.ownerId
-            ret.ownerAddress = environment.thisRef.ownerAddress
-            ret.ownerPort    = environment.thisRef.ownerPort
-            ret.isClient     = false
-        }
-        //Repliq is created server-side. This is the first actor to serialise it
-        else if(ret.ownerAddress == null){
-            ret.ownerAddress = environment.thisRef.ownerAddress
-            ret.ownerPort    = environment.thisRef.ownerPort
-            ret.isClient     = false
-        }
-    }
-    //A client is serialising a repliq. The only information is the actor id which will be used by the receiving server or client-side actor
-    else{
-        ret.isClient = true
-    }
-    return ret
-}
-
 function serialiseMap(map : Map<any,any>,receiverId : string,environment : ActorEnvironment) : MapContainer{
     let keys    = []
     let values  = []
@@ -795,39 +699,6 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             mirror.proxyBase                        = proxyBase
             baseOb[SpiderObjectMirror.mirrorAccessKey] = mirror
             return container
-        }
-        else if(value[RepliqContainer.checkRepliqFuncKey]){
-            return serialiseRepliq(value,receiverId,environment)
-        }
-        else if(value[SignalContainer.checkSignalFuncKey]){
-            let sig = (value.holder)
-            if(!sig.isGarbage){
-                let isValueObject = sig.value instanceof  SignalObject
-                let val
-                if(isValueObject){
-                    let vars        = getObjectVars(sig.value,receiverId,environment,["holder"])
-                    let methods     = getObjectMethods(sig.value)
-                    //No need to keep track of which methods are mutators during serialisation. Only owner can mutate and change/propagate!
-                    methods.forEach((methodArr,index)=>{
-                        let name        = methodArr[0]
-                        if(sig.value[name][SignalValue.IS_MUTATOR]){
-                            let sigProto    = Object.getPrototypeOf(sig.value)
-                            let method      = Reflect.get(sigProto,name)
-                            //console.log("Original method: " + method[SignalValue.GET_ORIGINAL].toString())
-                            methods[index]  = [name,method[SignalValue.GET_ORIGINAL].toString()]
-                        }
-                    })
-                    val = [JSON.stringify(vars),JSON.stringify(methods)]
-                }
-                else{
-                    //Only way that value isn't an object is if it is the result of a lifted function
-                    val = (sig.value as SignalFunction).lastVal
-                }
-                return new SignalContainer(sig.id,isValueObject,val,sig.rateLowerBound,sig.rateUpperBound,sig.clock,sig.tempStrong,environment.thisRef.ownerId,(environment.thisRef as ServerFarReference).ownerAddress,(environment.thisRef as ServerFarReference).ownerPort)
-            }
-            else{
-                throw new Error("Serialisation of signals part of garbage dependency graph dissalowed ")
-            }
         }
         else if(value[SpiderObject.spiderObjectKey]){
             let objectMirror : SpiderObjectMirror = value[SpiderObjectMirror.mirrorAccessKey]
@@ -900,25 +771,6 @@ export function serialise(value,receiverId : string,environment : ActorEnvironme
             let serAnnot  : Array<ValueContainer>   = chain.methodAnnotations.map((annots)=>{return serialise(annots,receiverId,environment)})
             return new SpiderIsolateDefinitionContainer(chain.serialisedClass,serScopes,serAnnot)
         }
-        else if(isClass(value) && isRepliqClass(value)){
-            //TODO might need to extract annotations in same way that is done for signals
-            let definition = getSerialiableClassDefinition(value)
-            return new RepliqDefinitionContainer(definition)
-        }
-        else if(isClass(value) && isSignalClass(value)){
-            var definition  = getSerialiableClassDefinition(value)
-            let mutators    = []
-            //Need to find out which of the definition's methods are mutating. Can only do this on an instantiated object
-            let dummy = new value()
-            let methodKeys      = Reflect.ownKeys(Object.getPrototypeOf(dummy))
-            methodKeys.forEach((methodName)=>{
-                var property    = Reflect.get(Object.getPrototypeOf(dummy),methodName)
-                if(property[SignalValue.IS_MUTATOR]){
-                    mutators.push(methodName)
-                }
-            })
-            return new SignalDefinitionContainer(definition,mutators)
-        }
         else if(isClass(value)){
             let chain : ClassDefinitionChain = getClassDefinitionChain(value,false)
             let scopes    = chain.classScopes.map((scope : LexScope)=>{
@@ -986,110 +838,6 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
             return deserialise(valCont,environment)
         })
         return deserialised
-    }
-
-    function deSerialiseRepliq(repliqContainer : RepliqContainer){
-        let blankRepliq     = new Repliq()
-        let fields          = new Map();
-        (JSON.parse(repliqContainer.primitiveFields)).forEach((repliqField : RepliqFieldContainer)=>{
-            let field                  = new RepliqPrimitiveField(repliqField.name,repliqField.tentative)
-            field.commited             = repliqField.commited
-            field.read                 = constructMethod(repliqField.readFunc)
-            field.writeField           = constructMethod(repliqField.writeFunc)
-            field.resetToCommit        = constructMethod(repliqField.resetFunc)
-            field.commit               = constructMethod(repliqField.commitFunc)
-            field.update               = constructMethod(repliqField.updateFunc)
-            fields.set(field.name,field)
-        });
-        (JSON.parse(repliqContainer.objectFields)).forEach((repliqField : RepliqFieldContainer)=>{
-            let tentParsed              = JSON.parse(repliqField.tentative)
-            let comParsed               = JSON.parse(repliqField.commited)
-            let tentBase                = {}
-            Reflect.setPrototypeOf(tentBase,{})
-            let comBase                 = {}
-            Reflect.setPrototypeOf(comBase,{})
-            let tentative               = reconstructObject(tentBase,JSON.parse(tentParsed[0]),JSON.parse(tentParsed[1]),environment)
-            let commited                = reconstructObject(comBase,JSON.parse(comParsed[0]),JSON.parse(comParsed[1]),environment)
-            let field                   = new RepliqObjectField(repliqField.name,{})
-            field.tentative             = tentative
-            field.commited              = commited
-            field.read                  = constructMethod(repliqField.readFunc)
-            field.writeField            = constructMethod(repliqField.writeFunc)
-            field.resetToCommit         = constructMethod(repliqField.resetFunc)
-            field.commit                = constructMethod(repliqField.commitFunc)
-            field.update                = constructMethod(repliqField.updateFunc)
-            fields.set(field.name,field)
-        });
-        (JSON.parse(repliqContainer.innerRepFields)).forEach((innerRepliq : RepliqContainer)=>{
-            fields.set(innerRepliq.innerName,deserialise(innerRepliq,environment))
-        })
-        let methods         = new Map();
-        (JSON.parse(repliqContainer.methods)).forEach(([methodName,methodSource])=>{
-            methods.set(methodName,constructMethod(methodSource))
-        })
-        let atomicMethods   = new Map();
-        (JSON.parse(repliqContainer.atomicMethods)).forEach(([methodName,methodSource])=>{
-            atomicMethods.set(methodName,constructMethod(methodSource))
-        })
-        if(!repliqContainer.isClient && !environment.commMedium.hasConnection(repliqContainer.masterOwnerId)){
-            environment.commMedium.openConnection(repliqContainer.masterOwnerId,repliqContainer.ownerAddress,repliqContainer.ownerPort)
-        }
-        return blankRepliq.reconstruct(environment.gspInstance,repliqContainer.repliqId,repliqContainer.masterOwnerId,fields,methods,atomicMethods,repliqContainer.isClient,repliqContainer.ownerAddress,repliqContainer.ownerPort,repliqContainer.lastConfirmedRound)
-    }
-
-    function deSerialiseRepliqDefinition(def : RepliqDefinitionContainer){
-        let index = def.definition.indexOf("{")
-        let start = def.definition.substring(0,index)
-        let stop = def.definition.substring(index,def.definition.length)
-        let Repliq = require("./Replication/Repliq").Repliq
-        var classObj = eval("("+start + " extends Repliq"+stop+")")
-        return classObj
-    }
-
-    function deSerialiseSignal(sigContainer : SignalContainer){
-        if(!environment.commMedium.hasConnection(sigContainer.ownerId)){
-            environment.commMedium.openConnection(sigContainer.ownerId,sigContainer.ownerAddress,sigContainer.ownerPort)
-        }
-        let signalId                = sigContainer.id
-        let currentVal
-        if(sigContainer.obectValue){
-            let infoArr = sigContainer.currentValue
-            currentVal = reconstructObject(new SignalObject(),JSON.parse(infoArr[0]),JSON.parse(infoArr[1]),environment)
-        }
-        else{
-            let dummyFunc = new SignalFunction(() =>{})
-            dummyFunc.lastVal = sigContainer.currentValue
-            currentVal = dummyFunc
-        }
-        let signalProxy             = new Signal(currentVal)
-        signalProxy.rateLowerBound  = sigContainer.rateLowerBound
-        signalProxy.rateUpperBound  = sigContainer.rateUpperBound
-        signalProxy.clock           = sigContainer.clock
-        signalProxy.id              = signalId
-        signalProxy.value.setHolder(signalProxy)
-        signalProxy.strong          = sigContainer.strong
-        signalProxy.tempStrong      = sigContainer.strong
-        let known                   = environment.signalPool.knownSignal(signalId)
-        if(!known){
-            environment.signalPool.newSource(signalProxy)
-            environment.commMedium.sendMessage(sigContainer.ownerId,new RegisterExternalSignalMessage(environment.thisRef,environment.thisRef.ownerId,signalId,(environment.thisRef as ServerFarReference).ownerAddress,(environment.thisRef as ServerFarReference).ownerPort))
-        }
-        return signalProxy.value
-    }
-
-    function deSerialiseSignalDefinition(def : SignalDefinitionContainer){
-        let index       = def.definition.indexOf("{")
-        let start       = def.definition.substring(0,index)
-        let stop        = def.definition.substring(index,def.definition.length)
-        let Signal      = require("./Reactivivity/signal").SignalObject
-        var classObj    = eval("("+start + " extends Signal"+stop+")")
-        let mutators    = def.mutators
-        //Create a dummy signal instance to get the class name
-        let dummy       = new classObj()
-        mutators.forEach((mutator : string)=>{
-            environment.signalPool.addMutator(dummy.constructor.name,mutator)
-        })
-        return classObj
     }
 
     function deSerialiseSpiderObjectDefinition(def : SpiderObjectDefinitionContainer){
@@ -1230,14 +978,6 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
             return deSerialiseError(value as ErrorContainer)
         case ValueContainer.arrayType:
             return deSerialiseArray(value as ArrayContainer)
-        case ValueContainer.repliqType:
-            return deSerialiseRepliq(value as RepliqContainer)
-        case ValueContainer.repliqDefinition:
-            return deSerialiseRepliqDefinition(value as RepliqDefinitionContainer)
-        case ValueContainer.signalType:
-            return deSerialiseSignal(value as SignalContainer)
-        case ValueContainer.signalDefinition:
-            return deSerialiseSignalDefinition(value as SignalDefinitionContainer)
         case ValueContainer.spiderObjectDef:
             return deSerialiseSpiderObjectDefinition(value as SpiderObjectDefinitionContainer)
         case ValueContainer.objectMirrorDef:
