@@ -55,15 +55,6 @@ class SocketHandler {
         }
         else if (this.owner.connectedActors.has(actorId)) {
             var sock = this.owner.connectedActors.get(actorId);
-            /*let ack  = false
-            sock.emit('message',msg,()=>{
-                ack = true
-            })
-            setTimeout(()=>{
-                if(!ack){
-                    this.sendMessage(actorId,msg)
-                }
-            },1000)*/
             sock.emit('message', msg);
         }
         else {
@@ -107,16 +98,6 @@ class ServerSocketManager extends CommMedium_1.CommMedium {
     }
     sendMessage(actorId, msg) {
         if (this.connectedClients.has(actorId)) {
-            //TODO ack heavily impacts performance
-            /*let ack = false
-            this.connectedClients.get(actorId).emit('message',JSON.stringify(msg),()=>{
-                ack = true
-            })
-            setTimeout(()=>{
-                if(!ack){
-                    this.sendMessage(actorId,msg)
-                }
-            },1000)*/
             this.connectedClients.get(actorId).emit('message', JSON.stringify(msg));
         }
         else {
