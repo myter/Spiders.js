@@ -1,5 +1,5 @@
 # Spiders.js
-Parallel and Distributed Programming in JavaScript made easy through actors.
+Parallel and Distributed Programming in JavaScript made easy through actors
 
 # Usage
 Install with npm:
