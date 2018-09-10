@@ -26,15 +26,15 @@ class FarReference {
         let t = {};
         //Overwrite way far references are printed to console (in node.js)
         if (this.isServer) {
-            t.__proto__[util.inspect.custom] = (depth, options) => {
+            t[util.inspect.custom] = (depth, options) => {
                 return baseObject.stringify();
             };
         }
-        return new Proxy(t, {
+        return new Proxy({}, {
             get: function (target, property) {
                 //If the property is a symbol this is a native call (for example as part of console.log)
                 if (typeof property != "string") {
-                    return baseObject[property];
+                    return t[property];
                 }
                 else if (property == "toString") {
                     return () => {
