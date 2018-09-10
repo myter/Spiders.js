@@ -14,12 +14,17 @@ var app = new Application()
 class TestActor extends Actor{
 
     test(){
-        return new Promise((resolve,reject)=>{
-            setTimeout(()=>{
-                reject("trying to reject")
-            },2000)
-        })
+        var waitTill = new Date(new Date().getTime() + 50 * 1000);
+        while(waitTill > new Date()){
+            let n  = (waitTill.getTime() - new Date().getTime()) / 1000
+            if(!((n - Math.floor(n)) !== 0)){
+                console.log("Seconds left: " + n)
+            }
+        }
+        console.log("test finished")
     }
 }
 let act = app.spawnActor(TestActor)
-console.log(act)
+act.test().then((res)=>{
+    console.log("Promise resolved")
+})

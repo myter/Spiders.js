@@ -56982,11 +56982,6 @@ class CommMedium {
         this.pendingConnectionId += 1;
         connection.on('connect', () => {
             connection.emit('message', new Message_1.ConnectRemoteMessage(sender, promiseAllocation.promiseId, connectionId));
-            /*setTimeout(()=>{
-                if(!ack){
-                    this.connectRemote(sender,address,port,promisePool)
-                }
-            },1000)*/
         });
         connection.on('message', (data) => {
             if (sender instanceof FarRef_1.ServerFarReference) {
@@ -57966,6 +57961,9 @@ class SocketHandler {
         connection.on('disconnect', function () {
             that.addDisconnected(actorId);
         });
+        connection.on('reconnect', function () {
+            that.removeFromDisconnected(actorId, connection);
+        });
     }
     sendMessage(actorId, msg) {
         if (this.disconnectedActors.indexOf(actorId) != -1) {
@@ -57974,6 +57972,13 @@ class SocketHandler {
         else if (this.owner.connectedActors.has(actorId)) {
             var sock = this.owner.connectedActors.get(actorId);
             sock.emit('message', msg);
+            //Does this make any sense ? No it does'nt but I've noticed that when an actor is busy for over 30 seconds the socket disconnects and reconnects
+            //In turn, any message sent right before this bizar sequence of events does not arrive at destination, this seems to solve the issue
+            setTimeout(() => {
+                if (this.disconnectedActors.indexOf(actorId) != -1) {
+                    this.pendingMessages.get(actorId).push(msg);
+                }
+            }, 50);
         }
         else {
             //TODO TEMP

@@ -45,11 +45,6 @@ export abstract class CommMedium{
         this.pendingConnectionId    += 1
         connection.on('connect',() => {
             connection.emit('message',new ConnectRemoteMessage(sender,promiseAllocation.promiseId,connectionId))
-            /*setTimeout(()=>{
-                if(!ack){
-                    this.connectRemote(sender,address,port,promisePool)
-                }
-            },1000)*/
         })
         connection.on('message',(data) => {
             if(sender instanceof ServerFarReference){
