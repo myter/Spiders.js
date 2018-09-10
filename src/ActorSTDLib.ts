@@ -2,11 +2,11 @@ import {PSClient} from "./PubSub/SubClient";
 import {ActorEnvironment} from "./ActorEnvironment";
 import {PSServer} from "./PubSub/SubServer";
 import {PubSubTag} from "./PubSub/SubTag";
-import {FarRef} from "spiders.js";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderObject, SpiderObjectMirror} from "./MOP";
-import {clone} from "./utils";
-import {deconstructBehaviour, deserialise, reconstructBehaviour, serialise} from "./serialisation";
+import {deserialise,serialise} from "./serialisation";
+
+type FarRef<T> = any
 
 class BufferedMirror extends SpiderObjectMirror{
     buffer : Array<Function>

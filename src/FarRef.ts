@@ -1,5 +1,5 @@
 import {ActorEnvironment} from "./ActorEnvironment";
-
+const util = require('util');
 /**
  * Created by flo on 21/12/2016.
  */
@@ -41,10 +41,10 @@ export abstract class FarReference {
         var baseObject  = this
         let t           = {};
         //Overwrite way far references are printed to console (in node.js)
-        if(this.isServer){
-            (t as any).__proto__.inspect = function(depth, opts) {
+        if(this.isServer) {
+            (t as any).__proto__[util.inspect.custom] = (depth, options) => {
                 return baseObject.stringify()
-            };
+            }
         }
         return new Proxy(t, {
             get: function (target, property) {

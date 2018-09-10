@@ -1,0 +1,4 @@
+.idea/*
+benchmarks/*
+node_modules/*
+PerformanceTest(temp)/*

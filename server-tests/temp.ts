@@ -11,31 +11,15 @@ import {
 
 
 var app = new Application()
-class PrintActor extends Actor{
-    someField
-    TestIsolate
-    constructor(){
-        super()
-        this.someField = "foo"
-        this.TestIsolate = TestIsolate
-    }
+class TestActor extends Actor{
 
-    test(isol){
-        let x = new this.TestIsolate()
-        console.log(isol.toString())
+    test(){
+        return new Promise((resolve,reject)=>{
+            setTimeout(()=>{
+                reject("trying to reject")
+            },2000)
+        })
     }
 }
-
-class TestIsolate extends SpiderIsolate{
-    hello(){
-        return "isolate"
-    }
-
-    toString(){
-        return "TESTISOLATE TO STRING METHOD"
-    }
-}
-
-let act = app.spawnActor(PrintActor)
-let iso = new TestIsolate()
-act.test(new TestIsolate())
+let act = app.spawnActor(TestActor)
+console.log(act)

@@ -1,0 +1,11 @@
+benchmarks/
+client-tests/
+CoCode/
+examples/
+full-tests/
+NativePong/
+node_modules/
+server-tests/
+skeletons/
+SpiderPong/
+.idea/

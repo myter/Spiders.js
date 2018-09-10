@@ -1,4 +1,5 @@
 Object.defineProperty(exports, "__esModule", { value: true });
+const util = require('util');
 /**
  * Created by flo on 21/12/2016.
  */
@@ -25,7 +26,7 @@ class FarReference {
         let t = {};
         //Overwrite way far references are printed to console (in node.js)
         if (this.isServer) {
-            t.__proto__.inspect = function (depth, opts) {
+            t.__proto__[util.inspect.custom] = (depth, options) => {
                 return baseObject.stringify();
             };
         }
