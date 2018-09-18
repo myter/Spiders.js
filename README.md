@@ -36,7 +36,7 @@ class HelloWorldActor extends spiders.Actor{
     this.parent.hello("world")
   }
 }
-var actorRef = app.spanwnActor(HelloWorldActor)
+var actorRef = app.spawnActor(HelloWorldActor)
 actorRef.world()
 ```
 Run the example with:
@@ -89,7 +89,7 @@ var spider = require('spiders.js')
 class Pinger extends spider.Application{
     constructor(){
         super()
-        this.remote("127.0.0.1",8000).then((serverRef)=>{
+        this.libs.remote("127.0.0.1",8000).then((serverRef)=>{
             serverRef.registerPing(this)
         })
     }

@@ -5,7 +5,7 @@ var spider = require("../../src/spiders")
 class Ponger extends spider.Application{
     constructor(){
         super()
-        this.remote("127.0.0.1",8000).then((serverRef)=>{
+        this.libs.remote("127.0.0.1",8000).then((serverRef)=>{
             serverRef.registerPong(this)
         })
     }
