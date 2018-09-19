@@ -25,10 +25,12 @@ class FarReference {
         var baseObject = this;
         let t = {};
         //Overwrite way far references are printed to console (in node.js)
-        if (this.isServer) {
-            t[util.inspect.custom] = (depth, options) => {
-                return baseObject.stringify();
-            };
+        if (this.environemnt.thisRef) {
+            if (this.environemnt.thisRef.isServer) {
+                t[util.inspect.custom] = (depth, options) => {
+                    return baseObject.stringify();
+                };
+            }
         }
         return new Proxy({}, {
             get: function (target, property) {

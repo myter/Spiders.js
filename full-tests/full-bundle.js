@@ -56789,7 +56789,7 @@ class BufferedMirror extends MOP_1.SpiderObjectMirror {
             let ret = function (...args) {
                 return new Promise((resolve) => {
                     that.buffer.push(() => {
-                        resolve(base.realRef[fieldName](args));
+                        resolve(base.realRef[fieldName](...args));
                     });
                 });
             };
@@ -56816,12 +56816,12 @@ class BufferedMirror extends MOP_1.SpiderObjectMirror {
         else {
             let base = this.base;
             if (base.isConnected) {
-                return base.realRef[methodName](args);
+                return base.realRef[methodName](...args);
             }
             else {
                 return new Promise((resolve) => {
                     this.buffer.push(() => {
-                        resolve(base.realRef[methodName](args));
+                        resolve(base.realRef[methodName](...args));
                     });
                 });
             }
@@ -57029,10 +57029,12 @@ class FarReference {
         var baseObject = this;
         let t = {};
         //Overwrite way far references are printed to console (in node.js)
-        if (this.isServer) {
-            t[util.inspect.custom] = (depth, options) => {
-                return baseObject.stringify();
-            };
+        if (this.environemnt.thisRef) {
+            if (this.environemnt.thisRef.isServer) {
+                t[util.inspect.custom] = (depth, options) => {
+                    return baseObject.stringify();
+                };
+            }
         }
         return new Proxy({}, {
             get: function (target, property) {

@@ -29,7 +29,7 @@ class BufferedMirror extends SpiderObjectMirror{
             let ret = function(... args){
                 return new Promise((resolve)=>{
                     that.buffer.push(()=>{
-                        resolve(base.realRef[fieldName](args))
+                        resolve(base.realRef[fieldName](...args))
                     })
                 })
             }
@@ -57,12 +57,12 @@ class BufferedMirror extends SpiderObjectMirror{
         else{
             let base = this.base as BufferedRef
             if(base.isConnected){
-                return base.realRef[methodName](args)
+                return base.realRef[methodName](...args)
             }
             else{
                 return new Promise((resolve)=>{
                     this.buffer.push(()=>{
-                        resolve(base.realRef[methodName](args))
+                        resolve(base.realRef[methodName](...args))
                     })
                 })
             }
