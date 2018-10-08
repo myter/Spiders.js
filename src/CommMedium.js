@@ -42,6 +42,12 @@ class CommMedium {
         var connection = this.pendingActors.get(connectionId);
         this.socketHandler.removeFromDisconnected(actorId, connection);
         this.connectedActors.set(actorId, connection);
+        connection.on('disconnect', () => {
+            this.socketHandler.addDisconnected(actorId);
+        });
+        connection.on('reconnect', () => {
+            this.socketHandler.removeFromDisconnected(actorId, connection);
+        });
     }
 }
 exports.CommMedium = CommMedium;
