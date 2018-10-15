@@ -136,17 +136,17 @@ export class ActorSTDLib{
         return object[SpiderObjectMirror.mirrorAccessKey]
     }
 
-    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number){
+    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number, resourceURL? : string, pathToResource? : string){
         var express     = require('express');
         let path        = require('path')
         let resolve     = path.resolve
         var app         = express();
         var http        = require('http').Server(app)
-        //app.engine('html', require('ejs').renderFile)
-        //app.set('view engine', 'ejs')
+        if(resourceURL){
+            app.use(resourceURL,express.static(resolve(pathToResource)))
+        }
         app.get('/', (req, res) =>{
             res.sendFile(resolve(pathToHtml))
-            //res.render(resolve(pathToHtml),{test: "foo"})
         });
         let htmlDir     = path.dirname(resolve(pathToHtml))
         let bundlePath  = htmlDir+"/"+bundleName

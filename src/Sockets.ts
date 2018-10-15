@@ -13,7 +13,7 @@ export class SocketHandler{
     disconnectedActors  : Array<string>
     pendingMessages     : Map<string,Array<Message>>
     //TODO obviously a temp fix , problem arises in SOR with many actors
-    fuckUpMessage       : Map<string,Array<Message>>
+    tempMessage       : Map<string,Array<Message>>
     owner               : CommMedium
     messageHandler      : MessageHandler
 
@@ -21,7 +21,7 @@ export class SocketHandler{
         this.owner                  = owner
         this.disconnectedActors     = []
         this.pendingMessages        = new Map<string,Array<Message>>()
-        this.fuckUpMessage          = new Map<string,Array<Message>>()
+        this.tempMessage          = new Map<string,Array<Message>>()
     }
 
     addDisconnected(actorId : string){
@@ -52,8 +52,8 @@ export class SocketHandler{
         connection.on('connect',() => {
             that.removeFromDisconnected(actorId,connection)
             //TODO To remove once solution found
-            if(that.fuckUpMessage.has(actorId)){
-                that.fuckUpMessage.get(actorId).forEach((msg : Message)=>{
+            if(that.tempMessage.has(actorId)){
+                that.tempMessage.get(actorId).forEach((msg : Message)=>{
                     that.sendMessage(actorId,msg)
                 })
             }
@@ -62,9 +62,11 @@ export class SocketHandler{
             that.messageHandler.dispatch(data)
         })
         connection.on('disconnect',function(){
+            console.log("DISCONNECTED FROM " + actorId)
             that.addDisconnected(actorId)
         })
         connection.on('reconnect',function(){
+            console.log("RECONNECTED TO " + actorId)
             that.removeFromDisconnected(actorId,connection)
         })
     }
@@ -86,12 +88,12 @@ export class SocketHandler{
         }
         else{
             //TODO TEMP
-            if(this.fuckUpMessage.has(actorId)){
-                this.fuckUpMessage.get(actorId).push(msg)
+            if(this.tempMessage.has(actorId)){
+                this.tempMessage.get(actorId).push(msg)
             }
             else{
                 var q = [msg]
-                this.fuckUpMessage.set(actorId,q)
+                this.tempMessage.set(actorId,q)
             }
             //throw new Error("Unable to send message to unknown actor (socket handler) in " + msg.fieldName + " to : " + actorId + " in : " + this.messageHandler.thisRef.ownerId)
         }
@@ -115,9 +117,6 @@ export class ServerSocketManager extends CommMedium{
         this.socket.on('connection',(client) => {
             client.on('message',(data)=>{
                 environment.messageHandler.dispatch(data,[],client)
-            })
-            client.on('close',() => {
-                //TODO
             })
         })
     }
