@@ -40,12 +40,12 @@ exports.ServerActorEnvironment = ServerActorEnvironment;
 class ClientActorEnvironment extends ActorEnvironment {
     constructor(actorMirror) {
         super(actorMirror);
-        this.commMedium = new ChannelManager_1.ChannelManager(this);
     }
     initialise(actorId, mainId, behaviourObject) {
         let [fieldNames, methodNames] = serialisation_1.getObjectNames(behaviourObject, "toString");
         this.behaviourObject = behaviourObject;
         this.thisRef = new FarRef_1.ClientFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, fieldNames, methodNames, actorId, mainId, this);
+        this.commMedium = new ChannelManager_1.ChannelManager(this);
         this.objectPool = new ObjectPool_1.ObjectPool(behaviourObject);
     }
 }

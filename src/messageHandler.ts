@@ -1,10 +1,9 @@
 import {
     Message, _FIELD_ACCESS_, FieldAccessMessage,
     ResolvePromiseMessage, _RESOLVE_PROMISE_, _METHOD_INVOC_, MethodInvocationMessage, _REJECT_PROMISE_,
-    RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage, _CONNECT_REMOTE_,
-    ConnectRemoteMessage, ResolveConnectionMessage, _RESOLVE_CONNECTION_, RouteMessage, _ROUTE_
+    RejectPromiseMessage, _INSTALL_BEHAVIOUR_, InstallBehaviourMessage, _OPEN_PORT_, OpenPortMessage,
+     RouteMessage, _ROUTE_
 } from "./Message";
-import {ServerSocketManager} from "./Sockets";
 import {ObjectPool} from "./ObjectPool";
 import {
     ValueContainer, serialise, deserialise, ClientFarRefContainer,
@@ -26,12 +25,17 @@ export class MessageHandler{
         this.environment = environment
     }
 
-    private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message){
+    private sendReturnServer(actorId : string,actorAddress : string,actorPort : number,msg : Message,routing : boolean = false){
         let commMedium = this.environment.commMedium
         if(!(commMedium.hasConnection(actorId))){
             commMedium.openConnection(actorId,actorAddress,actorPort)
         }
-        commMedium.sendMessage(actorId,msg)
+        if(routing){
+            commMedium.sendRouteMessage((msg as RouteMessage).targetId,actorId,msg as RouteMessage)
+        }
+        else{
+            commMedium.sendMessage(actorId,msg)
+        }
     }
 
     private sendReturnClient(actorId : string,originalMsg : Message,returnMsg : Message){
@@ -40,7 +44,7 @@ export class MessageHandler{
         if(thisRef instanceof ClientFarReference){
             //Message to which actor is replying came from a different client host, send routing message to contact server actor
             if((thisRef as ClientFarReference).mainId != originalMsg.senderMainId){
-                this.sendReturnServer(originalMsg.contactId,originalMsg.contactAddress,originalMsg.contactPort,new RouteMessage(this.environment.thisRef,actorId,returnMsg))
+                this.sendReturnServer(originalMsg.contactId,originalMsg.contactAddress,originalMsg.contactPort,new RouteMessage(this.environment.thisRef,actorId,returnMsg),true)
             }
             else{
                 commMedium.sendMessage(actorId,returnMsg)
@@ -109,27 +113,11 @@ export class MessageHandler{
             let retVal
             try {
                 retVal = targetObject[methodName].apply(targetObject, deserialisedArgs)
-                /*var serialised: ValueContainer = serialise(retVal, msg.senderId, this.environment)
-                var message: Message = new ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
-                if (msg.senderType == Message.serverSenderType) {
-                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
-                }
-                else {
-                    this.sendReturnClient(msg.senderId, msg, message)
-                }*/
             }
             catch (reason) {
                 console.log("Went wrong for : " + methodName)
                 console.log(reason)
                 retVal = reason
-                /*var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
-                message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
-                if (msg.senderType == Message.serverSenderType) {
-                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
-                }
-                else {
-                    this.sendReturnClient(msg.senderId, msg, message)
-                }*/
             }
             return retVal
         }
@@ -174,26 +162,9 @@ export class MessageHandler{
         }
     }
 
-    //Can only be received by a server actor
-    private handleConnectRemote(msg : ConnectRemoteMessage,clientSocket : Socket){
-        var resolveMessage = new ResolveConnectionMessage(this.environment.thisRef,msg.promiseId,msg.connectionId)
-        if(msg.senderType == Message.serverSenderType){
-            this.sendReturnServer(msg.senderId,msg.senderAddress,msg.senderPort,resolveMessage)
-        }
-        else{
-            var socketManager = this.environment.commMedium as ServerSocketManager
-            socketManager.addNewClient(msg.senderId,clientSocket)
-            this.sendReturnClient(msg.senderId,msg,resolveMessage)
-        }
-    }
-
-    private handleResolveConnection(msg : ResolveConnectionMessage){
-        this.environment.commMedium.resolvePendingConnection(msg.senderId,msg.connectionId)
-        var farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,msg.senderRef[FarReference.farRefAccessorKey].objectFields,msg.senderRef[FarReference.farRefAccessorKey].objectMethods,msg.senderId,msg.senderAddress,msg.senderPort,this.environment)
-        this.environment.promisePool.resolvePromise(msg.promiseId,farRef.proxify())
-    }
-
     private handleRoute(msg : RouteMessage){
+        //Message has been serialised and has therefore lost its "setClockTime" method (no way around this, at some point need to call JSON.stringify to send message between actors)
+        msg.message.setClockTime = (clockTime : number)=>{}
         //Must ensure that any client references "leaking" form this server actor also have the correct contact information
         if(msg.message.typeTag == _METHOD_INVOC_){
             var args = (msg.message as MethodInvocationMessage).args
@@ -208,6 +179,18 @@ export class MessageHandler{
                     }
                 }
             })
+        }
+        if(msg.message.typeTag == _RESOLVE_PROMISE_){
+            var value = (msg.message as ResolvePromiseMessage).value
+            if(value.type == ValueContainer.clientFarRefType){
+                let container               = value as ClientFarRefContainer
+                if(container.contactId == null){
+                    let thisRef                 = this.environment.thisRef
+                    container.contactId         = thisRef.ownerId
+                    container.contactAddress    = (thisRef as ServerFarReference).ownerAddress
+                    container.contactPort       = (thisRef as ServerFarReference).ownerPort
+                }
+            }
         }
         this.environment.commMedium.sendMessage(msg.targetId,msg.message)
     }
@@ -234,12 +217,6 @@ export class MessageHandler{
                 break
             case _REJECT_PROMISE_:
                 this.handlePromiseReject(msg as RejectPromiseMessage)
-                break
-            case _CONNECT_REMOTE_:
-                this.handleConnectRemote(msg as ConnectRemoteMessage,clientSocket)
-                break
-            case _RESOLVE_CONNECTION_:
-                this.handleResolveConnection(msg as ResolveConnectionMessage)
                 break
             case _ROUTE_:
                 this.handleRoute(msg as RouteMessage)

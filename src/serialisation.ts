@@ -808,7 +808,7 @@ export function deserialise(value : ValueContainer,environment : ActorEnvironmen
         }
         else{
             if(!(environment.commMedium.hasConnection(farRef.ownerId))){
-                environment.commMedium.connectTransientRemote(environment.thisRef,farRef,environment.promisePool)
+                environment.commMedium.connectRemote(farRef.ownerAddress,farRef.ownerPort)
             }
         }
         return farRef.proxify()

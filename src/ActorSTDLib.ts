@@ -117,12 +117,12 @@ export class ActorSTDLib{
     }
 
     remote(address : string,port : number) : Promise<FarRef<any>>{
-        return this.environment.commMedium.connectRemote(this.environment.thisRef,address,port,this.environment.promisePool)
+        return this.environment.commMedium.connectRemote(address,port)
     }
 
     buffRemote(address : string,port : number) : FarRef<any>{
         let ref = new BufferedRef()
-        this.environment.commMedium.connectRemote(this.environment.thisRef,address,port,this.environment.promisePool).then((realRef)=>{
+        this.environment.commMedium.connectRemote(address,port).then((realRef)=>{
             ref._connected_(realRef)
         })
         return ref

@@ -24,6 +24,9 @@ class Message {
             this.contactPort = clientRef.contactPort;
         }
     }
+    setClockTime(clockTime) {
+        this.clockTime = clockTime;
+    }
 }
 Message.serverSenderType = "_SERVER_";
 Message.clientSenderType = "_CLIENT_";
@@ -94,24 +97,6 @@ class OpenPortMessage extends Message {
     }
 }
 exports.OpenPortMessage = OpenPortMessage;
-exports._CONNECT_REMOTE_ = 6;
-class ConnectRemoteMessage extends Message {
-    constructor(senderRef, promiseId, connectionId) {
-        super(exports._CONNECT_REMOTE_, senderRef);
-        this.promiseId = promiseId;
-        this.connectionId = connectionId;
-    }
-}
-exports.ConnectRemoteMessage = ConnectRemoteMessage;
-exports._RESOLVE_CONNECTION_ = 7;
-class ResolveConnectionMessage extends Message {
-    constructor(senderRef, promiseId, connectionId) {
-        super(exports._RESOLVE_CONNECTION_, senderRef);
-        this.promiseId = promiseId;
-        this.connectionId = connectionId;
-    }
-}
-exports.ResolveConnectionMessage = ResolveConnectionMessage;
 exports._ROUTE_ = 8;
 class RouteMessage extends Message {
     constructor(senderRef, targetId, message) {

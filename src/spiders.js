@@ -127,6 +127,7 @@ class ServerApplication extends ApplicationBase {
         this.mainEnvironment.actorMirror.initialise(stdLib, true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
+        let e = new Error();
         var actorObject = new actorClass(...constructorArgs);
         if (port == -1) {
             port = this.portCounter++;

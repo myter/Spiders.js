@@ -50,13 +50,14 @@ export class ServerActorEnvironment extends ActorEnvironment {
 export class ClientActorEnvironment extends ActorEnvironment{
     constructor(actorMirror : SpiderActorMirror){
         super(actorMirror)
-        this.commMedium          = new ChannelManager(this)
+
     }
 
     initialise(actorId,mainId,behaviourObject){
         let [fieldNames,methodNames]    = getObjectNames(behaviourObject,"toString")
         this.behaviourObject            = behaviourObject
         this.thisRef                    = new ClientFarReference(ObjectPool._BEH_OBJ_ID,fieldNames,methodNames,actorId,mainId,this)
+        this.commMedium                 = new ChannelManager(this)
         this.objectPool                 = new ObjectPool(behaviourObject)
     }
 }

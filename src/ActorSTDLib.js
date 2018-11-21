@@ -95,11 +95,11 @@ class ActorSTDLib {
         this.environment.behaviourObject["_PS_SERVER_"] = new SubServer_1.PSServer();
     }
     remote(address, port) {
-        return this.environment.commMedium.connectRemote(this.environment.thisRef, address, port, this.environment.promisePool);
+        return this.environment.commMedium.connectRemote(address, port);
     }
     buffRemote(address, port) {
         let ref = new BufferedRef();
-        this.environment.commMedium.connectRemote(this.environment.thisRef, address, port, this.environment.promisePool).then((realRef) => {
+        this.environment.commMedium.connectRemote(address, port).then((realRef) => {
             ref._connected_(realRef);
         });
         return ref;

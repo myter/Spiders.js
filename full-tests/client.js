@@ -57,7 +57,6 @@ class ClientActor extends spiders_1.Actor {
         this.TestObject = TestObject;
     }
     init() {
-        console.log(this.myId);
         this.libs.remote("127.0.0.1", 8080).then((serverRef) => {
             this.parent.logSucc("Connected to server via remote method");
             this.serverRef = serverRef;

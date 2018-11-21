@@ -14,6 +14,7 @@ export class Message{
     senderId        : string
     senderType      : string
     senderRef       : FarReference
+    clockTime       : number
     //For Messages sent by server
     senderAddress   : string
     senderPort      : number
@@ -40,6 +41,10 @@ export class Message{
             this.contactAddress = clientRef.contactAddress
             this.contactPort    = clientRef.contactPort
         }
+    }
+
+    setClockTime(clockTime : number){
+        this.clockTime = clockTime
     }
 }
 
@@ -131,28 +136,6 @@ export class OpenPortMessage extends Message {
     constructor(senderRef : FarReference,actorId : string){
         super(_OPEN_PORT_,senderRef)
         this.actorId = actorId
-    }
-}
-
-export const _CONNECT_REMOTE_ : MessageTypeTag = 6
-export class ConnectRemoteMessage extends Message{
-    promiseId       : number
-    connectionId    : number
-    constructor(senderRef : FarReference,promiseId : number,connectionId : number){
-        super(_CONNECT_REMOTE_,senderRef)
-        this.promiseId      = promiseId
-        this.connectionId   = connectionId
-    }
-}
-
-export const _RESOLVE_CONNECTION_ : MessageTypeTag = 7
-export class ResolveConnectionMessage extends Message{
-    promiseId       : number
-    connectionId    : number
-    constructor(senderRef : FarReference,promiseId : number,connectionId : number){
-        super(_RESOLVE_CONNECTION_,senderRef)
-        this.promiseId      = promiseId
-        this.connectionId   = connectionId
     }
 }
 

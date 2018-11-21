@@ -20,10 +20,10 @@ class SpiderActorMirror {
             this.base.commMedium.openConnection(toId, contactAddress, contactPort);
         }
         //TODO quick fix, need to refactor to make sure that message contains the correct contact info (needed to produce return values)
-        msg.contactId = toId;
+        msg.contactId = contactId;
         msg.contactAddress = contactAddress;
         msg.contactPort = contactPort;
-        this.base.commMedium.sendMessage(toId, new Message_1.RouteMessage(this.base.thisRef, toId, msg));
+        this.base.commMedium.sendRouteMessage(toId, contactId, new Message_1.RouteMessage(this.base.thisRef, toId, msg));
     }
     send(targetRef, toId, msg, contactId, contactAddress, contactPort, mainId) {
         let holderRef = this.base.thisRef;

@@ -16,6 +16,50 @@ class TestServer extends Application{
 }
 
 describe("Publish Subscribe Functionality",() => {
+
+    it("All",function(done){
+        this.timeout(4000)
+        let server = new TestServer()
+        class TestClient extends Actor{
+            client
+            testTag
+            subscription
+
+            init(){
+                this.client = this.libs.setupPSClient()
+                this.testTag = new this.libs.PubSubTag("test")
+            }
+            pub(v){
+                this.client.publish(v,this.testTag)
+            }
+
+            sub(){
+                this.subscription = this.client.subscribe(this.testTag)
+            }
+        }
+        let puber = server.spawnActor(TestClient)
+        let suber = server.spawnActor(TestClient)
+        puber.pub(5)
+        puber.pub(10)
+        suber.sub()
+        setTimeout(()=>{
+            suber.subscription.then((subRef)=>{
+                subRef.all().then((arr)=>{
+                    try{
+                        console.log(arr)
+                        expect(arr[0]).to.equal(5)
+                        expect(arr[1]).to.equal(10)
+                        server.kill()
+                        done()
+                    }
+                    catch(e){
+                        server.kill()
+                        done(e)
+                    }
+                })
+            })
+        },2000)
+    })
     it("Each",function(done){
         let server   = new TestServer()
         class TestClient extends Actor{
@@ -55,48 +99,7 @@ describe("Publish Subscribe Functionality",() => {
         })
     })
 
-    it("All",function(done){
-        this.timeout(4000)
-        let server = new TestServer()
-        class TestClient extends Actor{
-            client
-            testTag
-            subscription
 
-            init(){
-                this.client = this.libs.setupPSClient()
-                this.testTag = new this.libs.PubSubTag("test")
-            }
-            pub(v){
-                this.client.publish(v,this.testTag)
-            }
-
-            sub(){
-                this.subscription = this.client.subscribe(this.testTag)
-            }
-        }
-        let puber = server.spawnActor(TestClient)
-        let suber = server.spawnActor(TestClient)
-        puber.pub(5)
-        puber.pub(10)
-        suber.sub()
-        setTimeout(()=>{
-            suber.subscription.then((subRef)=>{
-                subRef.all().then((arr)=>{
-                    try{
-                        expect(arr[0]).to.equal(5)
-                        expect(arr[1]).to.equal(10)
-                        server.kill()
-                        done()
-                    }
-                    catch(e){
-                        server.kill()
-                        done(e)
-                    }
-                })
-            })
-        },2000)
-    })
 })
 
 describe("Publish Objects",()=>{

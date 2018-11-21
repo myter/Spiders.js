@@ -11,12 +11,17 @@ class MessageHandler {
     constructor(environment) {
         this.environment = environment;
     }
-    sendReturnServer(actorId, actorAddress, actorPort, msg) {
+    sendReturnServer(actorId, actorAddress, actorPort, msg, routing = false) {
         let commMedium = this.environment.commMedium;
         if (!(commMedium.hasConnection(actorId))) {
             commMedium.openConnection(actorId, actorAddress, actorPort);
         }
-        commMedium.sendMessage(actorId, msg);
+        if (routing) {
+            commMedium.sendRouteMessage(msg.targetId, actorId, msg);
+        }
+        else {
+            commMedium.sendMessage(actorId, msg);
+        }
     }
     sendReturnClient(actorId, originalMsg, returnMsg) {
         let thisRef = this.environment.thisRef;
@@ -24,7 +29,7 @@ class MessageHandler {
         if (thisRef instanceof FarRef_1.ClientFarReference) {
             //Message to which actor is replying came from a different client host, send routing message to contact server actor
             if (thisRef.mainId != originalMsg.senderMainId) {
-                this.sendReturnServer(originalMsg.contactId, originalMsg.contactAddress, originalMsg.contactPort, new Message_1.RouteMessage(this.environment.thisRef, actorId, returnMsg));
+                this.sendReturnServer(originalMsg.contactId, originalMsg.contactAddress, originalMsg.contactPort, new Message_1.RouteMessage(this.environment.thisRef, actorId, returnMsg), true);
             }
             else {
                 commMedium.sendMessage(actorId, returnMsg);
@@ -89,27 +94,11 @@ class MessageHandler {
             let retVal;
             try {
                 retVal = targetObject[methodName].apply(targetObject, deserialisedArgs);
-                /*var serialised: ValueContainer = serialise(retVal, msg.senderId, this.environment)
-                var message: Message = new ResolvePromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
-                if (msg.senderType == Message.serverSenderType) {
-                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
-                }
-                else {
-                    this.sendReturnClient(msg.senderId, msg, message)
-                }*/
             }
             catch (reason) {
                 console.log("Went wrong for : " + methodName);
                 console.log(reason);
                 retVal = reason;
-                /*var serialised: ValueContainer = serialise(reason, msg.senderId, this.environment)
-                message = new RejectPromiseMessage(this.environment.thisRef, msg.promiseId, serialised)
-                if (msg.senderType == Message.serverSenderType) {
-                    this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, message)
-                }
-                else {
-                    this.sendReturnClient(msg.senderId, msg, message)
-                }*/
             }
             return retVal;
         };
@@ -151,24 +140,9 @@ class MessageHandler {
             promisePool.rejectPromise(msg.promiseId, deSerialised);
         }
     }
-    //Can only be received by a server actor
-    handleConnectRemote(msg, clientSocket) {
-        var resolveMessage = new Message_1.ResolveConnectionMessage(this.environment.thisRef, msg.promiseId, msg.connectionId);
-        if (msg.senderType == Message_1.Message.serverSenderType) {
-            this.sendReturnServer(msg.senderId, msg.senderAddress, msg.senderPort, resolveMessage);
-        }
-        else {
-            var socketManager = this.environment.commMedium;
-            socketManager.addNewClient(msg.senderId, clientSocket);
-            this.sendReturnClient(msg.senderId, msg, resolveMessage);
-        }
-    }
-    handleResolveConnection(msg) {
-        this.environment.commMedium.resolvePendingConnection(msg.senderId, msg.connectionId);
-        var farRef = new FarRef_1.ServerFarReference(ObjectPool_1.ObjectPool._BEH_OBJ_ID, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectFields, msg.senderRef[FarRef_1.FarReference.farRefAccessorKey].objectMethods, msg.senderId, msg.senderAddress, msg.senderPort, this.environment);
-        this.environment.promisePool.resolvePromise(msg.promiseId, farRef.proxify());
-    }
     handleRoute(msg) {
+        //Message has been serialised and has therefore lost its "setClockTime" method (no way around this, at some point need to call JSON.stringify to send message between actors)
+        msg.message.setClockTime = (clockTime) => { };
         //Must ensure that any client references "leaking" form this server actor also have the correct contact information
         if (msg.message.typeTag == Message_1._METHOD_INVOC_) {
             var args = msg.message.args;
@@ -183,6 +157,18 @@ class MessageHandler {
                     }
                 }
             });
+        }
+        if (msg.message.typeTag == Message_1._RESOLVE_PROMISE_) {
+            var value = msg.message.value;
+            if (value.type == serialisation_1.ValueContainer.clientFarRefType) {
+                let container = value;
+                if (container.contactId == null) {
+                    let thisRef = this.environment.thisRef;
+                    container.contactId = thisRef.ownerId;
+                    container.contactAddress = thisRef.ownerAddress;
+                    container.contactPort = thisRef.ownerPort;
+                }
+            }
         }
         this.environment.commMedium.sendMessage(msg.targetId, msg.message);
     }
@@ -208,12 +194,6 @@ class MessageHandler {
                 break;
             case Message_1._REJECT_PROMISE_:
                 this.handlePromiseReject(msg);
-                break;
-            case Message_1._CONNECT_REMOTE_:
-                this.handleConnectRemote(msg, clientSocket);
-                break;
-            case Message_1._RESOLVE_CONNECTION_:
-                this.handleResolveConnection(msg);
                 break;
             case Message_1._ROUTE_:
                 this.handleRoute(msg);

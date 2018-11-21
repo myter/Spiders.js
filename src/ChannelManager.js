@@ -11,24 +11,23 @@ class ChannelManager extends CommMedium_1.CommMedium {
     newConnection(actorId, channelPort) {
         this.connections.set(actorId, channelPort);
         channelPort.onmessage = (ev) => {
-            this.messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
+            this.environment.messageHandler.dispatch(JSON.parse(ev.data), ev.ports);
         };
     }
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId, actorAddress, actorPort) {
-        this.socketHandler.openConnection(actorId, actorAddress, actorPort);
+        this.socketHandler.openConnectionTo(actorId, actorAddress, actorPort);
     }
     hasConnection(actorId) {
         var inChannel = this.connections.has(actorId);
-        var connected = this.connectedActors.has(actorId);
-        var disconnected = this.socketHandler.disconnectedActors.indexOf(actorId) != -1;
-        return inChannel || connected || disconnected;
+        var connected = this.socketHandler.isKnown(actorId);
+        return inChannel || connected;
     }
     sendMessage(actorId, message, first = true) {
         if (this.connections.has(actorId)) {
             this.connections.get(actorId).postMessage(JSON.stringify(message));
         }
-        else if (this.connectedActors.has(actorId) || this.socketHandler.disconnectedActors.indexOf(actorId) != -1) {
+        else if (this.socketHandler.isKnown(actorId)) {
             this.socketHandler.sendMessage(actorId, message);
         }
         else {
@@ -41,9 +40,13 @@ class ChannelManager extends CommMedium_1.CommMedium {
                 }, 10);
             }
             else {
-                throw new Error("Unable to send message to unknown actor (channel manager): " + actorId + " in : " + this.messageHandler.environment.thisRef.ownerId);
+                console.log("Error throwing for " + JSON.stringify(message));
+                throw new Error("Unable to send message to unknown actor (channel manager): " + actorId + " in : " + this.environment.thisRef.ownerId);
             }
         }
+    }
+    sendRouteMessage(targetId, routeId, msg) {
+        this.socketHandler.routeMessage(targetId, routeId, msg);
     }
 }
 exports.ChannelManager = ChannelManager;

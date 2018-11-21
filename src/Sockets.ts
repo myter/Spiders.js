@@ -1,152 +1,274 @@
 import {MessageHandler} from "./messageHandler";
-import {Message} from "./Message";
+import {_ROUTE_, Message, RouteMessage} from "./Message";
 import {Socket} from "net";
 import {CommMedium} from "./CommMedium";
 import {ActorEnvironment} from "./ActorEnvironment";
+import {ServerFarReference} from "./FarRef";
+import {ObjectPool} from "./ObjectPool";
 /**
  * Created by flo on 19/12/2016.
  */
 
 
+//Tracks messages sent to a specific actor
+class MessageBuffer{
+    //Maps clock times onto messages
+    clock     : number
+    msgs      : Array<{clockTime : number,msg : Message}>
+    maxSize   : number
 
-export class SocketHandler{
-    disconnectedActors  : Array<string>
-    pendingMessages     : Map<string,Array<Message>>
-    //TODO obviously a temp fix , problem arises in SOR with many actors
-    tempMessage       : Map<string,Array<Message>>
-    owner               : CommMedium
-    messageHandler      : MessageHandler
-
-    constructor(owner : CommMedium){
-        this.owner                  = owner
-        this.disconnectedActors     = []
-        this.pendingMessages        = new Map<string,Array<Message>>()
-        this.tempMessage          = new Map<string,Array<Message>>()
+    constructor(){
+        this.clock      = 0
+        this.msgs       = []
+        //TODO make this configurable
+        this.maxSize    = 1000
     }
 
-    addDisconnected(actorId : string){
-        this.disconnectedActors.push(actorId)
-        this.pendingMessages.set(actorId,[])
-        this.owner.connectedActors.delete(actorId)
-    }
-
-    removeFromDisconnected(actorId : string,connection : Socket){
-        this.owner.connectedActors.set(actorId,connection)
-        this.disconnectedActors = this.disconnectedActors.filter((id : string)=>{
-            id != actorId
-        })
-        if(this.pendingMessages.has(actorId)){
-            var messages = this.pendingMessages.get(actorId)
-            messages.forEach((msg : Message) => {
-                this.sendMessage(actorId,msg)
-            })
-            this.pendingMessages.delete(actorId)
+    addMessage(msg : Message){
+        this.msgs.push({clockTime : this.clock,msg : msg})
+        msg.setClockTime(this.clock)
+        this.clock += 1
+        if(this.msgs.length > this.maxSize){
+            this.msgs.splice(0,1)
         }
     }
 
-    //Open connection to Node.js instance owning the object to which the far reference refers to
-    openConnection(actorId : string,actorAddress : string,actorPort : number){
-        var that = this
-        var connection = require('socket.io-client')('http://'+actorAddress+":"+actorPort)
-        this.addDisconnected(actorId)
-        connection.on('connect',() => {
-            that.removeFromDisconnected(actorId,connection)
-            //TODO To remove once solution found
-            if(that.tempMessage.has(actorId)){
-                that.tempMessage.get(actorId).forEach((msg : Message)=>{
-                    that.sendMessage(actorId,msg)
-                })
-            }
-        })
-        connection.on('message',(data)=>{
-            that.messageHandler.dispatch(data)
-        })
-        connection.on('disconnect',function(){
-            console.log("DISCONNECTED FROM " + actorId)
-            that.addDisconnected(actorId)
-        })
-        connection.on('reconnect',function(){
-            console.log("RECONNECTED TO " + actorId)
-            that.removeFromDisconnected(actorId,connection)
+    getMessageFrom(msgClockTime : number){
+        return this.msgs.filter((element : {clockTime : number,msg : Message})=>{
+            return element.clockTime > msgClockTime
+        }).map((el : {clockTime : number,msg : Message})=>{
+            return el.msg
         })
     }
 
-    sendMessage(actorId : string,msg : Message) : void{
-        if(this.disconnectedActors.indexOf(actorId) != -1){
-            this.pendingMessages.get(actorId).push(msg)
-        }
-        else if(this.owner.connectedActors.has(actorId)){
-            var sock = this.owner.connectedActors.get(actorId)
-            sock.emit('message',msg)
-            //Does this make any sense ? No it does'nt but I've noticed that when an actor is busy for over 30 seconds the socket disconnects and reconnects
-            //In turn, any message sent right before this bizar sequence of events does not arrive at destination, this seems to solve the issue
-            setTimeout(()=>{
-                if(this.disconnectedActors.indexOf(actorId) != -1){
-                    this.pendingMessages.get(actorId).push(msg)
-                }
-            },50)
-        }
-        else{
-            //TODO TEMP
-            if(this.tempMessage.has(actorId)){
-                this.tempMessage.get(actorId).push(msg)
-            }
-            else{
-                var q = [msg]
-                this.tempMessage.set(actorId,q)
-            }
-            //throw new Error("Unable to send message to unknown actor (socket handler) in " + msg.fieldName + " to : " + actorId + " in : " + this.messageHandler.thisRef.ownerId)
-        }
+    getAllMessages(){
+        return this.msgs.map((bufferedMsg : {clockTime : number,msg : Message})=>{
+            return bufferedMsg.msg
+        })
+    }
+
+    getLastSent(){
+        return this.clock
     }
 }
 
+
+export class SocketHandler{
+    lastProcessed       : Map<string,number>
+    sockets             : Map<string,Socket>
+    connections         : Array<Socket>
+    trying              : Map<string,any>
+    msgs                : Map<string,MessageBuffer>
+    environment         : ActorEnvironment
+    messageHandler      : MessageHandler
+    thisActorId         : string
+
+    constructor(thisActorId : string,environment : ActorEnvironment){
+        this.lastProcessed      = new Map()
+        this.sockets            = new Map()
+        this.msgs               = new Map()
+        this.environment        = environment
+        this.messageHandler     = environment.messageHandler
+        this.thisActorId        = thisActorId
+        this.connections        = []
+        this.trying             = new Map()
+    }
+
+    isKnown(id){
+        return this.sockets.has(id) || this.trying.has(id)
+    }
+
+    handleMessage(fromClient : boolean,data : Message,ports : ReadonlyArray<MessagePort> = [],clientSocket : Socket = null){
+        let senderId = data.senderId
+        let handle = ()=>{
+            this.lastProcessed.set(senderId,data.clockTime)
+            if(fromClient){
+                this.messageHandler.dispatch(data,ports,clientSocket)
+            }
+            else{
+                this.messageHandler.dispatch(data)
+            }
+        }
+        if(this.lastProcessed.has(senderId)){
+            if(this.lastProcessed.get(senderId) < data.clockTime){
+                handle()
+            }
+        }
+        else{
+            handle()
+        }
+    }
+
+    handleConnection(actorId : string,connection : Socket){
+        if(this.trying.has(actorId)){
+            this.trying.delete(actorId)
+        }
+        this.sockets.set(actorId,connection)
+        if(this.msgs.has(actorId)){
+            this.msgs.get(actorId).getAllMessages().forEach((msg : Message)=>{
+                connection.emit('message',msg)
+            })
+        }
+    }
+
+    handleReconnect(actorId : string,connection : Socket){
+        connection.emit('sync',this.lastProcessed.get(actorId))
+    }
+
+    handleSync(actorId : string,connection : Socket,lastProcessedClock : number){
+        if(this.msgs.has(actorId)){
+            let buffer = this.msgs.get(actorId)
+            if(buffer.getLastSent() > lastProcessedClock){
+                buffer.getMessageFrom(lastProcessedClock).forEach((msg : Message)=>{
+                    connection.emit('message',msg)
+                })
+            }
+        }
+    }
+
+    openIncomingConnection(socketPort){
+        let io          = require('socket.io')
+        let connection  = io(socketPort)
+        connection.on('connection',(clientSocket)=>{
+            let handshakePerformed = false
+            let clientActorId
+            clientSocket.on('handshake',(clientActorId)=>{
+                handshakePerformed  = true
+                clientActorId       = clientActorId
+                this.handleConnection(clientActorId,clientSocket)
+                //Connections opened using openVirginConnection require a serverId back
+                clientSocket.emit('serverId',this.environment.thisRef.ownerId)
+            })
+            clientSocket.on('message',(data)=>{
+                this.handleMessage(true,data,[],clientSocket)
+            })
+            clientSocket.on('reconnect',()=>{
+                if(handshakePerformed){
+                    this.handleReconnect(clientActorId,connection)
+                }
+            })
+            clientSocket.on('sync',(lastProcessedClock : number)=>{
+                if(handshakePerformed){
+                    this.handleSync(clientActorId,connection,lastProcessedClock)
+                }
+            })
+            clientSocket.on('discover',(clientActorId)=>{
+                handshakePerformed = true
+                clientActorId      = clientActorId
+                this.handleConnection(clientActorId,clientSocket)
+                clientSocket.emit('serverId',this.environment.thisRef.ownerId)
+            })
+        })
+        this.connections.push(connection)
+    }
+
+    //Open connection to Node.js instance without knowing actor or object to connect to
+    openVirginConnection(address : string,port : number){
+        let promisePool     = this.environment.promisePool
+        let promiseAlloc    = promisePool.newPromise()
+        var connection      = require('socket.io-client')('http://'+address+":"+port)
+        this.connections.push(connection)
+        let actorId
+        connection.on('connect',() => {
+            connection.emit('handshake',this.thisActorId)
+        })
+        connection.on('message',(data)=>{
+            this.handleMessage(false,data)
+        })
+        connection.on('reconnect',()=>{
+            this.handleReconnect(actorId,connection)
+        })
+        connection.on('sync',(lastProcessedClock : number)=>{
+            this.handleSync(actorId,connection,lastProcessedClock)
+        })
+        connection.on('serverId',(serverActorId)=>{
+            actorId     = serverActorId
+            this.handleConnection(serverActorId,connection)
+            let farRef  = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],serverActorId,address,port,this.environment)
+            promisePool.resolvePromise(promiseAlloc.promiseId,farRef.proxify())
+        })
+        return promiseAlloc.promise
+    }
+
+    //Open connection to Node.js instance owning the object to which the far reference refers to
+    openConnectionTo(actorId : string,actorAddress : string,actorPort : number){
+        let promisePool     = this.environment.promisePool
+        let promiseAlloc    = promisePool.newPromise()
+        if(!this.isKnown(actorId)){
+            this.trying.set(actorId,true)
+            var connection      = require('socket.io-client')('http://'+actorAddress+":"+actorPort)
+            this.connections.push(connection)
+            connection.on('connect',() => {
+                connection.emit('handshake',this.thisActorId)
+                this.handleConnection(actorId,connection)
+                let farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],actorId,actorAddress,actorPort,this.environment)
+                promisePool.resolvePromise(promiseAlloc.promiseId,farRef.proxify())
+            })
+            connection.on('message',(data)=>{
+                this.handleMessage(false,data)
+            })
+            connection.on('reconnect',()=>{
+                this.handleReconnect(actorId,connection)
+            })
+            connection.on('sync',(lastProcessedClock : number)=>{
+                this.handleSync(actorId,connection,lastProcessedClock)
+            })
+        }
+        else{
+            let farRef = new ServerFarReference(ObjectPool._BEH_OBJ_ID,[],[],actorId,actorAddress,actorPort,this.environment)
+            promisePool.resolvePromise(promiseAlloc.promiseId,farRef.proxify())
+        }
+        return promiseAlloc.promise
+    }
+
+    sendMessage(actorId : string,msg : Message) : void{
+        if(!this.msgs.has(actorId)){
+            this.msgs.set(actorId,new MessageBuffer())
+        }
+        this.msgs.get(actorId).addMessage(msg)
+        if(this.sockets.has(actorId)){
+            this.sockets.get(actorId).emit('message',msg)
+        }
+    }
+
+    routeMessage(targetId : string,routeId : string,msg : RouteMessage){
+        if(!this.msgs.has(targetId)){
+            this.msgs.set(targetId,new MessageBuffer())
+        }
+        msg.message.clockTime = this.msgs.get(targetId).clock
+        this.msgs.get(targetId).clock += 1
+        this.sendMessage(routeId,msg)
+    }
+}
+
+
 export class ServerSocketManager extends CommMedium{
-    private socketIp            : string
-    private socketPort          : number
-    private socket              : any
-    private connectedClients    : Map<string,Socket>
 
     constructor(ip : string,socketPort : number,environment : ActorEnvironment){
         super(environment)
-        var io                      = require('socket.io')
-        this.socketIp               = ip
-        this.socketPort             = socketPort
-        this.socket                 = io(socketPort)
-        this.connectedClients       = new Map<string,Socket>()
-        this.socketHandler.messageHandler = environment.messageHandler
-        this.socket.on('connection',(client) => {
-            client.on('message',(data)=>{
-                environment.messageHandler.dispatch(data,[],client)
-            })
-        })
+        this.socketHandler.openIncomingConnection(socketPort)
     }
 
     //Open connection to Node.js instance owning the object to which the far reference refers to
     openConnection(actorId : string,actorAddress : string,actorPort : number){
-        this.socketHandler.openConnection(actorId,actorAddress,actorPort)
-    }
-
-    addNewClient(actorId : string,socket : Socket){
-        this.connectedClients.set(actorId,socket)
+        this.socketHandler.openConnectionTo(actorId,actorAddress,actorPort)
     }
 
     sendMessage(actorId : string,msg : Message) : void{
-        if(this.connectedClients.has(actorId)){
-            this.connectedClients.get(actorId).emit('message',JSON.stringify(msg))
-        }
-        else{
-            this.socketHandler.sendMessage(actorId,msg)
-        }
+        this.socketHandler.sendMessage(actorId,msg)
+    }
+
+    sendRouteMessage(targetId : string,routeId : string,msg : RouteMessage){
+        this.socketHandler.routeMessage(targetId,routeId,msg)
     }
 
     hasConnection(actorId : string) : boolean{
-        return (this.socketHandler.disconnectedActors.indexOf(actorId) != -1) || this.connectedActors.has(actorId)
+        return this.socketHandler.isKnown(actorId)
     }
 
     closeAll(){
-        this.socket.close()
-        this.connectedActors.forEach((sock : any) => {
-            sock.close()
+        this.socketHandler.connections.forEach((connection)=>{
+            (connection as any).close()
         })
     }
 }

@@ -167,6 +167,7 @@ class ServerApplication extends ApplicationBase{
     }
 
     spawnActor<T>(actorClass ,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
+        let e = new Error()
         var actorObject = new actorClass(...constructorArgs)
         if(port == -1){
             port = this.portCounter++
