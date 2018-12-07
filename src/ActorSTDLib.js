@@ -79,6 +79,9 @@ class BufferedRef extends MOP_1.SpiderObject {
         this.thisMirror.gotConnected();
     }
 }
+class WebAppOptions {
+}
+exports.WebAppOptions = WebAppOptions;
 class ActorSTDLib {
     constructor(env) {
         this.environment = env;
@@ -110,26 +113,56 @@ class ActorSTDLib {
     reflectOnObject(object) {
         return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
     }
-    serveApp(pathToHtml, pathToClientScript, bundleName, httpPort, resourceURL, pathToResource) {
-        var express = require('express');
-        let path = require('path');
-        let resolve = path.resolve;
-        var app = express();
-        var http = require('http').Server(app);
-        if (resourceURL) {
-            app.use(resourceURL, express.static(resolve(pathToResource)));
-        }
-        app.get('/', (req, res) => {
-            res.sendFile(resolve(pathToHtml));
+    serveApp(pathToHtml, pathToClientScript, bundleName, httpPort, options) {
+        return new Promise((res, reject) => {
+            var express = require('express');
+            let path = require('path');
+            let resolve = path.resolve;
+            var app = express();
+            var http = require('http').Server(app);
+            if (options && options.publicResourceURL) {
+                app.use(options.publicResourceURL, express.static(resolve(options.pathToPublicResource)));
+            }
+            app.get('/', (req, res) => {
+                res.sendFile(resolve(pathToHtml));
+            });
+            let htmlDir = path.dirname(resolve(pathToHtml));
+            let bundlePath = htmlDir + "/" + bundleName;
+            app.get("/" + bundleName, (req, res) => {
+                res.sendFile(bundlePath);
+            });
+            let fs = require('fs');
+            var bundleFs = fs.createWriteStream(bundlePath);
+            var browserify = require('browserify');
+            let reader = browserify(resolve(pathToClientScript)).bundle();
+            reader.pipe(bundleFs);
+            reader.on('end', () => {
+                if (options && options.globalVarMappings) {
+                    var jsdom = require("jsdom").JSDOM;
+                    var htmlSource = fs.readFileSync(pathToHtml, "utf8");
+                    var window = new jsdom(htmlSource).window;
+                    var $ = require('jquery')(window);
+                    let varDefs = '';
+                    options.globalVarMappings.forEach((value, key) => {
+                        varDefs += "var " + key + " = " + value + ";";
+                    });
+                    $('head').append('<script>' + varDefs + '</script>');
+                    fs.writeFile(pathToHtml, window.document.documentElement.outerHTML, function (error) {
+                        if (error) {
+                            reject(error);
+                        }
+                        else {
+                            http.listen(httpPort);
+                            res();
+                        }
+                    });
+                }
+                else {
+                    http.listen(httpPort);
+                    res();
+                }
+            });
         });
-        let htmlDir = path.dirname(resolve(pathToHtml));
-        let bundlePath = htmlDir + "/" + bundleName;
-        app.get("/" + bundleName, (req, res) => {
-            res.sendFile(bundlePath);
-        });
-        let execSync = require('child_process').execSync;
-        execSync("browserify " + resolve(pathToClientScript) + " -o " + bundlePath);
-        http.listen(httpPort);
     }
 }
 exports.ActorSTDLib = ActorSTDLib;

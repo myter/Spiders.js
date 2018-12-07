@@ -2,3 +2,4 @@
 benchmarks/*
 node_modules/*
 PerformanceTest(temp)/*
+*bundle.js

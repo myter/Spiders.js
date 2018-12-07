@@ -222,7 +222,7 @@ export class MessageHandler{
                 this.handleRoute(msg as RouteMessage)
                 break
             default:
-                throw "Unknown message in actor : " + msg.toString()
+                throw "Unknown message in actor : " + JSON.stringify(msg)
         }
     }
 }

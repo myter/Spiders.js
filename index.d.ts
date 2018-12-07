@@ -7,9 +7,14 @@ import {SpiderIsolate as SI} from "./src/MOP"
 
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any,tag? : string) : Function
-export type FarRef<T>   = T
-export type PSClient    = PSClient
-export type PSServer    = PSServer
+export type FarRef<T>       = T
+export type PSClient        = PSClient
+export type PSServer        = PSServer
+export class WebAppOptions{
+    publicResourceURL?      : string
+    pathToPublicResource?   : string
+    globalVarMappings?      : Map<string,any>
+}
 export class PubSubTag extends SI{
     tagVal : string
     constructor(tagVal : string)
@@ -25,7 +30,7 @@ export class ActorSTDLib{
     buffRemote(address : string,port : number) : FarRef<any>
     reflectOnActor() : SpiderActorMirror
     reflectOnObject(obj : SpiderObject | SpiderIsolate) : SpiderObjectMirror | SpiderIsolateMirror
-    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number, resourceURL? : string, pathToResource? : string)
+    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number, options? : WebAppOptions) : Promise<any>
 }
 export class LexScope{
     addElement(key : string,value : any)

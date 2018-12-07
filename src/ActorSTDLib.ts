@@ -3,8 +3,9 @@ import {ActorEnvironment} from "./ActorEnvironment";
 import {PSServer} from "./PubSub/SubServer";
 import {PubSubTag} from "./PubSub/SubTag";
 import {SpiderActorMirror} from "./MAP";
-import {SpiderObject, SpiderObjectMirror} from "./MOP";
+import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "./MOP";
 import {deserialise,serialise} from "./serialisation";
+import * as fs from "fs";
 
 type FarRef<T> = any
 
@@ -94,6 +95,13 @@ class BufferedRef extends SpiderObject{
     }
 }
 
+export class WebAppOptions{
+    publicResourceURL?      : string
+    pathToPublicResource?   : string
+    globalVarMappings?      : Map<string,any>
+}
+
+
 export class ActorSTDLib{
     environment : ActorEnvironment
     PubSubTag   : {new(tagVal : string) : PubSubTag}
@@ -136,25 +144,56 @@ export class ActorSTDLib{
         return object[SpiderObjectMirror.mirrorAccessKey]
     }
 
-    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number, resourceURL? : string, pathToResource? : string){
-        var express     = require('express');
-        let path        = require('path')
-        let resolve     = path.resolve
-        var app         = express();
-        var http        = require('http').Server(app)
-        if(resourceURL){
-            app.use(resourceURL,express.static(resolve(pathToResource)))
-        }
-        app.get('/', (req, res) =>{
-            res.sendFile(resolve(pathToHtml))
-        });
-        let htmlDir     = path.dirname(resolve(pathToHtml))
-        let bundlePath  = htmlDir+"/"+bundleName
-        app.get("/"+bundleName,(req,res)=>{
-            res.sendFile(bundlePath)
+    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number,options? : WebAppOptions) : Promise<any>{
+        return new Promise((res,reject)=>{
+            var express     = require('express');
+            let path        = require('path')
+            let resolve     = path.resolve
+            var app         = express();
+            var http        = require('http').Server(app)
+            if(options && options.publicResourceURL){
+                app.use(options.publicResourceURL,express.static(resolve(options.pathToPublicResource)))
+            }
+            app.get('/', (req, res) =>{
+                res.sendFile(resolve(pathToHtml))
+            });
+            let htmlDir     = path.dirname(resolve(pathToHtml))
+            let bundlePath  = htmlDir+"/"+bundleName
+            app.get("/"+bundleName,(req,res)=>{
+                res.sendFile(bundlePath)
+            })
+            let fs          = require('fs')
+            var bundleFs    = fs.createWriteStream(bundlePath);
+            var browserify  = require('browserify');
+            let reader      = browserify(resolve(pathToClientScript)).bundle()
+            reader.pipe(bundleFs)
+            reader.on('end',()=>{
+                if(options && options.globalVarMappings){
+                    var jsdom = require("jsdom").JSDOM
+                    var htmlSource = fs.readFileSync(pathToHtml, "utf8")
+                    var window = new jsdom(htmlSource).window
+                    var $ = require('jquery')(window)
+                    let varDefs = ''
+                    options.globalVarMappings.forEach((value : any,key : string)=>{
+                        varDefs += "var " + key + " = " + value + ";"
+                    })
+                    $('head').append('<script>' + varDefs +  '</script>')
+                    fs.writeFile(pathToHtml, window.document.documentElement.outerHTML,
+                        function (error){
+                            if (error){
+                                reject(error)
+                            }
+                            else{
+                                http.listen(httpPort)
+                                res()
+                            }
+                        });
+                }
+                else{
+                    http.listen(httpPort)
+                    res()
+                }
+            })
         })
-        let execSync = require('child_process').execSync;
-        execSync("browserify " + resolve(pathToClientScript) + " -o " + bundlePath);
-        http.listen(httpPort)
     }
 }
