@@ -4,17 +4,15 @@ import {ActorEnvironment} from "./src/ActorEnvironment";
 import {PSClient} from "./src/PubSub/SubClient";
 import {PSServer} from "./src/PubSub/SubServer";
 import {SpiderIsolate as SI} from "./src/MOP"
+import {WebAppOptions} from "./src/ActorSTDLib";
 
 export function bundleScope(classDefinition : Function, scope : LexScope): undefined
 export function makeMethodAnnotation(onCall : (mirror : SpiderObjectMirror | SpiderIsolateMirror,methodName : string,args : Array<any>)=>any,tag? : string) : Function
 export type FarRef<T>       = T
 export type PSClient        = PSClient
 export type PSServer        = PSServer
-export class WebAppOptions{
-    publicResourceURL?      : string
-    pathToPublicResource?   : string
-    globalVarMappings?      : Map<string,any>
-}
+export type WebAppOptions   = WebAppOptions
+
 export class PubSubTag extends SI{
     tagVal : string
     constructor(tagVal : string)

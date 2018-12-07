@@ -79,9 +79,6 @@ class BufferedRef extends MOP_1.SpiderObject {
         this.thisMirror.gotConnected();
     }
 }
-class WebAppOptions {
-}
-exports.WebAppOptions = WebAppOptions;
 class ActorSTDLib {
     constructor(env) {
         this.environment = env;

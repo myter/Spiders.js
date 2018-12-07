@@ -95,7 +95,7 @@ class BufferedRef extends SpiderObject{
     }
 }
 
-export class WebAppOptions{
+export interface WebAppOptions{
     publicResourceURL?      : string
     pathToPublicResource?   : string
     globalVarMappings?      : Map<string,any>

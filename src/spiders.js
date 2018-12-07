@@ -186,6 +186,4 @@ exports.LexScope = utils_2.LexScope;
 exports.makeMethodAnnotation = utils_2.makeMethodAnnotation;
 var SubTag_1 = require("./PubSub/SubTag");
 exports.PubSubTag = SubTag_1.PubSubTag;
-var ActorSTDLib_2 = require("./ActorSTDLib");
-exports.WebAppOptions = ActorSTDLib_2.WebAppOptions;
 //# sourceMappingURL=spiders.js.map

@@ -241,7 +241,6 @@ export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from 
 export {SpiderActorMirror} from "./MAP"
 export {bundleScope,LexScope,makeMethodAnnotation} from "./utils"
 export {PubSubTag} from "./PubSub/SubTag"
-export {WebAppOptions} from "./ActorSTDLib"
 
 
 
