@@ -141,7 +141,12 @@ class ActorSTDLib {
                     var $ = require('jquery')(window);
                     let varDefs = '';
                     options.globalVarMappings.forEach((value, key) => {
-                        varDefs += "var " + key + " = " + value + ";";
+                        if (typeof value == "string") {
+                            varDefs += "var " + key + " = " + '"' + value + '"' + ";";
+                        }
+                        else {
+                            varDefs += "var " + key + " = " + value + ";";
+                        }
                     });
                     $('head').append('<script>' + varDefs + '</script>');
                     fs.writeFile(pathToHtml, window.document.documentElement.outerHTML, function (error) {
