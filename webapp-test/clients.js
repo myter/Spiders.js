@@ -52,7 +52,7 @@ exports.SimpleClient = SimpleClient;
 class GlobalVarclient extends SimpleClient {
     handshakePerformed() {
         super.handshakePerformed();
-        console.log(window.foo);
+        this.log("Global Variable Injection", window.foo, 1);
     }
 }
 exports.GlobalVarclient = GlobalVarclient;

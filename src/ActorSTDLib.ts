@@ -144,35 +144,40 @@ export class ActorSTDLib{
         return object[SpiderObjectMirror.mirrorAccessKey]
     }
 
-    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number,options? : WebAppOptions) : Promise<any>{
+    serveApp(pathToHtml : string,pathToClientScript : string,httpPort : number,options? : WebAppOptions) : Promise<any>{
         return new Promise((res,reject)=>{
-            var express     = require('express');
-            let path        = require('path')
-            let resolve     = path.resolve
-            var app         = express();
-            var http        = require('http').Server(app)
+            var express         = require('express');
+            let path            = require('path')
+            let resolve         = path.resolve
+            var app             = express();
+            var http            = require('http').Server(app)
             if(options && options.publicResourceURL){
                 app.use(options.publicResourceURL,express.static(resolve(options.pathToPublicResource)))
             }
+            let outHTMLParse    = path.parse(pathToHtml)
+            let outputHtml      = outHTMLParse.name + "Modified"+outHTMLParse.ext
             app.get('/', (req, res) =>{
-                res.sendFile(resolve(pathToHtml))
+                res.sendFile(resolve(outputHtml))
             });
-            let htmlDir     = path.dirname(resolve(pathToHtml))
-            let bundlePath  = htmlDir+"/"+bundleName
+            let htmlDir         = path.dirname(resolve(pathToHtml))
+            let bundleName      = path.parse(pathToClientScript).name+"bundle.js"
+            let bundlePath      = htmlDir+"/"+bundleName
             app.get("/"+bundleName,(req,res)=>{
                 res.sendFile(bundlePath)
             })
-            let fs          = require('fs')
-            var bundleFs    = fs.createWriteStream(bundlePath);
-            var browserify  = require('browserify');
-            let reader      = browserify(resolve(pathToClientScript)).bundle()
+            let fs              = require('fs')
+            var bundleFs        = fs.createWriteStream(bundlePath);
+            var browserify      = require('browserify');
+            let reader          = browserify(resolve(pathToClientScript)).bundle()
             reader.pipe(bundleFs)
             reader.on('end',()=>{
+                var jsdom       = require("jsdom").JSDOM
+                var htmlSource  = fs.readFileSync(pathToHtml, "utf8")
+                var window      = new jsdom(htmlSource).window
+                var $           = require('jquery')(window)
+                let htmlFolder  = path.parse(pathToHtml).dir
+                $('<script>').appendTo($('head')).attr('src',htmlFolder+"/"+bundleName);
                 if(options && options.globalVarMappings){
-                    var jsdom = require("jsdom").JSDOM
-                    var htmlSource = fs.readFileSync(pathToHtml, "utf8")
-                    var window = new jsdom(htmlSource).window
-                    var $ = require('jquery')(window)
                     let varDefs = ''
                     options.globalVarMappings.forEach((value : any,key : string)=>{
                         if(typeof value == "string"){
@@ -183,21 +188,17 @@ export class ActorSTDLib{
                         }
                     })
                     $('head').append('<script>' + varDefs +  '</script>')
-                    fs.writeFile(pathToHtml, window.document.documentElement.outerHTML,
-                        function (error){
-                            if (error){
-                                reject(error)
-                            }
-                            else{
-                                http.listen(httpPort)
-                                res()
-                            }
-                        });
                 }
-                else{
-                    http.listen(httpPort)
-                    res()
-                }
+                fs.writeFile(outputHtml, window.document.documentElement.outerHTML,
+                    function (error){
+                        if (error){
+                            reject(error)
+                        }
+                        else{
+                            http.listen(httpPort)
+                            res()
+                        }
+                });
             })
         })
     }

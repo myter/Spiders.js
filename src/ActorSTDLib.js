@@ -110,7 +110,7 @@ class ActorSTDLib {
     reflectOnObject(object) {
         return object[MOP_1.SpiderObjectMirror.mirrorAccessKey];
     }
-    serveApp(pathToHtml, pathToClientScript, bundleName, httpPort, options) {
+    serveApp(pathToHtml, pathToClientScript, httpPort, options) {
         return new Promise((res, reject) => {
             var express = require('express');
             let path = require('path');
@@ -120,10 +120,13 @@ class ActorSTDLib {
             if (options && options.publicResourceURL) {
                 app.use(options.publicResourceURL, express.static(resolve(options.pathToPublicResource)));
             }
+            let outHTMLParse = path.parse(pathToHtml);
+            let outputHtml = outHTMLParse.name + "Modified" + outHTMLParse.ext;
             app.get('/', (req, res) => {
-                res.sendFile(resolve(pathToHtml));
+                res.sendFile(resolve(outputHtml));
             });
             let htmlDir = path.dirname(resolve(pathToHtml));
+            let bundleName = path.parse(pathToClientScript).name + "bundle.js";
             let bundlePath = htmlDir + "/" + bundleName;
             app.get("/" + bundleName, (req, res) => {
                 res.sendFile(bundlePath);
@@ -134,11 +137,13 @@ class ActorSTDLib {
             let reader = browserify(resolve(pathToClientScript)).bundle();
             reader.pipe(bundleFs);
             reader.on('end', () => {
+                var jsdom = require("jsdom").JSDOM;
+                var htmlSource = fs.readFileSync(pathToHtml, "utf8");
+                var window = new jsdom(htmlSource).window;
+                var $ = require('jquery')(window);
+                let htmlFolder = path.parse(pathToHtml).dir;
+                $('<script>').appendTo($('head')).attr('src', htmlFolder + "/" + bundleName);
                 if (options && options.globalVarMappings) {
-                    var jsdom = require("jsdom").JSDOM;
-                    var htmlSource = fs.readFileSync(pathToHtml, "utf8");
-                    var window = new jsdom(htmlSource).window;
-                    var $ = require('jquery')(window);
                     let varDefs = '';
                     options.globalVarMappings.forEach((value, key) => {
                         if (typeof value == "string") {
@@ -149,20 +154,16 @@ class ActorSTDLib {
                         }
                     });
                     $('head').append('<script>' + varDefs + '</script>');
-                    fs.writeFile(pathToHtml, window.document.documentElement.outerHTML, function (error) {
-                        if (error) {
-                            reject(error);
-                        }
-                        else {
-                            http.listen(httpPort);
-                            res();
-                        }
-                    });
                 }
-                else {
-                    http.listen(httpPort);
-                    res();
-                }
+                fs.writeFile(outputHtml, window.document.documentElement.outerHTML, function (error) {
+                    if (error) {
+                        reject(error);
+                    }
+                    else {
+                        http.listen(httpPort);
+                        res();
+                    }
+                });
             });
         });
     }

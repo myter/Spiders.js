@@ -60,7 +60,7 @@ export class GlobalVarclient extends SimpleClient{
 
     handshakePerformed(){
         super.handshakePerformed()
-        console.log((window as any).foo)
+        this.log("Global Variable Injection",(window as any).foo,1)
     }
 
 }
