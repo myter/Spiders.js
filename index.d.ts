@@ -28,7 +28,7 @@ export class ActorSTDLib{
     buffRemote(address : string,port : number) : FarRef<any>
     reflectOnActor() : SpiderActorMirror
     reflectOnObject(obj : SpiderObject | SpiderIsolate) : SpiderObjectMirror | SpiderIsolateMirror
-    serveApp(pathToHtml : string,pathToClientScript : string,bundleName : string,httpPort : number, options? : WebAppOptions) : Promise<any>
+    serveApp(pathToHtml : string,pathToClientScript : string,httpPort : number, options? : WebAppOptions) : Promise<any>
 }
 export class LexScope{
     addElement(key : string,value : any)
