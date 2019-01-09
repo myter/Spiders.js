@@ -17,7 +17,6 @@ var work                                        = require('webworkify')
 /**
  * Created by flo on 05/12/2016.
  */
-type ActorClass                  = {new(...args : any[]): ActorBase}
 function updateExistingChannels(mainRef : FarReference,existingActors : Array<any>,newActorId : string) : Array<any> {
     var mappings = [[],[]]
     existingActors.forEach((actorPair)=> {

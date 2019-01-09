@@ -27,6 +27,7 @@
     "node_modules"
   ],
   "types":[
-    "mocha"
+    "mocha",
+    "node"
   ]
 }

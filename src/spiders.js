@@ -8,6 +8,9 @@ const utils_1 = require("./utils");
 const MAP_1 = require("./MAP");
 const ActorSTDLib_1 = require("./ActorSTDLib");
 var work = require('webworkify');
+/**
+ * Created by flo on 05/12/2016.
+ */
 function updateExistingChannels(mainRef, existingActors, newActorId) {
     var mappings = [[], []];
     existingActors.forEach((actorPair) => {

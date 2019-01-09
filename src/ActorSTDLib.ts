@@ -5,7 +5,6 @@ import {PubSubTag} from "./PubSub/SubTag";
 import {SpiderActorMirror} from "./MAP";
 import {SpiderIsolate, SpiderObject, SpiderObjectMirror} from "./MOP";
 import {deserialise,serialise} from "./serialisation";
-import * as fs from "fs";
 
 type FarRef<T> = any
 
