@@ -154,7 +154,7 @@ export class ActorSTDLib{
                 app.use(options.publicResourceURL,express.static(resolve(options.pathToPublicResource)))
             }
             let outHTMLParse    = path.parse(pathToHtml)
-            let outputHtml      = outHTMLParse.name + "Modified"+outHTMLParse.ext
+            let outputHtml      = outHTMLParse.dir+ "/"+ outHTMLParse.name + "Modified"+outHTMLParse.ext
             app.get('/', (req, res) =>{
                 res.sendFile(resolve(outputHtml))
             });
@@ -175,7 +175,6 @@ export class ActorSTDLib{
                 var window      = new jsdom(htmlSource).window
                 var $           = require('jquery')(window)
                 let htmlFolder  = path.parse(pathToHtml).dir
-                $('<script>').appendTo($('head')).attr('src',htmlFolder+"/"+bundleName);
                 if(options && options.globalVarMappings){
                     let varDefs = ''
                     options.globalVarMappings.forEach((value : any,key : string)=>{
@@ -188,6 +187,7 @@ export class ActorSTDLib{
                     })
                     $('head').append('<script>' + varDefs +  '</script>')
                 }
+                $('<script>').appendTo($('body')).attr('src',htmlFolder+"/"+bundleName);
                 fs.writeFile(outputHtml, window.document.documentElement.outerHTML,
                     function (error){
                         if (error){
