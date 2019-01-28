@@ -129,14 +129,10 @@ export class SocketHandler{
     openIncomingConnection(socketPort){
         let io          = require('socket.io')
         let connection  = io(socketPort)
-        /*connection.origins('*:*')
-        console.log(connection.origins)
-        connection.set('origins', '*:*');*/
         connection.origins((origin, callback) => {
             //Add security exception for local accesses
             let serverAddress = (this.environment.thisRef as ServerFarReference).ownerAddress
             if(!(origin.startsWith("http://"+serverAddress)) && serverAddress != "127.0.0.1" && serverAddress != "localhost"){
-                console.log("Blocking cross origin access to : " + origin)
                 return callback('origin not allowed', false);
             }
             callback(null, true);

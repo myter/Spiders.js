@@ -105,7 +105,6 @@ class SocketHandler {
             //Add security exception for local accesses
             let serverAddress = this.environment.thisRef.ownerAddress;
             if (!(origin.startsWith("http://" + serverAddress)) && serverAddress != "127.0.0.1" && serverAddress != "localhost") {
-                console.log("Blocking cross origin access to : " + origin);
                 return callback('origin not allowed', false);
             }
             callback(null, true);
