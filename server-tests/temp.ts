@@ -13,14 +13,13 @@ class Test extends SpiderIsolate{
     }
 }
 
-
 class TestActor extends Actor{
     getIsol(i){
         console.log("Inside Actor : " + i.toString())
     }
 }
 let app = new Application()
-let act = app.spawnActor(TestActor)
+let act = app.spawnActor<TestActor>(TestActor)
 let iso = new Test()
 act.getIsol(iso)
 

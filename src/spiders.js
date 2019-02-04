@@ -126,8 +126,8 @@ class ServerApplication extends ApplicationBase {
         this.mainEnvironment.behaviourObject = this;
         this.portCounter = 8001;
         this.spawnedActors = [];
-        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
-        this.mainEnvironment.actorMirror.initialise(stdLib, true);
+        this.libs = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(this.libs, true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
         let e = new Error();
@@ -156,8 +156,8 @@ class ClientApplication extends ApplicationBase {
         this.mainEnvironment = new ActorEnvironment_1.ClientActorEnvironment(actorMirror);
         this.mainEnvironment.initialise(this.mainId, this.mainId, this);
         this.spawnedActors = [];
-        let stdLib = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
-        this.mainEnvironment.actorMirror.initialise(stdLib, true);
+        this.libs = new ActorSTDLib_1.ActorSTDLib(this.mainEnvironment);
+        this.mainEnvironment.actorMirror.initialise(this.libs, true);
     }
     spawnActor(actorClass, constructorArgs = [], port = -1) {
         var actorObject = new actorClass(...constructorArgs);

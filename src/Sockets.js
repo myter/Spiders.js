@@ -98,9 +98,6 @@ class SocketHandler {
     openIncomingConnection(socketPort) {
         let io = require('socket.io');
         let connection = io(socketPort);
-        /*connection.origins('*:*')
-        console.log(connection.origins)
-        connection.set('origins', '*:*');*/
         connection.origins((origin, callback) => {
             //Add security exception for local accesses
             let serverAddress = this.environment.thisRef.ownerAddress;

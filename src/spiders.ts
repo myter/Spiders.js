@@ -123,27 +123,30 @@ class ServerActor extends ActorBase{
     }
 }
 
-class ApplicationBase {
-    mainId              : string
-    mainEnvironment     : ActorEnvironment
-    appActors           : number = 0
-    self                : any
+abstract class ApplicationBase {
+    mainId: string
+    mainEnvironment: ActorEnvironment
+    appActors: number = 0
+    self: any
 
-    constructor(){
+    constructor() {
         this.self = this
-        if(this.appActors == 0){
-            this.mainId                         = generateId()
-        }
-        else{
+        if (this.appActors == 0) {
+            this.mainId = generateId()
+        } else {
             throw new Error("Cannot create more than one application actor")
         }
     }
 
-    /*spawnActor<T>(actorClass : ActorClass,constructorArgs? : Array<any>,port? : number) : FarRef<T>
-    //Only implemented by ServerApplication
-    spawnActorFromFile(path : string,className : string,constructorArgs? : Array<any>,port? : number)
-    kill()*/
+    abstract spawnActor<T>(actorClass, constructorArgs: Array<any>, port: number): FarRef<T>
+
+    abstract spawnActorFromFile<T>(path: string, className: string, constructorArgs: Array<any>, port: number): FarRef<T>
+
+    abstract kill()
 }
+
+
+
 
 class ServerApplication extends ApplicationBase{
     mainIp                          : string
@@ -151,6 +154,7 @@ class ServerApplication extends ApplicationBase{
     portCounter                     : number
     //SpawnedActors is actually of type Array<ChildProcess> but the ChildProcess types gives error for React-Native applications
     spawnedActors                   : Array<any>
+    libs                            : ActorSTDLib
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror(),mainIp : string = "127.0.0.1",mainPort : number = 8000){
         super()
@@ -161,8 +165,8 @@ class ServerApplication extends ApplicationBase{
         this.mainEnvironment.behaviourObject    = this
         this.portCounter                        = 8001
         this.spawnedActors                      = []
-        let stdLib                              = new ActorSTDLib(this.mainEnvironment)
-        this.mainEnvironment.actorMirror.initialise(stdLib,true)
+        this.libs                               = new ActorSTDLib(this.mainEnvironment)
+        this.mainEnvironment.actorMirror.initialise(this.libs,true)
     }
 
     spawnActor<T>(actorClass ,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
@@ -191,14 +195,15 @@ class ServerApplication extends ApplicationBase{
 
 class ClientApplication extends ApplicationBase{
     spawnedActors       : Array<any>
+    libs                : ActorSTDLib
 
     constructor(actorMirror : SpiderActorMirror = new SpiderActorMirror()){
         super()
         this.mainEnvironment                = new ClientActorEnvironment(actorMirror);
         (this.mainEnvironment as ClientActorEnvironment).initialise(this.mainId,this.mainId,this)
         this.spawnedActors                  = []
-        let stdLib                          = new ActorSTDLib(this.mainEnvironment)
-        this.mainEnvironment.actorMirror.initialise(stdLib,true)
+        this.libs                           = new ActorSTDLib(this.mainEnvironment)
+        this.mainEnvironment.actorMirror.initialise(this.libs,true)
     }
 
     spawnActor<T>(actorClass ,constructorArgs : Array<any> = [],port : number = -1) : FarRef<T>{
@@ -230,11 +235,11 @@ interface AppInterface{
     spawnActor<T>(actorClass : Function,constructionArgs? : Array<any>,port? : number) : FarRef<T>
     spawnActorFromFile<T>(path : string,className : string,constructorArgs? : Array<any>,port? : number) : FarRef<T>
     kill()
-    new(actorMirror? : SpiderActorMirror,address? : string,port? : number)
+    new(actorMirror? : SpiderActorMirror,address? : string,port? : number) : AppInterface
 
 }
-export const Actor  : ActInterface      = (isBrowser()) ? ClientActor as any : ServerActor as any
-export const Application  = (isBrowser()) ? ClientApplication as AppInterface : ServerApplication as AppInterface
+export const Actor       : ActInterface      = (isBrowser()) ? ClientActor as any : ServerActor as any
+export const Application : AppInterface      = (isBrowser()) ? ClientApplication as any : ServerApplication as any
 export {FarRef as FarRef}
 export {SpiderIsolate,SpiderObject,SpiderObjectMirror,SpiderIsolateMirror} from "./MOP"
 export {SpiderActorMirror} from "./MAP"
