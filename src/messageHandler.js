@@ -144,6 +144,15 @@ class MessageHandler {
         //Message has been serialised and has therefore lost its "setClockTime" method (no way around this, at some point need to call JSON.stringify to send message between actors)
         msg.message.setClockTime = (clockTime) => { };
         //Must ensure that any client references "leaking" form this server actor also have the correct contact information
+        if (msg.message.senderRef.type == serialisation_1.ValueContainer.clientFarRefType) {
+            let container = msg.message.senderRef;
+            if (container.contactId == null) {
+                let thisRef = this.environment.thisRef;
+                container.contactId = thisRef.ownerId;
+                container.contactAddress = thisRef.ownerAddress;
+                container.contactPort = thisRef.ownerPort;
+            }
+        }
         if (msg.message.typeTag == Message_1._METHOD_INVOC_) {
             var args = msg.message.args;
             args.forEach((valContainer) => {
