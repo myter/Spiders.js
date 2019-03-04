@@ -5,10 +5,10 @@
 import {Actor,Application,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,LexScope,bundleScope,makeMethodAnnotation} from "../src/spiders";
 import {TestActor} from "./testActorDefinition";
 import {FarRef} from "../index";
+import * as assert from "assert";
 /**
  * Created by flo on 10/01/2017.
  */
-var assert                      = require('assert')
 var chai                        = require('chai')
 var expect                      = chai.expect
 
@@ -895,214 +895,6 @@ describe("General Serialisation",() => {
     })
 })
 
-describe("Meta Actor Protocol",() => {
-    it("Reflecting on Actor",function(done){
-        class TestMirror extends SpiderActorMirror{
-            testValue
-            constructor(){
-                super()
-                this.testValue = 5
-            }
-        }
-        class TestActor extends Actor{
-            constructor(){
-                super(new TestMirror())
-            }
-
-            test(){
-                return (this.libs.reflectOnActor() as TestMirror).testValue
-            }
-        }
-        let app = new Application()
-        let act : FarRef<any> = app.spawnActor(TestActor)
-        act.test().then((v)=>{
-            try{
-                expect(v).to.equal(5)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Custom Init",function(done){
-        class TestMirror extends SpiderActorMirror{
-            testValue
-            initialise(stdLib,appActor,parentRef){
-                super.initialise(stdLib,appActor,parentRef)
-                this.testValue = 5
-            }
-        }
-        class TestActor extends Actor{
-            testValue
-            constructor(){
-                super(new TestMirror())
-            }
-
-            init(){
-                this.testValue = 5
-            }
-
-            test(){
-                return (this.libs.reflectOnActor() as TestMirror).testValue + this.testValue
-            }
-        }
-        let app = new Application()
-        let act : FarRef<any> = app.spawnActor(TestActor)
-        act.test().then((v)=>{
-            try{
-                expect(v).to.equal(10)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Custom Receive Invocation",function(done){
-        class TestMirror extends SpiderActorMirror{
-            testValue
-
-            receiveInvocation(sender,target,methodName,args,perform,send){
-                this.testValue = 5
-                super.receiveInvocation(sender,target,methodName,args,perform,send)
-            }
-        }
-        class TestActor extends Actor{
-            testValue
-            constructor(){
-                super(new TestMirror())
-            }
-            test(){
-                this.testValue = 5
-                return (this.libs.reflectOnActor() as TestMirror).testValue + this.testValue
-            }
-        }
-        let app = new Application()
-        let act : FarRef<any> = app.spawnActor(TestActor)
-        act.test().then((v)=>{
-            try{
-                expect(v).to.equal(10)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Custom Receive Access",function(done){
-        class TestMirror extends SpiderActorMirror{
-            receiveAccess(sender,target,fieldName,perform){
-                target[fieldName]+= 5
-                super.receiveAccess(sender,target,fieldName,perform)
-            }
-        }
-        class TestActor extends Actor{
-            testValue
-            constructor(){
-                super(new TestMirror())
-                this.testValue = 5
-            }
-        }
-        let app = new Application()
-        let act : FarRef<any> = app.spawnActor(TestActor)
-        act.testValue.then((v)=>{
-            try{
-                expect(v).to.equal(10)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Custom Send Invocation",function(done){
-        class TestMirror extends SpiderActorMirror{
-            testValue
-            sendInvocation(target,methodName,args){
-                this.testValue = 5
-                return super.sendInvocation(target,methodName,args)
-            }
-        }
-        class TestApp extends Application{
-            test(){
-                return 5
-            }
-        }
-        class TestActor extends Actor{
-            constructor(){
-                super(new TestMirror())
-            }
-            test(){
-                return this.parent.test().then((v)=>{
-                    return (this.libs.reflectOnActor() as TestMirror).testValue + v
-                })
-            }
-        }
-        let app = new TestApp()
-        let act : FarRef<any> = app.spawnActor(TestActor)
-        act.test().then((v)=>{
-            try{
-                expect(v).to.equal(10)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-    it("Custom Send Access",function(done){
-        class TestMirror extends SpiderActorMirror{
-            testValue
-            sendAccess(target,fieldName){
-                this.testValue = 5
-                return super.sendAccess(target,fieldName)
-            }
-        }
-        class TestApp extends Application{
-            testValue
-            constructor(){
-                super()
-                this.testValue = 5
-            }
-        }
-        class TestActor extends Actor{
-            constructor(){
-                super(new TestMirror())
-            }
-
-            test(){
-                return this.parent.testValue.then((v)=>{
-                    return (this.libs.reflectOnActor() as TestMirror).testValue + v
-                })
-            }
-        }
-        let app = new TestApp()
-        let act : FarRef<any> = app.spawnActor(TestActor)
-        act.test().then((v)=>{
-            try{
-                expect(v).to.equal(10)
-                app.kill()
-                done()
-            }
-            catch(e){
-                app.kill()
-                done(e)
-            }
-        })
-    })
-})
-
 describe("Meta Object Protocol",()=>{
     let annot = makeMethodAnnotation((mirror)=>{
             (mirror as any).value = 666
@@ -1490,6 +1282,265 @@ describe("Meta Object Protocol",()=>{
         let app = new Application()
         let act : FarRef<any> = app.spawnActor(TestActor)
         act.test(new TestObject()).then((v)=>{
+            try{
+                expect(v).to.be.true
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+})
+
+describe("Meta Actor Protocol",() => {
+    it("Reflecting on Actor",function(done){
+        class TestMirror extends SpiderActorMirror{
+            testValue
+            constructor(){
+                super()
+                this.testValue = 5
+            }
+        }
+        class TestActor extends Actor{
+            constructor(){
+                super(new TestMirror())
+            }
+
+            test(){
+                return (this.libs.reflectOnActor() as TestMirror).testValue
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(5)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Init",function(done){
+        class TestMirror extends SpiderActorMirror{
+            testValue
+            initialise(stdLib,appActor,parentRef){
+                super.initialise(stdLib,appActor,parentRef)
+                this.testValue = 5
+            }
+        }
+        class TestActor extends Actor{
+            testValue
+            constructor(){
+                super(new TestMirror())
+            }
+
+            init(){
+                this.testValue = 5
+            }
+
+            test(){
+                return (this.libs.reflectOnActor() as TestMirror).testValue + this.testValue
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Receive Invocation",function(done){
+        class TestMirror extends SpiderActorMirror{
+            testValue
+
+            receiveInvocation(sender,target,methodName,args,perform,send){
+                this.testValue = 5
+                super.receiveInvocation(sender,target,methodName,args,perform,send)
+            }
+        }
+        class TestActor extends Actor{
+            testValue
+            constructor(){
+                super(new TestMirror())
+            }
+            test(){
+                this.testValue = 5
+                return (this.libs.reflectOnActor() as TestMirror).testValue + this.testValue
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Receive Access",function(done){
+        class TestMirror extends SpiderActorMirror{
+            receiveAccess(sender,target,fieldName,perform){
+                target[fieldName]+= 5
+                super.receiveAccess(sender,target,fieldName,perform)
+            }
+        }
+        class TestActor extends Actor{
+            testValue
+            constructor(){
+                super(new TestMirror())
+                this.testValue = 5
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.testValue.then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Send Invocation",function(done){
+        class TestMirror extends SpiderActorMirror{
+            testValue
+            sendInvocation(target,methodName,args){
+                this.testValue = 5
+                return super.sendInvocation(target,methodName,args)
+            }
+        }
+        class TestApp extends Application{
+            test(){
+                return 5
+            }
+        }
+        class TestActor extends Actor{
+            constructor(){
+                super(new TestMirror())
+            }
+            test(){
+                return this.parent.test().then((v)=>{
+                    return (this.libs.reflectOnActor() as TestMirror).testValue + v
+                })
+            }
+        }
+        let app = new TestApp()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Custom Send Access",function(done){
+        class TestMirror extends SpiderActorMirror{
+            testValue
+            sendAccess(target,fieldName){
+                this.testValue = 5
+                return super.sendAccess(target,fieldName)
+            }
+        }
+        class TestApp extends Application{
+            testValue
+            constructor(){
+                super()
+                this.testValue = 5
+            }
+        }
+        class TestActor extends Actor{
+            constructor(){
+                super(new TestMirror())
+            }
+
+            test(){
+                return this.parent.testValue.then((v)=>{
+                    return (this.libs.reflectOnActor() as TestMirror).testValue + v
+                })
+            }
+        }
+        let app = new TestApp()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.equal(10)
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Introspection",function(done){
+        class TestApp extends Application{
+            test(ob){
+                //dummy
+            }
+        }
+        class TestActor extends Actor{
+            test(){
+                let ob = {testOb: true,val: 666}
+                this.parent.test(ob)
+                return this.libs.reflectOnActor().getObjects().filter(({id:i,object:o})=>{
+                    return (o as any).testOb && (o as any).val == 666
+                }).length == 1
+            }
+        }
+        let app = new TestApp()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
+            try{
+                expect(v).to.be.true
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Self Modification",function(done){
+        class TestActor extends Actor{
+            test(){
+                let ob = {testOb: true,val: 666}
+                let id = this.libs.reflectOnActor().addObject(ob)
+                return (this.libs.reflectOnActor().getObject(id) as any).val == 666
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test().then((v)=>{
             try{
                 expect(v).to.be.true
                 app.kill()

@@ -46,6 +46,42 @@ class TestIntroIsol extends spiders_1.SpiderIsolate {
         return 999;
     }
 }
+class ActorMod extends spiders_1.Actor {
+    test() {
+        let ob = { testOb: true, val: 666 };
+        let id = this.libs.reflectOnActor().addObject(ob);
+        return this.libs.reflectOnActor().getObject(id).val == 666;
+    }
+}
+let actorMod = () => {
+    let app = new spiders_1.Application();
+    let act = app.spawnActor(ActorMod);
+    return act.test().then((v) => {
+        log("Actor Self Modification", v, true);
+    });
+};
+scheduled.push(actorMod);
+class ActorIntroApp extends spiders_1.Application {
+    test(ob) {
+    }
+}
+class ActorIntro extends spiders_1.Actor {
+    test() {
+        let ob = { testOb: true, val: 666 };
+        this.parent.test(ob);
+        return this.libs.reflectOnActor().getObjects().filter(({ id: i, object: o }) => {
+            return o.testOb && o.val == 666;
+        }).length == 1;
+    }
+}
+let actorIntro = () => {
+    let app = new ActorIntroApp();
+    let act = app.spawnActor(ActorIntro);
+    return act.test().then((v) => {
+        log("Actor Introspection", v, true);
+    });
+};
+scheduled.push(actorIntro);
 class SelfModActor extends spiders_1.Actor {
     test(iso) {
         let mirr = this.libs.reflectOnObject(iso);

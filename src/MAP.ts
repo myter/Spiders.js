@@ -69,6 +69,10 @@ export class SpiderActorMirror{
         this.serialise  = serialise
     }
 
+    /////////////////////////////////////////////////////////////////
+    // Intercession                                                //
+    /////////////////////////////////////////////////////////////////
+
     //Only non-app actors have a parent reference
     initialise(actSTDLib : ActorSTDLib,appActor : boolean,parentRef : FarReference = null){
         let behaviourObject = this.base.objectPool.getObject(0)
@@ -108,5 +112,29 @@ export class SpiderActorMirror{
         var promiseAlloc : PromiseAllocation = this.base.promisePool.newPromise()
         this.send(targetRef,targetRef.ownerId,new FieldAccessMessage(this.base.thisRef,targetRef.objectId,fieldName,promiseAlloc.promiseId),contactId,contactAddress,contactPort,mainId)
         return promiseAlloc.promise
+    }
+
+    /////////////////////////////////////////////////////////////////
+    // Introspection                                               //
+    /////////////////////////////////////////////////////////////////
+
+    getObjects() : Array<{id: number,object: Object}>{
+        let objects = []
+        this.base.objectPool.listObjects().forEach((object: Object,id : number)=>{
+            objects.push({id: id,object: object})
+        })
+        return objects
+    }
+
+    getObject(id : number){
+        return this.base.objectPool.getObject(id)
+    }
+
+    /////////////////////////////////////////////////////////////////
+    // self-modification                                           //
+    /////////////////////////////////////////////////////////////////
+
+    addObject(object) : number{
+        return this.base.objectPool.allocateObject(object)
     }
 }

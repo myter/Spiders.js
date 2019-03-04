@@ -20,6 +20,9 @@ class ObjectPool {
     getObject(objectId) {
         return this.pool.get(objectId);
     }
+    listObjects() {
+        return this.pool;
+    }
 }
 ObjectPool._BEH_OBJ_ID = 0;
 exports.ObjectPool = ObjectPool;

@@ -33,6 +33,10 @@ export class SpiderObjectMirror{
         this.base[methodName]["_ANNOT_TAG_"]    = annotationTag
     }
 
+    /////////////////////////////////////////////////////////////////
+    // Intercession                                                //
+    /////////////////////////////////////////////////////////////////
+
     invoke(methodName : PropertyKey,args : Array<any>){
         let method = this.base[methodName]
         let annot  = isAnnotatedMethod(method)

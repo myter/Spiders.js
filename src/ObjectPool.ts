@@ -24,4 +24,8 @@ export class ObjectPool{
     getObject(objectId : number) : Object {
         return this.pool.get(objectId)
     }
+
+    listObjects() : Map<number,Object>{
+        return this.pool
+    }
 }

@@ -22,6 +22,9 @@ class SpiderObjectMirror {
         this.base[methodName]["_ANNOT_CALL_"] = annotationCall;
         this.base[methodName]["_ANNOT_TAG_"] = annotationTag;
     }
+    /////////////////////////////////////////////////////////////////
+    // Intercession                                                //
+    /////////////////////////////////////////////////////////////////
     invoke(methodName, args) {
         let method = this.base[methodName];
         let annot = utils_1.isAnnotatedMethod(method);

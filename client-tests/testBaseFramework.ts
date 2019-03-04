@@ -47,6 +47,44 @@ class TestIntroIsol extends SpiderIsolate{
     }
 }
 
+class ActorMod extends Actor{
+    test(){
+        let ob = {testOb: true,val: 666}
+        let id = this.libs.reflectOnActor().addObject(ob)
+        return (this.libs.reflectOnActor().getObject(id) as any).val == 666
+    }
+}
+let actorMod = ()=>{
+    let app = new Application()
+    let act : FarRef<any> = app.spawnActor(ActorMod)
+    return act.test().then((v)=>{
+        log("Actor Self Modification",v,true)
+    })
+}
+scheduled.push(actorMod)
+
+class ActorIntroApp extends Application{
+    test(ob){//dummy
+    }
+}
+class ActorIntro extends Actor{
+    test(){
+        let ob = {testOb: true,val: 666}
+        this.parent.test(ob)
+        return this.libs.reflectOnActor().getObjects().filter(({id:i,object:o})=>{
+            return (o as any).testOb && (o as any).val == 666
+        }).length == 1
+    }
+}
+let actorIntro = ()=>{
+    let app = new ActorIntroApp()
+    let act : FarRef<any> = app.spawnActor(ActorIntro)
+    return act.test().then((v)=>{
+        log("Actor Introspection",v,true)
+    })
+}
+scheduled.push(actorIntro)
+
 class SelfModActor extends Actor{
     test(iso){
         let mirr = this.libs.reflectOnObject(iso)
