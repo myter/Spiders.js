@@ -1,21 +1,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const spiders_1 = require("../src/spiders");
-class Test extends spiders_1.SpiderIsolate {
+class TestMirror extends spiders_1.SpiderObjectMirror {
+}
+class TestObject extends spiders_1.SpiderObject {
     constructor() {
-        super();
-        this.val = 6;
-    }
-    toString() {
-        return "{val = " + this.val + "}";
+        super(new TestMirror());
     }
 }
-class TestActor extends spiders_1.Actor {
-    getIsol(i) {
-        console.log("Inside Actor : " + i.toString());
-    }
-}
-let app = new spiders_1.Application();
-let act = app.spawnActor(TestActor);
-let iso = new Test();
-act.getIsol(iso);
 //# sourceMappingURL=temp.js.map

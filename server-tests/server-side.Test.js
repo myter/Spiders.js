@@ -15,82 +15,6 @@ const spiders_1 = require("../src/spiders");
 var assert = require('assert');
 var chai = require('chai');
 var expect = chai.expect;
-/*it("Static Fields & methods",(done)=>{
-    var app = new Application()
-    class StaticActor extends Actor{
-        static _STATIC_FIELD_ = 5
-        static _STATIC_METHOD_(){
-            return 6
-        }
-        getField(){
-            return this.StaticActor._STATIC_FIELD_
-        }
-        getMethod(){
-            return this.StaticActor._STATIC_METHOD_()
-        }
-    }
-    var act = app.spawnActor(StaticActor)
-    act.getField().then((fieldVal)=>{
-        try{
-            expect(fieldVal).to.equal(StaticActor._STATIC_FIELD_)
-            act.getMethod().then((methodVal)=>{
-                try{
-                    expect(methodVal).to.equal(StaticActor._STATIC_METHOD_())
-                    app.kill()
-                    done()
-                }
-                catch(e){
-                    app.kill()
-                    done(e)
-                }
-            })
-        }
-        catch(e){
-            app.kill()
-            done(e)
-        }
-    })
-})
-
-it("Static inheritance",(done)=>{
-    var app = new Application()
-    class SuperActor extends Actor{
-        static _SUPER_STATIC_ = 5
-    }
-    class BaseActor extends SuperActor{
-        getField(){
-            return SuperActor._SUPER_STATIC_
-        }
-    }
-    var act = app.spawnActor(BaseActor)
-    act.getField().then((v)=>{
-        try{
-            expect(v).to.equal(SuperActor._SUPER_STATIC_)
-            app.kill()
-            done()
-        }
-        catch(e){
-            app.kill()
-            done(e)
-        }
-    })
-})
-
-it("Static immutable",(done)=>{
-    var app = new Application()
-    class StaticActor extends Actor{
-        static _FIELD_ = 5
-        changeField(){
-            return StaticActor._FIELD_ = 6
-        }
-    }
-    var act = app.spawnActor(StaticActor)
-    act.changeField().catch((error)=>{
-        app.kill()
-        done()
-    })
-
-})*/
 describe("Functionality", () => {
     it("Require", (done) => {
         var app = new spiders_1.Application();
@@ -1128,7 +1052,12 @@ describe("Meta Object Protocol", () => {
         mirror.value = 666;
     });
     class TestObject extends spiders_1.SpiderIsolate {
+        constructor() {
+            super(...arguments);
+            this.field = 999;
+        }
         meth() {
+            return 666;
         }
     }
     __decorate([
@@ -1404,6 +1333,85 @@ describe("Meta Object Protocol", () => {
         app.send(act).then((v) => {
             try {
                 expect(v).to.equal(666);
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
+    it("Introspection list all", function (done) {
+        class TT extends spiders_1.Actor {
+            test(iso) {
+                let mirr = this.libs.reflectOnObject(iso);
+                let fields = mirr.getFields();
+                let methods = mirr.getMethods();
+                let hasField = fields.filter((field) => {
+                    return field.name == "field";
+                }).length == 1;
+                let hasMethod = methods.filter((method) => {
+                    return method.name == "meth";
+                }).length == 1;
+                return fields.length >= 1 && methods.length >= 1 && hasField && hasMethod;
+            }
+        }
+        let app = new spiders_1.Application();
+        let act = app.spawnActor(TT);
+        act.test(new TestObject()).then((v) => {
+            try {
+                expect(v).to.be.true;
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
+    it("Introspection get single", function (done) {
+        this.timeout(4000);
+        class TestActor extends spiders_1.Actor {
+            test(iso) {
+                let mirr = this.libs.reflectOnObject(iso);
+                let field = mirr.getField("field");
+                let method = mirr.getMethod("meth");
+                return field.value == 999 && method.value() == 666;
+            }
+        }
+        let app = new spiders_1.Application();
+        let act = app.spawnActor(TestActor);
+        act.test(new TestObject()).then((v) => {
+            try {
+                expect(v).to.be.true;
+                app.kill();
+                done();
+            }
+            catch (e) {
+                app.kill();
+                done(e);
+            }
+        });
+    });
+    it("Self Modification", function (done) {
+        this.timeout(4000);
+        class TestActor extends spiders_1.Actor {
+            test(iso) {
+                let mirr = this.libs.reflectOnObject(iso);
+                mirr.addField("test", 999);
+                mirr.addMethod("testM", () => {
+                    return 666;
+                });
+                return iso.test == 999 && iso.testM() == 666;
+            }
+        }
+        let app = new spiders_1.Application();
+        let act = app.spawnActor(TestActor);
+        act.test(new TestObject()).then((v) => {
+            try {
+                expect(v).to.be.true;
                 app.kill();
                 done();
             }

@@ -39,6 +39,72 @@ function log(testName,result,expected){
     }
     ul.appendChild(li);
 }
+class TestIntroIsol extends SpiderIsolate{
+    field = 666
+
+    meth(){
+        return 999
+    }
+}
+
+class SelfModActor extends Actor{
+    test(iso){
+        let mirr = this.libs.reflectOnObject(iso)
+        mirr.addField("test",999)
+        mirr.addMethod("testM",()=>{
+            return 666
+        })
+        return iso.test == 999 && iso.testM() == 666
+    }
+}
+let selfMod = ()=>{
+    let app = new Application()
+    let act : FarRef<any> = app.spawnActor(SelfModActor)
+    return act.test(new TestIntroIsol()).then((v)=>{
+        log("Self Modification",v,true)
+    })
+}
+scheduled.push(selfMod)
+
+class IntroSingleActor extends Actor{
+    test(iso){
+        let mirr = this.libs.reflectOnObject(iso)
+        let field = mirr.getField("field")
+        let method = mirr.getMethod("meth")
+        return field.value == 666 && method.value() == 999
+    }
+}
+let introSingle = ()=>{
+    let app = new Application()
+    let act : FarRef<any> = app.spawnActor(IntroSingleActor)
+    return act.test(new TestIntroIsol()).then((v)=>{
+        log("Introspection single",v,true)
+    })
+}
+scheduled.push(introSingle)
+
+class IntroListActor extends Actor{
+    test(iso){
+        let mirr = this.libs.reflectOnObject(iso)
+        let fields = mirr.getFields()
+        let methods = mirr.getMethods()
+        let hasField  = fields.filter((field)=>{
+            return field.name == "field"
+        }).length == 1
+        let hasMethod = methods.filter((method)=>{
+            return method.name == "meth"
+        }).length == 1
+        return fields.length >= 1 && methods.length >= 1 && hasField && hasMethod
+    }
+}
+let introspectList = ()=>{
+    let app = new Application()
+    let act : FarRef<any> = app.spawnActor(IntroListActor)
+    return act.test(new TestIntroIsol()).then((v)=>{
+        log("Introspection List all",v,true)
+    })
+}
+scheduled.push(introspectList)
 
 let annot = makeMethodAnnotation((mirror)=>{
         (mirror as any).value = 666
@@ -51,13 +117,11 @@ class TestObject extends SpiderIsolate{
 
     }
 }
-
 class AnnotSerApp extends Application{
     send(toRef){
         return toRef.getIsol(new TestObject())
     }
 }
-
 class AnnotSerActor extends Actor{
     getIsol(i){
         i.meth()
@@ -66,7 +130,7 @@ class AnnotSerActor extends Actor{
 }
 let annotSer = ()=>{
     let app = new AnnotSerApp()
-    let act = app.spawnActor(AnnotSerActor)
+    let act : FarRef<any> = app.spawnActor(AnnotSerActor)
     return app.send(act).then((v)=>{
         log("Annotation Serialisation",v,666)
     })
@@ -89,7 +153,7 @@ class AnnotActor extends Actor{
     }
 }
 let annotRun = ()=>{
-    let act = app.spawnActor(AnnotActor)
+    let act : FarRef<any> = app.spawnActor(AnnotActor)
     return act.test().then((v)=>{
         log("Annotations",v,666)
     })
@@ -114,7 +178,7 @@ class ROAActor extends Actor{
     }
 }
 let performROA = () =>{
-    let act = app.spawnActor(ROAActor)
+    let act : FarRef<any> = app.spawnActor(ROAActor)
     return act.test().then((v)=>{
         log("Reflecting On Actor",v,5)
     })
@@ -143,7 +207,7 @@ class InitActor extends Actor{
     }
 }
 let customInit = ()=>{
-    let act = app.spawnActor(InitActor)
+    let act : FarRef<any> = app.spawnActor(InitActor)
     return act.test().then((v)=>{
         log("Custom Init (MAP)",v,10)
     })
@@ -170,7 +234,7 @@ class CustInvocMAPActor extends Actor{
     }
 }
 let customInvocMap = ()=>{
-    let act = app.spawnActor(CustInvocMAPActor)
+    let act : FarRef<any> = app.spawnActor(CustInvocMAPActor)
     return act.test().then((v)=>{
         log("Custom Invocation (MAP)",v,10)
     })
@@ -191,7 +255,7 @@ class custAccessMapActor extends Actor{
     }
 }
 let customAccessMap = () => {
-    let act = app.spawnActor(custAccessMapActor)
+    let act : FarRef<any> = app.spawnActor(custAccessMapActor)
     return act.testValue.then((v)=>{
         log("Custom Access (MAP)",v,10)
     })
@@ -223,7 +287,7 @@ class CustSendInvocMapActor extends Actor{
 }
 let custSendInvocMAP = ()=>{
     let custSendInvocMapAPP = new CustSendInvocMapApp()
-    let act = custSendInvocMapAPP.spawnActor(CustSendInvocMapActor)
+    let act : FarRef<any> = custSendInvocMapAPP.spawnActor(CustSendInvocMapActor)
     return act.test().then((v)=>{
         log("Custom Send Invocation (MAP)",v,10)
     })
@@ -257,7 +321,7 @@ class CustSendAccessMapActor extends Actor{
 }
 let custSendAccessMap = () =>{
     let custSendAccessMapApp = new CustSendAccessMAPApp()
-    let act = custSendAccessMapApp.spawnActor(CustSendAccessMapActor)
+    let act : FarRef<any> = custSendAccessMapApp.spawnActor(CustSendAccessMapActor)
     return act.test().then((v)=>{
         log("Custom Send Access (MAP)",v,10)
     })
@@ -290,7 +354,7 @@ class ROOActor extends Actor{
     }
 }
 let ROO = () => {
-    let act = app.spawnActor(ROOActor)
+    let act : FarRef<any> = app.spawnActor(ROOActor)
     return act.test().then((v)=>{
         log("Reflect On Object",v,5)
     })
@@ -329,7 +393,7 @@ class CustInvokeMOPActor extends Actor{
     }
 }
 let customInvocMOP = () => {
-    let act = app.spawnActor(CustInvokeMOPActor)
+    let act : FarRef<any> = app.spawnActor(CustInvokeMOPActor)
     return act.test().then((v)=>{
         log("Custom Invoke (MOP)",v,10)
     })
@@ -366,7 +430,7 @@ class CustomAccessMopActor extends Actor{
     }
 }
 let CustomAccessMop = () => {
-    let act = app.spawnActor(CustomAccessMopActor)
+    let act : FarRef<any> = app.spawnActor(CustomAccessMopActor)
     return act.test().then((v)=>{
         log("Custom Access (MOP)",v,10)
     })
@@ -404,7 +468,7 @@ class CustomWriteMOPActor extends Actor{
     }
 }
 let CustomWriteMop = () => {
-    let act = app.spawnActor(CustomWriteMOPActor)
+    let act : FarRef<any> = app.spawnActor(CustomWriteMOPActor)
     return act.test().then((v)=>{
         log("Custom Write (MOP)",v,15)
     })
@@ -436,7 +500,7 @@ class CustomPassMopActor extends Actor{
     }
 }
 let CustomPassMop = () => {
-    let act = app.spawnActor(CustomPassMopActor)
+    let act : FarRef<any> = app.spawnActor(CustomPassMopActor)
     return act.test().then((v)=>{
         log("Custom Pass (MOP)",v,5)
     })
@@ -467,7 +531,7 @@ class CustomResolveMopActor extends Actor{
     }
 }
 let CustomResolveMop = () => {
-    let act = app.spawnActor(CustomResolveMopActor)
+    let act : FarRef<any> = app.spawnActor(CustomResolveMopActor)
     return act.test().then((v)=>{
         log("Custom Resolve (MOP)",v,5)
     })
@@ -482,7 +546,7 @@ class testFieldSerActor extends Actor{
     }
 }
 var performFieldSer = () => {
-    var fieldActor = app.spawnActor(testFieldSerActor)
+    var fieldActor : FarRef<any> = app.spawnActor(testFieldSerActor)
     return fieldActor.val.then((v) => {
         log("Field Serialisation",v,10)
         app.kill()
@@ -500,7 +564,7 @@ class testMethSerActor extends Actor{
     }
 }
 var performMethSer = () => {
-    var methActor = app.spawnActor(testMethSerActor)
+    var methActor : FarRef<any> = app.spawnActor(testMethSerActor)
     return methActor.m().then((v) => {
         log("Method Serialisaton",v,10)
         app.kill()
@@ -521,7 +585,7 @@ class testConSerActor extends Actor{
     }
 }
 var performConSer = () => {
-    var actor = app.spawnActor(testConSerActor)
+    var actor : FarRef<any> = app.spawnActor(testConSerActor)
     return actor.test().then((v) => {
         log("Construction",v,aValue)
         app.kill()
@@ -541,7 +605,7 @@ class testInitSerActor extends Actor{
     }
 }
 var peformInitSer = () => {
-    var actor = app.spawnActor(testInitSerActor)
+    var actor : FarRef<any> = app.spawnActor(testInitSerActor)
     return actor.val.then((v) => {
         log("Initialisation",v,15)
         app.kill()
@@ -556,7 +620,7 @@ class testScopeActor extends Actor{
     }
 }
 var performScopeSer = () => {
-    var actor = app.spawnActor(testScopeActor)
+    var actor : FarRef<any> = app.spawnActor(testScopeActor)
     return actor.get().then((v) => {
         log("Scope",v,undefined)
         app.kill()
@@ -575,7 +639,7 @@ class inhActor extends baseMethodInhActor{
     }
 }
 var performMethodInhSer = () => {
-    var actor = app.spawnActor(inhActor)
+    var actor : FarRef<any> = app.spawnActor(inhActor)
     return actor.testInh().then((v) => {
         log("Inheritance (Method)",v,5)
         app.kill()
@@ -595,7 +659,7 @@ class fieldInhActor extends baseFieldInhActor{
 
 }
 var performFieldInhSer = () => {
-    var actor = app.spawnActor(fieldInhActor)
+    var actor : FarRef<any> = app.spawnActor(fieldInhActor)
     return actor.baseField.then((v) => {
         log("Inheritance (Field)",v,5)
         app.kill()
@@ -619,7 +683,7 @@ class testReqActor extends Actor{
     }
 }
 var performReq = () => {
-    var actor = app.spawnActor(testReqActor)
+    var actor : FarRef<any> = app.spawnActor(testReqActor)
     return actor.invoke().then((v) => {
         log("Require",v,5)
         app.kill()
@@ -636,7 +700,7 @@ class testFieldAccessActor extends Actor{
     }
 }
 var performFieldAccess = () => {
-    var actor = app.spawnActor(testFieldAccessActor)
+    var actor : FarRef<any> = app.spawnActor(testFieldAccessActor)
     return actor.value.then((value) => {
         log("Accessing actor instance variable",value,10)
         app.kill()
@@ -651,7 +715,7 @@ class testMethodInvocActor extends Actor{
     }
 }
 var performMethodInvoc = () => {
-    var actor = app.spawnActor(testMethodInvocActor)
+    var actor : FarRef<any> = app.spawnActor(testMethodInvocActor)
     return actor.m().then((retVal) => {
         log("Invoking method on far reference",retVal,10)
         app.kill()
@@ -666,7 +730,7 @@ class testParentAccessActor extends Actor{
     }
 }
 var performParentAccess = () => {
-    var actor = app.spawnActor(testParentAccessActor)
+    var actor : FarRef<any> = app.spawnActor(testParentAccessActor)
     return actor.access().then((v) => {
         log("Actor accessing main instance variable",v,10)
         app.kill()
@@ -681,7 +745,7 @@ class testParentInvokeActor extends Actor{
     }
 }
 var performParentInvoke = () => {
-    var actor = app.spawnActor(testParentInvokeActor)
+    var actor : FarRef<any> = app.spawnActor(testParentInvokeActor)
     return actor.invoke().then((v) => {
         log("Actor invoking main method",v,10)
         app.kill()
@@ -695,7 +759,7 @@ class testPromiseRejectActor extends Actor{
     }
 }
 var performPromiseReject = () => {
-    var actor = app.spawnActor(testPromiseRejectActor)
+    var actor : FarRef<any> = app.spawnActor(testPromiseRejectActor)
     return actor.m().catch((reason) => {
         log("Promise rejection handling (method invocation)",reason.message,"This is an error")
         app.kill()
@@ -710,7 +774,7 @@ class testPromisePipeActor extends Actor{
     }
 }
 var performPromisePipe = () => {
-    var actor = app.spawnActor(testPromisePipeActor)
+    var actor : FarRef<any> = app.spawnActor(testPromisePipeActor)
     return actor.get().then((val) => {
         log("Promise pipelining (field access)",val,10)
         app.kill()
@@ -725,7 +789,7 @@ class testPromiseInvocPipeActor extends Actor{
     }
 }
 var performPromiseInvocPipe = () => {
-    var actor = app.spawnActor(testPromiseInvocPipeActor)
+    var actor : FarRef<any> = app.spawnActor(testPromiseInvocPipeActor)
     return actor.get().then((val) => {
         log("Promise pipelining (method invocation)",val,10)
         app.kill()
@@ -756,7 +820,7 @@ class testIsolateActor extends Actor{
     }
 }
 var performIsolate = () => {
-    var actor = app.spawnActor(testIsolateActor)
+    var actor : FarRef<any> = app.spawnActor(testIsolateActor)
     return actor.getIsolate().then((isol) => {
         log("Isolate passing",isol.field,6)
         log("Isolate passing2",isol.m(),5)
@@ -801,7 +865,7 @@ class testNestedIsolateActor extends Actor {
     }
 }
 var performNestedIsolate = () => {
-    var actor = app.spawnActor(testNestedIsolateActor);
+    var actor : FarRef<any> = app.spawnActor(testNestedIsolateActor);
     return actor.getIsolate().then((isol) => {
         log("Nested Isolate passing",isol.getOuterField(),6)
         log("Nested Isolate passing2",isol.getInnerIsolate().innerField,5)
@@ -817,7 +881,7 @@ class testNumSerActor extends Actor{
     }
 }
 var performNumSer = () => {
-    var actor = app.spawnActor(testNumSerActor)
+    var actor : FarRef<any> = app.spawnActor(testNumSerActor)
     return actor.compute(5).then((val) => {
         log("Correct serialisation of numeric values",val,10)
         app.kill()
@@ -832,7 +896,7 @@ class testStringSerActor extends Actor{
     }
 }
 var performStringSer = () => {
-    var actor = app.spawnActor(testStringSerActor)
+    var actor : FarRef<any> = app.spawnActor(testStringSerActor)
     return actor.append("5").then((val) => {
         log("Correct serialisation of string values",val,55)
         app.kill()
@@ -852,7 +916,7 @@ class testBoolSerActor extends Actor{
     }
 }
 var performBoolSer = () => {
-    var actor = app.spawnActor(testBoolSerActor)
+    var actor : FarRef<any> = app.spawnActor(testBoolSerActor)
     return actor.test(false).then((val) => {
         log("Correct serialisation of boolean values",val,"nok")
         app.kill()
@@ -870,7 +934,7 @@ class testUserPromActor extends Actor{
     }
 }
 var performUserProm = () => {
-    var actor = app.spawnActor(testUserPromActor)
+    var actor : FarRef<any> = app.spawnActor(testUserPromActor)
     return actor.async().then((val) => {
         log("User-level promise serialisation",val,5)
         app.kill()
@@ -895,7 +959,7 @@ class TestMapActor extends Actor{
     }
 }
 let performMap = () => {
-    let act = app.spawnActor(TestMapActor)
+    let act : FarRef<any> = app.spawnActor(TestMapActor)
     return act.test().then((v)=>{
         log("Map serialisation",v,10)
         app.kill()
@@ -909,7 +973,7 @@ class testArgSerActor extends Actor{
     }
 }
 var performArgSer = () => {
-    var actor = app.spawnActor(testArgSerActor)
+    var actor : FarRef<any> = app.spawnActor(testArgSerActor)
     return actor.m(1,"1",true).then((retArr) => {
         log("Method argument serialisation",retArr[0],1)
         log("Method argument serialisation",retArr[1],"1")
@@ -934,7 +998,7 @@ class testLexObActor extends Actor{
     }
 }
 var performLexOb = () => {
-    var actor = app.spawnActor(testLexObActor)
+    var actor : FarRef<any> = app.spawnActor(testLexObActor)
     return actor.test().then((v) => {
         log("Lexical object serialisation during construction",v,ob.field)
         app.kill()
@@ -957,7 +1021,7 @@ class testFarRefActor2 extends Actor{
 }
 var performFarRef = () => {
     var actor1 = app.spawnActor(testFarRefActor1)
-    var actor2 = app.spawnActor(testFarRefActor2)
+    var actor2 : FarRef<any> = app.spawnActor(testFarRefActor2)
     return actor2.obtainAndAccess(actor1).then((v) => {
         log("Far ref serialisation",v,666)
         app.kill()
@@ -971,7 +1035,7 @@ class testGUIActor extends Actor{
     }
 }
 var performGUI = () => {
-    var actor = app.spawnActor(testGUIActor)
+    var actor : FarRef<any> = app.spawnActor(testGUIActor)
     return actor.getField().then((v) => {
         log("GUI",v,"guiField")
         app.kill()
@@ -997,7 +1061,7 @@ class testReferencePassing_ReferencingActor extends Actor {
 }
 var performActorReferencePassingTest = () => {
     var actor1 = app.spawnActor(testReferencePassing_ReferencedActor);
-    var actor2 = app.spawnActor(testReferencePassing_ReferencingActor, [actor1], 8081);
+    var actor2 : FarRef<any> = app.spawnActor(testReferencePassing_ReferencingActor, [actor1], 8081);
     return actor2.getValue().then((v) => {
         log("Actor reference passing and referencing in init",v,0)
         app.kill()
@@ -1028,7 +1092,7 @@ class TestScopeActor extends Actor{
     }
 }
 var performScopeBunlde = () => {
-    return app.spawnActor(TestScopeActor).test().then((v)=>{
+    return (app.spawnActor(TestScopeActor) as FarRef<any>).test().then((v)=>{
         log("Scope Bundling",v,someVar)
     })
 }
@@ -1050,7 +1114,7 @@ class BaseInitActor extends SuperInitActor{
     }
 }
 var performInitChaining = () =>{
-    var a = app.spawnActor(BaseInitActor)
+    var a : FarRef<any> = app.spawnActor(BaseInitActor)
     return a.val.then((v)=>{
         log("Init chaining",v,30)
     })
@@ -1067,62 +1131,5 @@ function performAll(nextTest){
     })
 }
 performAll(scheduled.pop())
-
-
-
-/*class StaticActor extends Actor{
-    static _STATIC_FIELD = 5
-    static _STATIC_METHOD_(){
-        return 6
-    }
-    getField(){
-        return StaticActor._STATIC_FIELD
-    }
-    getMethod(){
-        return StaticActor._STATIC_METHOD_()
-    }
-}
-var performStaticFieldAndMethod = () =>{
-    var a = app.spawnActor(StaticActor)
-    return a.getField().then((v)=>{
-        log("Static Field access : " + (v == 5))
-        return a.getMethod().then((vv)=>{
-            log("Static Method access: " + (vv == 6))
-        })
-    })
-}
-scheduled.push(performStaticFieldAndMethod)
-
-class StaticSuperActor extends Actor{
-    static _STATIC_SUPER_FIELD = 5
-}
-class StaticBaseActor extends StaticSuperActor{
-    getField(){
-        return StaticSuperActor._STATIC_SUPER_FIELD
-    }
-}
-
-var performStaticInheritance = () =>{
-    var a = app.spawnActor(StaticBaseActor)
-    return a.getField().then((v)=>{
-        log("Static inheritance : " + (v == 5))
-    })
-}
-scheduled.push(performStaticInheritance)
-
-class StaticEror extends Actor{
-    static _STATIC_FIELD_ = 5
-    changeField(){
-        return StaticEror._STATIC_FIELD_ = 6
-    }
-}
-
-var performStaticError = () =>{
-    var a = app.spawnActor(StaticEror)
-    return a.changeField().catch((e)=>{
-        log("Static mutation : " + true)
-    })
-}
-scheduled.push(performStaticError)*/
 
 

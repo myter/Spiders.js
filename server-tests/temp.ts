@@ -1,25 +1,12 @@
-import {Application, SpiderIsolate,Actor} from "../src/spiders";
+import {Application, SpiderIsolate, Actor, SpiderObject, SpiderObjectMirror} from "../src/spiders";
 
-class Test extends SpiderIsolate{
-    val
+class TestMirror extends SpiderObjectMirror{
 
+}
+
+class TestObject extends SpiderObject{
     constructor(){
-        super()
-        this.val = 6
-    }
-
-    toString(){
-        return "{val = " + this.val + "}"
+        super(new TestMirror())
     }
 }
-
-class TestActor extends Actor{
-    getIsol(i){
-        console.log("Inside Actor : " + i.toString())
-    }
-}
-let app = new Application()
-let act = app.spawnActor<TestActor>(TestActor)
-let iso = new Test()
-act.getIsol(iso)
 

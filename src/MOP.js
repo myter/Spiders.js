@@ -1,6 +1,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
 const serialisation_1 = require("./serialisation");
+//TODO need to abstract common parts of both kinds of mirrors
 class SpiderObjectMirror {
     bindBase(base) {
         this.base = base;
@@ -48,6 +49,35 @@ class SpiderObjectMirror {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
         return this.proxyBase;
     }
+    /////////////////////////////////////////////////////////////////
+    // Introspection                                               //
+    /////////////////////////////////////////////////////////////////
+    getFields() {
+        let keys = Reflect.ownKeys(this.base);
+        return keys.map((key) => {
+            return this.getField(key.toString());
+        });
+    }
+    getMethods() {
+        return Reflect.ownKeys(this.base).map((key) => {
+            return this.getMethod(key.toString());
+        });
+    }
+    getField(name) {
+        return { name: name, value: Reflect.get(this.base, name) };
+    }
+    getMethod(name) {
+        return this.getField(name);
+    }
+    /////////////////////////////////////////////////////////////////
+    // self-modification                                           //
+    /////////////////////////////////////////////////////////////////
+    addField(name, value) {
+        this.base[name] = value;
+    }
+    addMethod(name, value) {
+        this.base[name] = value.bind(this.base);
+    }
 }
 SpiderObjectMirror.mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_";
 exports.SpiderObjectMirror = SpiderObjectMirror;
@@ -55,6 +85,9 @@ class SpiderIsolateMirror {
     constructor() {
         this[serialisation_1.SpiderIsolateContainer.checkIsolateFuncKey] = true;
     }
+    /////////////////////////////////////////////////////////////////
+    // Experimental                                                //
+    /////////////////////////////////////////////////////////////////
     bindBase(base) {
         this.base = base;
     }
@@ -74,6 +107,9 @@ class SpiderIsolateMirror {
         this.base[methodName]["_ANNOT_CALL_"] = annotationCall;
         this.base[methodName]["_ANNOT_TAG_"] = annotationTag;
     }
+    /////////////////////////////////////////////////////////////////
+    // Intercession                                                //
+    /////////////////////////////////////////////////////////////////
     invoke(methodName, args) {
         let method = this.base[methodName];
         let annot = utils_1.isAnnotatedMethod(method);
@@ -100,6 +136,35 @@ class SpiderIsolateMirror {
     resolve(hostActorMirror) {
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
         return this.proxyBase;
+    }
+    /////////////////////////////////////////////////////////////////
+    // Introspection                                               //
+    /////////////////////////////////////////////////////////////////
+    getFields() {
+        let keys = Reflect.ownKeys(this.base);
+        return keys.map((key) => {
+            return this.getField(key.toString());
+        });
+    }
+    getMethods() {
+        return Reflect.ownKeys(this.base).map((key) => {
+            return this.getMethod(key.toString());
+        });
+    }
+    getField(name) {
+        return { name: name, value: Reflect.get(this.base, name) };
+    }
+    getMethod(name) {
+        return this.getField(name);
+    }
+    /////////////////////////////////////////////////////////////////
+    // self-modification                                           //
+    /////////////////////////////////////////////////////////////////
+    addField(name, value) {
+        this.base[name] = value;
+    }
+    addMethod(name, value) {
+        this.base[name] = value.bind(this.base);
     }
 }
 exports.SpiderIsolateMirror = SpiderIsolateMirror;

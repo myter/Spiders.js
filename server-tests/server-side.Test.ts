@@ -4,6 +4,7 @@
 
 import {Actor,Application,SpiderIsolate,SpiderIsolateMirror,SpiderObject,SpiderObjectMirror,SpiderActorMirror,LexScope,bundleScope,makeMethodAnnotation} from "../src/spiders";
 import {TestActor} from "./testActorDefinition";
+import {FarRef} from "../index";
 /**
  * Created by flo on 10/01/2017.
  */
@@ -11,82 +12,7 @@ var assert                      = require('assert')
 var chai                        = require('chai')
 var expect                      = chai.expect
 
-/*it("Static Fields & methods",(done)=>{
-    var app = new Application()
-    class StaticActor extends Actor{
-        static _STATIC_FIELD_ = 5
-        static _STATIC_METHOD_(){
-            return 6
-        }
-        getField(){
-            return this.StaticActor._STATIC_FIELD_
-        }
-        getMethod(){
-            return this.StaticActor._STATIC_METHOD_()
-        }
-    }
-    var act = app.spawnActor(StaticActor)
-    act.getField().then((fieldVal)=>{
-        try{
-            expect(fieldVal).to.equal(StaticActor._STATIC_FIELD_)
-            act.getMethod().then((methodVal)=>{
-                try{
-                    expect(methodVal).to.equal(StaticActor._STATIC_METHOD_())
-                    app.kill()
-                    done()
-                }
-                catch(e){
-                    app.kill()
-                    done(e)
-                }
-            })
-        }
-        catch(e){
-            app.kill()
-            done(e)
-        }
-    })
-})
 
-it("Static inheritance",(done)=>{
-    var app = new Application()
-    class SuperActor extends Actor{
-        static _SUPER_STATIC_ = 5
-    }
-    class BaseActor extends SuperActor{
-        getField(){
-            return SuperActor._SUPER_STATIC_
-        }
-    }
-    var act = app.spawnActor(BaseActor)
-    act.getField().then((v)=>{
-        try{
-            expect(v).to.equal(SuperActor._SUPER_STATIC_)
-            app.kill()
-            done()
-        }
-        catch(e){
-            app.kill()
-            done(e)
-        }
-    })
-})
-
-it("Static immutable",(done)=>{
-    var app = new Application()
-    class StaticActor extends Actor{
-        static _FIELD_ = 5
-        changeField(){
-            return StaticActor._FIELD_ = 6
-        }
-    }
-    var act = app.spawnActor(StaticActor)
-    act.changeField().catch((error)=>{
-        app.kill()
-        done()
-    })
-
-})*/
 
 describe("Functionality",() => {
     it("Require",(done) => {
@@ -105,7 +31,7 @@ describe("Functionality",() => {
                 return this.mod.testFunction()
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.invoke().then((v) => {
             try{
                 expect(v).to.equal(5)
@@ -133,7 +59,7 @@ describe("Functionality",() => {
             }
         }
         app.spawnActor(testActor2,[],8082)
-        var actor  = app.spawnActor(testActor1)
+        var actor : FarRef<any>  = app.spawnActor(testActor1)
         actor.getAndAccess().then((v) => {
             try{
                 expect(v).to.equal(5)
@@ -175,7 +101,7 @@ describe("Functionality",() => {
             }
         }
         app.spawnActor(testActor2,[],8082)
-        var actor  = app.spawnActor(testActor1)
+        var actor : FarRef<any>  = app.spawnActor(testActor1)
         actor.getAndAccess().then((v) => {
             try{
                 expect(v[0]).to.equal(5)
@@ -215,7 +141,7 @@ describe("Functionality",() => {
                 return isol.val
             }
         }
-        app.spawnActor(TestActor).test().then((v)=>{
+        (app.spawnActor(TestActor) as FarRef<any>).test().then((v)=>{
             try{
                 expect(v).to.equal(someVar)
                 app.kill()
@@ -233,7 +159,7 @@ describe("Behaviour serialisation",function(){
     this.timeout(5000)
     it("From file",function(done){
         var app = new Application()
-        var act = app.spawnActorFromFile(__dirname + '/testActorDefinition',"TestActor")
+        var act : FarRef<any> = app.spawnActorFromFile(__dirname + '/testActorDefinition',"TestActor")
         act.getValue().then((val)=>{
             try{
                 expect(val).to.equal(5)
@@ -256,7 +182,7 @@ describe("Behaviour serialisation",function(){
                 this.val = 10
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.val.then((v) => {
             try{
                 expect(v).to.equal(10)
@@ -280,7 +206,7 @@ describe("Behaviour serialisation",function(){
                 return this.msub() + 5 as any
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.m().then((v) => {
             try{
                 expect(v).to.equal(10)
@@ -307,7 +233,7 @@ describe("Behaviour serialisation",function(){
                 return this.val
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.test().then((v) => {
             try{
                 expect(v).to.equal(aValue)
@@ -339,7 +265,7 @@ describe("Behaviour serialisation",function(){
         }
         var app = new Application()
         var actor1 = app.spawnActor(referencedActor);
-        var actor2 = app.spawnActor(referencingActor, [actor1]);
+        var actor2 : FarRef<any> = app.spawnActor(referencingActor, [actor1]);
         actor2.getValue().then((v) => {
             try{
                 expect(v).to.equal(5);
@@ -364,7 +290,7 @@ describe("Behaviour serialisation",function(){
                 this.val += 5
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.val.then((v) => {
             try {
                 expect(v).to.equal(15)
@@ -395,7 +321,7 @@ describe("Behaviour serialisation",function(){
                 this.val = this.val * 2
             }
         }
-        var act = app.spawnActor(BaseActor)
+        var act : FarRef<any> = app.spawnActor(BaseActor)
         act.val.then((v)=>{
             try{
                 expect(v).to.equal(30)
@@ -418,7 +344,7 @@ describe("Behaviour serialisation",function(){
                 return (this as any).promisePool
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.get().then((v) => {
             try{
                 expect(v).to.equal(undefined)
@@ -443,7 +369,7 @@ describe("Behaviour serialisation",function(){
                 return this.test() as any
             }
         }
-        var actor = app.spawnActor(inhActor)
+        var actor : FarRef<any> = app.spawnActor(inhActor)
         actor.testInh().then((v) => {
             try{
                 expect(v).to.equal(5)
@@ -468,7 +394,7 @@ describe("Behaviour serialisation",function(){
         class inhActor extends baseActor{
 
         }
-        var actor = app.spawnActor(inhActor)
+        var actor : FarRef<any> = app.spawnActor(inhActor)
         actor.baseField.then((v) => {
             try{
                 expect(v).to.equal(5)
@@ -494,7 +420,7 @@ describe("Communication",() => {
                 this.value = 10
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.value.then((value) => {
             try{
                 expect(value).to.equal(10)
@@ -515,7 +441,7 @@ describe("Communication",() => {
                 return 10 as any
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.m().then((retVal) => {
             try{
                 expect(retVal).to.equal(10)
@@ -558,7 +484,7 @@ describe("Communication",() => {
                 })
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.access()
     })
     it("Actor invoking main method",(done) => {
@@ -582,7 +508,7 @@ describe("Communication",() => {
                 this.parent.m()
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.invoke()
     })
     it("Promise rejection handling (method invocation)",(done) => {
@@ -592,7 +518,7 @@ describe("Communication",() => {
                 throw new Error("This is an error")
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.m().catch((reason) => {
             try{
                 expect(reason.message).to.equal("This is an error")
@@ -619,7 +545,7 @@ describe("Communication",() => {
                 return this.parent.field
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.get().then((val) => {
             try{
                 expect(val).to.equal(10)
@@ -644,7 +570,7 @@ describe("Communication",() => {
                 return this.parent.get()
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.get().then((val) => {
             try{
                 expect(val).to.equal(10)
@@ -679,7 +605,7 @@ describe("Communication",() => {
                 return new this.mIsolate()
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.getIsolate().then((isol) => {
             try{
                 expect(isol.field).to.equal(6)
@@ -731,7 +657,7 @@ describe("Communication",() => {
                 return this.mIsolate
             }
         }
-        var actor = app.spawnActor(testActor);
+        var actor : FarRef<any> = app.spawnActor(testActor);
         actor.getIsolate().then((isol) => {
             try{
                 expect(isol.getOuterField()).to.equal(6)
@@ -755,7 +681,7 @@ describe("General Serialisation",() => {
                 return num + 5
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.compute(5).then((val) => {
             try {
                 expect(val).to.equal(10)
@@ -775,7 +701,7 @@ describe("General Serialisation",() => {
                 return str + 5
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.append("5").then((val) => {
             try {
                 expect(val).to.equal("55")
@@ -800,7 +726,7 @@ describe("General Serialisation",() => {
                 }
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.test(false).then((val) => {
             try {
                 expect(val).to.equal("nok")
@@ -820,7 +746,7 @@ describe("General Serialisation",() => {
                 return new Buffer("test") as any
             }
         }
-        let act = app.spawnActor(TestBuffActor)
+        let act : FarRef<any> = app.spawnActor(TestBuffActor)
         let bb  = new Buffer("test")
         act.test().then((b)=>{
             try{
@@ -845,7 +771,7 @@ describe("General Serialisation",() => {
                 })
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.async().then((val) => {
             try{
                 expect(val).to.equal(5)
@@ -865,7 +791,7 @@ describe("General Serialisation",() => {
                 return [num,str,bool] as any
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.m(1,"1",true).then((retArr) => {
             try{
                 expect(retArr[0]).to.equal(1)
@@ -895,7 +821,7 @@ describe("General Serialisation",() => {
                 return this.farRef.field
             }
         }
-        var actor = app.spawnActor(testActor)
+        var actor : FarRef<any> = app.spawnActor(testActor)
         actor.test().then((v) => {
             try{
                 expect(v).to.equal(ob.field)
@@ -923,7 +849,7 @@ describe("General Serialisation",() => {
             }
         }
         var actor1 = app.spawnActor(testActor1)
-        var actor2 = app.spawnActor(testActor2,[],8081)
+        var actor2 : FarRef<any> = app.spawnActor(testActor2,[],8081)
         actor2.obtainAndAccess(actor1).then((v) => {
             try{
                 expect(v).to.equal(666)
@@ -954,7 +880,7 @@ describe("General Serialisation",() => {
                 })
             }
         }
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -988,7 +914,7 @@ describe("Meta Actor Protocol",() => {
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(5)
@@ -1024,7 +950,7 @@ describe("Meta Actor Protocol",() => {
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1057,7 +983,7 @@ describe("Meta Actor Protocol",() => {
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1085,7 +1011,7 @@ describe("Meta Actor Protocol",() => {
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.testValue.then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1122,7 +1048,7 @@ describe("Meta Actor Protocol",() => {
             }
         }
         let app = new TestApp()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1162,7 +1088,7 @@ describe("Meta Actor Protocol",() => {
             }
         }
         let app = new TestApp()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1179,14 +1105,15 @@ describe("Meta Actor Protocol",() => {
 
 describe("Meta Object Protocol",()=>{
     let annot = makeMethodAnnotation((mirror)=>{
-        (mirror as any).value = 666
+            (mirror as any).value = 666
         }
     )
     class TestObject extends SpiderIsolate{
+        field = 999
 
         @annot
         meth(){
-
+            return 666
         }
     }
     it("Reflecting on Object",function(done){
@@ -1216,7 +1143,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(5)
@@ -1261,7 +1188,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1305,7 +1232,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(10)
@@ -1350,7 +1277,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(15)
@@ -1388,7 +1315,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(5)
@@ -1426,7 +1353,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(5)
@@ -1454,7 +1381,7 @@ describe("Meta Object Protocol",()=>{
             }
         }
         let app = new Application()
-        let act = app.spawnActor(TestActor)
+        let act : FarRef<any> = app.spawnActor(TestActor)
         act.test().then((v)=>{
             try{
                 expect(v).to.equal(666)
@@ -1482,7 +1409,7 @@ describe("Meta Object Protocol",()=>{
         }
 
         let app = new App()
-        let act = app.spawnActor(Act)
+        let act : FarRef<any> = app.spawnActor(Act)
         app.send(act).then((v)=>{
             try{
                 expect(v).to.equal(666)
@@ -1495,4 +1422,85 @@ describe("Meta Object Protocol",()=>{
             }
         })
     })
+    it("Introspection list all",function(done){
+        class TT extends Actor{
+            test(iso){
+                let mirr = this.libs.reflectOnObject(iso)
+                let fields = mirr.getFields()
+                let methods = mirr.getMethods()
+                let hasField  = fields.filter((field)=>{
+                    return field.name == "field"
+                }).length == 1
+                let hasMethod = methods.filter((method)=>{
+                    return method.name == "meth"
+                }).length == 1
+                return fields.length >= 1 && methods.length >= 1 && hasField && hasMethod
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TT)
+        act.test(new TestObject()).then((v)=>{
+            try{
+                expect(v).to.be.true
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Introspection get single",function(done){
+        this.timeout(4000)
+        class TestActor extends Actor{
+            test(iso){
+                let mirr = this.libs.reflectOnObject(iso)
+                let field = mirr.getField("field")
+                let method = mirr.getMethod("meth")
+                return field.value == 999 && method.value() == 666
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test(new TestObject()).then((v)=>{
+            try{
+                expect(v).to.be.true
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
+    it("Self Modification",function(done){
+        this.timeout(4000)
+        class TestActor extends Actor{
+            test(iso){
+                let mirr = this.libs.reflectOnObject(iso)
+                mirr.addField("test",999)
+                mirr.addMethod("testM",()=>{
+                    return 666
+                })
+                return iso.test == 999 && iso.testM() == 666
+            }
+        }
+        let app = new Application()
+        let act : FarRef<any> = app.spawnActor(TestActor)
+        act.test(new TestObject()).then((v)=>{
+            try{
+                expect(v).to.be.true
+                app.kill()
+                done()
+            }
+            catch(e){
+                app.kill()
+                done(e)
+            }
+        })
+    })
 })
+
+

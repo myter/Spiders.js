@@ -2,7 +2,7 @@ import {clone, isAnnotatedMethod, LexScope} from "./utils";
 import {SpiderIsolateContainer} from "./serialisation";
 import {SpiderActorMirror} from "./MAP";
 
-
+//TODO need to abstract common parts of both kinds of mirrors
 export class SpiderObjectMirror{
     static mirrorAccessKey = "_SPIDER_OBJECT_MIRROR_"
     base : SpiderObject
@@ -64,6 +64,47 @@ export class SpiderObjectMirror{
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
         return this.proxyBase
     }
+
+    /////////////////////////////////////////////////////////////////
+    // Introspection                                               //
+    /////////////////////////////////////////////////////////////////
+
+
+    getFields() :Array<{name:string,value:any}>{
+        let keys = Reflect.ownKeys(this.base)
+        return keys.map((key)=>{
+            return this.getField(key.toString())
+        })
+    }
+
+    getMethods(){
+        return Reflect.ownKeys(this.base).map((key)=>{
+            return this.getMethod(key.toString())
+        })
+    }
+
+    getField(name : string) : {name: string,value: any}{
+        return {name : name,value: Reflect.get(this.base,name)}
+    }
+
+
+    getMethod(name : string) : {name: string,value: Function}{
+        return this.getField(name)
+    }
+
+
+
+    /////////////////////////////////////////////////////////////////
+    // self-modification                                           //
+    /////////////////////////////////////////////////////////////////
+
+    addField(name : string,value : any){
+        this.base[name] = value
+    }
+
+    addMethod(name : string,value : Function){
+        this.base[name] = value.bind(this.base)
+    }
 }
 
 export class SpiderIsolateMirror{
@@ -73,6 +114,10 @@ export class SpiderIsolateMirror{
     constructor(){
         this[SpiderIsolateContainer.checkIsolateFuncKey] = true
     }
+
+    /////////////////////////////////////////////////////////////////
+    // Experimental                                                //
+    /////////////////////////////////////////////////////////////////
 
     bindBase(base){
         this.base = base
@@ -98,6 +143,10 @@ export class SpiderIsolateMirror{
         this.base[methodName]["_ANNOT_CALL_"]   = annotationCall
         this.base[methodName]["_ANNOT_TAG_"]    = annotationTag
     }
+
+    /////////////////////////////////////////////////////////////////
+    // Intercession                                                //
+    /////////////////////////////////////////////////////////////////
 
     invoke(methodName : PropertyKey,args : Array<any>){
         let method = this.base[methodName]
@@ -129,6 +178,43 @@ export class SpiderIsolateMirror{
     resolve(hostActorMirror : SpiderActorMirror){
         //Regular object is sent by far reference, therefore no need to provide a resolve implementation given that this mirror will not be pased along
         return this.proxyBase
+    }
+
+    /////////////////////////////////////////////////////////////////
+    // Introspection                                               //
+    /////////////////////////////////////////////////////////////////
+
+    getFields() :Array<{name:string,value:any}>{
+        let keys = Reflect.ownKeys(this.base)
+        return keys.map((key)=>{
+            return this.getField(key.toString())
+        })
+    }
+
+    getMethods(){
+        return Reflect.ownKeys(this.base).map((key)=>{
+            return this.getMethod(key.toString())
+        })
+    }
+
+    getField(name : string) : {name: string,value: any}{
+        return {name : name,value: Reflect.get(this.base,name)}
+    }
+
+    getMethod(name : string) : {name: string,value: Function}{
+        return this.getField(name)
+    }
+
+    /////////////////////////////////////////////////////////////////
+    // self-modification                                           //
+    /////////////////////////////////////////////////////////////////
+
+    addField(name : string,value : any){
+        this.base[name] = value
+    }
+
+    addMethod(name : string,value : Function){
+        this.base[name] = value.bind(this.base)
     }
 }
 

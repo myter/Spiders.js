@@ -37,6 +37,71 @@ function log(testName, result, expected) {
     }
     ul.appendChild(li);
 }
+class TestIntroIsol extends spiders_1.SpiderIsolate {
+    constructor() {
+        super(...arguments);
+        this.field = 666;
+    }
+    meth() {
+        return 999;
+    }
+}
+class SelfModActor extends spiders_1.Actor {
+    test(iso) {
+        let mirr = this.libs.reflectOnObject(iso);
+        mirr.addField("test", 999);
+        mirr.addMethod("testM", () => {
+            return 666;
+        });
+        return iso.test == 999 && iso.testM() == 666;
+    }
+}
+let selfMod = () => {
+    let app = new spiders_1.Application();
+    let act = app.spawnActor(SelfModActor);
+    return act.test(new TestIntroIsol()).then((v) => {
+        log("Self Modification", v, true);
+    });
+};
+scheduled.push(selfMod);
+class IntroSingleActor extends spiders_1.Actor {
+    test(iso) {
+        let mirr = this.libs.reflectOnObject(iso);
+        let field = mirr.getField("field");
+        let method = mirr.getMethod("meth");
+        return field.value == 666 && method.value() == 999;
+    }
+}
+let introSingle = () => {
+    let app = new spiders_1.Application();
+    let act = app.spawnActor(IntroSingleActor);
+    return act.test(new TestIntroIsol()).then((v) => {
+        log("Introspection single", v, true);
+    });
+};
+scheduled.push(introSingle);
+class IntroListActor extends spiders_1.Actor {
+    test(iso) {
+        let mirr = this.libs.reflectOnObject(iso);
+        let fields = mirr.getFields();
+        let methods = mirr.getMethods();
+        let hasField = fields.filter((field) => {
+            return field.name == "field";
+        }).length == 1;
+        let hasMethod = methods.filter((method) => {
+            return method.name == "meth";
+        }).length == 1;
+        return fields.length >= 1 && methods.length >= 1 && hasField && hasMethod;
+    }
+}
+let introspectList = () => {
+    let app = new spiders_1.Application();
+    let act = app.spawnActor(IntroListActor);
+    return act.test(new TestIntroIsol()).then((v) => {
+        log("Introspection List all", v, true);
+    });
+};
+scheduled.push(introspectList);
 let annot = spiders_1.makeMethodAnnotation((mirror) => {
     mirror.value = 666;
 });
@@ -925,58 +990,4 @@ function performAll(nextTest) {
     });
 }
 performAll(scheduled.pop());
-/*class StaticActor extends Actor{
-    static _STATIC_FIELD = 5
-    static _STATIC_METHOD_(){
-        return 6
-    }
-    getField(){
-        return StaticActor._STATIC_FIELD
-    }
-    getMethod(){
-        return StaticActor._STATIC_METHOD_()
-    }
-}
-var performStaticFieldAndMethod = () =>{
-    var a = app.spawnActor(StaticActor)
-    return a.getField().then((v)=>{
-        log("Static Field access : " + (v == 5))
-        return a.getMethod().then((vv)=>{
-            log("Static Method access: " + (vv == 6))
-        })
-    })
-}
-scheduled.push(performStaticFieldAndMethod)
-
-class StaticSuperActor extends Actor{
-    static _STATIC_SUPER_FIELD = 5
-}
-class StaticBaseActor extends StaticSuperActor{
-    getField(){
-        return StaticSuperActor._STATIC_SUPER_FIELD
-    }
-}
-
-var performStaticInheritance = () =>{
-    var a = app.spawnActor(StaticBaseActor)
-    return a.getField().then((v)=>{
-        log("Static inheritance : " + (v == 5))
-    })
-}
-scheduled.push(performStaticInheritance)
-
-class StaticEror extends Actor{
-    static _STATIC_FIELD_ = 5
-    changeField(){
-        return StaticEror._STATIC_FIELD_ = 6
-    }
-}
-
-var performStaticError = () =>{
-    var a = app.spawnActor(StaticEror)
-    return a.changeField().catch((e)=>{
-        log("Static mutation : " + true)
-    })
-}
-scheduled.push(performStaticError)*/
 //# sourceMappingURL=testBaseFramework.js.map
