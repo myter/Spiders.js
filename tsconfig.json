@@ -21,7 +21,8 @@
     "ChristopheExample/**/*",
     "FullRepTest/**/*",
     "WebTest/**/*",
-    "typings/**/*"
+    "typings/**/*",
+    "SpiderPong/**/*"
   ],
   "exclude": [
     "node_modules"
