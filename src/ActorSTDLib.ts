@@ -188,7 +188,7 @@ export class ActorSTDLib{
                     $('head').append('<script>' + varDefs +  '</script>')
                 }
                 $('<script>').appendTo($('body')).attr('src',htmlFolder+"/"+bundleName);
-                fs.writeFile(outputHtml, window.document.documentElement.outerHTML,
+                fs.writeFile(outputHtml, '<!DOCTYPE html>'+window.document.documentElement.outerHTML,
                     function (error){
                         if (error){
                             reject(error)
