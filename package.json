@@ -18,7 +18,7 @@
     "browserify": "14.0.0",
     "bufferutil": "4.0.0",
     "csv-write-stream": "^2.0.0",
-    "fast-csv": "^2.4.1",
+    "fast-csv": "^4.3.6",
     "fast-stats": "0.0.3",
     "lz-string": "^1.4.4",
     "net": "1.0.2",
