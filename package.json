@@ -32,7 +32,7 @@
     "request-promise-native": "^1.0.5",
     "ejs": "^2.5.7",
     "socket.io": "2.1.1",
-    "jsdom": "13.0.0",
+    "jsdom": "16.5.0",
     "jquery": "3.3.1",
     "@types/node": "~10.12.18",
     "@types/jquery": "^3.3.29"
