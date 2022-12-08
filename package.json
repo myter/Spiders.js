@@ -28,7 +28,7 @@
     "utf-8-validate": "5.0.1",
     "webworkify": "1.4.0",
     "geocoder": "^0.2.3",
-    "express": "4.16.3",
+    "express": "4.17.3",
     "request-promise-native": "^1.0.5",
     "ejs": "^2.5.7",
     "socket.io": "2.1.1",
